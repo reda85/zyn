@@ -21,9 +21,7 @@ export default function DrawerBody( {pin} ) {
     const [note, setNote] = useState(pin.note)
       const [tags, setTags] = useState(pin.tags || []);
 
-  useEffect(() => {
-    setTags(pin.tags || []);
-  }, [pin]);
+  
 
   const handleUpdateTags = async (updatedTags) => {
     setTags(updatedTags);
@@ -43,6 +41,7 @@ export default function DrawerBody( {pin} ) {
     useEffect(() => {
       setName(pin.name)
       setNote(pin.note)
+      setTags(pin.tags || []);
     }, [pin])
 
      const handleUpdateName = async () => {
@@ -78,7 +77,7 @@ export default function DrawerBody( {pin} ) {
       <div className="text-xs"><Textarea value={note || ''} placeholder='Ajouter une description ici ...' onBlur={handleUpdateNote} onChange={(e) => setNote(e.target.value)} className="w-full resize-none text-sm placeholder:text-sm  focus:outline-none" /></div>
      
       {/*<TagList tags={pin.tags} /> */}
-      <TagEditor tags={pin.tags} onChange={handleUpdateTags} />
+      <TagEditor tags={tags}  onChange={handleUpdateTags} />
       <div className='flex flex-row gap-2 items-center'> 
        <IntervenantDatePicker />
       </div>

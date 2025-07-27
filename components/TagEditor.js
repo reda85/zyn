@@ -1,20 +1,30 @@
 // components/TagEditor.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Tag } from 'lucide-react';
+
+import { useAtom } from 'jotai';
+import { selectedPinAtom } from '@/store/atoms';
 
 export default function TagEditor({ tags = [], onChange }) {
   const [input, setInput] = useState('');
-  const [currentTags, setCurrentTags] = useState(tags);
+  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
+  const [currentTags, setCurrentTags] = useState(selectedPin.tags);
 
   const handleAddTag = (e) => {
+    console.log('handleAddTag', e)
     if (e.key === 'Enter' && input.trim()) {
       e.preventDefault();
-      const newTags = [...new Set([...currentTags, input.trim()])];
+      const newTags = currentTags?.length > 0 ? [...currentTags, input.trim()] : [input.trim()];
       setCurrentTags(newTags);
       onChange(newTags);
       setInput('');
     }
   };
+
+  
+  useEffect(() => {
+    setCurrentTags(selectedPin.tags || []);
+  }, [selectedPin]);
 
   const removeTag = (tag) => {
     const newTags = currentTags.filter((t) => t !== tag);

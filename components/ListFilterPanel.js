@@ -19,14 +19,14 @@ import OverdueFilter from './OverdueFilter';
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
 
-export default function FilterPanel() {
+export default function ListFilterPanel({ pins, setPins }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  const [originalPins, setPins] = useAtom(pinsAtom);
-  const [allPins] = useState(originalPins);
+  
+  const [allPins] = useState(pins);
   const [statusTags, setStatusTags] = useState([]);
 
 
@@ -81,14 +81,22 @@ if (filters.overdue) {
   }, [filters, categoryTags, dateTags, statusTags]);
 
   useEffect(() => {
-    if (open && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
-      });
-    }
-  }, [open]);
+  if (open && buttonRef.current) {
+    const rect = buttonRef.current.getBoundingClientRect();
+    const panelWidth = 384; // w-96 = 384px
+
+    const left = Math.min(
+      rect.left + window.scrollX,
+      window.innerWidth - panelWidth - 16 // prevent going off screen (16px padding)
+    );
+
+    setPosition({
+      top: rect.bottom + window.scrollY + 8,
+      left,
+    });
+  }
+}, [open]);
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -112,7 +120,10 @@ if (filters.overdue) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 px-2 py-2 bg-stone-100 rounded-md shadow hover:bg-stone-200 border border-gray-300"
       >
+        <div className="flex flex-row items-center gap-2">
         <ListFilterIcon className="h-5 w-5" />
+        <span className="text-xs font-semibold">Filtres</span>
+        </div>
       </button>
 
       {open &&
@@ -120,7 +131,7 @@ if (filters.overdue) {
           <div
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
-            className="absolute z-50 w-96 bg-white border border-gray-200 shadow-lg py-4 rounded-md"
+           className="absolute z-50 w-[24rem] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 shadow-lg py-4 rounded-md"
           >
             <div className="flex justify-between items-center mb-3 px-4">
               <h3 className="text-sm font-semibold">Filtres</h3>

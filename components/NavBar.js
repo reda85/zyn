@@ -15,7 +15,7 @@ import { useState, useRef, useEffect } from 'react'
 const tabs = ['Plan', 'Tasks', 'Medias']
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
-export default function Navbar({ id }) {
+export default function Navbar({ id,user, project }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
@@ -140,7 +140,7 @@ export default function Navbar({ id }) {
             <span>Members</span>
           </div>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
-            M
+            {user?.name?.charAt(0).toUpperCase() || 'M'}
           </div>
         </div>
       </div>

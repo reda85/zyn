@@ -16,6 +16,7 @@ import { Document, Page, PDFDownloadLink, Text } from "@react-pdf/renderer"
 import PdfReport from "@/components/PdfReport"
 import { getZoomedInPinImage } from "@/utils/pdfUtils"
 import FilterPanel from "@/components/FilterPanel"
+import ListFilterPanel from "../../../../../components/ListFilterPanel"
 
 
 const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
@@ -154,7 +155,7 @@ fetchPins()
         placeholder="Rechercher"
         className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
       />
-    <FilterPanel />
+    <ListFilterPanel pins={pins} setPins={setPins} />
     </div>
     </div>
     {selectedIds.size > 0 && <div className="p-3 bg-neutral-200">

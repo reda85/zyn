@@ -28,7 +28,7 @@ export default function CategoryComboBox({ pin }) {
     if (!selected?.value) return
     const { data } = await supabase.from('pdf_pins').update({ category: selected.value }).eq('id', pin.id).select('*').single()
     if (data) {
-      setSelectedPin({ ...selectedPin, category: data.category })
+     if(selectedPin) {setSelectedPin({ ...selectedPin, category: data.category })}
       setPins(pins.map(p => (p.id === selectedPin?.id ? { ...p, category: data.category } : p)))
     }
   }

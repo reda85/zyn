@@ -36,12 +36,12 @@ function PinIcon({ size = 24, color = 'red' }) {
   );
 }
 
-export default function PdfCanvas({ fileUrl, onPinAdd, project, plan }) {
+export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom);
   const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom);
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.25);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
@@ -56,7 +56,14 @@ const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
 const containerRef = useRef(null);
 const pageRef = useRef(null); // NEW
 
+console.log('User', user)
+console.log('SelectedPin', selectedPin)
 
+useEffect(() => {
+ if (selectedPin) {
+  focusOnPin(selectedPin);
+}
+}, [selectedPin]);
 
 
 
@@ -135,7 +142,7 @@ function zoomOut() {
   }
 }
 
-const handlePinAdd = async (pin) => {
+const handlePinAdd = async (pin,user) => {
   //if (!selectedPin) return;
 console.log('handlePinAdd', pin)
   const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*').single()
@@ -145,7 +152,7 @@ console.log('handlePinAdd', pin)
     setPins( pins => [...pins, data]);
     setPinMode(false);
     console.log('handlePinAdd', pins)
-    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({pin_id:data.id,event: 'a cree ce pin', category: 'creation'}).select('*').single()
+    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.assigned_to, pin_id:data.id,event: user.name + ' a cree ce pin', category: 'creation'}).select('*').single()
     console.log('eventdata', eventdata)
     if (eventerror) {
       console.log('eventerror', eventerror)
@@ -163,6 +170,27 @@ useEffect(()=> {
   function closeDrawer() {
     setSelectedPin(null);
   }
+
+  function focusOnPin(pin) {
+  if (!pageRef.current || !containerRef.current || !pdfSize) return;
+
+  const pinX = pin.x * pdfSize.width;
+  const pinY = pin.y * pdfSize.height;
+
+  // Calculate viewport center
+  const container = containerRef.current.getBoundingClientRect();
+  const centerX = container.width / 2;
+  const centerY = container.height / 2;
+
+  // New offset so the pin appears centered
+  const newOffset = {
+    x: centerX - pinX * scale,
+    y: centerY - pinY * scale,
+  };
+
+  setOffset(newOffset);
+}
+
 
 function handlePdfClick(e) {
   if (!pinMode || dragging || !containerRef.current || !pageRef.current) return;
@@ -194,10 +222,10 @@ function handlePdfClick(e) {
     project_id: project.id,
     pdf_name: plan.name,
     plan_id: plan.id,
-    assigned_to: null,
+    assigned_to: user?.id,
   };
 
-  handlePinAdd(newPin);
+  handlePinAdd(newPin,user);
 }
 
 
@@ -265,7 +293,7 @@ function handlePdfClick(e) {
   <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} loading="Loading PDF...">
    <Page
   pageNumber={pageNumber}
-  scale={5}
+  scale={4}
   renderTextLayer={false}
   renderAnnotationLayer={false}
   inputRef={pageRef}
@@ -295,7 +323,7 @@ function handlePdfClick(e) {
         transition: 'transform 0.3s ease',
         
       }}
-      onClick={() => setSelectedPin({ ...pin, index: idx })}
+      onClick={() => { setSelectedPin({ ...pin, index: idx })}}
       title={`Pin #${idx + 1}`}
     >
       <MapPin pin={pin} />

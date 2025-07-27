@@ -7,16 +7,21 @@ import PinsList from '@/components/PinsList';
 import NavBar from '@/components/NavBar';
 import { useAtom } from 'jotai';
 import { pinsAtom } from '@/store/atoms';
+import { useUser } from '@/components/UserContext';
+import { useUserData } from '@/hooks/useUserData';
 
 
 
-export default function ProjectDetail({ params }) {
+export default  function ProjectDetail({ params }) {
   const { projectId, planId } = use(params);
   const [project, setProject] = useState(null)
   const [plan, setPlan] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
 
- 
+const {user,profile,organization} = useUserData();
+
+
+console.log('uuuser', user, profile, organization)
 
   useEffect(() => {
      {
@@ -60,8 +65,9 @@ export default function ProjectDetail({ params }) {
   if (!project || !plan) return <p>Loading...</p>
 
   return (
+    
    <div className="h-screen flex flex-col">
-  <NavBar project={project} id={projectId} />
+  <NavBar project={project} id={projectId} user={profile} />
   
   <div className="flex flex-1 overflow-hidden">
     <div className="w-72 overflow-y-auto border-r border-gray-200">
@@ -74,6 +80,7 @@ export default function ProjectDetail({ params }) {
         pins={pins}
         project={project}
         plan={plan}
+        user={profile}
       />
     </div>
   </div>
