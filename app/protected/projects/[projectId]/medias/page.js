@@ -22,44 +22,7 @@ const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display:
 
 
 
-  const DueDatePicker = ({ pin }) => {
- 
-    const [selectedDate, setSelectedDate] = useState(pin?.due_date ? new Date(pin.due_date) : null );
-    const [isPickingDate, setIsPickingDate] = useState(false);
-    console.log('selectedDate', selectedDate)
-
-    return (
-      <div className="w-36 relative">
-        {isPickingDate ? (
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => {
-              setSelectedDate(date);
-              setIsPickingDate(false);
-            }}
-            onBlur={() => setIsPickingDate(false)}
-            autoFocus
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
-            dateFormat="dd/MM/yyyy"
-            placeholderText="Sélectionner une date"
-          />
-        ) : (
-          <button
-            type="button"
-            className="w-full border rounded px-3 py-2 pl-10 text-left bg-white hover:bg-blue-50 relative"
-            onClick={() => setIsPickingDate(true)}
-          >
-           {selectedDate instanceof Date
-  ? selectedDate.toLocaleDateString('fr-FR')
-  : 'Ajouter échéance'}
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800">
-              <Calendar1Icon size={16} />
-            </div>
-          </button>
-        )}
-      </div>
-      );
-  }
+  
   
 export default function Medias({ params }) {
    // const [pins, setPins] = useAtom(pinsAtom)

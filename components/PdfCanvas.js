@@ -281,6 +281,7 @@ function handlePdfClick(e) {
   onClick={handlePdfClick}
   style={{
     transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+    border: '2px solid red',
   // transform: `translate(${offset.x}px, ${offset.y}px)`,
     transformOrigin: 'top left',
     width: 'fit-content',
@@ -317,7 +318,7 @@ function handlePdfClick(e) {
         position: 'absolute',
         top: scaledY,
         left: scaledX,
-        transform: `translate(-50%, -100%) scale(${1 / scale})`,
+        transform: `translate(-50%, -50%) scale(${1 / scale})`,
         pointerEvents: 'auto',
         zIndex: 10,
         transition: 'transform 0.3s ease',
