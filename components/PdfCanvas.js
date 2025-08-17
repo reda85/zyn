@@ -9,7 +9,7 @@ import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
 import MapPin from './MapPin';
-import {  GrabIcon, MapPinIcon } from 'lucide-react';
+import {  Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon } from 'lucide-react';
 import GhostPin from './GhostPin';
 
 import { supabase } from '@/utils/supabase/client';
@@ -152,7 +152,7 @@ console.log('handlePinAdd', pin)
     setPins( pins => [...pins, data]);
     setPinMode(false);
     console.log('handlePinAdd', pins)
-    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.assigned_to, pin_id:data.id,event: user.name + ' a cree ce pin', category: 'creation'}).select('*').single()
+    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.assigned_to, pin_id:data.id,event:  ' a cree ce pin', category: 'creation'}).select('*').single()
     console.log('eventdata', eventdata)
     if (eventerror) {
       console.log('eventerror', eventerror)
@@ -179,7 +179,7 @@ useEffect(()=> {
 
   // Calculate viewport center
   const container = containerRef.current.getBoundingClientRect();
-  const centerX = container.width / 2;
+  const centerX = container.width / 4;
   const centerY = container.height / 2;
 
   // New offset so the pin appears centered
@@ -241,7 +241,7 @@ function handlePdfClick(e) {
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
         style={{
-          border: '1px solid #ccc',
+         
           cursor: dragging ? 'grabbing' : 'grab',
           overflow: 'hidden',
           width: '100%',
@@ -281,7 +281,7 @@ function handlePdfClick(e) {
   onClick={handlePdfClick}
   style={{
     transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-    border: '2px solid red',
+   // border: '2px solid red',
   // transform: `translate(${offset.x}px, ${offset.y}px)`,
     transformOrigin: 'top left',
     width: 'fit-content',
@@ -310,6 +310,8 @@ function handlePdfClick(e) {
   // Calculate position relative to the PDF's actual rendered size
   const scaledX = pin.x * pdfSize.width;
   const scaledY = pin.y * pdfSize.height;
+
+ 
   
   return (
     <div
@@ -322,12 +324,34 @@ function handlePdfClick(e) {
         pointerEvents: 'auto',
         zIndex: 10,
         transition: 'transform 0.3s ease',
+         
         
       }}
       onClick={() => { setSelectedPin({ ...pin, index: idx })}}
       title={`Pin #${idx + 1}`}
     >
       <MapPin pin={pin} />
+
+      {/*isOverDue && (
+        <div
+          style={{
+            position: "absolute",
+            top: "-10px",
+            right: "-10px",
+            backgroundColor: "red",
+            color: "white",
+            borderRadius: "50%",
+            padding: "3px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "20px",
+            height: "20px",
+          }}
+        >
+          <CalendarDaysIcon size={12} />
+        </div>
+      )*/}
     </div>
   );
 })}

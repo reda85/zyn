@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   CubeIcon,
   BellIcon,
@@ -19,6 +19,7 @@ export default function Navbar({ id,user, project }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const router = useRouter()
 
   const currentTab = (() => {
     if (pathname === `/${id}`) return 'Plan'
@@ -54,14 +55,14 @@ export default function Navbar({ id,user, project }) {
           >
             <div className="relative group h-full w-12">
   <Image
-    src="/logo1.png"
+    src="/logo.png"
     alt="logo"
     fill
     className="object-contain"
   />
   <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 transition-opacity rounded-sm" />
 </div>
-            <span className="text-lg font-semibold text-gray-900">Zyn</span>
+            <span className="text-lg font-semibold text-gray-900">{project?.name}</span>
           </button>
 
 {menuOpen && (
@@ -69,36 +70,36 @@ export default function Navbar({ id,user, project }) {
     <ul className="py-1 text-sm text-gray-700">
       <li>
         <Link
-          href="protected/projects"
+          href="/protected/projects"
           className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => setMenuOpen(false)}
+          onClick={() => { setMenuOpen(false)}}
         >
           All Projects
         </Link>
       </li>
       <li>
         <Link
-          href={`protected/projects/${id}`}
+          href={`/protected/projects/${id}`}
           className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => setMenuOpen(false)}
+          onClick={() => { setMenuOpen(false)}}
         >
           Project Details
         </Link>
       </li>
       <li>
         <Link
-          href={`protected/projects/${id}/categories`}
+          href={`/protected/projects/${id}/categories`}
           className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => setMenuOpen(false)}
+          onClick={() => { setMenuOpen(false)}}
         >
           Task Categories Manager
         </Link>
       </li>
       <li>
         <Link
-          href={`protected/projects/${id}/statuses`}
+          href={`/protected/projects/${id}/status`}
           className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => setMenuOpen(false)}
+          onClick={() => { setMenuOpen(false)}}
         >
           Status Manager
         </Link>
@@ -124,6 +125,7 @@ export default function Navbar({ id,user, project }) {
                       ? 'border-b-2 border-blue-600 text-blue-600'
                       : 'border-b-2 border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-500'
                   )}
+                  onClick={() => setCurrentTab(tab)}
                 >
                   {tab}
                 </button>

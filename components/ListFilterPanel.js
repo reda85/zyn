@@ -19,7 +19,7 @@ import OverdueFilter from './OverdueFilter';
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
 
-export default function ListFilterPanel({ pins, setPins }) {
+export default function ListFilterPanel({ pins, setPins, originalPins, setOriginalPins }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
@@ -41,7 +41,7 @@ export default function ListFilterPanel({ pins, setPins }) {
   const [dateTags, setDateTags] = useState([]);
 
   const applyFilters = () => {
-    let filtered = [...allPins];
+    let filtered = [...originalPins];
 
     if (filters.me) {
       filtered = filtered.filter((pin) => pin.created_by === 'me'); // Replace 'me' with actual user logic

@@ -1,99 +1,191 @@
 'use client'
 import { useAtom } from "jotai"
-import { pinsAtom, selectedPlanAtom } from "@/store/atoms"
+import { selectedPlanAtom, selectedProjectAtom } from "@/store/atoms"
 import NavBar from "@/components/NavBar"
-import { selectedProjectAtom } from "@/store/atoms"
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/client"
-import { Figtree, Lexend } from "next/font/google"
-import Pin from "@/components/Pin"
-import { Square3Stack3DIcon } from "@heroicons/react/24/outline"
-import CategoryComboBox from "@/components/CategoryComboBox"
-import { Calendar1Icon } from "lucide-react"
+import { Lexend } from "next/font/google"
+import GroupedMediaGallery from "@/components/GroupedMediaGallery"
 import DatePicker from "react-datepicker"
-import "react-datepicker/dist/react-datepicker.css";
-import { Document, Page, PDFDownloadLink, Text } from "@react-pdf/renderer"
-import PdfReport from "@/components/PdfReport"
-import { getZoomedInPinImage } from "@/utils/pdfUtils"
-import GroupedMediaGallery from "@/components/GroupedMediaGallery";
+import "react-datepicker/dist/react-datepicker.css"
 
+const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
-const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
-
-
-
-  
-  
 export default function Medias({ params }) {
-   // const [pins, setPins] = useAtom(pinsAtom)
-   const [medias, setMedias] = useState([])
-    const [plan, setPlan] = useAtom(selectedPlanAtom)
-    const [project, setProject] = useAtom(selectedProjectAtom)
-    
-    const [selectedIds, setSelectedIds] = useState(new Set());
+  const [plan, setPlan] = useAtom(selectedPlanAtom)
+  const [project, setProject] = useAtom(selectedProjectAtom)
 
-    const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null);
-     const { projectId } = use(params);
+  const { projectId } = params
 
-     
+  const [medias, setMedias] = useState([])
+  const [filteredMedias, setFilteredMedias] = useState([])
 
-     useEffect(() => {
-     {
+  const [selectedIds, setSelectedIds] = useState(new Set())
+
+  // Filter states
+  const [selectedCanvas, setSelectedCanvas] = useState("")
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [selectedTags, setSelectedTags] = useState([])
+
+  // Dropdown data
+  const [users, setUsers] = useState([])
+  const [tags, setTags] = useState([])
+
+  // Fetch project
+  useEffect(() => {
     const fetchProject = async () => {
-      const { data } = await supabase.from('projects').select('id,created_at,name,plans(id,name)').eq('id', projectId).single();
-     if(data) {console.log('project', data); setProject(data)}
+      const { data } = await supabase
+        .from('projects')
+        .select('id, created_at, name, plans(id, name)')
+        .eq('id', projectId)
+        .single()
+      if (data) setProject(data)
     }
-
-  
-    fetchProject()
-   
-}
+    if (projectId) fetchProject()
   }, [projectId])
 
+  // Fetch medias
   useEffect(() => {
-   if(projectId) 
-    {
     const fetchMedias = async () => {
-        const { data,error } = await supabase
-            .from('pins_photos')
-            .select('*,pdf_pins(*)')
-            .eq('project_id', projectId)
-        if (data) {
-            setMedias(data)
-            console.log('medias', data)
-        }
-        if (error) {
-            console.log('medias error', error)
-        }
+      const { data, error } = await supabase
+        .from('pins_photos')
+        .select('*, pdf_pins(*)')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false })
+
+      if (data) {
+        setMedias(data)
+        setFilteredMedias(data)
+      }
+      if (error) console.error("Medias error", error)
     }
-fetchMedias()
- } },    [projectId])
+    if (projectId) fetchMedias()
+  }, [projectId])
 
+  // Fetch users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data } = await supabase.from('members').select('id, name')
+      if (data) setUsers(data)
+    }
+    fetchUsers()
+  }, [])
 
+  // Fetch tags
+  useEffect(() => {
+    const fetchTags = async () => {
+      const { data } = await supabase.from('tags').select('id, name')
+      if (data) setTags(data)
+    }
+    fetchTags()
+  }, [])
 
-     const toggleSelect = (id) => {
-    setSelectedIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
-    });
-  };
+  // Local filtering
+  useEffect(() => {
+    let result = medias
 
-  
+    if (selectedCanvas) {
+      result = result.filter(m => m.pdf_pins?.plan_id === selectedCanvas)
+    }
+    if (startDate && endDate) {
+      result = result.filter(m => {
+        const created = new Date(m.created_at)
+        return created >= startDate && created <= endDate
+      })
+    }
+    if (selectedUsers.length > 0) {
+      result = result.filter(m => selectedUsers.includes(m.user_id))
+    }
+    if (selectedTags.length > 0) {
+      result = result.filter(m => m.tags?.some(t => selectedTags.includes(t.id)))
+    }
+
+    setFilteredMedias(result)
+  }, [medias, selectedCanvas, startDate, endDate, selectedUsers, selectedTags])
 
   return (
-  <div className={figtree.className}>
- <NavBar project={project} id={projectId} />
-<div className="pt-3 px-3 bg-gray-100 min-h-screen">
+    <div className={lexend.className}>
+      <NavBar project={project} id={projectId} />
+      <div className="pt-3 px-3 bg-gray-100 min-h-screen">
+        <div className="bg-white border border-gray-300 rounded-t-lg p-6">
 
-<div className="bg-white border   border-gray-300 rounded-t-lg p-6">
-    <h2 className="text-xl font-bold mb-6  ">Medias</h2>
-    
-    <GroupedMediaGallery media={medias}  selectedIds={selectedIds}
-  setSelectedIds={setSelectedIds} />
+          {/* Title + Filters Row */}
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <h2 className="text-xl font-bold">Medias</h2>
 
+            <div className="flex flex-wrap items-center gap-3">
+
+              {/* Canvas select */}
+              <select
+                className="border border-gray-300 rounded px-3 py-1 text-sm"
+                value={selectedCanvas}
+                onChange={(e) => setSelectedCanvas(e.target.value)}
+              >
+                <option value="">All Canvases</option>
+                {project?.plans?.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+
+              {/* Date range */}
+              <DatePicker
+                selectsRange
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(update) => {
+                  const [start, end] = update
+                  setStartDate(start)
+                  setEndDate(end)
+                }}
+                isClearable
+                placeholderText="Date range"
+                className="border border-gray-300 rounded px-3 py-1 text-sm"
+              />
+
+              {/* Users multi-select 
+             <select
+  multiple
+  className="border border-gray-300 rounded px-3 py-1 text-sm"
+  value={selectedUsers}
+  onChange={(e) =>
+    setSelectedUsers(
+      Array.from(e.target.selectedOptions, opt => Number(opt.value)) // <-- convert to number
+    )
+  }
+>
+  {users.map((u) => (
+    <option key={u.id} value={u.id}>{u.name}</option>
+  ))}
+</select>
+
+*/}
+              {/* Tags multi-select 
+              <select
+                multiple
+                className="border border-gray-300 rounded px-3 py-1 text-sm"
+                value={selectedTags}
+                onChange={(e) =>
+                  setSelectedTags(Array.from(e.target.selectedOptions, opt => opt.value))
+                }
+              >
+                {tags.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+              */}
+            </div>
+          </div>
+
+          {/* Gallery */}
+          <GroupedMediaGallery
+            media={filteredMedias}
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+          />
+        </div>
       </div>
-</div>
-  </div>)
+    </div>
+  )
 }

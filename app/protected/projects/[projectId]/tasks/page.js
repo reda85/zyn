@@ -65,6 +65,7 @@ const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display:
 export default function Tasks({ params }) {
    // const [pins, setPins] = useAtom(pinsAtom)
    const [pins, setPins] = useState([])
+   const [originalPinspins, setOriginalPins] = useState([])
     const [plan, setPlan] = useAtom(selectedPlanAtom)
     const [project, setProject] = useAtom(selectedProjectAtom)
     
@@ -112,7 +113,7 @@ export default function Tasks({ params }) {
             .select('id,name,note,x,y,status,assigned_to(id,name),category,due_date,pdf_name,project_id,pins_photos(id,public_url)')
             .eq('project_id', projectId)
         if (data) {
-            setPins(data)
+            setOriginalPins(data)
             console.log('pins', data)
         }
         if (error) {
@@ -122,7 +123,9 @@ export default function Tasks({ params }) {
 fetchPins()
  } },    [projectId])
 
-
+useEffect(() => {
+    setPins(originalPinspins)
+}, [originalPinspins])
 
      const toggleSelect = (id) => {
     setSelectedIds((prev) => {
@@ -148,14 +151,14 @@ fetchPins()
 
 <div className="bg-white border   border-gray-300 rounded-t-lg">
   <div className="flex flex-row items-center justify-between p-6 ">
-    <h2 className="text-xl font-bold ">Liste des taches</h2>
+    <h2 className="text-xl font-bold ">Liste des taches ({pins.length})</h2>
     <div className="flex flex-row gap-2">
       <input
         type="text"
         placeholder="Rechercher"
         className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
       />
-    <ListFilterPanel pins={pins} setPins={setPins} />
+    <ListFilterPanel pins={pins} setPins={setPins} originalPins={originalPinspins} setOriginalPins={setOriginalPins} />
     </div>
     </div>
     {selectedIds.size > 0 && <div className="p-3 bg-neutral-200">

@@ -49,7 +49,7 @@ export function IconPicker({
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="p-1 border rounded hover:bg-gray-100"
+        className="p-1 border rounded hover:bg-gray-100 bg-white"
       >
         {SelectedIcon ? <SelectedIcon size={20} /> : '🎯'}
       </button>
@@ -57,7 +57,7 @@ export function IconPicker({
       {open && (
         <div className="absolute z-50 mt-2 w-[300px]  overflow-y-auto bg-white border rounded shadow p-2 grid grid-cols-6 gap-2">
           {iconOptions.map(({ name, Icon }) => (
-           <button key={name} className='p-2 hover:bg-gray-200 rounded flex items-center justify-center' onClick={() => {
+           <button key={name} className='p-2 hover:bg-gray-200  rounded flex items-center justify-center' onClick={() => {
               onChange(name);
               setOpen(false);
             }}>

@@ -49,7 +49,8 @@ console.log('uuuser', user, profile, organization)
         .from('pdf_pins')
       .select(`
       *,
-      pins_photos(*)
+      pins_photos(*),
+      assigned_to(id,name)
     `)
         .eq('pdf_name', plan.name)
      if(data) {console.log('pins', data); setPins(data)}
