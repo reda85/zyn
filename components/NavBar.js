@@ -11,6 +11,8 @@ import clsx from 'clsx'
 import { Lexend } from 'next/font/google'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
+import { useAtom } from 'jotai'
+import { selectedPlanAtom } from '@/store/atoms'
 
 const tabs = ['Plan', 'Tasks', 'Medias']
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -20,6 +22,7 @@ export default function Navbar({ id,user, project }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
   const router = useRouter()
+  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
 
   const currentTab = (() => {
     if (pathname === `/${id}`) return 'Plan'
@@ -114,7 +117,7 @@ export default function Navbar({ id,user, project }) {
         <div className="absolute left-1/2 flex -translate-x-1/2 space-x-4">
           {tabs.map(tab => {
             const path = tab === 'Plan'
-              ? `/protected/projects/${id}`
+              ? `/protected/projects/${id}/${selectedPlan?.id}`
               : `/protected/projects/${id}/${tab.toLowerCase()}`
             return (
               <Link key={tab} href={path}>

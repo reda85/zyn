@@ -6,7 +6,7 @@ import PdfCanvas from '@/components/PdfCanvas';
 import PinsList from '@/components/PinsList';
 import NavBar from '@/components/NavBar';
 import { useAtom } from 'jotai';
-import { pinsAtom } from '@/store/atoms';
+import { pinsAtom, selectedPlanAtom } from '@/store/atoms';
 import { useUser } from '@/components/UserContext';
 import { useUserData } from '@/hooks/useUserData';
 
@@ -17,6 +17,7 @@ export default  function ProjectDetail({ params }) {
   const [project, setProject] = useState(null)
   const [plan, setPlan] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
+  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
 
 const {user,profile,organization} = useUserData();
 
@@ -33,13 +34,13 @@ console.log('uuuser', user, profile, organization)
     const fetchPlan = async () => {
       const { data } = await supabase.from('plans').select('*').eq('id', planId).single()
       setPlan(data)
-     
+     setSelectedPlan(data)
     }
 
     fetchProject()
     fetchPlan()
 }
-  }, [projectId, planId])
+  }, [projectId, planId,selectedPlan])
 
   useEffect(() => {
     if (!project || !plan) return

@@ -3,8 +3,16 @@
 import { Fragment, useState } from 'react';
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import { CheckIcon, ChevronDownIcon, ChevronUpDownIcon, Square3Stack3DIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
-export default function CustomSelect({ options, selected, onChange }) {
+export default function CustomSelect({ options, selected }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  const onChange = (option) => {
+    setOpen(false);
+    router.push(`/${option.id}`);
+  };
   return (
     <div className="w-56 ">
       <Listbox value={selected} onChange={onChange}>

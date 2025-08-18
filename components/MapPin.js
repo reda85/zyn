@@ -12,6 +12,7 @@ import {
     ZapIcon
 } from "lucide-react";
 import { formatDate } from 'date-fns'
+import clsx from "clsx";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ');
@@ -42,6 +43,13 @@ const statusColors = {
 
 export default function MapPin({ pin }) {
     const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
+    let isOverDue = false;
+    if(pin?.due_date) {
+        const dueDate = new Date(pin?.due_date);
+        const now = new Date();
+        isOverDue = dueDate < now;
+    }
+   // console.log('isOverDue', isOverDue)
     return (
         <div className="relative group flex flex-col items-center">
             {/* Popover */}
@@ -64,7 +72,7 @@ export default function MapPin({ pin }) {
                 <Calendar1Icon className="w-5 h-5 mr-2 text-stone-400" />
                 <div className="flex flex-col">
                     <p className="text-xs text-stone-400">Echeance</p>
-                <div className="text-sm text-stone-300 mt-1">{pin?.due_date ? formatDate(pin?.due_date,'dd/MM/yyyy') :  'Aucune'}</div>
+                <div className={clsx("text-sm text-stone-300 mt-1", isOverDue && "text-red-300")}>{pin?.due_date ? formatDate(pin?.due_date,'dd/MM/yyyy') :  'Aucune'}</div>
                 </div>
                 
               </div>
