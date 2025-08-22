@@ -6,7 +6,7 @@ import PdfCanvas from '@/components/PdfCanvas';
 import PinsList from '@/components/PinsList';
 import NavBar from '@/components/NavBar';
 import { useAtom } from 'jotai';
-import { pinsAtom, selectedPlanAtom } from '@/store/atoms';
+import { categoriesAtom, pinsAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
 import { useUser } from '@/components/UserContext';
 import { useUserData } from '@/hooks/useUserData';
 
@@ -18,11 +18,36 @@ export default  function ProjectDetail({ params }) {
   const [plan, setPlan] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
+  const [statuses, setStatuses] = useAtom(statusesAtom)
+  const [categories, setCategories] = useAtom(categoriesAtom)
 
 const {user,profile,organization} = useUserData();
 
 
 console.log('uuuser', user, profile, organization)
+
+
+
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      const { data } = await supabase.from('Status').select('*').eq('project_id', projectId).order('order', { ascending: true })
+      setStatuses(data || [])
+    }
+
+    fetchStatuses()
+  }, [projectId])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await supabase.from('categories').select('*').eq('project_id', projectId).order('order', { ascending: true })
+      setCategories(data || [])
+    }
+
+    fetchCategories()
+  }, [projectId])
+
+
+
 
   useEffect(() => {
      {
@@ -40,7 +65,7 @@ console.log('uuuser', user, profile, organization)
     fetchProject()
     fetchPlan()
 }
-  }, [projectId, planId,selectedPlan])
+  }, [projectId, planId])
 
   useEffect(() => {
     if (!project || !plan) return

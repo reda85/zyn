@@ -1,22 +1,24 @@
-import { Fragment, useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Listbox, Transition, Portal } from '@headlessui/react'
-import { CheckCheckIcon, Droplet, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon } from 'lucide-react'
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
-import { pinsAtom, selectedPinAtom } from '@/store/atoms'
+import { categoriesAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
+import { ZapIcon, DropletsIcon, PaintRoller, GripIcon, FireExtinguisherIcon, CheckIcon } from 'lucide-react'
 
-const options = [
-  { name: 'Non assigné', value: 'Non assigné', icon: <CheckCheckIcon className="text-gray-500 h-4 w-4" /> },
-  { name: 'Electricite', value: 'Electricite', icon: <ZapIcon className="text-gray-500 h-4 w-4" /> },
-  { name: 'Plomberie', value: 'Plomberie', icon: <Droplet className="text-gray-500 h-4 w-4" /> },
-  { name: 'Peinture', value: 'Peinture', icon: <PaintRoller className="text-gray-500 h-4 w-4" /> },
-  { name: 'Carrelage', value: 'Carrelage', icon: <GripIcon className="text-gray-500 h-4 w-4" /> },
-  { name: 'Extincteur', value: 'Extincteur', icon: <FireExtinguisherIcon className="text-gray-500 h-4 w-4" /> },
-]
+const categoriesIcons = {
+  'Non assigné' : <CheckIcon className="text-gray-500 h-4 w-4" />,
+  'zap': <ZapIcon className="text-gray-500 h-4 w-4" />,
+  'droplets': <DropletsIcon className="text-gray-500 h-4 w-4" />,
+  'paint': <PaintRoller className="text-gray-500 h-4 w-4" />,
+  'carrelage': <GripIcon className="text-gray-500 h-4 w-4" />,
+  'fire-extinguisher': <FireExtinguisherIcon className="text-gray-500 h-4 w-4" />,
+}
+
 
 export default function CategoryComboBox({ pin }) {
-  const [selected, setSelected] = useState(options.find(option => pin.category === option.value) || options[0])
+  const [categories, setCategories] = useAtom(categoriesAtom)
+  const [selected, setSelected] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
 
@@ -24,22 +26,53 @@ export default function CategoryComboBox({ pin }) {
   const [buttonRect, setButtonRect] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleUpdateCategory = async () => {
-    if (!selected?.value) return
-    const { data } = await supabase.from('pdf_pins').update({ category: selected.value }).eq('id', pin.id).select('*').single()
-    if (data) {
-     if(selectedPin) {setSelectedPin({ ...selectedPin, category: data.category })}
-      setPins(pins.map(p => (p.id === selectedPin?.id ? { ...p, category: data.category } : p)))
-    }
-  }
+  // Load categories from Supabase
+ {/* useEffect(() => {
+    const loadCategories = async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('order', { ascending: true })
 
+      if (!error && data) {
+        setCategories(data)
+        setSelected(
+          data.find(c => c.name === pin.category) || data[0] || null
+        )
+      }
+    }
+
+    loadCategories()
+  }, [pin])
+*/
   useEffect(() => {
+    if (categories?.length > 0) {
+      setSelected(
+        categories?.find(c => c.id === pin.category_id) || categories[0] || null
+      )
+    }
+  }, [categories, pin])
+  // Update category in DB when selection changes
+  useEffect(() => {
+    const handleUpdateCategory = async () => {
+      if (!selected?.name) return
+      const { data } = await supabase
+        .from('pdf_pins')
+        .update({ category_id: selected.id })
+        .eq('id', pin.id)
+        .select('*')
+        .single()
+
+      if (data) {
+        if (selectedPin) {
+          setSelectedPin({ ...selectedPin, category_id: data.category_id })
+        }
+        setPins(pins.map(p => (p.id === pin.id ? { ...p, category_id: data.category_id } : p)))
+      }
+    }
+
     handleUpdateCategory()
   }, [selected])
-
-  useEffect(() => {
-    setSelected(options.find(option => pin.category === option.value) || options[0])
-  }, [pin])
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
@@ -52,16 +85,21 @@ export default function CategoryComboBox({ pin }) {
     <div className="w-48 relative">
       <Listbox
         value={selected}
-        onChange={value => {setSelected(value); setIsOpen(false);}}
+        onChange={value => {
+          setSelected(value)
+          setIsOpen(false)
+        }}
       >
-        <>
+        <div>
           <Listbox.Button
             ref={buttonRef}
-            onClick={() => setIsOpen(prev => !prev)} // toggle open manually
+            onClick={() => setIsOpen(prev => !prev)}
             className="relative w-full text-sm font-semibold cursor-pointer rounded-lg bg-gray-100 py-2 pl-3 pr-10 text-left text-gray-500 border border-gray-300 focus:outline-none"
           >
-            <span className="flex items-center gap-4">
-              {selected?.icon}
+            <span className="flex items-center gap-2">
+              {selected?.icon && (
+                 categoriesIcons[selected.icon] 
+              )}
               <span className="block truncate text-xs">{selected?.name}</span>
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -70,12 +108,11 @@ export default function CategoryComboBox({ pin }) {
           </Listbox.Button>
 
           <Transition
-            as={Fragment}
             show={isOpen}
             leave="transition ease-in duration-100"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
-            afterLeave={() => setIsOpen(false)} // reset state after closing animation
+            afterLeave={() => setIsOpen(false)}
           >
             {buttonRect && (
               <Portal>
@@ -88,24 +125,26 @@ export default function CategoryComboBox({ pin }) {
                     width: buttonRect.width,
                   }}
                 >
-                  {options.map((option, idx) => (
+                  {categories.map((cat, idx) => (
                     <Listbox.Option
-                      key={idx}
+                      key={cat.id || idx}
                       className={({ active }) =>
                         `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                           active ? 'text-gray-900' : 'text-gray-500'
                         }`
                       }
-                      value={option}
+                      value={cat}
                     >
                       {({ selected }) => (
                         <span
-                          className={`flex gap-4 rounded-md font-semibold items-center truncate ${
+                          className={`flex gap-2 rounded-md items-center truncate ${
                             selected ? 'font-medium bg-gray-200' : 'font-normal'
                           }`}
                         >
-                          {option.icon}
-                          {option.name}
+                          {cat.icon && (
+                          categoriesIcons[cat.icon]
+                          )}
+                          {cat.name}
                         </span>
                       )}
                     </Listbox.Option>
@@ -114,8 +153,9 @@ export default function CategoryComboBox({ pin }) {
               </Portal>
             )}
           </Transition>
-        </>
+        </div>
       </Listbox>
     </div>
   )
+}
 }

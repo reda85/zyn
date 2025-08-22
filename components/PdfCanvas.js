@@ -4,7 +4,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import {Anek_Devanagari, Cabin, Jost, Catamaran, Lato, Noto_Sans, Fira_Sans, Domine, Inconsolata, Karla, Maitree, Nanum_Gothic, Aleo, Figtree, Lexend} from 'next/font/google'
 import { useAtom } from 'jotai';
-import { pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom } from '@/store/atoms';
+import { categoriesAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom } from '@/store/atoms';
 import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
@@ -46,6 +46,8 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [dragging, setDragging] = useState(false);
   const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
+  const [categories, setCategories] = useAtom(categoriesAtom);
+  const [statuses, setStatuses] = useAtom(statusesAtom);
   const [pins, setPins] = useAtom(pinsAtom);
   const [showPins, setShowPins] = useState(true);
   const [pinMode, setPinMode] = useState(false);
@@ -213,16 +215,16 @@ function handlePdfClick(e) {
   if (x < 0 || x > 1 || y < 0 || y > 1) return;
 
   const newPin = {
-    category: 'Non assigné',
+    category_id: categories.find(c => c.order === 0)?.id || 'Non assigne',
     x,
     y,
-    status: 'En cours',
+    status_id: statuses.find(s => s.order === 0)?.id || 'En cours',
     note: '',
     name: '',
     project_id: project.id,
     pdf_name: plan.name,
     plan_id: plan.id,
-    assigned_to: user?.id,
+    created_by: user?.id,
   };
 
   handlePinAdd(newPin,user);

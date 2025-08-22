@@ -4,7 +4,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(value, max));
-
 }
 
 function drawPin(ctx, x, y) {
@@ -20,18 +19,26 @@ function drawPin(ctx, x, y) {
   ctx.fillStyle = '#e63946';
   ctx.fill();
 
-  // Centre blanc
+  // White center
   ctx.beginPath();
   ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = '#fff';
   ctx.fill();
 }
 
-
-export async function getZoomedInPinImage(pdfData, pageNum, x, y, width, height, zoom = 2) {
+export async function getZoomedInPinImage(
+  pdfData,
+  pageNum,
+  x, // normalized [0-1]
+  y, // normalized [0-1]
+  width,
+  height,
+  zoom = 2
+) {
   const loadingTask = pdfjsLib.getDocument(pdfData);
   const pdf = await loadingTask.promise;
   const page = await pdf.getPage(pageNum);
+
   const viewport = page.getViewport({ scale: 1 });
   const renderScale = 2;
   const renderViewport = page.getViewport({ scale: renderScale });
@@ -43,22 +50,32 @@ export async function getZoomedInPinImage(pdfData, pageNum, x, y, width, height,
 
   await page.render({ canvasContext: context, viewport: renderViewport }).promise;
 
-  const scale = renderScale;
-  const cropWidth = width * scale;
-  const cropHeight = height * scale;
+  // Convert normalized PDF coords -> absolute page coords
+  const absX = x * viewport.width;
+  const absY = y * viewport.height;
+ // flip Y (PDF vs canvas)
 
-  // Centrer le crop autour du point PDF
-  let cropX = (x - width / 2) * scale;
-  //let cropY = (viewport.height - y - height / 2) * scale;
-let cropY = (y - height / 2) * scale;
-  // Empêcher le crop de sortir du canvas
+  // Scale to match renderScale
+  const scaledX = absX * renderScale;
+  const scaledY = absY * renderScale;
+
+  const cropWidth = width * renderScale;
+  const cropHeight = height * renderScale;
+
+  // Center the crop around the scaled point
+  let cropX = scaledX - cropWidth / 2;
+  let cropY = scaledY - cropHeight / 2;
+
+  // Clamp to canvas bounds
   cropX = clamp(cropX, 0, canvas.width - cropWidth);
   cropY = clamp(cropY, 0, canvas.height - cropHeight);
 
-  console.log("PDF Point:", x, y);
-  console.log("Viewport:", viewport.width, viewport.height);
+  console.log("PDF Normalized Point:", x, y);
+  console.log("Absolute PDF:", absX, absY);
+  console.log("Scaled Point:", scaledX, scaledY);
   console.log("Crop (x, y, w, h):", cropX, cropY, cropWidth, cropHeight);
 
+  // Prepare zoomed canvas
   const zoomedCanvas = document.createElement('canvas');
   zoomedCanvas.width = cropWidth * zoom;
   zoomedCanvas.height = cropHeight * zoom;
@@ -70,11 +87,11 @@ let cropY = (y - height / 2) * scale;
     0, 0, zoomedCanvas.width, zoomedCanvas.height
   );
 
-  const pinX = zoomedCanvas.width / 2;
-  const pinY = zoomedCanvas.height / 2;
+  // Pin should be positioned relative to the crop, not always centered
+  const pinX = (scaledX - cropX) * zoom;
+  const pinY = (scaledY - cropY) * zoom;
 
-drawPin(zoomedContext, pinX, pinY);
-
+  drawPin(zoomedContext, pinX, pinY);
 
   return zoomedCanvas.toDataURL('image/png');
 }

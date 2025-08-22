@@ -1,30 +1,33 @@
-// app/projects/[projectId]/page.js
-'use client'
-
-import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+'use client';
+import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
+import { use } from "react";
+import { useEffect, useState } from "react";
+import {selectedProjectAtom} from '@/store/atoms'
 import { supabase } from '@/utils/supabase/client'
-import ProjectPlans from '@/components/ProjectPlans'
-
-export default function ProjectDetail() {
-  const { projectId } = useParams()
-  const [project, setProject] = useState(null)
-
-  useEffect(() => {
-    const fetchProject = async () => {
-      const { data } = await supabase.from('projects').select('*').eq('id', projectId).single()
+ 
+export default function Projectreroute({params}) {
+    const {projectId} = use(params);
+    const [selectedProject, setProject] = useAtom(selectedProjectAtom);
+    const router = useRouter();
+    useEffect(() => {
+        const fetchProject = async () => {
+      const { data } = await supabase.from('projects').select('id,created_at,name,plans(id,name)').eq('id', projectId).single()
       setProject(data)
+      router.push(`/protected/projects/${projectId}/${data.plans[0].id}`);
     }
+        
 
-    fetchProject()
-  }, [projectId])
+        if(!selectedProject) {
+ 
+        fetchProject();
 
-  if (!project) return <p>Loading...</p>
+        }
+        else{
+            router.push(`/protected/projects/${projectId}/${selectedProject.plans[0].id}`)
+        }
+        
+    },[] )
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">{project.name}</h1>
-      <ProjectPlans project={project} />
-    </div>
-  )
+    return(<></>)
 }

@@ -1,6 +1,6 @@
 'use client'
 import { useAtom } from "jotai"
-import { pinsAtom, selectedPlanAtom } from "@/store/atoms"
+import { categoriesAtom, pinsAtom, selectedPlanAtom, statusesAtom } from "@/store/atoms"
 import NavBar from "@/components/NavBar"
 import { selectedProjectAtom } from "@/store/atoms"
 import { use, useEffect, useState } from "react"
@@ -17,6 +17,8 @@ import PdfReport from "@/components/PdfReport"
 import { getZoomedInPinImage } from "@/utils/pdfUtils"
 import FilterPanel from "@/components/FilterPanel"
 import ListFilterPanel from "../../../../../components/ListFilterPanel"
+import LoadingScreen from "@/components/LoadingScreen"
+import clsx from "clsx"
 
 
 const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
@@ -25,12 +27,18 @@ const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display:
 
   const DueDatePicker = ({ pin }) => {
  
+    let isOverDue = false
+    if (pin?.due_date) {
+      const dueDate = new Date(pin?.due_date)
+      const now = new Date()
+      isOverDue = dueDate < now
+    }
     const [selectedDate, setSelectedDate] = useState(pin?.due_date ? new Date(pin.due_date) : null );
     const [isPickingDate, setIsPickingDate] = useState(false);
     console.log('selectedDate', selectedDate)
 
     return (
-      <div className="w-36 relative">
+      <div className="w-48 relative">
         {isPickingDate ? (
           <DatePicker
             selected={selectedDate}
@@ -47,13 +55,13 @@ const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display:
         ) : (
           <button
             type="button"
-            className="w-full border rounded px-3 py-2 pl-10 text-left bg-white hover:bg-blue-50 relative"
+            className={clsx("w-full border rounded px-3 py-2 pl-10 text-left bg-gray-100 hover:bg-blue-50 relative", isOverDue && "border-red-600 text-red-600")}
             onClick={() => setIsPickingDate(true)}
           >
            {selectedDate instanceof Date
   ? selectedDate.toLocaleDateString('fr-FR')
   : 'Ajouter échéance'}
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800">
+            <div className={clsx("absolute left-3 top-1/2 -translate-y-1/2", isOverDue && "text-red-600")}>
               <Calendar1Icon size={16} />
             </div>
           </button>
@@ -68,6 +76,8 @@ export default function Tasks({ params }) {
    const [originalPinspins, setOriginalPins] = useState([])
     const [plan, setPlan] = useAtom(selectedPlanAtom)
     const [project, setProject] = useAtom(selectedProjectAtom)
+    const [categories, setCategories] = useAtom(categoriesAtom)
+    const [statuses, setStatuses] = useAtom(statusesAtom)
     
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null);
@@ -76,8 +86,11 @@ export default function Tasks({ params }) {
       async function prepareSnapshots() {
     const pinsWithImages = await Promise.all(
       pins.filter((pin) => selectedIds.has(pin.id)).map(async (pin) => {
+        console.log('pin props', pin)
+        let fileurl = await supabase.storage.from('project-plans').getPublicUrl(pin.plans.file_url).data.publicUrl
+        console.log('fileurl', fileurl)
         const snapshot = await getZoomedInPinImage(
-          'https://zvebdabtofcusfdaacrq.supabase.co/storage/v1/object/public/project-plans/1/1748379744388-Sample%20Floor%20Plan%20(PDF).pdf',
+         fileurl,
           1,
           pin.x,
           pin.y,
@@ -110,7 +123,7 @@ export default function Tasks({ params }) {
     const fetchPins = async () => {
         const { data,error } = await supabase
             .from('pdf_pins')
-            .select('id,name,note,x,y,status,assigned_to(id,name),category,due_date,pdf_name,project_id,pins_photos(id,public_url)')
+            .select('id,name,note,x,y,status_id,assigned_to(id,name),category_id,due_date,pdf_name,project_id,pins_photos(id,public_url),plans(id,name,file_url)')
             .eq('project_id', projectId)
         if (data) {
             setOriginalPins(data)
@@ -144,8 +157,10 @@ useEffect(() => {
     }
   };
 
+ 
   return (
-  <div className={figtree.className}>
+  <>  
+  {categories && statuses &&<div className={figtree.className}>
  <NavBar project={project} id={projectId} />
 <div className="pt-3 px-3 bg-gray-100 min-h-screen">
 
@@ -215,7 +230,7 @@ useEffect(() => {
               <td className="flex flex-row items-center   gap-2 p-3  text-xs font-semibold "> <Pin pin={pin} /> {pin.name || 'Pin sans nom'}</td>
               <td className="p-3  text-xs ">{pin.id}</td>
               <td className="p-3  text-xs ">{pin.assigned_to?.name || '-'}</td>
-              <td className="p-3  text-xs ">{<CategoryComboBox pin={pin} />}</td>
+              <td className="p-3  text-xs ">{<CategoryComboBox pin={pin} />}</td> 
               <td className="p-3  text-xs ">
                 <DueDatePicker pin={pin} />
               </td>
@@ -231,5 +246,8 @@ useEffect(() => {
       </table>
       </div>
 </div>
-  </div>)
+  </div>}
+  {(!categories || !statuses) && <LoadingScreen projectId={projectId} /> }
+  </>)
+ 
 }

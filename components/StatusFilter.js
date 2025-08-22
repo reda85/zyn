@@ -2,18 +2,13 @@
 import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
 import { supabase } from '@/utils/supabase/client';
+import { useAtom } from 'jotai';
+import { statusesAtom } from '@/store/atoms';
 
 export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
-  const [statuses, setStatuses] = useState([]);
+  const [statuses, setStatuses] = useAtom(statusesAtom);
 
-  useEffect(() => {
-    const fetchStatuses = async () => {
-      const { data, error } = await supabase.from('Status').select('*');
-      if (error) console.error('Erreur de récupération des statuts', error);
-      else setStatuses(data);
-    };
-    fetchStatuses();
-  }, []);
+
 
   const toggleStatus = (statusId) => {
     setActiveStatuses((prev) =>

@@ -119,7 +119,7 @@ export default function PdfReport({ selectedPins }) {
 </View>
             </View >
 {selectedPins.map((pin, index) => (
-  <Fragment key={index}>
+  <View key={index}>
     <View
       wrap={false}
       style={[
@@ -209,7 +209,7 @@ export default function PdfReport({ selectedPins }) {
         }}
       />
     )}
-  </Fragment>
+  </View>
 ))}
 
         </Page>

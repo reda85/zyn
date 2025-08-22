@@ -46,6 +46,8 @@ export default function Navbar({ id,user, project }) {
     }
   }, [])
 
+  
+
   return (
     <nav className={`bg-white border-b border-gray-300 ${lexend.className}`}>
       <div className="relative mx-auto flex h-12 items-center justify-between pl-0 pr-4 sm:pr-6 lg:pr-8">
@@ -89,6 +91,15 @@ export default function Navbar({ id,user, project }) {
           Project Details
         </Link>
       </li>
+       <li>
+        <Link
+          href={`/protected/projects/${id}/sources`}
+          className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+          onClick={() => { setMenuOpen(false)}}
+        >
+          Project Plans
+        </Link>
+      </li>
       <li>
         <Link
           href={`/protected/projects/${id}/categories`}
@@ -117,7 +128,7 @@ export default function Navbar({ id,user, project }) {
         <div className="absolute left-1/2 flex -translate-x-1/2 space-x-4">
           {tabs.map(tab => {
             const path = tab === 'Plan'
-              ? `/protected/projects/${id}/${selectedPlan?.id}`
+              ? `/protected/projects/${id}/`
               : `/protected/projects/${id}/${tab.toLowerCase()}`
             return (
               <Link key={tab} href={path}>

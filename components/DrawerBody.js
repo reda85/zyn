@@ -20,6 +20,8 @@ export default function DrawerBody( {pin} ) {
     const [name, setName] = useState(pin.name)
     const [note, setNote] = useState(pin.note)
       const [tags, setTags] = useState(pin.tags || []);
+      const [dueDate, setDueDate] = useState(pin.due_date ? new Date(pin.due_date) : null);
+      const [intervenant, setIntervenant] = useState(pin.assigned_to || null);
 
   
 
@@ -42,6 +44,9 @@ export default function DrawerBody( {pin} ) {
       setName(pin.name)
       setNote(pin.note)
       setTags(pin.tags || []);
+      setDueDate(pin.due_date ? new Date(pin.due_date) : null);
+      setIntervenant(pin.assigned_to || null);
+      //setSelectedPin(pin)
     }, [pin])
 
      const handleUpdateName = async () => {
@@ -79,7 +84,7 @@ export default function DrawerBody( {pin} ) {
       {/*<TagList tags={pin.tags} /> */}
       <TagEditor tags={tags}  onChange={handleUpdateTags} />
       <div className='flex flex-row gap-2 items-center'> 
-       <IntervenantDatePicker />
+      {pin && <IntervenantDatePicker  pin={selectedPin} />}
       </div>
       </div>
       <Timeline pin={selectedPin} />

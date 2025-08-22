@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from '@/utils/supabase/client';
 import { useAtom } from 'jotai';
 import { pinsAtom, selectedPinAtom } from '@/store/atoms';
+import clsx from 'clsx';
 
 const intervenants = [
   { id: 1, name: 'Alice Dupont', email: 'alice@example.com' },
@@ -14,21 +15,45 @@ const intervenants = [
   { id: 3, name: 'Claire Bernard', email: 'claire@example.com' },
 ];
 
-export default function IntervenantDatePicker() {
+export default function IntervenantDatePicker({pin}) {
   const [selectedIntervenant, setSelectedIntervenant] = useState(null);
   const [query, setQuery] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isEditing, setIsEditing] = useState(false);
   const [isPickingDate, setIsPickingDate] = useState(false);
   const [allOptions, setAllOptions] = useState([{ id: 0, name: 'Aucun intervenant', email: '' }]);
-  const [pins, setPins] = useAtom(pinsAtom)
-  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
+  const [pins, setPins] = useAtom(pinsAtom);
+  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
+
+  // ✅ initialize from pin.due_date or null
+  const [selectedDate, setSelectedDate] = useState(
+    pin?.due_date ? new Date(pin?.due_date) : null
+  );
+console.log('pin props', selectedDate)
+let isOverDue = false;
+if(pin?.due_date) {
+  const dueDate = new Date(pin?.due_date);
+  const now = new Date();
+  isOverDue = dueDate < now;
+}
 
   //const allOptions = [{ id: 0, name: 'Aucun intervenant', email: '' }, ...intervenants];
 
   useEffect(() => {
     getAllIntervenants()
   }, [])
+
+  useEffect(() => {
+    setSelectedPin(pin)
+    setSelectedIntervenant(pin.assigned_to || null);
+    setSelectedDate(pin.due_date ? new Date(pin.due_date) : null);
+  }, [pin]);
+
+  useEffect(() => {
+  if (selectedDate) {
+    updateDueDate(selectedDate);
+  }
+}, [selectedDate]);
+
 
   const getAllIntervenants = async () => {
     const { data,error } = await supabase.from('members').select('*')
@@ -139,7 +164,7 @@ export default function IntervenantDatePicker() {
                           key={person.id}
                           value={person}
                           className={({ active }) =>
-                            `flex items-center gap-3 px-4 py-2 cursor-pointer ${
+                            `flex items-center gap-3 px-4 py-2 cursor-pointer  ${
                               active ? 'bg-blue-100' : ''
                             }`
                           }
@@ -150,14 +175,14 @@ export default function IntervenantDatePicker() {
                             </span>
                           ) : (
                             <>
-                              <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-xs font-semibold text-blue-900">
+                              <div className="w-8 h-8 flex-shrink-0 rounded-full bg-blue-200 flex items-center justify-center text-xs font-semibold text-blue-900">
                                 {getInitials(person.name)}
                               </div>
                               <div className="flex flex-col">
                                 <span className="font-medium text-gray-900">
                                   {person.name}
                                 </span>
-                                <span className="text-gray-500 text-xs">
+                                <span className="text-gray-500 text-xs ">
                                   {person.email}
                                 </span>
                               </div>
@@ -178,6 +203,7 @@ export default function IntervenantDatePicker() {
                   }}
                 >
                   {displayText}
+                  
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-gray-800 rounded-full bg-white">
                     <User2Icon size={16} />
                   </div>
@@ -204,18 +230,51 @@ export default function IntervenantDatePicker() {
             placeholderText="Sélectionner une date"
           />
         ) : (
-          <button
-            type="button"
-            className="w-full border rounded px-3 py-2 pl-10 text-left border-gray-300 bg-gray-100 relative"
-            onClick={() => setIsPickingDate(true)}
-          >
-            {selectedDate
-              ? selectedDate.toLocaleDateString('fr-FR')
-              : 'Ajouter échéance'}
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800">
-              <CalendarIcon size={16} />
-            </div>
-          </button>
+          <div className="relative w-full">
+  <button
+    type="button"
+    className={clsx(
+      "w-full border rounded px-3 py-2 pl-10 text-left relative",
+     "bg-gray-100",
+      isOverDue ? "border-red-600 text-red-600" : "border-gray-300 text-gray-800"
+    )}
+    onClick={() => setIsPickingDate(true)}
+  >
+    {selectedDate
+      ? selectedDate.toLocaleDateString('fr-FR')
+      : 'Ajouter échéance'}
+
+    {/* Calendar icon */}
+    <div
+      className={clsx(
+        "absolute left-3 top-1/2 -translate-y-1/2",
+        isOverDue ? "text-red-600" : "text-gray-800"
+      )}
+    >
+      <CalendarIcon size={16} />
+    </div>
+  </button>
+
+  {/* ❌ Clear button */}
+  {selectedDate && (
+    <button
+      type="button"
+      className={clsx(
+        "absolute right-3 top-1/2 -translate-y-1/2",
+        isOverDue ? "text-red-600 hover:text-red-800" : "text-gray-500 hover:text-red-500"
+      )}
+      onClick={(e) => {
+        e.stopPropagation(); // prevent opening the picker
+        setSelectedDate(null);
+        updateDueDate(null);
+      }}
+    >
+      <XIcon size={16} />
+    </button>
+  )}
+</div>
+
+
         )}
       </div>
     </div>
