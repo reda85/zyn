@@ -6,12 +6,13 @@ function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 const categoriesIcons = {
-  'Non assigné' : <CheckIcon className="text-white h-4 w-4" />,
+  'unassigned' : <CheckIcon className="text-white h-4 w-4" />,
   'zap': <ZapIcon className="text-white h-4 w-4" />,
   'droplets': <DropletsIcon className="text-white h-4 w-4" />,
   'paint': <PaintRoller className="text-white h-4 w-4" />,
   'carrelage': <GripIcon className="text-white h-4 w-4" />,
   'fire-extinguisher': <FireExtinguisherIcon className="text-white h-4 w-4" />,
+  
 }
 
 

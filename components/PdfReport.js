@@ -1,9 +1,32 @@
-import { Document, Image, Page, PDFDownloadLink, Text } from "@react-pdf/renderer"
-import { View } from "lucide-react";
+import { Document, Image, Page, PDFDownloadLink, Text, View } from "@react-pdf/renderer"
+
 import { createTw } from 'react-pdf-tailwind';
 import { useAtom } from "jotai";
 import { Fragment } from "react";
 import { Calendar1Icon, Square3Stack3DIcon } from "./icons";
+import { categoriesAtom, selectedProjectAtom, statusesAtom } from "@/store/atoms";
+import { pdfIconsMap } from "@/utils/iconsMap";
+
+function PdfCategoryLabel({ category, status }) {
+  const iconSrc = pdfIconsMap[category?.icon];
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center", // align to middle with text
+        justifyContent: "flex-start",
+        backgroundColor: status?.color || "#666",
+        borderRadius: 9999,
+        paddingVertical: 2,
+        paddingHorizontal: 4,
+        minHeight: 18,
+      }}
+    >
+      {iconSrc && <Image src={iconSrc} style={{ width: 12, height: 12 }} />}
+    </View>
+  );
+}
+
 
 
 const tw = createTw({
@@ -29,30 +52,17 @@ const groupBy = (arr, key) => {
   }, {});
 };
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
 
-function statusColors(status) {
-  switch (status) {
-    case 'En cours':
-      return 'bg-blue-600';
-    case 'A valider':
-      return 'bg-yellow-600';
-    case 'Termine':
-      return 'bg-green-600';
-    default:
-      return 'bg-gray-600';
-  }
-}
 
-export default function PdfReport({ selectedPins }) {
+export default function PdfReport({ selectedPins, categories, statuses, selectedProject }) {
+ 
 
   const pinsByPdfName = groupBy(selectedPins, 'pdf_name');
-  const pinsByCategory = groupBy(selectedPins, 'category');
-  const pinsByStatus = groupBy(selectedPins, 'status');
-  console.log('pinsByPdfName', pinsByPdfName);
+  const pinsByCategory = groupBy(selectedPins, 'category_id');
+  const pinsByStatus = groupBy(selectedPins, 'status_id');
+  console.log('pinsByPdfName', pinsByPdfName,);
   console.log('pinsByCategory', pinsByCategory);
+  console.log('pinsByStatus', pinsByStatus);
   console.log('selectedPins', selectedPins);
   return (
     <Document>
@@ -61,7 +71,7 @@ export default function PdfReport({ selectedPins }) {
       alignItems: 'top',}]}>
             <View style={[tw('flex flex-col '), { flex: 1 }]}>
             <Text style={tw('text-stone-800 text-base  font-bold ')}>Entreprise X</Text>
-            <Text style={tw('text-sm mt-1 text-stone-800')} >Projet X</Text>
+            <Text style={tw('text-sm mt-1 text-stone-800')} >{selectedProject?.name}</Text>
             </View>
             <View><Text style={tw('text-sm text-stone-800')}>{new Date().toLocaleDateString('fr-FR')}</Text></View>
             </View>
@@ -102,23 +112,29 @@ export default function PdfReport({ selectedPins }) {
      
       <View style={tw('flex flex-row mt-4 ')}>
        
-        {Object.keys(pinsByStatus).map((status, index) => (
-          <View key={index} style={[
-    tw(`${statusColors(status)} rounded-full px-2 py-1 mr-2`),
-    {
-      display: 'inline-block',
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-  ]}>
-            <Text style={tw('text-white text-sm ')}>{status}</Text>
-            <Text style={tw('text-white- text-sm ')}>({pinsByStatus[status]?.length})</Text>
-          </View>
-        ))}
+      {Object.keys(pinsByStatus).map((status_id, index) => {
+  const status = statuses.find(s => String(s.id) === String(status_id));
+  //console.log("Category icon:", categories.find(c => String(c.id) === String(pin.category_id))?.icon, "=>", iconsMap[categories.find(c => String(c.id) === String(pin.category_id))?.icon]);
+
+  return (
+    <View
+      key={index}
+      style={[
+        tw("rounded-full px-2 py-1 mr-2 flex-row items-center"),
+        { backgroundColor: status?.color || "#666" }
+      ]}
+    >
+      <Text style={tw("text-white text-sm")}>{status?.name || "Inconnu"}</Text>
+      <Text style={tw("text-white text-sm ml-1")}>({pinsByStatus[status_id]?.length})</Text>
+    </View>
+  );
+})}
+
       </View>
 </View>
             </View >
 {selectedPins.map((pin, index) => (
+  
   <View key={index}>
     <View
       wrap={false}
@@ -131,11 +147,36 @@ export default function PdfReport({ selectedPins }) {
         <Text style={tw('text-stone-800 text-lg font-bold')}>
           {index + 1}. {pin.name}
         </Text>
-       
-        {pin.category && (
+<View style={tw('flex flex-row items-center gap-2 my-1 mt-2')}>
+  <PdfCategoryLabel
+    category={categories.find(c => String(c.id) === String(pin.category_id))}
+    status={statuses.find(s => s.id === pin?.status_id)}
+  />
+  <View
+    style={[
+      tw("rounded-full px-2 py-1 flex-row items-center"),
+      { backgroundColor: statuses.find(s => s.id === pin?.status_id)?.color || "#666" }
+    ]}
+  >
+    <Text style={tw("text-white text-sm")}>
+      {statuses.find(s => s.id === pin?.status_id)?.name || "Inconnu"}
+    </Text>
+  </View>
+</View>
+
+        <View style={tw('flex flex-row my-1 ')}>
+            <Text style={tw('text-stone-700 text-sm font-bold w-36')}>ID:</Text>
+          <Text style={tw('text-stone-800 text-sm')}>{pin?.projects?.project_number}-{pin?.pin_number}</Text>
+          </View>
+        {pin?.category_id && (
           <View style={tw('flex flex-row my-1')}>
             <Text style={tw('text-stone-700 text-sm font-bold w-36')}>Catégorie:</Text>
-          <Text style={tw('text-stone-800 text-sm')}>{pin.category}</Text>
+         
+{/* <PdfCategoryLabel category={categories.find(c => String(c.id) === String(pin.category_id))} /> */}
+<Text style={tw("text-sm text-stone-800")}>
+ 
+  { categories.find(c => String(c.id) === String(pin.category_id))?.name }
+</Text>
           </View>
         )}
 
@@ -151,8 +192,8 @@ export default function PdfReport({ selectedPins }) {
 
           <View style={tw('flex flex-row my-1 ')}>
             <Text style={tw('text-stone-700 text-sm font-bold w-36')}>Echeance:</Text>
-            <View style={tw('flex flex-row mr-2 ')}>
-              <Calendar1Icon size={12} color={'white'} />
+            <View style={tw('flex flex-row mr-2 gap-2 ')}>
+              <Image src={'/icons/calendar-days-stone.png'} style={{ width: 12, height: 12 }} />
           <Text style={tw('text-stone-800 text-sm')}>{pin?.due_date ? new Date(pin.due_date).toLocaleDateString('fr-FR') : '-'}</Text>
           </View>
           </View>
@@ -177,7 +218,7 @@ export default function PdfReport({ selectedPins }) {
         )}
         {pin.pdf_name && (
           <View style={tw('flex flex-row mt-1 gap-2  ')}>
-            <Square3Stack3DIcon size={12} color={'white'} />
+            <Image src={'/icons/map-stone.png'} style={{ width: 12, height: 12 }} />
           <Text style={tw('text-stone-800 text-sm font-bold capitalize')}>{pin.pdf_name}</Text>
           </View>
         )}

@@ -16,7 +16,7 @@ const anek = Figtree({ subsets: ['latin'], weight: ['400', '700'] })
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
-export default function PinsList({ pins, plans }) {
+export default function PinsList({ pins, plans, user }) {
 
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
@@ -26,7 +26,7 @@ export default function PinsList({ pins, plans }) {
     <div className={classNames(anek.className,'overflow-auto')}>
         <div className="flex flex-row gap-2 p-2 items-baseline   ">
         <CustomSelect options={plans} selected={selectedPlan}  />
-        <FilterPanel  />
+        <FilterPanel user={user} />
         </div>
         <div className="flex flex-row gap-2 p-2 justify-between items-baseline bg-stone-100 border border-gray-300 ">
 <div className="flex flex-row gap-1 items-center ">
@@ -40,7 +40,7 @@ export default function PinsList({ pins, plans }) {
          <div className="flex flex-row gap-2 items-center">
           <Pin pin={pin} />
           <div className="flex flex-col">
-          <p className="font-bold text-xs text-stone-500">ID: {index}</p>
+          <p className="font-bold text-xs text-stone-500">ID: {pin?.projects?.project_number}-{pin.pin_number}</p>
           <p className="font-semibold text-sm text-stone-800">{(selectedPin?.id === pin.id ? selectedPin.name : pin.name)  || 'Pin sans nom'}</p>
           </div>
           </div>

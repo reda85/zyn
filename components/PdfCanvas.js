@@ -52,6 +52,7 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [showPins, setShowPins] = useState(true);
   const [pinMode, setPinMode] = useState(false);
   const [mousePos, setMousePos] = useState(null);
+  const [hoveredPinId, setHoveredPinId] = useState(null);
   const [ghostPinPos, setGhostPinPos] = useState(null); // { x: number, y: number }
 const [pdfSize, setPdfSize] = useState({ width: 0, height: 0 });
 const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
@@ -147,7 +148,7 @@ function zoomOut() {
 const handlePinAdd = async (pin,user) => {
   //if (!selectedPin) return;
 console.log('handlePinAdd', pin)
-  const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*').single()
+  const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*,projects(*),plans(*)').single()
   if (data) {
     console.log('handlePinAdd data', data)
     setSelectedPin(data);
@@ -215,10 +216,10 @@ function handlePdfClick(e) {
   if (x < 0 || x > 1 || y < 0 || y > 1) return;
 
   const newPin = {
-    category_id: categories.find(c => c.order === 0)?.id || 'Non assigne',
+    category_id: categories.find(c => c.order === 0)?.id ,
     x,
     y,
-    status_id: statuses.find(s => s.order === 0)?.id || 'En cours',
+    status_id: statuses.find(s => s.order === 0)?.id ,
     note: '',
     name: '',
     project_id: project.id,
@@ -291,6 +292,8 @@ function handlePdfClick(e) {
     position: 'relative',
     cursor: pinMode ? 'pointer' : dragging ? 'grabbing' : 'default',
     transition: 'transform 0.3s ease',
+     
+   
   }}
 >
   <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} loading="Loading PDF...">
@@ -313,7 +316,9 @@ function handlePdfClick(e) {
   const scaledX = pin.x * pdfSize.width;
   const scaledY = pin.y * pdfSize.height;
 
- 
+ const z =
+            selectedPin?.id === pin.id ? 3000 :
+            hoveredPinId === pin.id ? 2000 : 10;
   
   return (
     <div
@@ -326,13 +331,15 @@ function handlePdfClick(e) {
         pointerEvents: 'auto',
         zIndex: 10,
         transition: 'transform 0.3s ease',
-         
+         zIndex: z
         
       }}
+      onMouseEnter={() => setHoveredPinId(pin.id)}
+              onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
       onClick={() => { setSelectedPin({ ...pin, index: idx })}}
       title={`Pin #${idx + 1}`}
     >
-      <MapPin pin={pin} />
+      <MapPin pin={pin} hovered={hoveredPinId === pin.id}/>
 
       {/*isOverDue && (
         <div

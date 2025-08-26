@@ -17,17 +17,20 @@ import { selectedPlanAtom } from '@/store/atoms'
 const tabs = ['Plan', 'Tasks', 'Medias']
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
-export default function Navbar({ id,user, project }) {
+export default function Navbar({ id, user, project }) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
   const router = useRouter()
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
 
+  // Derive the current tab from pathname
   const currentTab = (() => {
-    if (pathname === `/${id}`) return 'Plan'
+    if (pathname === `/protected/projects/${id}` || pathname === `/protected/projects/${id}/`) {
+      return 'Plan'
+    }
     const match = tabs.find(tab =>
-      pathname.startsWith(`/projects/${id}/${tab.toLowerCase()}`)
+      pathname.startsWith(`/protected/projects/${id}/${tab.toLowerCase()}`)
     )
     return match ?? 'Plan'
   })()
@@ -39,107 +42,102 @@ export default function Navbar({ id,user, project }) {
         setMenuOpen(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
 
-  
-
   return (
     <nav className={`bg-white border-b border-gray-300 ${lexend.className}`}>
       <div className="relative mx-auto flex h-12 items-center justify-between pl-0 pr-4 sm:pr-6 lg:pr-8">
         
-        {/* Logo and Dropdown Menu */}
+        {/* Logo + Dropdown */}
         <div className="relative flex items-center h-12" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(prev => !prev)}
             className="flex items-center space-x-2 h-full focus:outline-none"
           >
             <div className="relative group h-full w-12">
-  <Image
-    src="/logo.png"
-    alt="logo"
-    fill
-    className="object-contain"
-  />
-  <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 transition-opacity rounded-sm" />
-</div>
+              <Image
+                src="/logo.png"
+                alt="logo"
+                fill
+                className="object-contain"
+              />
+              <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 transition-opacity rounded-sm" />
+            </div>
             <span className="text-lg font-semibold text-gray-900">{project?.name}</span>
           </button>
 
-{menuOpen && (
-  <div className="absolute top-12 left-2 w-56 bg-gray-50 border border-gray-200 shadow-xl rounded-md z-50">
-    <ul className="py-1 text-sm text-gray-700">
-      <li>
-        <Link
-          href="/protected/projects"
-          className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => { setMenuOpen(false)}}
-        >
-          All Projects
-        </Link>
-      </li>
-      <li>
-        <Link
-          href={`/protected/projects/${id}`}
-          className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => { setMenuOpen(false)}}
-        >
-          Project Details
-        </Link>
-      </li>
-       <li>
-        <Link
-          href={`/protected/projects/${id}/sources`}
-          className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => { setMenuOpen(false)}}
-        >
-          Project Plans
-        </Link>
-      </li>
-      <li>
-        <Link
-          href={`/protected/projects/${id}/categories`}
-          className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => { setMenuOpen(false)}}
-        >
-          Task Categories Manager
-        </Link>
-      </li>
-      <li>
-        <Link
-          href={`/protected/projects/${id}/status`}
-          className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-          onClick={() => { setMenuOpen(false)}}
-        >
-          Status Manager
-        </Link>
-      </li>
-    </ul>
-  </div>
-)}
-
+          {menuOpen && (
+            <div className="absolute top-12 left-2 w-56 bg-gray-50 border border-gray-200 shadow-xl rounded-md z-50">
+              <ul className="py-1 text-sm text-gray-700">
+                <li>
+                  <Link
+                    href="/protected/projects"
+                    className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    All Projects
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href={`/protected/projects/${id}`}
+                    className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Project Details
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href={`/protected/projects/${id}/sources`}
+                    className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Project Plans
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href={`/protected/projects/${id}/categories`}
+                    className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Task Categories Manager
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href={`/protected/projects/${id}/status`}
+                    className="block px-4 py-2 hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Status Manager
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
 
-        {/* Center Navigation Tabs */}
+        {/* Center Tabs */}
         <div className="absolute left-1/2 flex -translate-x-1/2 space-x-4">
           {tabs.map(tab => {
             const path = tab === 'Plan'
-              ? `/protected/projects/${id}/`
+              ? `/protected/projects/${id}`
               : `/protected/projects/${id}/${tab.toLowerCase()}`
             return (
               <Link key={tab} href={path}>
                 <button
                   className={clsx(
-                    'px-3 py-2  transition text-sm ',
+                    'px-3 py-2 transition text-sm',
                     currentTab === tab
                       ? 'border-b-2 border-blue-600 text-blue-600'
                       : 'border-b-2 border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-500'
                   )}
-                  onClick={() => setCurrentTab(tab)}
                 >
                   {tab}
                 </button>

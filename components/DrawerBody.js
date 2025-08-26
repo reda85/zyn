@@ -77,7 +77,7 @@ export default function DrawerBody( {pin} ) {
         <Pin pin={pin} />
       <div className="text-base">{pin && <StatusSelect  pin={pin} />}</div>
       </div>
-      
+        <div className="text-sm text-stone-500">ID: {pin?.projects?.project_number}-{pin.pin_number}</div>
       <div className="text-base"><input onBlur={handleUpdateName} placeholder='Ajouter le nom ici ...' value={name || ''} onChange={(e) => setName(e.target.value)} className="w-full resize-none text-lg focus:outline-none placeholder:text-lg  " /></div>
       <div className="text-xs"><Textarea value={note || ''} placeholder='Ajouter une description ici ...' onBlur={handleUpdateNote} onChange={(e) => setNote(e.target.value)} className="w-full resize-none text-sm placeholder:text-sm  focus:outline-none" /></div>
      

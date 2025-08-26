@@ -7,7 +7,7 @@ import { categoriesAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
 import { ZapIcon, DropletsIcon, PaintRoller, GripIcon, FireExtinguisherIcon, CheckIcon } from 'lucide-react'
 
 const categoriesIcons = {
-  'Non assigné' : <CheckIcon className="text-gray-500 h-4 w-4" />,
+  'unassigned' : <CheckIcon className="text-gray-500 h-4 w-4" />,
   'zap': <ZapIcon className="text-gray-500 h-4 w-4" />,
   'droplets': <DropletsIcon className="text-gray-500 h-4 w-4" />,
   'paint': <PaintRoller className="text-gray-500 h-4 w-4" />,

@@ -1,12 +1,15 @@
 'use client';
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
+import { useAtom } from 'jotai';
+import { categoriesAtom } from '@/store/atoms';
 
 const suggestions = ['Electricite', 'Peinture', 'Plomberie'];
 
 export default function CategoryFilter({ active, onToggle, tags, setTags }) {
   const [input, setInput] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [categories, setCategories] = useAtom(categoriesAtom);
 
   const addTag = (tag) => {
     if (!tags.includes(tag)) setTags([...tags, tag]);
@@ -70,15 +73,15 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
 
           {showDropdown && (
             <div className="absolute z-40 mt-1 bg-white border border-gray-300 rounded-md shadow w-60 max-h-48 overflow-y-auto text-sm">
-              {suggestions
-                .filter((s) => s.toLowerCase().includes(input.toLowerCase()) && !tags.includes(s))
-                .map((s) => (
+              {categories
+                .filter((s) => s.name.toLowerCase().includes(input.toLowerCase()) && !tags.includes(s.name))
+                .map((s,index) => (
                   <div
-                    key={s}
+                    key={index}
                     className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                    onMouseDown={() => addTag(s)}
+                    onMouseDown={() => addTag(s.name)}
                   >
-                    {s}
+                    {s.name}
                   </div>
                 ))}
             </div>

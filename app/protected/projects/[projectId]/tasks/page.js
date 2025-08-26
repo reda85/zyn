@@ -19,6 +19,7 @@ import FilterPanel from "@/components/FilterPanel"
 import ListFilterPanel from "../../../../../components/ListFilterPanel"
 import LoadingScreen from "@/components/LoadingScreen"
 import clsx from "clsx"
+import { useUserData } from "@/hooks/useUserData"
 
 
 const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
@@ -82,6 +83,8 @@ export default function Tasks({ params }) {
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null);
      const { projectId } = use(params);
+     const {user,profile,organization} = useUserData();
+     console.log('uuuser', user, profile, organization)
 
       async function prepareSnapshots() {
     const pinsWithImages = await Promise.all(
@@ -123,7 +126,7 @@ export default function Tasks({ params }) {
     const fetchPins = async () => {
         const { data,error } = await supabase
             .from('pdf_pins')
-            .select('id,name,note,x,y,status_id,assigned_to(id,name),category_id,due_date,pdf_name,project_id,pins_photos(id,public_url),plans(id,name,file_url)')
+            .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
             .eq('project_id', projectId)
         if (data) {
             setOriginalPins(data)
@@ -173,12 +176,12 @@ useEffect(() => {
         placeholder="Rechercher"
         className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
       />
-    <ListFilterPanel pins={pins} setPins={setPins} originalPins={originalPinspins} setOriginalPins={setOriginalPins} />
+    <ListFilterPanel pins={pins} setPins={setPins} originalPins={originalPinspins} setOriginalPins={setOriginalPins} user={profile} />
     </div>
     </div>
     {selectedIds.size > 0 && <div className="p-3 bg-neutral-200">
         <div>
-   {pinsWithSnapshots && <PDFDownloadLink document={<PdfReport selectedPins={pinsWithSnapshots.filter((p) => selectedIds.has(p.id))} pins={pinsWithSnapshots} />} fileName="tasks.pdf">
+   {pinsWithSnapshots && <PDFDownloadLink document={<PdfReport selectedPins={pinsWithSnapshots.filter((p) => selectedIds.has(p.id))} pins={pinsWithSnapshots} categories={categories} statuses={statuses} selectedProject={project} />} fileName="tasks.pdf">
       {({ blob, url, loading, error }) =>
         loading ? 'Loading document...' : 'Download now!'
       }
@@ -227,8 +230,15 @@ useEffect(() => {
                 />
               </td>
 
-              <td className="flex flex-row items-center   gap-2 p-3  text-xs font-semibold "> <Pin pin={pin} /> {pin.name || 'Pin sans nom'}</td>
-              <td className="p-3  text-xs ">{pin.id}</td>
+               <td className="p-3 align-middle">
+        <div className="flex flex-row items-center gap-2">
+          <Pin pin={pin} />
+          <span className="text-xs font-semibold">
+            {pin.name || "Pin sans nom"}
+          </span>
+        </div>
+      </td>
+              <td className="p-3  text-xs text-stone-500 ">{pin.projects?.project_number}-{pin.pin_number}</td>
               <td className="p-3  text-xs ">{pin.assigned_to?.name || '-'}</td>
               <td className="p-3  text-xs ">{<CategoryComboBox pin={pin} />}</td> 
               <td className="p-3  text-xs ">

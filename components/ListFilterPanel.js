@@ -19,7 +19,7 @@ import OverdueFilter from './OverdueFilter';
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
 
-export default function ListFilterPanel({ pins, setPins, originalPins, setOriginalPins }) {
+export default function ListFilterPanel({ pins, setPins, originalPins, setOriginalPins, user }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
@@ -44,11 +44,11 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
     let filtered = [...originalPins];
 
     if (filters.me) {
-      filtered = filtered.filter((pin) => pin.created_by === 'me'); // Replace 'me' with actual user logic
+      filtered = filtered.filter((pin) => pin.created_by === user.id ); // Replace 'me' with actual user logic
     }
 
     if (filters.category && categoryTags.length > 0) {
-      filtered = filtered.filter((pin) => categoryTags.includes(pin.category));
+      filtered = filtered.filter((pin) => categoryTags.includes(pin.categories?.name));
     }
 
     if (filters.date && dateTags.length > 0) {

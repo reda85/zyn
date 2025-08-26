@@ -2,6 +2,7 @@
 import { Switch } from '@headlessui/react';
 
 export default function CreatedByMeFilter({ active, onToggle }) {
+  
   return (
     <div className="px-4 mb-4">
       <div className="flex items-center justify-between bg-stone-100 border border-gray-300 p-2 rounded">

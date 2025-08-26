@@ -27,6 +27,7 @@
     "jotai": "^2.12.5",
     "lodash": "^4.17.21",
     "lucide-react": "^0.468.0",
+    "lucide-static": "^0.541.0",
     "next": "latest",
     "next-themes": "^0.4.3",
     "pdf-lib": "^1.17.1",
@@ -37,7 +38,8 @@
     "react-datepicker": "^8.4.0",
     "react-dom": "^18.3.1",
     "react-pdf": "^6.0.3",
-    "react-pdf-tailwind": "^2.3.0"
+    "react-pdf-tailwind": "^2.3.0",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@types/node": "22.10.2",
