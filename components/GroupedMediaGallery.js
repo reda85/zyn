@@ -3,6 +3,7 @@
 import React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { Lexend } from 'next/font/google';
+import { MapPinIcon } from 'lucide-react';
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' });
 
@@ -84,8 +85,9 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
   className="relative group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col"
 >
   {/* Header with time */}
-  <div className="text-xs text-gray-500 px-3 py-2 bg-gray-50">
-    Ajouté à : {new Date(item.created_at).toLocaleTimeString('fr-FR')}
+  <div className="text-xs text-gray-500 px-3 py-2 ">
+    <p className='text-sm text-gray-800 font-semibold'> {item.assigned_to?.name || 'Aucun'}</p>
+   <p>  {new Date(item.created_at).toLocaleString('fr-FR')} </p>
   </div>
 
   {/* Media image */}
@@ -109,23 +111,9 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
 
   {/* Footer with pin name */}
   <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 border-t border-gray-200 mt-auto">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-4 w-4 text-gray-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M16 7a4 4 0 00-8 0c0 1.657 2 6 4 6s4-4.343 4-6z"
-      />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19v-3" />
-    </svg>
+    <MapPinIcon className="h-4 w-4 text-gray-700" />
     <span className="truncate">
-      {item.pdf_pins?.name ?? 'Sans nom'}
+      {item.pdf_pins?.name }
     </span>
   </div>
 </div>

@@ -51,13 +51,14 @@ export default function Medias({ params }) {
     const fetchMedias = async () => {
       const { data, error } = await supabase
         .from('pins_photos')
-        .select('*, pdf_pins(*)')
+        .select('*, pdf_pins(*,assigned_to(id,name))')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
 
       if (data) {
         setMedias(data)
         setFilteredMedias(data)
+        console.log('medias', data)
       }
       if (error) console.error("Medias error", error)
     }
