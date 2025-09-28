@@ -80,7 +80,8 @@ console.log('uuuser', user, profile, organization)
       categories(name),
       assigned_to(id,name)
     `)
-        .eq('pdf_name', plan.name)
+        .eq('plan_id', plan.id)
+        .order('created_at', { ascending: true })
      if(data) {console.log('pins', data); setPins(data)}
     }
 
@@ -102,7 +103,7 @@ console.log('uuuser', user, profile, organization)
   
   <div className="flex flex-1 overflow-hidden">
     <div className="w-72 overflow-y-auto border-r border-gray-200">
-      {pins.length > 0 && <PinsList pins={pins} plans={project.plans} user={profile} />}
+      {<PinsList pins={pins} plans={project.plans} user={profile} />}
     </div>
 
     <div className="flex-1 overflow-auto">

@@ -35,7 +35,7 @@ export default function PinsList({ pins, plans, user }) {
     </div>
         </div>
     <div className="flex flex-col gap-2 p-2  ">
-      {pins.map((pin,index) => (
+      {pins && pins.map((pin) => (
         <div onClick={() =>{setSelectedPin(pin)}} key={pin.id} className={classNames("hover:cursor-pointer border  rounded p-2 flex flex-col gap-2",selectedPin?.id === pin.id ? 'bg-blue-100 border-blue-500' : 'border-gray-300 bg-gray-50')}>
          <div className="flex flex-row gap-2 items-center">
           <Pin pin={pin} />
