@@ -5,13 +5,13 @@ import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headless
 import { CheckIcon, ChevronDownIcon, ChevronUpDownIcon, Square3Stack3DIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 
-export default function CustomSelect({ options, selected }) {
+export default function CustomSelect({ options, selected, projectId }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const onChange = (option) => {
     setOpen(false);
-    router.push(`/${option.id}`);
+    router.push(`/protected/projects/${projectId}/${option.id}`);
   };
   return (
     <div className="w-56 ">

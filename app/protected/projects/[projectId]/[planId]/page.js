@@ -103,7 +103,7 @@ console.log('uuuser', user, profile, organization)
   
   <div className="flex flex-1 overflow-hidden">
     <div className="w-72 overflow-y-auto border-r border-gray-200">
-      {<PinsList pins={pins} plans={project.plans} user={profile} />}
+      {<PinsList pins={pins} plans={project.plans} user={profile} projectId={projectId} />}
     </div>
 
     <div className="flex-1 overflow-auto">
