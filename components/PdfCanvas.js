@@ -13,6 +13,7 @@ import {  Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon } from 'lucide-react'
 import GhostPin from './GhostPin';
 
 import { supabase } from '@/utils/supabase/client';
+import { classNames } from '@react-pdf-viewer/core';
 
 const inter = Lexend({subsets: ['latin'], variable: '--font-inter', display: 'swap'});
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -116,6 +117,15 @@ function zoomOut() {
   zoom(0.5);
 }
 
+ const handleWheel = (event) => {
+    // event.deltaY indicates the vertical scroll amount
+    // A positive value means scrolling down, a negative value means scrolling up
+    if (event.deltaY > 0) {
+      zoomOut();
+    } else if (event.deltaY < 0) {
+      zoomIn();
+    }
+  };
 
   function onMouseDown(e) {
     setDragging(true);
@@ -143,6 +153,10 @@ function zoomOut() {
   if (pinMode) {
     setGhostPinPos({ x: e.clientX, y: e.clientY }); // absolute position on screen
   }
+}
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ')
 }
 
 const handlePinAdd = async (pin,user) => {
@@ -243,6 +257,7 @@ function handlePdfClick(e) {
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
+        onWheel={handleWheel}
         style={{
          
           cursor: dragging ? 'grabbing' : 'grab',
@@ -275,8 +290,8 @@ function handlePdfClick(e) {
           <button onClick={zoomOut}>-</button>
           <button onClick={zoomIn}>+</button>
        {/*   <button onClick={togglePins}>{showPins ? 'Hide Pins' : 'Show Pins'}</button> */}
-          <button onClick={() => setPinMode(false)}><GrabIcon className="h-4 w-4" /></button>
-          <button onClick={() => setPinMode(true)}><MapPinIcon className="h-4 w-4" /></button>
+          <button  onClick={() => setPinMode(false)}><GrabIcon className={classNames("h-5 w-5", !pinMode && 'text-pink-700 ' )} /></button>
+          <button onClick={() => setPinMode(true)}><MapPinIcon className={classNames("h-5 w-5", pinMode && 'text-pink-700' )} /></button>
         </div>
 
         {/* PDF + Pins */}

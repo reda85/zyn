@@ -43,7 +43,11 @@ export default function ProjectDetail() {
     fetchCategories()
   }, [projectId])
 
-  if (!project) return <p>Loading...</p>
+  if (!project) return (
+    <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-200" />
+    </div>
+  );
 
   return (
     <div>
