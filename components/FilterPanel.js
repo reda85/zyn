@@ -15,6 +15,8 @@ import CreatedByMeFilter from './CreatedByMeFilter';
 import DateFilter from './DateFilter';
 import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
+import { a } from '@react-spring/web';
+
 
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
@@ -25,11 +27,19 @@ export default function FilterPanel({user}) {
   const panelRef = useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  const [originalPins, setPins] = useAtom(pinsAtom);
-  const [allPins] = useState(originalPins);
+  const [pins, setPins] = useAtom(pinsAtom);
+  const [filteredPins, setFilteredPins] = useState(pins);
+  const [allPins, setAllPins] = useState([]);
+  console.log('filtered 0', pins)
+
   const [statusTags, setStatusTags] = useState([]);
 
-
+useEffect(() => {
+  if (pins && allPins.length === 0) {
+    console.log('filtered 1', pins)
+    setAllPins(pins);
+  }
+}, [pins]);
   const [filters, setFilters] = useState({
     me: false,
     category: false,
@@ -42,6 +52,7 @@ export default function FilterPanel({user}) {
 
   const applyFilters = () => {
     let filtered = [...allPins];
+    console.log('filtered1', filtered);
 
     if (filters.me) {
       filtered = filtered.filter((pin) => pin.created_by === user.id ); // Replace 'me' with actual user logic
@@ -73,6 +84,7 @@ if (filters.overdue) {
     return pin.due_date && dayjs(pin.due_date).isBefore(dayjs(), 'day');
   });
 }
+    console.log('filtered2', filtered);
     setPins(filtered);
   };
 

@@ -65,7 +65,7 @@ export default function Navbar({ id, user, project }) {
                 fill
                 className="object-contain"
               />
-              <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 transition-opacity rounded-sm" />
+              <div className="absolute inset-0 bg-teal-500 opacity-0 group-hover:opacity-30 transition-opacity rounded-sm" />
             </div>
             <span className="text-lg font-semibold text-gray-900">{project?.name}</span>
           </button>
@@ -135,8 +135,8 @@ export default function Navbar({ id, user, project }) {
                   className={clsx(
                     'px-3 py-2 transition text-sm',
                     currentTab === tab
-                      ? 'border-b-2 border-blue-600 text-blue-600'
-                      : 'border-b-2 border-transparent text-gray-500 hover:border-blue-500 hover:text-blue-500'
+                      ? 'border-b-2 border-teal-400 text-teal-400'
+                      : 'border-b-2 border-transparent text-gray-500 hover:border-teal-400 hover:text-teal-400'
                   )}
                 >
                   {tab}
@@ -148,12 +148,12 @@ export default function Navbar({ id, user, project }) {
 
         {/* Right Actions */}
         <div className="flex items-center space-x-4">
-          <BellIcon className="h-6 w-6 text-gray-500 hover:text-blue-600" />
+          <BellIcon className="h-6 w-6 text-gray-500 hover:text-teal-600" />
           <div className="flex items-center space-x-1 rounded-full bg-gray-100 px-2 py-1 text-sm text-gray-800">
             <UserGroupIcon className="h-4 w-4 text-gray-600" />
             <span>Members</span>
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-600 text-sm font-semibold text-white">
             {user?.name?.charAt(0).toUpperCase() || 'M'}
           </div>
         </div>

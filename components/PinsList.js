@@ -1,4 +1,4 @@
-import { Anek_Devanagari, Source_Sans_3, Jost, Catamaran, Noto_Sans, Fira_Sans, Figtree } from "next/font/google"
+import { Anek_Devanagari, Source_Sans_3, Jost, Catamaran, Noto_Sans, Fira_Sans, Figtree, Lexend } from "next/font/google"
 import CustomSelect from './customSelect'
 import FilterPanel from './FilterPanel'
 import { useState } from "react";
@@ -11,7 +11,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
 dayjs.extend(relativeTime);
 dayjs.locale('fr');
-const anek = Figtree({ subsets: ['latin'], weight: ['400', '700'] })
+const anek = Lexend({ subsets: ['latin'], weight: ['400', '700'] })
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')

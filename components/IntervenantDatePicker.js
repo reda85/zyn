@@ -236,7 +236,7 @@ if(pin?.due_date) {
     className={clsx(
       "w-full border rounded px-3 py-2 pl-10 text-left relative",
      "bg-gray-100",
-      isOverDue ? "border-red-600 text-red-600" : "border-gray-300 text-gray-800"
+      isOverDue ? "border-red-600 text-red-600 bg-red-100" : "border-gray-300 text-gray-800"
     )}
     onClick={() => setIsPickingDate(true)}
   >

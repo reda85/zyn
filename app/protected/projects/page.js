@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
-import { selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
+import { selectedOrganizationAtom, selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
 import { FolderKanban, Users, BarChart3, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Lexend } from 'next/font/google'
@@ -21,11 +21,13 @@ export default function ProjectsPage() {
   const [newProjectName, setNewProjectName] = useState('')
   const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
+  const [selectedOrganization, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const [refresh, setRefresh] = useState(false)
 
+  console.log('selectedOrganization', selectedOrganization)
   useEffect(() => {
     const fetchProjects = async () => {
       const { data } = await supabase
@@ -81,7 +83,7 @@ const createProject = async () => {
     const { data, error } = await supabase
       .rpc('create_project_with_defaults', {
     p_name: newProjectName,
-    p_organization_id: selectedProject?.organization_id || projects[0]?.organization_id
+    p_organization_id: selectedOrganization?.id || selectedProject?.organization_id || projects[0]?.organization_id
   });
       
       
@@ -102,8 +104,8 @@ const createProject = async () => {
       {/* Side Navigation */}
       <aside className="w-52 bg-neutral-50 text-stone-600 flex flex-col">
         <div className="px-4 py-5 flex-col border-2 border-blue-50 bg-white flex  mx-4 my-6 rounded-md gap-2 shadow-sm">
-          <h2 className="text-sm  text-stone-800">{projects[0]?.organizations?.name}</h2>
-          <p className="text-xs  text-stone-500">{projects[0]?.organizations?.members?.length} members</p>
+          <h2 className="text-sm  text-stone-800">{selectedOrganization?.name}</h2>
+          <p className="text-xs  text-stone-500">{selectedOrganization?.members?.length} members</p>
           </div>
       
         <nav className="flex-1 px-4 space-y-1">

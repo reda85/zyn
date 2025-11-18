@@ -3,16 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@/components/UserContext';
 import { createBrowserClient } from '@supabase/ssr';
+import { useAtom } from 'jotai';
+import { selectedOrganizationAtom } from '@/store/atoms';
 
 const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 export function useUserData() {
   const user = useUser();
-  const [profile, setProfile] = useState<any>(null);
-  const [organization, setOrganization] = useState<any>(null);
+  const [profile, setProfile] = useState(null);
+  const [organization, setSelectedOrganization] = useAtom(selectedOrganizationAtom);
 
   useEffect(() => {
     if (!user) return;
@@ -33,7 +35,7 @@ export function useUserData() {
 
       const { data: organization, error: orgError } = await supabase
         .from('organizations')
-        .select('*')
+        .select('*,members(*)')
         .eq('id', profile.organization_id)
         .single();
 
@@ -42,7 +44,7 @@ export function useUserData() {
         return;
       }
 
-      setOrganization(organization);
+      setSelectedOrganization(organization);
     };
 
     fetchUserData();

@@ -9,7 +9,7 @@ import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
 import MapPin from './MapPin';
-import {  Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon } from 'lucide-react';
+import {  Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon, PointerIcon } from 'lucide-react';
 import GhostPin from './GhostPin';
 
 import { supabase } from '@/utils/supabase/client';
@@ -290,7 +290,7 @@ function handlePdfClick(e) {
           <button onClick={zoomOut}>-</button>
           <button onClick={zoomIn}>+</button>
        {/*   <button onClick={togglePins}>{showPins ? 'Hide Pins' : 'Show Pins'}</button> */}
-          <button  onClick={() => setPinMode(false)}><GrabIcon className={classNames("h-5 w-5", !pinMode && 'text-pink-700 ' )} /></button>
+          <button  onClick={() => setPinMode(false)}><PointerIcon className={classNames("h-5 w-5", !pinMode &&  ' text-pink-700 ' )}   /> </button>
           <button onClick={() => setPinMode(true)}><MapPinIcon className={classNames("h-5 w-5", pinMode && 'text-pink-700' )} /></button>
         </div>
 
