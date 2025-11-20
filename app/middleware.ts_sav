@@ -1,0 +1,94 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+
+const APP_SUBDOMAIN = "app.";
+const SIGN_IN_URL = "/sign-in";
+const APP_DASHBOARD = "/projects";
+
+export async function middleware(req: NextRequest) {
+  const url = req.nextUrl;
+  const hostHeader = req.headers.get("host") || "";
+  const pathname = url.pathname;
+
+  // Detect subdomain
+  const isAppSubdomain = hostHeader.startsWith(APP_SUBDOMAIN);
+
+  // Detect /app/* local
+  const isLocalAppRoute = pathname.startsWith("/app");
+
+  // Compute main domain host (without app.)
+  const mainDomainHost = hostHeader.replace(APP_SUBDOMAIN, "");
+
+  // For consistency return this response by default
+  let response = NextResponse.next({ request: { headers: req.headers } });
+
+  // ------------------------------------------------------------------
+  // A. REWRITE : if app.* → rewrite to /app/*
+  // ------------------------------------------------------------------
+  if (isAppSubdomain) {
+    url.pathname = `/app${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // ------------------------------------------------------------------
+  // B. Supabase Session
+  // ------------------------------------------------------------------
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+
+          response = NextResponse.next({ request: req });
+
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const domainOption =
+              process.env.NEXT_PUBLIC_VERCEL_ENV === "development"
+                ? { domain: "localhost" }
+                : { domain: `.zyn-jet.vercel.app` };
+
+            response.cookies.set(name, value, {
+              ...options,
+              ...domainOption,
+            });
+          });
+        },
+      },
+    }
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // ------------------------------------------------------------------
+  // C. PROTECTION : /app/* local must require auth
+  // ------------------------------------------------------------------
+  if (isLocalAppRoute && !user) {
+    const redirectUrl = `http://${mainDomainHost}${SIGN_IN_URL}`;
+    return NextResponse.redirect(new URL(redirectUrl));
+  }
+
+  // ------------------------------------------------------------------
+  // D. If logged → redirect / or /sign-in to app.* (dashboard)
+  // ------------------------------------------------------------------
+  if (user && (pathname === "/" || pathname === SIGN_IN_URL)) {
+    const appHost = `${APP_SUBDOMAIN}${mainDomainHost}`;
+    const redirectUrl = `http://${appHost}${APP_DASHBOARD}`;
+    return NextResponse.redirect(new URL(redirectUrl));
+  }
+
+  return response;
+}
+
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|logo.png).*)',
+  ],
+};

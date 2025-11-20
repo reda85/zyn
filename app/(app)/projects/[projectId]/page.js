@@ -14,7 +14,7 @@ export default function Projectreroute({params}) {
         const fetchProject = async () => {
       const { data } = await supabase.from('projects').select('id,created_at,name,plans(id,name)').eq('id', projectId).single()
       setProject(data)
-      router.push(`/protected/projects/${projectId}/${data.plans[0].id}`);
+      router.push(`/projects/${projectId}/${data.plans[0].id}`);
     }
         
 
@@ -24,7 +24,7 @@ export default function Projectreroute({params}) {
 
         }
         else{
-            router.push(`/protected/projects/${projectId}/${selectedProject.plans[0].id}`)
+            router.push(`/projects/${projectId}/${selectedProject.plans[0].id}`)
         }
         
     },[] )

@@ -109,10 +109,10 @@ const createProject = async () => {
           </div>
       
         <nav className="flex-1 px-4 space-y-1">
-          <Link href="/protected/projects" className="flex text-sm items-center gap-3 px-4 py-2 bg-blue-100 text-stone-800 rounded-lg shadow-sm border-blue-300  ">
+          <Link href="/projects" className="flex text-sm items-center gap-3 px-4 py-2 bg-blue-100 text-stone-800 rounded-lg shadow-sm border-blue-300  ">
             <FolderKanban className="w-5 h-5" /> Projects
           </Link>
-          <Link href="/protected/members" className="flex text-sm items-center gap-3 px-4 py-2 hover:bg-blue-50 hover:text-stone-800 hover:rounded-lg hover:shadow-sm border-2 border-neutral-50 hover:border-blue-200   ">
+          <Link href="/members" className="flex text-sm items-center gap-3 px-4 py-2 hover:bg-blue-50 hover:text-stone-800 hover:rounded-lg hover:shadow-sm border-2 border-neutral-50 hover:border-blue-200   ">
             <Users className="w-5 h-5" /> Members
           </Link>
           <Link href="/reports" className="flex text-sm items-center gap-3 px-4 py-2 hover:bg-blue-50 hover:text-stone-800 hover:rounded-lg hover:shadow-sm border-2 border-neutral-50 hover:border-blue-200   ">
@@ -160,7 +160,7 @@ const createProject = async () => {
                 }
                 setSelectedProject(proj)
                 setSelectedPlan(proj.plans[0])
-                router.push(`/protected/projects/${proj.id}/${proj?.plans[0]?.id}`)
+                router.push(`/projects/${proj.id}/${proj?.plans[0]?.id}`)
               }}
             >
               {proj.name}

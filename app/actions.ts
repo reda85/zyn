@@ -11,6 +11,8 @@ export const signUpAction = async (formData: FormData) => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
+  
+
   if (!email || !password) {
     return encodedRedirect(
       "error",
@@ -53,7 +55,7 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect("/protected");
+  return redirect("/projects");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -99,7 +101,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (!password || !confirmPassword) {
     encodedRedirect(
       "error",
-      "/protected/reset-password",
+      "/app/reset-password",
       "Password and confirm password are required",
     );
   }
@@ -107,7 +109,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (password !== confirmPassword) {
     encodedRedirect(
       "error",
-      "/protected/reset-password",
+      "/app/reset-password",
       "Passwords do not match",
     );
   }
@@ -119,12 +121,12 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (error) {
     encodedRedirect(
       "error",
-      "/protected/reset-password",
+      "/app/reset-password",
       "Password update failed",
     );
   }
 
-  encodedRedirect("success", "/protected/reset-password", "Password updated");
+  encodedRedirect("success", "/app/reset-password", "Password updated");
 };
 
 export const signOutAction = async () => {
