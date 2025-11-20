@@ -1,6 +1,6 @@
 import { createClient } from '../../utils/supabase/server';
 import { redirect } from 'next/navigation';
-//import { UserProvider } from '../components/UserProvider'; // ✅ make sure it's correct path
+
 import { UserProviderWrapper } from '../../components/UserPoviderWrapper';
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
