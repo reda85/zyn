@@ -5,7 +5,7 @@ import { type NextRequest, NextResponse } from "next/server";
 const APP_SUBDOMAIN = 'app.';
 const SIGN_IN_URL = '/sign-in';
 const APP_DASHBOARD_PATH = '/projects'; // Assuming your app's main page is /dashboard
-const baseDomain = 'zaynspace.com';
+
 export const updateSession = async (request: NextRequest) => {
   // Use the host header to determine if the user is accessing the app subdomain
   const hostHeader = request.headers.get('host') || '';
@@ -54,7 +54,7 @@ export const updateSession = async (request: NextRequest) => {
               // without the leading dot to avoid the eTLD+1 security block.
               else {
                 // Use the base domain (e.g., zyn-jet.vercel.app)
-                finalDomainOption = { domain: baseDomain }; 
+                finalDomainOption = { domain: `.${baseDomain}` };
               }
 
               response.cookies.set(name, value, {
@@ -112,6 +112,7 @@ export const updateSession = async (request: NextRequest) => {
       
       return NextResponse.redirect(new URL(redirectUrl));
     }
+    
     
     // --- END AUTHORIZATION LOGIC ---
 
