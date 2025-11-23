@@ -4,14 +4,26 @@ import { type NextRequest, NextResponse } from "next/server";
 // Define the hosts/prefixes for clarity and easy modification
 const APP_SUBDOMAIN = 'app.';
 const SIGN_IN_URL = '/sign-in';
-const APP_DASHBOARD_PATH = '/projects'; // Assuming your app's main page is /dashboard
+const APP_DASHBOARD_PATH = '/projects'; // Assuming your app's main page is /projects
+
+// Liste des chemins d'authentification pour la flexibilité
+const AUTH_PATHS = [
+    SIGN_IN_URL,
+    '/sign-up',
+    '/forgot-password',
+    '/reset-password',
+    '/auth/callback',
+];
+
+// Vérifie si un chemin donné est une page d'authentification
+const isAuthPath = (pathname: string) => AUTH_PATHS.includes(pathname);
 
 export const updateSession = async (request: NextRequest) => {
   // Use the host header to determine if the user is accessing the app subdomain
   const hostHeader = request.headers.get('host') || '';
   const isAppSubdomain = hostHeader.startsWith(APP_SUBDOMAIN);
   
-  // Dynamic calculation of the base domain (e.g., 'localhost:3000' or 'zyn-jet.vercel.app')
+  // Dynamic calculation of the base domain (e.g., 'localhost:3000' or 'zaynspace.com')
   const baseDomain = hostHeader.startsWith(APP_SUBDOMAIN)
     ? hostHeader.replace(APP_SUBDOMAIN, '')
     : hostHeader;
@@ -44,24 +56,26 @@ export const updateSession = async (request: NextRequest) => {
             // Set response cookies for browser
             cookiesToSet.forEach(({ name, value, options }) => {
               
-              // --- DYNAMIC COOKIE DOMAIN FIX ---
+              // --- DYNAMIC COOKIE DOMAIN FIX: CLÉ POUR LES SOUS-DOMAINES ---
               let finalDomainOption = {};
-              // For localhost/development, we use 'localhost' or let it default
+              
               if (baseDomain.includes('localhost')) {
+                // 1. Environnement Local
                 finalDomainOption = { domain: 'localhost' };
-              } 
-              // For production (e.g., Vercel), we MUST use the exact domain 
-              // without the leading dot to avoid the eTLD+1 security block.
-              else {
-                // Use the base domain (e.g., zyn-jet.vercel.app)
-                finalDomainOption = { domain: `.${baseDomain}` };
+              } else if (baseDomain.endsWith('.vercel.app')) {
+                 // 2. Domaines Vercel (eTLD+1), pas de point de tête
+                 finalDomainOption = { domain: baseDomain }; 
+              } else {
+                // 3. Domaine Personnalisé (e.g., zaynspace.com)
+                // Le point de tête est OBLIGATOIRE (e.g., .zaynspace.com) pour le partage de session
+                finalDomainOption = { domain: `.${baseDomain}` }; 
               }
 
               response.cookies.set(name, value, {
                 ...options,
                 ...finalDomainOption,
-                // Ensure secure flag is set correctly based on Vercel's use of HTTPS
-                secure: baseDomain.includes('.vercel.app') || options.secure,
+                // Ensure secure flag is set correctly based on HTTPS
+                secure: request.nextUrl.protocol === 'https:' || options.secure,
               });
             });
           },
@@ -74,21 +88,16 @@ export const updateSession = async (request: NextRequest) => {
 
     // --- NEW AUTHORIZATION LOGIC ---
     
-    // Si aucune règle ne correspond ci-dessous pour un utilisateur non connecté,
-    // la requête passera par défaut via `return response` à la fin,
-    // permettant l'accès à localhost:3000 ou localhost:3000/sign-in.
-
-
     // A. Protect the entire app subdomain
     if (isAppSubdomain && !user) {
-      const mainDomainHost = baseDomain; // Already calculated base domain
+      const mainDomainHost = baseDomain;
       
-      // Use request.nextUrl.origin to preserve http/https scheme
+      // Use request.nextUrl.protocol to preserve http/https scheme
       const redirectUrl = `${request.nextUrl.protocol}//${mainDomainHost}${SIGN_IN_URL}`;
       
-      // La règle suivante permet à l'utilisateur non authentifié d'accéder à
-      // app.localhost:3000/sign-in SANS être redirigé vers localhost:3000/sign-in.
-      if (request.nextUrl.pathname !== SIGN_IN_URL) {
+      // FIX: Permet l'accès aux chemins d'authentification sur le sous-domaine
+      // pour que la connexion puisse être initiée de là si nécessaire.
+      if (!isAuthPath(request.nextUrl.pathname)) {
         return NextResponse.redirect(new URL(redirectUrl));
       }
     }
@@ -98,27 +107,28 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(new URL(SIGN_IN_URL, request.url));
     }
     
-    // C. Redirect authenticated users hitting the dashboard path on the main domain.
-    // L'utilisateur connecté peut désormais accéder à la racine ("/") sans redirection.
+    // C. Redirect authenticated users hitting the dashboard path or any auth path on the main domain.
+    // L'utilisateur connecté peut accéder à la racine ("/") sans redirection.
     if (
       user &&
       !isAppSubdomain && // NEVER redirect inside app.domain
-      request.nextUrl.pathname.startsWith(APP_DASHBOARD_PATH) // <-- SEULEMENT POUR /projects*
+      (request.nextUrl.pathname.startsWith(APP_DASHBOARD_PATH) || isAuthPath(request.nextUrl.pathname)) // <-- Redirige s'il essaie d'accéder à /projects OU à une page d'auth
     ) {
       const appHost = APP_SUBDOMAIN + baseDomain;
       
-      // Utilisation du chemin complet pour la redirection (e.g., /projects/123)
-      const redirectUrl = `${request.nextUrl.protocol}//${appHost}${request.nextUrl.pathname}`;
+      // Détermine la destination : si c'est une page d'auth, on redirige vers /projects
+      const destinationPath = isAuthPath(request.nextUrl.pathname) 
+        ? APP_DASHBOARD_PATH
+        : request.nextUrl.pathname;
+
+      const redirectUrl = `${request.nextUrl.protocol}//${appHost}${destinationPath}`;
       
       return NextResponse.redirect(new URL(redirectUrl));
     }
     
-    
     // --- END AUTHORIZATION LOGIC ---
 
     // 4. Return the response (which may now contain new session cookies)
-    // Si l'utilisateur est déconnecté et demande la racine ou /sign-in,
-    // aucune des règles A, B ou C n'est déclenchée, et le contrôle est renvoyé à Next.js (OK).
     return response;
   } catch (e) {
     // Handle Supabase client creation errors (e.g., missing ENV vars)
