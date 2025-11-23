@@ -17,7 +17,6 @@ import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
 import { a } from '@react-spring/web';
 
-
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
 
@@ -34,12 +33,13 @@ export default function FilterPanel({user}) {
 
   const [statusTags, setStatusTags] = useState([]);
 
-useEffect(() => {
-  if (pins && allPins.length === 0) {
-    console.log('filtered 1', pins)
-    setAllPins(pins);
-  }
-}, [pins]);
+  useEffect(() => {
+    if (pins && allPins.length === 0) {
+      console.log('filtered 1', pins)
+      setAllPins(pins);
+    }
+  }, [pins]);
+  
   const [filters, setFilters] = useState({
     me: false,
     category: false,
@@ -66,24 +66,26 @@ useEffect(() => {
       filtered = filtered.filter((pin) => {
         const date = dayjs(pin.created_at);
         return dateTags.some((tag) => {
-          if (tag === 'Aujourd’hui') return date.isToday();
+          if (tag === 'Aujourd\'hui') return date.isToday();
           if (tag === 'Cette semaine') return date.isSameOrAfter(dayjs().startOf('week'));
           if (tag === 'Ce mois-ci') return date.isSameOrAfter(dayjs().startOf('month'));
           return false;
         });
       });
     }
+    
     if (statusTags.length > 0) {
       console.log('statusTags', statusTags);
       console.log('filtered', filtered);
-  filtered = filtered.filter((pin) => statusTags.includes(pin.status_id));
-}
+      filtered = filtered.filter((pin) => statusTags.includes(pin.status_id));
+    }
 
-if (filters.overdue) {
-  filtered = filtered.filter((pin) => {
-    return pin.due_date && dayjs(pin.due_date).isBefore(dayjs(), 'day');
-  });
-}
+    if (filters.overdue) {
+      filtered = filtered.filter((pin) => {
+        return pin.due_date && dayjs(pin.due_date).isBefore(dayjs(), 'day');
+      });
+    }
+    
     console.log('filtered2', filtered);
     setPins(filtered);
   };
@@ -122,9 +124,9 @@ if (filters.overdue) {
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-2 py-2 bg-stone-100 rounded-md shadow hover:bg-stone-200 border border-gray-300"
+        className="flex items-center gap-2 px-3 py-2.5 bg-secondary/50 rounded-xl hover:bg-secondary/80 border border-border/50 hover:border-primary/20 transition-all hover:shadow-md backdrop-blur-sm"
       >
-        <ListFilterIcon className="h-5 w-5" />
+        <ListFilterIcon className="h-5 w-5 text-muted-foreground" />
       </button>
 
       {open &&
@@ -132,13 +134,13 @@ if (filters.overdue) {
           <div
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
-            className="absolute z-50 w-96 bg-white border border-gray-200 shadow-lg py-4 rounded-md"
+            className="absolute z-50 w-96 bg-card border border-border/50 shadow-2xl py-4 rounded-xl backdrop-blur-sm"
           >
-            <div className="flex justify-between items-center mb-3 px-4">
-              <h3 className="text-sm font-semibold">Filtres</h3>
+            <div className="flex justify-between items-center mb-4 px-4">
+              <h3 className="text-sm font-semibold font-heading text-foreground">Filtres</h3>
               <button
                 onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
@@ -168,16 +170,18 @@ if (filters.overdue) {
               tags={dateTags}
               setTags={setDateTags}
             />
+            
             <StatusFilter
-  activeStatuses={statusTags}
-  setActiveStatuses={setStatusTags}
-/>
-<OverdueFilter
-  active={filters.overdue}
-  onToggle={(value) =>
-    setFilters((prev) => ({ ...prev, overdue: value }))
-  }
-/>
+              activeStatuses={statusTags}
+              setActiveStatuses={setStatusTags}
+            />
+            
+            <OverdueFilter
+              active={filters.overdue}
+              onToggle={(value) =>
+                setFilters((prev) => ({ ...prev, overdue: value }))
+              }
+            />
 
           </div>,
           document.body
