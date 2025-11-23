@@ -4,7 +4,7 @@ import FilterPanel from './FilterPanel'
 import { useState } from "react";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import { useAtom } from "jotai";
-import { selectedPinAtom } from "@/store/atoms";
+import { selectedPinAtom, selectedPlanAtom } from "@/store/atoms";
 import Pin from "./Pin";
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -22,13 +22,14 @@ function classNames(...classes) {
 export default function PinsList({ pins, plans }) {
 
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
+  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
     
 
   return (
     <div className={classNames(lexend.className,'overflow-auto font-sans')}>
         {/* Header avec Select et Filter */}
         <div className="flex flex-row gap-2 p-4 items-baseline">
-          <CustomSelect options={plans} selected={plans[0]} />
+          <CustomSelect options={plans} selected={plans[0]} onChange={setSelectedPlan} />
           <FilterPanel />
         </div>
         

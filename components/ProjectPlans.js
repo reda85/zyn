@@ -6,6 +6,7 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import { Lexend } from 'next/font/google'
 import { useRouter } from 'next/navigation'
+import { Upload, FileText, Trash2, Save, X } from 'lucide-react'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -47,10 +48,9 @@ export default function ProjectPlans({ project, onClose }) {
     const dropped = e.dataTransfer.files[0]
     if (dropped?.type === 'application/pdf') {
       setFile(dropped)
-      // Auto-upload after dropping
       await handleUpload(dropped)
     } else {
-      alert('Only PDF files allowed.')
+      alert('Seuls les fichiers PDF sont autorisés.')
     }
   }
 
@@ -65,7 +65,7 @@ export default function ProjectPlans({ project, onClose }) {
 
     if (error) {
       console.log(error)
-      alert('Upload failed')
+      alert('Échec du téléchargement')
       return
     }
 
@@ -98,93 +98,124 @@ export default function ProjectPlans({ project, onClose }) {
       await supabase.from('plans').update({ name }).eq('id', planId)
     }
 
-    // Update local state
     setPlans((prev) =>
       prev.map((plan) => editedNames[plan.id] ? { ...plan, name: editedNames[plan.id] } : plan)
     )
     setEditedNames({})
-    router.back() // Navigate back after saving
+    router.back()
   }
 
   return (
-    <div className={lexend.className}>
+    <div className={`${lexend.className} font-sans bg-background`}>
       <div className="flex h-screen">
         {/* Side Panel */}
-        <div className="w-1/4 border-r p-4 flex flex-col justify-between">
-          <div className="flex flex-row justify-between items-baseline">
-            <h2 className="text-xl font-semibold mb-4">Project Plans</h2>
-            <button
-              onClick={() => router.back()}
-              className="bg-gray-200 px-3 py-2 rounded self-start"
-            >
-              Cancel
-            </button>
-          </div>
-          <p className='text-stone-400 text-xs mt-4'>
-            Vous pouvez ici gerer les plans PDF de votre projet, soit en mettant a jour vos plans existants ou en ajoutant de nouveaux plans
-          </p>
-
-          {/* Dropzone */}
-          <div
-            ref={dropRef}
-            onDrop={handleFileDrop}
-            onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
-            onDragLeave={() => setDragActive(false)}
-            className={`border-2 mt-4 border-dashed p-6 rounded flex-1 flex flex-col justify-center items-center ${dragActive ? 'bg-blue-50 border-blue-500' : 'border-gray-300'}`}
-          >
-            <p className="text-center mb-2">
-              {file ? `${file.name} selected` : 'Drag & drop a PDF here or click to upload'}
+        <div className="w-1/4 border-r border-border/40 bg-secondary/20 p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex flex-row justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold font-heading text-foreground">Plans du projet</h2>
+              <button
+                onClick={() => router.back()}
+                className="p-2 rounded-full hover:bg-secondary/50 transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className='text-muted-foreground text-sm mb-6 leading-relaxed'>
+              Gérez les plans PDF de votre projet : mettez à jour vos plans existants ou ajoutez de nouveaux plans.
             </p>
-            <input
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              id="upload"
-              onChange={async (e) => {
-                const f = e.target.files[0]
-                if (f?.type === 'application/pdf') {
-                  setFile(f)
-                  await handleUpload(f)
-                }
-              }}
-            />
-            <label htmlFor="upload" className="block text-blue-600 underline cursor-pointer">
-              Browse PDF
-            </label>
+
+            {/* Dropzone */}
+            <div
+              ref={dropRef}
+              onDrop={handleFileDrop}
+              onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
+              onDragLeave={() => setDragActive(false)}
+              className={`border-2 border-dashed rounded-xl p-8 flex flex-col justify-center items-center transition-all ${
+                dragActive 
+                  ? 'bg-primary/10 border-primary' 
+                  : 'border-border/50 hover:border-primary/30 bg-card/50'
+              }`}
+            >
+              <Upload className={`w-12 h-12 mb-4 ${dragActive ? 'text-primary' : 'text-muted-foreground'}`} />
+              <p className="text-center mb-3 text-sm font-medium text-foreground">
+                {file ? `${file.name} sélectionné` : 'Glissez-déposez un PDF ici'}
+              </p>
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                id="upload"
+                onChange={async (e) => {
+                  const f = e.target.files[0]
+                  if (f?.type === 'application/pdf') {
+                    setFile(f)
+                    await handleUpload(f)
+                  }
+                }}
+              />
+              <label 
+                htmlFor="upload" 
+                className="text-sm text-primary font-medium cursor-pointer hover:underline"
+              >
+                ou parcourir les fichiers
+              </label>
+            </div>
           </div>
 
           {/* Save & Close Button */}
           <button
             onClick={handleSaveAndClose}
-            className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
+            className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 mt-6"
           >
-            Save and Close
+            <Save className="w-5 h-5" />
+            Enregistrer et fermer
           </button>
         </div>
 
         {/* Main Panel: Plans List */}
-        <div className="flex-1 overflow-auto bg-neutral-100 p-4 space-y-6">
+        <div className="flex-1 overflow-auto bg-background p-6 space-y-6">
+          {plans.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
+              <h3 className="text-xl font-semibold font-heading text-foreground mb-2">
+                Aucun plan disponible
+              </h3>
+              <p className="text-muted-foreground">
+                Commencez par ajouter un plan PDF depuis le panneau de gauche
+              </p>
+            </div>
+          )}
+
           {plans.map((plan) => {
             const publicUrl = supabase.storage.from('project-plans').getPublicUrl(plan.file_url).data.publicUrl
             return (
-              <div key={plan.id} className="border bg-white p-3 rounded space-y-2">
-                <div className="flex justify-between items-center">
+              <div key={plan.id} className="border border-border/50 bg-card rounded-xl p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-center gap-3">
                   <input
-                    className="border p-1 flex-1 mr-2"
+                    className="border border-border/50 bg-secondary/30 rounded-lg px-3 py-2 flex-1 text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                     value={editedNames[plan.id] ?? plan.name}
                     onChange={(e) => handleNameChange(plan.id, e.target.value)}
+                    placeholder="Nom du plan"
                   />
                   <button
                     onClick={() => deletePlan(plan)}
-                    className="text-red-500"
+                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                    title="Supprimer"
                   >
-                    Delete
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="border rounded overflow-auto" >
+                <div className="border border-border/50 rounded-xl overflow-hidden bg-secondary/20">
                   <Document file={publicUrl}>
-                    <Page pageNumber={1} fitPolicy={0} width={800} renderTextLayer={false} renderAnnotationLayer={false} />
+                    <Page 
+                      pageNumber={1} 
+                      width={800} 
+                      renderTextLayer={false} 
+                      renderAnnotationLayer={false}
+                      className="mx-auto"
+                    />
                   </Document>
                 </div>
               </div>
