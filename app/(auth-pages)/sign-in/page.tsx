@@ -22,10 +22,10 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
             <span className="text-primary-foreground font-bold text-4xl font-heading">z</span>
           </div>
           <h2 className="text-5xl font-bold text-foreground leading-tight font-heading mb-6">
-            Seamless Access to Your Account
+            Suivez vos chantiers en toute simplicité
           </h2>
           <p className="text-muted-foreground text-xl leading-relaxed">
-            Dive back into your personalized experience and manage your projects with ease.
+            Connectez-vous pour accéder à votre tableau de bord et gérer vos projets efficacement.
           </p>
         </div>
       </div>
@@ -41,14 +41,14 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
           </div>
 
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold text-foreground mb-3 font-heading">Welcome back</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-3 font-heading">Bienvenue à Zaynspace</h1>
             <p className="text-muted-foreground">
-              Don't have an account?{" "}
+              Vous n'avez pas de compte ?{" "}
               <Link
                 className="text-primary font-medium hover:text-primary/80 transition-colors underline underline-offset-4"
                 href="/sign-up"
               >
-                Sign up
+                Se connecter
               </Link>
             </p>
           </div>
@@ -69,18 +69,18 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
               {/* Password Field */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-sm font-medium text-foreground">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground">Mot de passe</Label>
                   <Link
                     className="text-xs text-muted-foreground hover:text-primary transition-colors"
                     href="/forgot-password"
                   >
-                    Forgot Password?
+                    Mot de passe oublié ?
                   </Link>
                 </div>
                 <Input
                   type="password"
                   name="password"
-                  placeholder="Your password"
+                  placeholder="Votre mot de passe"
                   required
                   className="w-full bg-background border-input focus:ring-primary"
                 />
@@ -89,11 +89,11 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
 
             {/* Submit Button */}
             <SubmitButton
-              pendingText="Signing In..."
+              pendingText="Connexion..."
               formAction={signInAction}
               className="w-full bg-primary text-primary-foreground font-medium py-3 px-4 rounded-lg hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95"
             >
-              Sign in
+              Se connecter
             </SubmitButton>
 
             {/* Form Message */}

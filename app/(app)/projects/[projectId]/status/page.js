@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Trash2, Plus, Palette } from 'lucide-react'
+import { Trash2, Plus, Palette, GripVertical, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { selectedProjectAtom } from '@/store/atoms'
@@ -26,8 +26,9 @@ function ColorPickerPopup({ color, onChange }) {
       <button
         type="button"
         onClick={handleClick}
-        className="w-8 h-8 rounded-full border"
+        className="w-10 h-10 rounded-lg border-2 border-border/50 hover:border-primary/50 transition-all shadow-sm"
         style={{ backgroundColor: color }}
+        title="Changer la couleur"
       />
       <input
         ref={inputRef}
@@ -46,6 +47,12 @@ export default function ProjectStatuses() {
   const [selectedProject] = useAtom(selectedProjectAtom)
   const { projectId } = useParams()
   const router = useRouter()
+  const [isBrowser, setIsBrowser] = useState(false)
+
+  // Fix pour le drag & drop : s'assurer qu'on est côté client
+  useEffect(() => {
+    setIsBrowser(true)
+  }, [])
 
   useEffect(() => {
     const fetchStatuses = async () => {
@@ -65,6 +72,7 @@ export default function ProjectStatuses() {
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return
+    
     const reordered = [...statuses]
     const [removed] = reordered.splice(result.source.index, 1)
     reordered.splice(result.destination.index, 0, removed)
@@ -108,7 +116,7 @@ export default function ProjectStatuses() {
         {
           project_id: projectId,
           name: 'Nouveau statut',
-          color: '#3b82f6', // default blue
+          color: '#3b82f6',
           order: statuses.length,
         },
       ])
@@ -127,93 +135,156 @@ export default function ProjectStatuses() {
   }
 
   if (loading) return (
-    <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-200" />
+    <div className="flex h-screen w-full items-center justify-center bg-background font-sans">
+      <div className="text-center">
+        <div className="mb-8 flex justify-center">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 animate-pulse">
+            <span className="text-primary-foreground font-bold text-3xl font-heading">z</span>
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold font-heading text-foreground mb-3 opacity-0 animate-fadeInUp">
+          Chargement...
+        </h2>
+        <p className="text-muted-foreground opacity-0 animate-fadeInUp" style={{ animationDelay: '150ms' }}>
+          Veuillez patienter
+        </p>
+        <div className="mt-8 w-64 mx-auto">
+          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+            <div className="h-full bg-primary animate-[loading_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(var(--primary),0.3)]"></div>
+          </div>
+        </div>
+      </div>
+      <style jsx>{`
+        @keyframes loading {
+          0% { width: 0%; margin-left: 0%; }
+          50% { width: 75%; margin-left: 0%; }
+          100% { width: 0%; margin-left: 100%; }
+        }
+      `}</style>
     </div>
   );
 
   return (
-    <div className={clsx("space-y-4 w-1/2 mx-auto relative", lexend.className)}>
-      <div className="flex flex-col">
-        <button
-          onClick={() => router.back()}
-          className="mt-6 flex bg-blue-500 border-blue-500 items-center text-white w-24 gap-2 p-2 rounded hover:bg-blue-600 justify-center"
-        >
-          Fermer
-        </button>
-        <h1 className="mt-6 text-2xl font-bold">Statuts du projet</h1>
-        <p className="mt-6 text-sm text-stone-500">
-          Les statuts permettent de classer les tâches par leur état de
-          progression. Vous pouvez les utiliser pour vous aider à organiser
-          votre travail et vous aider à vous concentrer sur les tâches les plus
-          importantes.
-        </p>
-      </div>
+    <div className={clsx("min-h-screen bg-background font-sans", lexend.className)}>
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.back()}
+            className="mb-6 flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium hover:bg-secondary/80 transition-all"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </button>
+          
+          <h1 className="text-4xl font-bold font-heading text-foreground mb-4">
+            Gestionnaire de statuts
+          </h1>
+          <p className="text-muted-foreground leading-relaxed max-w-2xl">
+            Les statuts permettent de classer les tâches par leur état de progression. 
+            Organisez-les par glisser-déposer pour définir leur ordre d'apparition dans l'application.
+          </p>
+        </div>
 
-      {statuses.length === 0 ? (
-        <p>Aucun statut trouvé.</p>
-      ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="statuses">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-3 border p-4 rounded bg-white border-gray-200 min-h-[50px] overflow-hidden"
-              >
-                {statuses.map((status, index) => (
-                  <Draggable
-                    key={status.id}
-                    draggableId={String(status.id)}
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className="bg-neutral-50 p-3 border border-blue-100 rounded flex flex-col gap-3 mb-3 last:mb-0"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Input
-                            value={status.name}
-                            onChange={(e) =>
-                              handleNameChange(index, e.target.value)
-                            }
-                            onBlur={() => handleSaveStatus(status)}
-                            className="flex-1"
-                          />
-                          <ColorPickerPopup
-                            color={status.color}
-                            onChange={(color) => {
-                              handleColorChange(index, color)
-                              handleSaveStatus({ ...status, color })
-                            }}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteStatus(status.id)}
-                          >
-                            <Trash2 size={18} className="text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
+        {/* Status List */}
+        {statuses.length === 0 ? (
+          <div className="bg-card border border-border/50 rounded-xl p-12 text-center">
+            <Palette className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-muted-foreground mb-4">Aucun statut trouvé pour ce projet.</p>
+            <button
+              onClick={handleAddStatus}
+              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Créer le premier statut
+            </button>
+          </div>
+        ) : (
+          isBrowser && (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="statuses">
+                {(provided, snapshot) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className={clsx(
+                      "space-y-3 border border-border/50 p-6 rounded-xl bg-card shadow-sm transition-colors",
+                      snapshot.isDraggingOver && "bg-secondary/30"
                     )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-                <button
-                  onClick={handleAddStatus}
-                  className="flex bg-neutral-50 border-blue-100 items-center text-stone-600 w-full gap-2 p-2 rounded hover:bg-neutral-100 justify-center"
-                >
-                  <Plus size={16} /> Ajouter
-                </button>
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      )}
+                  >
+                    {statuses.map((status, index) => (
+                      <Draggable
+                        key={status.id}
+                        draggableId={String(status.id)}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={clsx(
+                              "bg-secondary/30 p-4 border border-border/50 rounded-xl transition-all",
+                              snapshot.isDragging && "shadow-lg shadow-primary/20 rotate-2 scale-105"
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              {/* Drag Handle */}
+                              <div 
+                                {...provided.dragHandleProps}
+                                className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                <GripVertical className="w-5 h-5" />
+                              </div>
+
+                              {/* Input */}
+                              <Input
+                                value={status.name}
+                                onChange={(e) => handleNameChange(index, e.target.value)}
+                                onBlur={() => handleSaveStatus(status)}
+                                className="flex-1 border-border/50 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50 font-medium"
+                                placeholder="Nom du statut"
+                              />
+
+                              {/* Color Picker */}
+                              <ColorPickerPopup
+                                color={status.color}
+                                onChange={(color) => {
+                                  handleColorChange(index, color)
+                                  handleSaveStatus({ ...status, color })
+                                }}
+                              />
+
+                              {/* Delete Button */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteStatus(status.id)}
+                                className="hover:bg-destructive/10 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    
+                    {/* Add Button */}
+                    <button
+                      onClick={handleAddStatus}
+                      className="flex bg-secondary/50 border border-border/50 items-center text-foreground w-full gap-2 p-4 rounded-xl hover:bg-secondary/80 hover:border-primary/20 transition-all font-medium justify-center"
+                    >
+                      <Plus className="w-5 h-5" /> 
+                      Ajouter un statut
+                    </button>
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )
+        )}
+      </div>
     </div>
   )
 }

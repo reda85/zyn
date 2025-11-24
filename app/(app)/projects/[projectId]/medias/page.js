@@ -8,12 +8,16 @@ import { Lexend } from "next/font/google"
 import GroupedMediaGallery from "@/components/GroupedMediaGallery"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
+import { Calendar, X, Image as ImageIcon } from "lucide-react"
+import clsx from "clsx"
+import { useUserData } from "@/hooks/useUserData"
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
 export default function Medias({ params }) {
   const [plan, setPlan] = useAtom(selectedPlanAtom)
   const [project, setProject] = useAtom(selectedProjectAtom)
+  const {user, profile, organization} = useUserData()
 
   const { projectId } = params
 
@@ -58,7 +62,6 @@ export default function Medias({ params }) {
       if (data) {
         setMedias(data)
         setFilteredMedias(data)
-        console.log('medias', data)
       }
       if (error) console.error("Medias error", error)
     }
@@ -85,20 +88,29 @@ export default function Medias({ params }) {
 
   // Local filtering
   useEffect(() => {
-    let result = medias
+    let result = [...medias]
 
+    // Filter by canvas/plan
     if (selectedCanvas) {
       result = result.filter(m => m.pdf_pins?.plan_id === selectedCanvas)
     }
-    if (startDate && endDate) {
+
+    // Filter by date range
+    if (startDate || endDate) {
       result = result.filter(m => {
         const created = new Date(m.created_at)
-        return created >= startDate && created <= endDate
+        const start = startDate || new Date(0) // Beginning of time if no start
+        const end = endDate || new Date() // Now if no end
+        return created >= start && created <= end
       })
     }
+
+    // Filter by users
     if (selectedUsers.length > 0) {
       result = result.filter(m => selectedUsers.includes(m.user_id))
     }
+
+    // Filter by tags
     if (selectedTags.length > 0) {
       result = result.filter(m => m.tags?.some(t => selectedTags.includes(t.id)))
     }
@@ -106,85 +118,130 @@ export default function Medias({ params }) {
     setFilteredMedias(result)
   }, [medias, selectedCanvas, startDate, endDate, selectedUsers, selectedTags])
 
+  const clearFilters = () => {
+    setSelectedCanvas("")
+    setStartDate(null)
+    setEndDate(null)
+    setSelectedUsers([])
+    setSelectedTags([])
+  }
+
+  const hasActiveFilters = selectedCanvas || startDate || endDate || selectedUsers.length > 0 || selectedTags.length > 0
+
   return (
-    <div className={lexend.className}>
-      <NavBar project={project} id={projectId} />
-      <div className="pt-3 px-3 bg-gray-100 min-h-screen">
-        <div className="bg-white border border-gray-300 rounded-t-lg p-6">
-
+    <div className={clsx(lexend.className, "min-h-screen bg-background font-sans")}>
+      <NavBar project={project} id={projectId} user={profile} />
+      
+      <div className="pt-6 px-6">
+        {/* Header Card */}
+        <div className="bg-card border border-border/50 rounded-xl shadow-sm mb-6">
+          
           {/* Title + Filters Row */}
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <h2 className="text-xl font-bold">Medias</h2>
+          <div className="p-6 border-b border-border/50">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <div>
+                <h2 className="text-2xl font-bold font-heading text-foreground mb-1">
+                  Médiathèque
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {filteredMedias.length} photo{filteredMedias.length > 1 ? 's' : ''} {hasActiveFilters && `sur ${medias.length} au total`}
+                </p>
+              </div>
 
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Réinitialiser les filtres
+                </button>
+              )}
+            </div>
+
+            {/* Filters */}
             <div className="flex flex-wrap items-center gap-3">
-
+              
               {/* Canvas select */}
               <select
-                className="border border-gray-300 rounded px-3 py-1 text-sm"
+                className="border border-border/50 bg-secondary/30 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                 value={selectedCanvas}
                 onChange={(e) => setSelectedCanvas(e.target.value)}
               >
-                <option value="">All Canvases</option>
+                <option value="">Tous les plans</option>
                 {project?.plans?.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
 
-              {/* Date range */}
-              <DatePicker
-                selectsRange
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(update) => {
-                  const [start, end] = update
-                  setStartDate(start)
-                  setEndDate(end)
-                }}
-                isClearable
-                placeholderText="Date range"
-                className="border border-gray-300 rounded px-3 py-1 text-sm"
-              />
+              {/* Date range picker */}
+              <div className="relative">
+                <DatePicker
+                  selectsRange
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(update) => {
+                    const [start, end] = update
+                    setStartDate(start)
+                    setEndDate(end)
+                  }}
+                  isClearable
+                  placeholderText="Période"
+                  className="border border-border/50 bg-secondary/30 rounded-xl px-4 py-2.5 pl-10 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all w-64"
+                  dateFormat="dd/MM/yyyy"
+                />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
 
-              {/* Users multi-select 
-             <select
-  multiple
-  className="border border-gray-300 rounded px-3 py-1 text-sm"
-  value={selectedUsers}
-  onChange={(e) =>
-    setSelectedUsers(
-      Array.from(e.target.selectedOptions, opt => Number(opt.value)) // <-- convert to number
-    )
-  }
->
-  {users.map((u) => (
-    <option key={u.id} value={u.id}>{u.name}</option>
-  ))}
-</select>
-
-*/}
-              {/* Tags multi-select 
-              <select
-                multiple
-                className="border border-gray-300 rounded px-3 py-1 text-sm"
-                value={selectedTags}
-                onChange={(e) =>
-                  setSelectedTags(Array.from(e.target.selectedOptions, opt => opt.value))
-                }
-              >
-                {tags.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-              */}
+              {/* Active filters badges */}
+              {selectedCanvas && (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-medium border border-primary/20">
+                  Plan: {project?.plans?.find(p => p.id === selectedCanvas)?.name}
+                  <button 
+                    onClick={() => setSelectedCanvas("")}
+                    className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              
+              {(startDate || endDate) && (
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-medium border border-primary/20">
+                  {startDate?.toLocaleDateString('fr-FR')} - {endDate?.toLocaleDateString('fr-FR') || 'Maintenant'}
+                  <button 
+                    onClick={() => { setStartDate(null); setEndDate(null); }}
+                    className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
             </div>
           </div>
 
           {/* Gallery */}
-          <GroupedMediaGallery
-            media={filteredMedias}
-            selectedIds={selectedIds}
-            setSelectedIds={setSelectedIds}
-          />
+          <div className="p-6">
+            {filteredMedias.length === 0 ? (
+              <div className="py-16 text-center">
+                <ImageIcon className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold font-heading text-foreground mb-2">
+                  Aucune photo trouvée
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {hasActiveFilters 
+                    ? "Essayez de modifier vos filtres pour voir plus de résultats" 
+                    : "Les photos ajoutées au projet apparaîtront ici"}
+                </p>
+              </div>
+            ) : (
+              <GroupedMediaGallery
+                media={filteredMedias}
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
