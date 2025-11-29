@@ -7,11 +7,13 @@ import {
   FireExtinguisherIcon,
   GripIcon,
   PaintRoller,
+  SnowflakeIcon,
   UserCircleIcon,
   ZapIcon
 } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import clsx from "clsx";
+import { Snowburst_One } from "next/font/google";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -23,6 +25,7 @@ const categoriesIcons = {
   droplets: <DropletsIcon className="text-white h-4 w-4" />,
   paint: <PaintRoller className="text-white h-4 w-4" />,
   carrelage: <GripIcon className="text-white h-4 w-4" />,
+  snowflake: <SnowflakeIcon className="text-white h-4 w-4" />,
   "fire-extinguisher": <FireExtinguisherIcon className="text-white h-4 w-4" />
 };
 

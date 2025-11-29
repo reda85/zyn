@@ -5,19 +5,19 @@ import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { categoriesAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
 import { ZapIcon, DropletsIcon, PaintRoller, GripIcon, FireExtinguisherIcon, CheckIcon } from 'lucide-react'
+import clsx from 'clsx'
 
 const categoriesIcons = {
-  'unassigned' : <CheckIcon className="text-gray-500 h-4 w-4" />,
-  'zap': <ZapIcon className="text-gray-500 h-4 w-4" />,
-  'droplets': <DropletsIcon className="text-gray-500 h-4 w-4" />,
-  'paint': <PaintRoller className="text-gray-500 h-4 w-4" />,
-  'carrelage': <GripIcon className="text-gray-500 h-4 w-4" />,
-  'fire-extinguisher': <FireExtinguisherIcon className="text-gray-500 h-4 w-4" />,
+  'unassigned': <CheckIcon className="text-muted-foreground h-4 w-4" />,
+  'zap': <ZapIcon className="text-muted-foreground h-4 w-4" />,
+  'droplets': <DropletsIcon className="text-muted-foreground h-4 w-4" />,
+  'paint': <PaintRoller className="text-muted-foreground h-4 w-4" />,
+  'carrelage': <GripIcon className="text-muted-foreground h-4 w-4" />,
+  'fire-extinguisher': <FireExtinguisherIcon className="text-muted-foreground h-4 w-4" />,
 }
 
-
 export default function CategoryComboBox({ pin }) {
-  const [categories, setCategories] = useAtom(categoriesAtom)
+  const [categories] = useAtom(categoriesAtom)
   const [selected, setSelected] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
@@ -26,25 +26,6 @@ export default function CategoryComboBox({ pin }) {
   const [buttonRect, setButtonRect] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
 
-  // Load categories from Supabase
- {/* useEffect(() => {
-    const loadCategories = async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('order', { ascending: true })
-
-      if (!error && data) {
-        setCategories(data)
-        setSelected(
-          data.find(c => c.name === pin.category) || data[0] || null
-        )
-      }
-    }
-
-    loadCategories()
-  }, [pin])
-*/
   useEffect(() => {
     if (categories?.length > 0) {
       setSelected(
@@ -52,6 +33,7 @@ export default function CategoryComboBox({ pin }) {
       )
     }
   }, [categories, pin])
+
   // Update category in DB when selection changes
   useEffect(() => {
     const handleUpdateCategory = async () => {
@@ -94,16 +76,14 @@ export default function CategoryComboBox({ pin }) {
           <Listbox.Button
             ref={buttonRef}
             onClick={() => setIsOpen(prev => !prev)}
-            className="relative w-full text-sm font-semibold cursor-pointer rounded-lg bg-gray-100 py-2 pl-3 pr-10 text-left text-gray-500 border border-gray-300 focus:outline-none"
+            className="relative w-full text-sm font-medium cursor-pointer rounded-xl bg-secondary/50 py-2.5 pl-3 pr-10 text-left text-foreground border border-border/50 hover:bg-secondary/80 hover:border-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
           >
             <span className="flex items-center gap-2">
-              {selected?.icon && (
-                 categoriesIcons[selected.icon] 
-              )}
-              <span className="block truncate text-xs">{selected?.name}</span>
+              {selected?.icon && categoriesIcons[selected.icon]}
+              <span className="block truncate text-sm">{selected?.name}</span>
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronUpDownIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </span>
           </Listbox.Button>
 
@@ -118,9 +98,9 @@ export default function CategoryComboBox({ pin }) {
               <Portal>
                 <Listbox.Options
                   static
-                  className="absolute z-[1100] max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg border border-gray-300 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                  className="absolute z-[1100] max-h-60 overflow-auto rounded-xl bg-card py-1 text-base shadow-xl border border-border/50 ring-1 ring-black/5 focus:outline-none sm:text-sm backdrop-blur-sm"
                   style={{
-                    top: buttonRect.bottom + window.scrollY,
+                    top: buttonRect.bottom + window.scrollY + 4,
                     left: buttonRect.left + window.scrollX,
                     width: buttonRect.width,
                   }}
@@ -129,22 +109,25 @@ export default function CategoryComboBox({ pin }) {
                     <Listbox.Option
                       key={cat.id || idx}
                       className={({ active }) =>
-                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                          active ? 'text-gray-900' : 'text-gray-500'
-                        }`
+                        clsx(
+                          'relative cursor-pointer select-none py-2.5 pl-3 pr-4 transition-colors',
+                          active ? 'bg-primary/10 text-foreground' : 'text-foreground'
+                        )
                       }
                       value={cat}
                     >
-                      {({ selected }) => (
+                      {({ selected: isSelected }) => (
                         <span
-                          className={`flex gap-2 rounded-md items-center truncate ${
-                            selected ? 'font-medium bg-gray-200' : 'font-normal'
-                          }`}
-                        >
-                          {cat.icon && (
-                          categoriesIcons[cat.icon]
+                          className={clsx(
+                            'flex gap-2 items-center truncate',
+                            isSelected ? 'font-semibold' : 'font-normal'
                           )}
-                          {cat.name}
+                        >
+                          {cat.icon && categoriesIcons[cat.icon]}
+                          <span className="text-sm">{cat.name}</span>
+                          {isSelected && (
+                            <CheckIcon className="ml-auto h-4 w-4 text-primary" />
+                          )}
                         </span>
                       )}
                     </Listbox.Option>
@@ -157,5 +140,4 @@ export default function CategoryComboBox({ pin }) {
       </Listbox>
     </div>
   )
-}
 }

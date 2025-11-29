@@ -9,6 +9,7 @@ import { useAtom } from 'jotai';
 import { categoriesAtom, pinsAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
 import { useUser } from '@/components/UserContext';
 import { useUserData } from '@/hooks/useUserData';
+import Image from 'next/image';
 
 export default function ProjectDetail({ params }) {
   const { projectId, planId } = use(params);
@@ -57,29 +58,53 @@ export default function ProjectDetail({ params }) {
     fetchPlan()
   }, [projectId, planId])
 
-  useEffect(() => {
-    if (!project || !plan) return
+ useEffect(() => {
+    if (!project || !plan) return
 
-    const fetchPins = async () => {
-      const { data } = await supabase
-        .from('pdf_pins')
-        .select(`
-          *,
-          projects(id,name,project_number),
-          pins_photos(*),
-          categories(name),
-          assigned_to(id,name)
-        `)
-        .eq('plan_id', plan.id)
-        .order('created_at', { ascending: true })
-      if (data) { 
-        console.log('pins', data); 
-        setPins(data) 
-      }
-    }
+const fetchPins = async () => {
+      
+      const isGuest = profile?.role === 'guest';
 
-    fetchPins()
-  }, [project, plan])
+      // 1. Conditionally set the JOIN type
+      const assignedToSelect = isGuest 
+          ? 'assigned_to!inner(id,name,auth_id)' // INNER JOIN required for guest filter
+          : 'assigned_to(id,name,auth_id)';    // LEFT JOIN for everyone else (includes unassigned pins)
+          
+      // Base Query Builder
+      let query = supabase
+        .from('pdf_pins')
+        .select(`
+          *,
+          projects(id,name,project_number),
+          pins_photos(*),
+          categories(name),
+          ${assignedToSelect} // Use the conditional select string
+        `)
+        .eq('plan_id', plan.id)
+        .order('created_at', { ascending: true })
+
+      // 2. CONDITIONAL FILTERING
+      if (isGuest) {
+        // Apply the filter only when it's a guest
+        query = query.filter(
+          'assigned_to.auth_id', 
+          'eq', 
+          user?.id 
+        );
+      }
+      
+      const { data, error } = await query; // Execute the final query
+
+      // ... rest of the error and data handling ...
+      
+      if (data) { 
+        console.log('pins', data); 
+        setPins(data) 
+      }
+    }
+
+    fetchPins()
+  }, [project, plan, user, profile]) // Dependencies remain correct
 
   useEffect(() => {
     console.log('pins', pins)
@@ -91,7 +116,7 @@ export default function ProjectDetail({ params }) {
         {/* Logo animé */}
         <div className="mb-8 flex justify-center">
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 animate-pulse">
-            <span className="text-primary-foreground font-bold text-3xl font-heading">z</span>
+           <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
           </div>
         </div>
         

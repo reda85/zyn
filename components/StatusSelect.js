@@ -1,4 +1,5 @@
-import { pinsAtom, selectedPinAtom, statusAtom, statusesAtom } from '@/store/atoms';
+import { useUserData } from '@/hooks/useUserData';
+import { pinsAtom, selectedPinAtom, selectedProfileAtom, statusAtom, statusesAtom } from '@/store/atoms';
 import { supabase } from '@/utils/supabase/client';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { useAtom } from 'jotai';
@@ -14,8 +15,8 @@ const GAP_SIZE = 8; // Tailwind's gap-2
 const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export default function StatusSelect({ pin }) {
-  const [statuses] = useAtom(statusesAtom);  
-  console.log('statuses', statuses)
+  const [statuses] = useAtom(statusesAtom);
+  const { profile } = useUserData();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPin, setPin] = useAtom(selectedPinAtom);
   const [pins, setPins] = useAtom(pinsAtom);
@@ -26,6 +27,36 @@ export default function StatusSelect({ pin }) {
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
+
+  //
+  // Compute allowedStatuses based on profile.role (guests only allowed "A valider")
+  //
+  const isGuest = profile?.role === 'guest';
+  const allowedStatuses = isGuest
+    ? statuses.filter((s) => s.name === 'A valider')
+    : statuses;
+
+  //
+  // Ensure the current selected status is always present in the dropdown (safeStatuses)
+  //
+  const safeStatuses = [
+    ...allowedStatuses,
+    ...(selected && !allowedStatuses.some((s) => s.id === selected.id) ? [selected] : []),
+  ];
+
+  useEffect(() => {
+    // initialize selected from safeStatuses (handles the case where the current pin status
+    // isn't part of allowedStatuses but must still be kept visible)
+    const idx = safeStatuses.findIndex((s) => s.id === pin.status_id);
+    if (idx !== -1) {
+      setSelected(safeStatuses[idx]);
+    } else {
+      // fallback - try find in full statuses
+      const fallback = statuses.find((s) => s.id === pin.status_id);
+      if (fallback) setSelected(fallback);
+    }
+    // re-run when pin, statuses or profile changes
+  }, [pin, statuses, profile]); // safeStatuses derives from statuses/profile/selected
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -51,11 +82,13 @@ export default function StatusSelect({ pin }) {
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    setSelected(statuses[statuses.findIndex((s) => s.id === pin.status_id)]);
-  }, [pin, statuses]);
-
   const handleUpdateStatus = async (status_id) => {
+    // If guest and attempting to set a status other than "A valider", block
+    if (isGuest) {
+      const statusObj = statuses.find((s) => s.id === status_id);
+      if (statusObj?.name !== 'A valider') return;
+    }
+
     const { data } = await supabase
       .from('pdf_pins')
       .update({ status_id })
@@ -64,7 +97,8 @@ export default function StatusSelect({ pin }) {
       .single();
 
     if (data) {
-      setSelected(statuses[statuses.findIndex((s) => s.id === status_id)]);
+      const newSelected = safeStatuses.find((s) => s.id === status_id) || statuses.find((s) => s.id === status_id);
+      setSelected(newSelected);
       setPin({ ...pin, status_id });
       setPins(pins.map((p) => (p.id === pin.id ? { ...p, status_id: status_id } : p)));
     }
@@ -78,12 +112,12 @@ export default function StatusSelect({ pin }) {
     setIsOpen((prev) => !prev);
   };
 
-  const selectedIndex = statuses.findIndex((s) => s.id === selected?.id);
+  const selectedIndex = safeStatuses.findIndex((s) => s.id === selected?.id);
 
   const totalHeight =
-    ITEM_HEIGHT * statuses.length +
+    ITEM_HEIGHT * safeStatuses.length +
     PADDING_Y * 2 +
-    GAP_SIZE * (statuses.length - 1);
+    GAP_SIZE * (safeStatuses.length - 1);
 
   const offsetY = -(selectedIndex * (ITEM_HEIGHT + GAP_SIZE) + PADDING_Y);
 
@@ -117,25 +151,37 @@ export default function StatusSelect({ pin }) {
               height: `${totalHeight}px`,
             }}
           >
-            {statuses.map((status) => (
-              <button
-                key={status.id}
-                className={`flex flex-row p-2 justify-center items-center  rounded-full cursor-pointer text-sm text-white text-left w-fit hover:opacity-90 transition-opacity`}
-                style={{ height: `${ITEM_HEIGHT}px`, whiteSpace: 'nowrap', backgroundColor: status?.color }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSelected(status);
-                  handleUpdateStatus(status.id);
-                  setIsOpen(false);
-                }}
-              >
-                {status.name}
-                {status.name === selected?.name && (
-                  <CheckIcon className="ml-2 h-4 w-4" />
-                )}
-              </button>
-            ))}
+            {safeStatuses.map((status) => {
+              // visually disable non-allowed statuses for guest (if you want to hide them instead,
+              // we already ensure they won't be present except for the current status)
+              const disabledForGuest = isGuest && status.name !== 'A valider';
+
+              return (
+                <button
+                  key={status.id}
+                  className={`flex flex-row p-2 justify-center items-center rounded-full cursor-pointer text-sm text-white text-left w-fit hover:opacity-90 transition-opacity ${disabledForGuest ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  style={{
+                    height: `${ITEM_HEIGHT}px`,
+                    whiteSpace: 'nowrap',
+                    backgroundColor: status?.color,
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (disabledForGuest) return;
+
+                    setSelected(status);
+                    handleUpdateStatus(status.id);
+                    setIsOpen(false);
+                  }}
+                >
+                  {status.name}
+                  {status.name === selected?.name && <CheckIcon className="ml-2 h-4 w-4" />}
+                </button>
+              );
+            })}
           </div>,
           document.body
         )}

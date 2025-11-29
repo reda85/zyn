@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, use, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -9,7 +8,7 @@ import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
 import MapPin from './MapPin';
-import {  Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon, PointerIcon } from 'lucide-react';
+import { Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon, PointerIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import GhostPin from './GhostPin';
 
 import { supabase } from '@/utils/supabase/client';
@@ -270,28 +269,51 @@ function handlePdfClick(e) {
           height: 'calc(100vh - 64px)',
         }}
       >
-        {/* Floating Controls Bar */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 10,
-            left: 10,
-            zIndex: 20,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            borderRadius: 6,
-            padding: '10px 15px',
-            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
-         
-          <button onClick={zoomOut}>-</button>
-          <button onClick={zoomIn}>+</button>
-       {/*   <button onClick={togglePins}>{showPins ? 'Hide Pins' : 'Show Pins'}</button> */}
-          <button  onClick={() => setPinMode(false)}><PointerIcon className={classNames("h-5 w-5", !pinMode &&  ' text-pink-700 ' )}   /> </button>
-          <button onClick={() => setPinMode(true)}><MapPinIcon className={classNames("h-5 w-5", pinMode && 'text-pink-700' )} /></button>
+        {/* Floating Controls Bar - IMPROVED */}
+        <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
+          {/* Zoom Controls Group */}
+          <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+            <button
+              onClick={zoomOut}
+              className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors border-r border-gray-200"
+              title="Zoom Out"
+            >
+              <ZoomOut className="h-5 w-5 text-gray-700" />
+            </button>
+            <button
+              onClick={zoomIn}
+              className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+              title="Zoom In"
+            >
+              <ZoomIn className="h-5 w-5 text-gray-700" />
+            </button>
+          </div>
+
+          {/* Mode Toggle Group */}
+          <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+            <button
+              onClick={() => setPinMode(false)}
+              className={`p-3 transition-all border-r border-gray-200 ${
+                !pinMode
+                  ? 'bg-pink-50 text-pink-600'
+                  : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
+              }`}
+              title="Select Mode"
+            >
+              <PointerIcon className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setPinMode(true)}
+              className={`p-3 transition-all ${
+                pinMode
+                  ? 'bg-pink-50 text-pink-600'
+                  : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
+              }`}
+              title="Pin Mode"
+            >
+              <MapPinIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* PDF + Pins */}

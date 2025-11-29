@@ -72,7 +72,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
               </button>
               
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+                
                 <h3 className="font-semibold font-heading text-foreground">
                   {date}
                 </h3>

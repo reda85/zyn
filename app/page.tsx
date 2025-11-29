@@ -12,8 +12,18 @@ import {
 	MapPin, 
 	User 
 } from "lucide-react";
+import Image from "next/image";
 
 export default function HomePage() {
+
+  const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+
+const loginUrl = isLocalhost
+  ? "http://app.localhost:3000/sign-in"
+  : "https://app.zaynspace.com/sign-in"
+
 	return (
 		// Ajout de la classe 'dark' pour améliorer le contraste des animations du Hero
 		<div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/10 ">
@@ -23,9 +33,9 @@ export default function HomePage() {
 				<div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
 					<div className="flex items-center space-x-2">
 						<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-							<span className="text-primary-foreground font-bold text-lg font-heading">z</span>
+							<Image src="/logo_blanc.png" alt="Logo Zaynspace" width={24} height={24} />
 						</div>
-						<span className="text-xl font-bold tracking-tight font-heading">zynspace</span>
+						<span className="text-xl font-bold tracking-tight font-heading">zaynspace</span>
 					</div>
 
 					<nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-muted-foreground">
@@ -35,12 +45,12 @@ export default function HomePage() {
 					</nav>
 
 					<div className="flex items-center space-x-4">
-						<Link
-							href="/sign-in"
-							className="hidden md:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-						>
-							Se connecter
-						</Link>
+					<Link
+  href={loginUrl}
+  className="hidden md:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+>
+  Se connecter
+</Link>
 						<button className="bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95">
 							Commencer
 						</button>

@@ -81,10 +81,7 @@ export default function Timeline({ pin }) {
                             key={item.id}
                             className="relative mb-8 ml-14"
                         >
-                            {/* Timeline Dot */}
-                            <div className="absolute -left-[3.25rem] top-3 w-10 h-10 rounded-full bg-primary/20 border-4 border-secondary/20 flex items-center justify-center">
-                                <div className="w-3 h-3 rounded-full bg-primary"></div>
-                            </div>
+    
 
                             {/* Event Content - No Card */}
                             <div>
@@ -107,7 +104,7 @@ export default function Timeline({ pin }) {
                                             )}
                                         </div>
                                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                                            <Clock className="w-3 h-3" />
+                                         
                                             {timestamp}
                                         </div>
                                     </div>

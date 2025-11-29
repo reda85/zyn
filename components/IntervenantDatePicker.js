@@ -15,7 +15,7 @@ const intervenants = [
   { id: 3, name: 'Claire Bernard', email: 'claire@example.com' },
 ];
 
-export default function IntervenantDatePicker({pin}) {
+export default function IntervenantDatePicker({ pin }) {
   const [selectedIntervenant, setSelectedIntervenant] = useState(null);
   const [query, setQuery] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -24,44 +24,42 @@ export default function IntervenantDatePicker({pin}) {
   const [pins, setPins] = useAtom(pinsAtom);
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
 
-  // ✅ initialize from pin.due_date or null
   const [selectedDate, setSelectedDate] = useState(
     pin?.due_date ? new Date(pin?.due_date) : null
   );
-console.log('pin props', selectedDate)
-let isOverDue = false;
-if(pin?.due_date) {
-  const dueDate = new Date(pin?.due_date);
-  const now = new Date();
-  isOverDue = dueDate < now;
-}
 
-  //const allOptions = [{ id: 0, name: 'Aucun intervenant', email: '' }, ...intervenants];
-
-  useEffect(() => {
-    getAllIntervenants()
-  }, [])
+  console.log('pin props', selectedDate);
+  
+  let isOverDue = false;
+  if (pin?.due_date) {
+    const dueDate = new Date(pin?.due_date);
+    const now = new Date();
+    isOverDue = dueDate < now;
+  }
 
   useEffect(() => {
-    setSelectedPin(pin)
+    getAllIntervenants();
+  }, []);
+
+  useEffect(() => {
+    setSelectedPin(pin);
     setSelectedIntervenant(pin.assigned_to || null);
     setSelectedDate(pin.due_date ? new Date(pin.due_date) : null);
   }, [pin]);
 
   useEffect(() => {
-  if (selectedDate) {
-    updateDueDate(selectedDate);
-  }
-}, [selectedDate]);
-
+    if (selectedDate) {
+      updateDueDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   const getAllIntervenants = async () => {
-    const { data,error } = await supabase.from('members').select('*')
+    const { data, error } = await supabase.from('members').select('*');
     if (data) {
-      console.log('getAllIntervenants', data)
-      setAllOptions([{ id: 0, name: 'Aucun intervenant', email: '' }, ...data])
+      console.log('getAllIntervenants', data);
+      setAllOptions([{ id: 0, name: 'Aucun intervenant', email: '' }, ...data]);
     }
-  }
+  };
 
   const filteredIntervenants =
     query === ''
@@ -88,37 +86,55 @@ if(pin?.due_date) {
   };
 
   const updateAssignedIntervenant = async (intervenant) => {
-    const { data, error } = await supabase.from('pdf_pins').update({ assigned_to: intervenant?.id }).eq('id', selectedPin.id).select('*').single()
+    const { data, error } = await supabase
+      .from('pdf_pins')
+      .update({ assigned_to: intervenant?.id })
+      .eq('id', selectedPin.id)
+      .select('*')
+      .single();
     if (data) {
-      console.log('updateAssignedIntervenant', data)
+      console.log('updateAssignedIntervenant', data);
       setSelectedIntervenant(intervenant);
-      setPins(pins.map((p) => p.id === selectedPin.id ? {...p, intervenant_id: intervenant.id} : p))
+      setPins(
+        pins.map((p) =>
+          p.id === selectedPin.id ? { ...p, intervenant_id: intervenant.id } : p
+        )
+      );
     }
     if (error) {
-      console.log('updateAssignedIntervenant', error)
+      console.log('updateAssignedIntervenant', error);
     }
-  }
+  };
 
   useEffect(() => {
-    console.log('selectedIntervenant', selectedIntervenant)
-    if (selectedIntervenant?.id !== 0 && selectedIntervenant?.id !== null) {updateAssignedIntervenant(selectedIntervenant)}
-  }, [selectedIntervenant])
+    console.log('selectedIntervenant', selectedIntervenant);
+    if (selectedIntervenant?.id !== 0 && selectedIntervenant?.id !== null) {
+      updateAssignedIntervenant(selectedIntervenant);
+    }
+  }, [selectedIntervenant]);
 
   useEffect(() => {
-    if(selectedDate) {updateDueDate(selectedDate)}
-  }, [selectedDate])
+    if (selectedDate) {
+      updateDueDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   const updateDueDate = async (date) => {
-    const { data, error } = await supabase.from('pdf_pins').update({ due_date: date }).eq('id', selectedPin.id).select('*').single()
+    const { data, error } = await supabase
+      .from('pdf_pins')
+      .update({ due_date: date })
+      .eq('id', selectedPin.id)
+      .select('*')
+      .single();
     if (data) {
-      console.log('updateDueDate', data)
+      console.log('updateDueDate', data);
       setSelectedDate(date);
-      setPins(pins.map((p) => p.id === selectedPin.id ? {...p, due_date: date} : p))
+      setPins(pins.map((p) => (p.id === selectedPin.id ? { ...p, due_date: date } : p)));
     }
     if (error) {
-      console.log('updateDueDate', error)
+      console.log('updateDueDate', error);
     }
-  }
+  };
 
   const displayText = selectedIntervenant?.name || 'Assigner intervenant';
 
@@ -134,20 +150,18 @@ if(pin?.due_date) {
                   <div className="relative">
                     <Combobox.Input
                       autoFocus
-                      className="w-full border rounded px-3 py-2 pl-10 pr-10 focus:outline-none bg-gray-100"
+                      className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-secondary/30 text-foreground placeholder:text-muted-foreground transition-all"
                       onChange={(e) => setQuery(e.target.value)}
-                      onFocus={() => setQuery('')} // Show all
-                      displayValue={() =>
-                        query || selectedIntervenant?.name || ''
-                      }
+                      onFocus={() => setQuery('')}
+                      displayValue={() => query || selectedIntervenant?.name || ''}
                       placeholder="Ajouter un intervenant..."
                     />
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-white text-gray-800 pointer-events-none">
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
                       <User2Icon size={16} />
                     </div>
                     <button
                       type="button"
-                      className="absolute  right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => {
                         setSelectedIntervenant(null);
                         setQuery('');
@@ -158,31 +172,31 @@ if(pin?.due_date) {
                     </button>
                   </div>
                   {open && (
-                    <Combobox.Options className="absolute mt-1 w-full bg-white shadow-lg max-h-60 overflow-auto z-10 border rounded text-sm">
+                    <Combobox.Options className="absolute mt-2 w-full bg-card shadow-lg rounded-lg max-h-60 overflow-auto z-10 border border-border/50 py-1">
                       {filteredIntervenants.map((person) => (
                         <Combobox.Option
                           key={person.id}
                           value={person}
                           className={({ active }) =>
-                            `flex items-center gap-3 px-4 py-2 cursor-pointer  ${
-                              active ? 'bg-blue-100' : ''
+                            `flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors ${
+                              active ? 'bg-secondary/50' : ''
                             }`
                           }
                         >
                           {person.id === 0 ? (
-                            <span className="text-gray-600 italic">
+                            <span className="text-muted-foreground italic text-sm">
                               Aucun intervenant
                             </span>
                           ) : (
                             <>
-                              <div className="w-8 h-8 flex-shrink-0 rounded-full bg-blue-200 flex items-center justify-center text-xs font-semibold text-blue-900">
+                              <div className="w-8 h-8 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-foreground">
                                 {getInitials(person.name)}
                               </div>
                               <div className="flex flex-col">
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-foreground text-sm">
                                   {person.name}
                                 </span>
-                                <span className="text-gray-500 text-xs ">
+                                <span className="text-muted-foreground text-xs">
                                   {person.email}
                                 </span>
                               </div>
@@ -196,15 +210,14 @@ if(pin?.due_date) {
               ) : (
                 <Combobox.Button
                   as="button"
-                  className="w-full border rounded px-3 py-2 pl-10 text-left bg-gray-100 hover:bg-blue-100 relative"
+                  className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 transition-all relative text-sm font-medium text-foreground"
                   onClick={() => {
                     setIsEditing(true);
                     setTimeout(() => setQuery(''), 0);
                   }}
                 >
                   {displayText}
-                  
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 p-1 text-gray-800 rounded-full bg-white">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground">
                     <User2Icon size={16} />
                   </div>
                 </Combobox.Button>
@@ -225,56 +238,53 @@ if(pin?.due_date) {
             }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-secondary/30 text-foreground"
             dateFormat="dd/MM/yyyy"
             placeholderText="Sélectionner une date"
           />
         ) : (
           <div className="relative w-full">
-  <button
-    type="button"
-    className={clsx(
-      "w-full border rounded px-3 py-2 pl-10 text-left relative",
-     "bg-gray-100",
-      isOverDue ? "border-red-600 text-red-600 bg-red-100" : "border-gray-300 text-gray-800"
-    )}
-    onClick={() => setIsPickingDate(true)}
-  >
-    {selectedDate
-      ? selectedDate.toLocaleDateString('fr-FR')
-      : 'Ajouter échéance'}
+            <button
+              type="button"
+              className={clsx(
+                'w-full border rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 relative transition-all text-sm font-medium',
+                isOverDue ? 'border-destructive text-destructive' : 'border-border/50 text-foreground'
+              )}
+              onClick={() => setIsPickingDate(true)}
+            >
+              {selectedDate
+                ? selectedDate.toLocaleDateString('fr-FR')
+                : 'Ajouter échéance'}
 
-    {/* Calendar icon */}
-    <div
-      className={clsx(
-        "absolute left-3 top-1/2 -translate-y-1/2",
-        isOverDue ? "text-red-600" : "text-gray-800"
-      )}
-    >
-      <CalendarIcon size={16} />
-    </div>
-  </button>
+              <div
+                className={clsx(
+                  'absolute left-3 top-1/2 -translate-y-1/2',
+                  isOverDue ? 'text-destructive' : 'text-foreground'
+                )}
+              >
+                <CalendarIcon size={16} />
+              </div>
+            </button>
 
-  {/* ❌ Clear button */}
-  {selectedDate && (
-    <button
-      type="button"
-      className={clsx(
-        "absolute right-3 top-1/2 -translate-y-1/2",
-        isOverDue ? "text-red-600 hover:text-red-800" : "text-gray-500 hover:text-red-500"
-      )}
-      onClick={(e) => {
-        e.stopPropagation(); // prevent opening the picker
-        setSelectedDate(null);
-        updateDueDate(null);
-      }}
-    >
-      <XIcon size={16} />
-    </button>
-  )}
-</div>
-
-
+            {selectedDate && (
+              <button
+                type="button"
+                className={clsx(
+                  'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
+                  isOverDue
+                    ? 'text-destructive hover:text-destructive/80'
+                    : 'text-muted-foreground hover:text-destructive'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedDate(null);
+                  updateDueDate(null);
+                }}
+              >
+                <XIcon size={16} />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

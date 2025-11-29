@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { signInAction } from "../../../app/actions";
 import { FormMessage, Message } from "../../../components/form-message";
 import { SubmitButton } from "../../../components/submit-button";
@@ -19,12 +20,12 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
 
         <div className="text-center relative z-10 max-w-lg">
           <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/20">
-            <span className="text-primary-foreground font-bold text-4xl font-heading">z</span>
+            <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
           </div>
           <h2 className="text-5xl font-bold text-foreground leading-tight font-heading mb-6">
             Suivez vos chantiers en toute simplicité
           </h2>
-          <p className="text-muted-foreground text-xl leading-relaxed">
+          <p className="text-muted-foreground text-xl leading-relaxed font-sans">
             Connectez-vous pour accéder à votre tableau de bord et gérer vos projets efficacement.
           </p>
         </div>
@@ -36,7 +37,7 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
           {/* Logo for smaller screens */}
           <div className="mb-8 lg:hidden flex justify-center">
             <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="text-primary-foreground font-bold text-2xl font-heading">z</span>
+              <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={24} height={24} />
             </div>
           </div>
 
