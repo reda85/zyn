@@ -7,7 +7,7 @@ import { selectedProjectAtom } from '@/store/atoms'
 import { supabase } from '@/utils/supabase/client'
  
 export default function Projectreroute({params}) {
-    const {projectId} = use(params);
+    const {projectId} = params;
     const [selectedProject, setProject] = useAtom(selectedProjectAtom);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
