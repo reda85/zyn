@@ -12,7 +12,7 @@ import { useUserData } from '@/hooks/useUserData';
 import Image from 'next/image';
 
 export default function ProjectDetail({ params }) {
-  const { projectId, planId } = use(params);
+  const { projectId, planId } = params;
   const [project, setProject] = useState(null)
   const [plan, setPlan] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
@@ -59,7 +59,7 @@ export default function ProjectDetail({ params }) {
   }, [projectId, planId])
 
  useEffect(() => {
-    if (!project || !plan) return
+    if (!project || !plan || !user || !profile) return;
 
 const fetchPins = async () => {
       

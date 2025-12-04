@@ -14,7 +14,7 @@ import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css";
 import { Document, Page, PDFDownloadLink, Text } from "@react-pdf/renderer"
 import PdfReport from "@/components/PdfReport"
-import { getZoomedInPinImage } from "@/utils/pdfUtils"
+//import { getZoomedInPinImage } from "@/utils/pdfUtils"
 import FilterPanel from "@/components/FilterPanel"
 import ListFilterPanel from "../../../../../components/ListFilterPanel"
 import LoadingScreen from "@/components/LoadingScreen"
@@ -83,10 +83,10 @@ export default function Tasks({ params }) {
     
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null);
-     const { projectId } = use(params);
+     const { projectId } = params;
      const {user,profile,organization} = useUserData();
 
-      async function prepareSnapshots() {
+   {/*  async function prepareSnapshots() {
     const pinsWithImages = await Promise.all(
       pins.filter((pin) => selectedIds.has(pin.id)).map(async (pin) => {
         let fileurl = await supabase.storage.from('project-plans').getPublicUrl(pin.plans.file_url).data.publicUrl
@@ -104,6 +104,43 @@ export default function Tasks({ params }) {
     );
     setPinsWithSnapshots(pinsWithImages);
   }
+*/}
+
+const handleDownload = async () => {
+    const ids = Array.from(selectedIds).join(',');
+    const downloadUrl = `/api/report?projectId=${projectId}&selectedIds=${ids}`;
+
+    // Optionally: show loading state here
+    
+    try {
+       const response = await fetch(downloadUrl);
+  if (!response.ok) {
+      console.error('Download Failed. Status:', response.status); // <--- ADD THIS LOG
+      // To see the server's error message, read the text response
+      const errorText = await response.text();
+      console.error('Server Error Message:', errorText); // <--- AND THIS LOG
+      throw new Error(`HTTP error! status: ${response.status}`);
+  }
+        
+        // Handle file download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rapport-taches-server.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Failed to download PDF:", error);
+        // Handle error display
+    } finally {
+        // Optionally: hide loading state
+    }
+};
+
 
      useEffect(() => {
     const fetchProject = async () => {
@@ -190,7 +227,7 @@ export default function Tasks({ params }) {
             </div>
           </div>
           
-          {/* Actions Bar */}
+          {/* Actions Bar 
           {selectedIds.size > 0 && (
             <div className="px-6 py-4 bg-secondary/30 border-t border-border/50 flex items-center justify-between">
               <p className="text-sm font-medium text-foreground">
@@ -230,7 +267,21 @@ export default function Tasks({ params }) {
               </div>
             </div>
           )}
-          
+          */}
+          {selectedIds.size > 0 && (
+  <div className="px-6 py-4 bg-secondary/30 border-t border-border/50 flex items-center justify-between">
+    {/* ... selection count ... */}
+    <div className="flex gap-3">
+      <button 
+        onClick={handleDownload}
+        className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center gap-2"
+      >
+        <Download className="w-4 h-4" />
+        Télécharger le rapport
+      </button>
+    </div>
+  </div>
+)}
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full">
