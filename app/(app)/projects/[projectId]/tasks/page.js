@@ -108,7 +108,7 @@ export default function Tasks({ params }) {
 
 const handleDownload = async () => {
     const ids = Array.from(selectedIds).join(',');
-    const downloadUrl = `/api/report?projectId=${projectId}&selectedIds=${ids}`;
+    const downloadUrl = `https://zaynbackend-production.up.railway.app/api/report?projectId=${projectId}&selectedIds=${ids}`;
 
     // Optionally: show loading state here
     

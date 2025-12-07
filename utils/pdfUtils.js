@@ -1,31 +1,14 @@
-// utils/pdfUtils.js
-
 import { createCanvas, loadImage } from "canvas"; 
-// REMOVED: import fetch from "node-fetch"; // Assuming global fetch is used
+// REMOVED: import fetch from "node-fetch"; // Global fetch is available on Vercel Node runtime
 
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.js";
 
-// --- START: FIX FOR NEXT.JS/VERCEL ---
-// 1. Remove the direct import of the worker file.
-// 2. Set the workerSrc to a public path that Webpack can resolve at runtime.
-//    pdfjs-dist often copies its assets to a location like '/_next/static/chunks/...' 
-//    or simply to the root of the node_modules folder.
+// --- START: VERCEL-COMPATIBLE WORKER FIX ---
+// Use the path resolved by Node's require in a serverless context
+const pdfWorkerPath = require.resolve("pdfjs-dist/legacy/build/pdf.worker.js");
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerPath;
 
-// A robust way to set the path is to use a relative path that works post-bundle:
-if (process.env.NODE_ENV === 'production') {
-    // Vercel production: relies on the asset being in node_modules or bundled
-    pdfjs.GlobalWorkerOptions.workerSrc = require.resolve("pdfjs-dist/legacy/build/pdf.worker.js");
-} else {
-    // Local development: use the direct path that works relative to the project structure
-    // This is often simpler but depends on your Next.js configuration.
-    // Let's stick to the simplest relative path here:
-    pdfjs.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.js";
-}
 
-// NOTE: Some guides suggest copying the worker file to the public folder and using:
-// pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.js'; 
-// but let's try the library-relative path first.
-// --- END: FIX FOR NEXT.JS/VERCEL ---
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(value, max));
