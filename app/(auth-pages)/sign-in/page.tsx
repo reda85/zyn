@@ -6,6 +6,12 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import Link from "next/link";
 
+
+type SearchParams = {
+  error?: string;
+  success?: string;
+};
+
 const translateError = (error?: string) => {
   if (!error) return null;
 
@@ -32,8 +38,12 @@ const translateError = (error?: string) => {
   return map[error] ?? "Une erreur s’est produite. Veuillez réessayer.";
 };
 
-export default async function Login(props: { searchParams: Promise<Message> }) {
-  const searchParams = await props.searchParams;
+export default async function Login({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+})  {
+ // const searchParams = await props.searchParams;
   return (
     <div className="flex min-h-screen w-screen overflow-hidden bg-background font-sans">
 
@@ -128,7 +138,13 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
             </SubmitButton>
 
             {/* Form Message */}
-            <FormMessage message={searchParams} />
+            <FormMessage
+  message={
+    searchParams?.error
+      ? ({ error: searchParams.error } as Message)
+      : undefined
+  }
+/>
           </form>
         </div>
       </div>
