@@ -30,7 +30,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
 
   return (
     <div className="px-4 mb-4">
-      <div className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden">
+      <div className="bg-neutral-100 border border-border/50 rounded-xl overflow-hidden">
         
         {/* Header avec "Tout sélectionner" */}
         <div className="flex items-center justify-between bg-secondary/50 border-b border-border/50 p-3">

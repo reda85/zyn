@@ -124,7 +124,7 @@ export default function FilterPanel({user}) {
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-2.5 bg-secondary/50 rounded-xl hover:bg-secondary/80 border border-border/50 hover:border-primary/20 transition-all hover:shadow-md backdrop-blur-sm"
+        className="flex items-center gap-2 px-3 py-2.5 bg-neutral-100 rounded-xl hover:bg-neutral-200 border border-border/50 hover:border-primary/20 transition-all hover:shadow-md backdrop-blur-sm"
       >
         <ListFilterIcon className="h-5 w-5 text-muted-foreground" />
       </button>

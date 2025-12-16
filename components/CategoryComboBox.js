@@ -4,7 +4,7 @@ import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { categoriesAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
-import { ZapIcon, DropletsIcon, PaintRoller, GripIcon, FireExtinguisherIcon, CheckIcon } from 'lucide-react'
+import { ZapIcon, DropletsIcon, PaintRoller, GripIcon, FireExtinguisherIcon, CheckIcon, DoorClosedIcon, SnowflakeIcon } from 'lucide-react'
 import clsx from 'clsx'
 
 const categoriesIcons = {
@@ -14,6 +14,8 @@ const categoriesIcons = {
   'paint': <PaintRoller className="text-muted-foreground h-4 w-4" />,
   'carrelage': <GripIcon className="text-muted-foreground h-4 w-4" />,
   'fire-extinguisher': <FireExtinguisherIcon className="text-muted-foreground h-4 w-4" />,
+  'doors': <DoorClosedIcon className="text-muted-foreground h-4 w-4" />,
+  'snowflake': <SnowflakeIcon className="text-muted-foreground h-4 w-4" />,
 }
 
 export default function CategoryComboBox({ pin }) {

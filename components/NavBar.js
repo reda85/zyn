@@ -93,7 +93,7 @@ export default function Navbar({ id, user, project }) {
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
-                    All Projects
+                    Tous les projets
                   </Link>
                 </li>
                 <li>
@@ -102,7 +102,7 @@ export default function Navbar({ id, user, project }) {
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
-                    Project Details
+                    Détails du projet
                   </Link>
                 </li>
                 <li>
@@ -111,7 +111,7 @@ export default function Navbar({ id, user, project }) {
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
-                    Project Plans
+                    Plans du projet
                   </Link>
                 </li>
                 <li>
@@ -120,7 +120,7 @@ export default function Navbar({ id, user, project }) {
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
-                    Task Categories Manager
+                    Gestionnaire de catégories
                   </Link>
                 </li>
                 <li>
@@ -129,7 +129,7 @@ export default function Navbar({ id, user, project }) {
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
-                    Status Manager
+                    Gestionnaire de statuts
                   </Link>
                 </li>
               </ul>

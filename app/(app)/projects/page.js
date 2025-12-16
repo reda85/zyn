@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { Lexend } from 'next/font/google'
 import clsx from 'clsx'
 import { Dialog } from '@headlessui/react'
+import { useUserData } from '@/hooks/useUserData'
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
@@ -25,6 +26,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const [refresh, setRefresh] = useState(false)
+  const { user, profile, organization } = useUserData();
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -69,8 +71,8 @@ export default function ProjectsPage() {
       <aside className="w-64 bg-secondary/20 border-r border-border/40 flex flex-col">
         {/* Organization Card */}
         <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
-          <h2 className="text-sm font-semibold font-heading text-foreground">{selectedOrganization?.name}</h2>
-          <p className="text-xs text-muted-foreground">{selectedOrganization?.members?.length} membres</p>
+          <h2 className="text-sm font-semibold font-heading text-foreground">{organization?.name}</h2>
+          <p className="text-xs text-muted-foreground">{organization?.members[0]?.count} membres</p>
         </div>
       
         {/* Navigation Links */}

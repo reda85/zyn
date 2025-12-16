@@ -14,7 +14,7 @@ import Image from 'next/image';
 export default function ProjectDetail({ params }) {
   const { projectId, planId } = params;
   const [project, setProject] = useState(null)
-  const [plan, setPlan] = useState(null)
+  //const [plan, setPlan] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
   const [statuses, setStatuses] = useAtom(statusesAtom)
@@ -50,7 +50,7 @@ export default function ProjectDetail({ params }) {
 
     const fetchPlan = async () => {
       const { data } = await supabase.from('plans').select('*').eq('id', planId).single()
-      setPlan(data)
+    //  setPlan(data)
       setSelectedPlan(data)
     }
 
@@ -59,7 +59,7 @@ export default function ProjectDetail({ params }) {
   }, [projectId, planId])
 
  useEffect(() => {
-    if (!project || !plan || !user || !profile) return;
+    if (!project || !selectedPlan || !user || !profile) return;
 
 const fetchPins = async () => {
       
@@ -80,7 +80,7 @@ const fetchPins = async () => {
           categories(name),
           ${assignedToSelect} // Use the conditional select string
         `)
-        .eq('plan_id', plan.id)
+        .eq('plan_id', selectedPlan.id)
         .order('created_at', { ascending: true })
 
       // 2. CONDITIONAL FILTERING
@@ -104,13 +104,13 @@ const fetchPins = async () => {
     }
 
     fetchPins()
-  }, [project, plan, user, profile]) // Dependencies remain correct
+  }, [project, selectedPlan, user, profile]) // Dependencies remain correct
 
   useEffect(() => {
     console.log('pins', pins)
   }, [pins])
 
-  if (!project || !plan) return (
+  if (!project || !selectedPlan) return (
     <div className="flex h-screen w-full items-center justify-center bg-background font-sans">
       <div className="text-center">
         {/* Logo animé */}
@@ -172,10 +172,10 @@ const fetchPins = async () => {
         {/* Main content */}
         <div className="flex-1 overflow-auto">
           <PdfCanvas
-            fileUrl={supabase.storage.from('project-plans').getPublicUrl(plan.file_url).data.publicUrl}
+            fileUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.file_url).data.publicUrl}
             pins={pins}
             project={project}
-            plan={plan}
+            plan={selectedPlan}
             user={profile}
           />
         </div>

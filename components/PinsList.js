@@ -23,18 +23,19 @@ export default function PinsList({ pins, plans }) {
 
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
-    
+   
+  const activePlan = plans.find(p => p.id === selectedPlan?.id) || plans[0];
 
   return (
-    <div className={classNames(lexend.className,'overflow-auto font-sans')}>
+    <div className={classNames(lexend.className,'overflow-auto font-sans bg-white')}>
         {/* Header avec Select et Filter */}
         <div className="flex flex-row gap-2 p-4 items-baseline">
-          <CustomSelect options={plans} selected={plans[0]} onChange={setSelectedPlan} />
+          <CustomSelect options={plans} selected={activePlan} onChange={setSelectedPlan} />
           <FilterPanel />
         </div>
         
         {/* Barre de comptage - Style cohérent */}
-        <div className="flex flex-row gap-2 px-4 py-3 justify-between items-baseline bg-secondary/50 border border-border/50 backdrop-blur-sm">
+        <div className="flex flex-row gap-2 px-4 py-3 justify-between items-baseline bg-neutral-100 border border-border/50 backdrop-blur-sm">
           <div className="flex flex-row gap-2 items-center">
             <MapPinIcon className="h-4 w-4 text-muted-foreground" />
             <p className="text-foreground text-xs font-medium">{pins.length} Pins total</p>
@@ -50,8 +51,8 @@ export default function PinsList({ pins, plans }) {
               className={classNames(
                 "hover:cursor-pointer border rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-lg hover:-translate-y-0.5",
                 selectedPin?.id === pin.id 
-                  ? 'bg-primary/10 border-primary/50 shadow-md shadow-primary/10' 
-                  : 'bg-secondary/30 border-border/50 hover:border-primary/20 hover:bg-secondary/50'
+                  ? 'bg-neutral-200 border-primary/50 shadow-md shadow-primary/10' 
+                  : 'bg-neutral-100 border-border/50 hover:border-primary/20 hover:bg-secondary/50'
               )}
             >
               {/* Header du pin */}

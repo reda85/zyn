@@ -14,6 +14,25 @@ import clsx from 'clsx'
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
+// StrictMode wrapper for Droppable
+const StrictModeDroppable = ({ children, ...props }) => {
+  const [enabled, setEnabled] = useState(false)
+  
+  useEffect(() => {
+    const animation = requestAnimationFrame(() => setEnabled(true))
+    return () => {
+      cancelAnimationFrame(animation)
+      setEnabled(false)
+    }
+  }, [])
+  
+  if (!enabled) {
+    return null
+  }
+  
+  return <Droppable {...props}>{children}</Droppable>
+}
+
 function ColorPickerPopup({ color, onChange }) {
   const inputRef = useRef(null)
 
@@ -47,15 +66,11 @@ export default function ProjectStatuses() {
   const [selectedProject] = useAtom(selectedProjectAtom)
   const { projectId } = useParams()
   const router = useRouter()
-  const [isBrowser, setIsBrowser] = useState(false)
-
-  // Fix pour le drag & drop : s'assurer qu'on est côté client
-  useEffect(() => {
-    setIsBrowser(true)
-  }, [])
 
   useEffect(() => {
     const fetchStatuses = async () => {
+      if (!projectId) return
+      
       const { data, error } = await supabase
         .from('Status')
         .select('*')
@@ -72,8 +87,9 @@ export default function ProjectStatuses() {
 
   const handleDragEnd = async (result) => {
     if (!result.destination) return
+    if (result.destination.index === result.source.index) return
     
-    const reordered = [...statuses]
+    const reordered = Array.from(statuses)
     const [removed] = reordered.splice(result.source.index, 1)
     reordered.splice(result.destination.index, 0, removed)
 
@@ -81,13 +97,18 @@ export default function ProjectStatuses() {
       ...status,
       order: index,
     }))
+    
     setStatuses(updated)
 
-    await Promise.all(
-      updated.map((s) =>
-        supabase.from('Status').update({ order: s.order }).eq('id', s.id)
+    try {
+      await Promise.all(
+        updated.map((s) =>
+          supabase.from('Status').update({ order: s.order }).eq('id', s.id)
+        )
       )
-    )
+    } catch (error) {
+      console.error('Error updating order:', error)
+    }
   }
 
   const handleNameChange = (index, name) => {
@@ -103,66 +124,80 @@ export default function ProjectStatuses() {
   }
 
   const handleSaveStatus = async (status) => {
-    await supabase
-      .from('Status')
-      .update({ name: status.name, color: status.color })
-      .eq('id', status.id)
+    try {
+      await supabase
+        .from('Status')
+        .update({ name: status.name, color: status.color })
+        .eq('id', status.id)
+    } catch (error) {
+      console.error('Error saving status:', error)
+    }
   }
 
   const handleAddStatus = async () => {
-    const { data, error } = await supabase
-      .from('Status')
-      .insert([
-        {
-          project_id: projectId,
-          name: 'Nouveau statut',
-          color: '#3b82f6',
-          order: statuses.length,
-        },
-      ])
-      .select()
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('Status')
+        .insert([
+          {
+            project_id: projectId,
+            name: 'Nouveau statut',
+            color: '#3b82f6',
+            order: statuses.length,
+          },
+        ])
+        .select()
+        .single()
 
-    if (data) {
-      setStatuses((prev) => [...prev, data])
+      if (data) {
+        setStatuses((prev) => [...prev, data])
+      }
+      if (error) console.error('Error adding status:', error)
+    } catch (error) {
+      console.error('Error adding status:', error)
     }
-    if (error) console.error('Error adding status:', error)
   }
 
   const handleDeleteStatus = async (id) => {
-    await supabase.from('Status').delete().eq('id', id)
-    setStatuses((prev) => prev.filter((s) => s.id !== id))
+    try {
+      await supabase.from('Status').delete().eq('id', id)
+      setStatuses((prev) => prev.filter((s) => s.id !== id))
+    } catch (error) {
+      console.error('Error deleting status:', error)
+    }
   }
 
-  if (loading) return (
-    <div className="flex h-screen w-full items-center justify-center bg-background font-sans">
-      <div className="text-center">
-        <div className="mb-8 flex justify-center">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 animate-pulse">
-            <span className="text-primary-foreground font-bold text-3xl font-heading">z</span>
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background font-sans">
+        <div className="text-center">
+          <div className="mb-8 flex justify-center">
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 animate-pulse">
+              <span className="text-primary-foreground font-bold text-3xl font-heading">z</span>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold font-heading text-foreground mb-3">
+            Chargement...
+          </h2>
+          <p className="text-muted-foreground">
+            Veuillez patienter
+          </p>
+          <div className="mt-8 w-64 mx-auto">
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-primary w-0 animate-[loading_1.5s_ease-in-out_infinite]"></div>
+            </div>
           </div>
         </div>
-        <h2 className="text-2xl font-bold font-heading text-foreground mb-3 opacity-0 animate-fadeInUp">
-          Chargement...
-        </h2>
-        <p className="text-muted-foreground opacity-0 animate-fadeInUp" style={{ animationDelay: '150ms' }}>
-          Veuillez patienter
-        </p>
-        <div className="mt-8 w-64 mx-auto">
-          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-            <div className="h-full bg-primary animate-[loading_1.5s_ease-in-out_infinite] shadow-[0_0_10px_rgba(var(--primary),0.3)]"></div>
-          </div>
-        </div>
+        <style jsx>{`
+          @keyframes loading {
+            0% { width: 0%; margin-left: 0%; }
+            50% { width: 75%; margin-left: 0%; }
+            100% { width: 0%; margin-left: 100%; }
+          }
+        `}</style>
       </div>
-      <style jsx>{`
-        @keyframes loading {
-          0% { width: 0%; margin-left: 0%; }
-          50% { width: 75%; margin-left: 0%; }
-          100% { width: 0%; margin-left: 100%; }
-        }
-      `}</style>
-    </div>
-  );
+    )
+  }
 
   return (
     <div className={clsx("min-h-screen bg-background font-sans", lexend.className)}>
@@ -200,89 +235,88 @@ export default function ProjectStatuses() {
             </button>
           </div>
         ) : (
-          isBrowser && (
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="statuses">
-                {(provided, snapshot) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className={clsx(
-                      "space-y-3 border border-border/50 p-6 rounded-xl bg-card shadow-sm transition-colors",
-                      snapshot.isDraggingOver && "bg-secondary/30"
-                    )}
-                  >
-                    {statuses.map((status, index) => (
-                      <Draggable
-                        key={status.id}
-                        draggableId={String(status.id)}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={clsx(
-                              "bg-secondary/30 p-4 border border-border/50 rounded-xl transition-all",
-                              snapshot.isDragging && "shadow-lg shadow-primary/20 rotate-2 scale-105"
-                            )}
-                          >
-                            <div className="flex items-center gap-3">
-                              {/* Drag Handle */}
-                              <div 
-                                {...provided.dragHandleProps}
-                                className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
-                              >
-                                <GripVertical className="w-5 h-5" />
-                              </div>
-
-                              {/* Input */}
-                              <Input
-                                value={status.name}
-                                onChange={(e) => handleNameChange(index, e.target.value)}
-                                onBlur={() => handleSaveStatus(status)}
-                                className="flex-1 border-border/50 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50 font-medium"
-                                placeholder="Nom du statut"
-                              />
-
-                              {/* Color Picker */}
-                              <ColorPickerPopup
-                                color={status.color}
-                                onChange={(color) => {
-                                  handleColorChange(index, color)
-                                  handleSaveStatus({ ...status, color })
-                                }}
-                              />
-
-                              {/* Delete Button */}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteStatus(status.id)}
-                                className="hover:bg-destructive/10 text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                    
-                    {/* Add Button */}
-                    <button
-                      onClick={handleAddStatus}
-                      className="flex bg-secondary/50 border border-border/50 items-center text-foreground w-full gap-2 p-4 rounded-xl hover:bg-secondary/80 hover:border-primary/20 transition-all font-medium justify-center"
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <StrictModeDroppable droppableId="statuses">
+              {(provided, snapshot) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className={clsx(
+                    "space-y-3 border border-border/50 p-6 rounded-xl bg-card shadow-sm transition-colors",
+                    snapshot.isDraggingOver && "bg-secondary/30"
+                  )}
+                >
+                  {statuses.map((status, index) => (
+                    <Draggable
+                      key={status.id}
+                      draggableId={String(status.id)}
+                      index={index}
                     >
-                      <Plus className="w-5 h-5" /> 
-                      Ajouter un statut
-                    </button>
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
-          )
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          style={provided.draggableProps.style}
+                          className={clsx(
+                            "bg-secondary/30 p-4 border border-border/50 rounded-xl transition-all",
+                            snapshot.isDragging && "shadow-lg shadow-primary/20 rotate-2 scale-105"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            {/* Drag Handle */}
+                            <div 
+                              {...provided.dragHandleProps}
+                              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <GripVertical className="w-5 h-5" />
+                            </div>
+
+                            {/* Input */}
+                            <Input
+                              value={status.name}
+                              onChange={(e) => handleNameChange(index, e.target.value)}
+                              onBlur={() => handleSaveStatus(status)}
+                              className="flex-1 border-border/50 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50 font-medium"
+                              placeholder="Nom du statut"
+                            />
+
+                            {/* Color Picker */}
+                            <ColorPickerPopup
+                              color={status.color}
+                              onChange={(color) => {
+                                handleColorChange(index, color)
+                                handleSaveStatus({ ...status, color })
+                              }}
+                            />
+
+                            {/* Delete Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteStatus(status.id)}
+                              className="hover:bg-destructive/10 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                  
+                  {/* Add Button */}
+                  <button
+                    onClick={handleAddStatus}
+                    className="flex bg-secondary/50 border border-border/50 items-center text-foreground w-full gap-2 p-4 rounded-xl hover:bg-secondary/80 hover:border-primary/20 transition-all font-medium justify-center"
+                  >
+                    <Plus className="w-5 h-5" /> 
+                    Ajouter un statut
+                  </button>
+                </div>
+              )}
+            </StrictModeDroppable>
+          </DragDropContext>
         )}
       </div>
     </div>

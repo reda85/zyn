@@ -6,12 +6,13 @@ import { CheckIcon, ChevronDownIcon, ChevronUpDownIcon, Square3Stack3DIcon } fro
 
 export default function CustomSelect({ options, selected, onChange }) {
 
+  if (!selected) return null;
   
   return (
     <div className="w-56">
       <Listbox value={selected} onChange={onChange}>
         <div className="relative mt-1">
-          <ListboxButton className="relative w-full flex flex-row items-center gap-2 cursor-pointer rounded-xl bg-secondary/50 hover:bg-secondary/80 py-2.5 pl-3 pr-10 text-left border border-border/50 hover:border-primary/20 focus:outline-none transition-all hover:shadow-md backdrop-blur-sm">
+          <ListboxButton className="relative w-full flex flex-row items-center gap-2 cursor-pointer rounded-xl bg-neutral-100 hover:bg-neutral-200 py-2.5 pl-3 pr-10 text-left border border-border/50 hover:border-primary/20 focus:outline-none transition-all hover:shadow-md backdrop-blur-sm">
             <Square3Stack3DIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             <span className="block truncate text-sm font-semibold font-heading text-foreground">{selected.name}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -29,12 +30,12 @@ export default function CustomSelect({ options, selected, onChange }) {
                   }`
                 }
               >
-                {({ selected }) => (
+                {({ selected : isSelected }) => (
                   <>
                     <span className={`block truncate ${selected ? 'font-semibold font-heading' : 'font-normal'}`}>
                       {option.name}
                     </span>
-                    {selected ? (
+                    {isSelected ? (
                       <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
                         <CheckIcon className="h-5 w-5" aria-hidden="true" />
                       </span>

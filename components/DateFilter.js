@@ -39,7 +39,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
 
   return (
     <div className="px-4 mb-4">
-      <div className="flex items-center justify-between bg-secondary/30 border border-border/50 p-3 rounded-xl">
+      <div className="flex items-center justify-between bg-neutral-100 border border-border/50 p-3 rounded-xl">
         <span className="text-foreground text-sm font-semibold">
           Filtrer par date
         </span>

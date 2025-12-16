@@ -10,7 +10,7 @@ import { FolderKanban, Users, BarChart3, Settings, Check, ChevronDown, UserPlus,
 import Link from 'next/link'
 import { Lexend } from 'next/font/google'
 import clsx from 'clsx'
-import { Dialog, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
+import { Dialog, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Switch } from '@headlessui/react'
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
@@ -48,30 +48,105 @@ export default function MembersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [refresh, setRefresh] = useState(false)
 
+  const [manageOpen, setManageOpen] = useState(false)
+  const [currentMember, setCurrentMember] = useState(null)
+  const [memberProjects, setMemberProjects] = useState([])
+  const [projects, setProjects] = useState([])
+
+
+
+  /* -----------------------------------------------------------
+   * FETCH MEMBERS + COUNT ASSIGNED PROJECTS
+   ----------------------------------------------------------- */
   useEffect(() => {
     const fetchMembers = async () => {
-      const { data } = await supabase
+      const { data: rawMembers } = await supabase
         .from('members')
-        .select('*')
+        .select(`
+          *,
+          members_projects(count)
+        `)
         .order('created_at', { ascending: false })
-      setMembers(data || [])
-    }
-    fetchMembers()
-  }, [refresh])
 
+      const formatted = rawMembers.map((m) => ({
+        ...m,
+        project_count: m.members_projects?.[0]?.count || 0
+      }))
+
+      setMembers(formatted)
+    }
+
+    const fetchProjects = async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('organization_id', selectedOrganization?.id)
+      setProjects(data || [])
+    }
+
+    fetchMembers()
+    fetchProjects()
+  }, [refresh, selectedOrganization])
+
+  /* -----------------------------------------------------------
+   * OPEN MANAGE PROJECT MODAL FOR SELECTED MEMBER
+   ----------------------------------------------------------- */
+  const openManageModal = async (member) => {
+    setCurrentMember(member)
+
+    const { data } = await supabase
+      .from('members_projects')
+      .select('project_id')
+      .eq('member_id', member.id)
+
+    setMemberProjects(data.map((p) => p.project_id))
+    setManageOpen(true)
+  }
+
+  /* -----------------------------------------------------------
+   * TOGGLE PROJECT ASSIGNMENT
+   ----------------------------------------------------------- */
+  const toggleProject = async (projectId, active) => {
+    if (active) {
+      await supabase.from('members_projects').insert({
+        member_id: currentMember.id,
+        project_id: projectId
+      })
+    } else {
+      await supabase
+        .from('members_projects')
+        .delete()
+        .eq('member_id', currentMember.id)
+        .eq('project_id', projectId)
+    }
+
+    // Update local state
+    setMemberProjects((prev) =>
+      active
+        ? [...prev, projectId]
+        : prev.filter((id) => id !== projectId)
+    )
+
+    setRefresh((x) => !x)
+  }
+
+  /* -----------------------------------------------------------
+   * FILTERED MEMBERS
+   ----------------------------------------------------------- */
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
       const matchesSearch =
         member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase());
+        member.email.toLowerCase().includes(searchQuery.toLowerCase())
 
       const matchesRole =
         selectedRoles.length === 0 ||
-        selectedRoles.some((role) => role.name === member.role);
+        selectedRoles.some((role) => role.name === member.role)
 
-      return matchesSearch && matchesRole;
-    });
-  }, [members, searchQuery, selectedRoles]);
+      return matchesSearch && matchesRole
+    })
+  }, [members, searchQuery, selectedRoles])
+
 
   return (
     <div className={clsx("flex min-h-screen bg-background font-sans", lexend.className)}>
@@ -80,7 +155,7 @@ export default function MembersPage() {
         {/* Organization Card */}
         <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
           <h2 className="text-sm font-semibold font-heading text-foreground">{selectedOrganization?.name}</h2>
-          <p className="text-xs text-muted-foreground">{selectedOrganization?.members?.length} membres</p>
+        <p className="text-xs text-muted-foreground">{selectedOrganization?.members[0]?.count} membres</p>
         </div>
       
         {/* Navigation Links */}
@@ -221,6 +296,9 @@ export default function MembersPage() {
                 <th className="px-6 py-4 text-left text-xs font-semibold font-heading text-foreground uppercase tracking-wider">
                   Membres
                 </th>
+                 <th className="px-6 py-4 text-left text-xs font-semibold font-heading text-foreground uppercase tracking-wider">
+                  Projets
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold font-heading text-foreground uppercase tracking-wider">
                   Rôle
                 </th>
@@ -241,7 +319,18 @@ export default function MembersPage() {
                       </div>
                     </div>
                   </td>
+ <td className="px-6 py-4 whitespace-nowrap flex items-center gap-4">
+                <span className="text-sm text-muted-foreground">
+                  {member.project_count} projets
+                </span>
 
+                <button
+                  onClick={() => openManageModal(member)}
+                  className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+                >
+                  Manage
+                </button>
+              </td>
                   {/* Role Badge */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -267,7 +356,53 @@ export default function MembersPage() {
               Aucun membre trouvé
             </div>
           )}
-        </div>  
+        </div> 
+        <Dialog open={manageOpen} onClose={() => setManageOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+
+        <div className="fixed inset-0 flex justify-center items-center p-6">
+          <DialogPanel className="bg-card border border-border/50 rounded-xl shadow-xl w-full max-w-lg p-6">
+            <DialogTitle className="text-xl font-bold mb-4">
+              Manage projects for {currentMember?.name}
+            </DialogTitle>
+
+            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+              {projects.map((project) => {
+                const active = memberProjects.includes(project.id)
+
+                return (
+                  <div key={project.id} className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg">
+                    <span className="font-medium">{project.name}</span>
+
+                    <Switch
+                      checked={active}
+                      onChange={(val) => toggleProject(project.id, val)}
+                      className={clsx(
+                        "relative inline-flex h-6 w-11 items-center rounded-full transition-all",
+                        active ? "bg-primary" : "bg-gray-300"
+                      )}
+                    >
+                      <span
+                        className={clsx(
+                          "inline-block h-4 w-4 transform rounded-full bg-white transition",
+                          active ? "translate-x-6" : "translate-x-1"
+                        )}
+                      />
+                    </Switch>
+                  </div>
+                )
+              })}
+            </div>
+
+            <button
+              className="mt-6 w-full py-2 bg-secondary/40 hover:bg-secondary rounded-lg text-sm font-medium"
+              onClick={() => setManageOpen(false)}
+            >
+              Close
+            </button>
+          </DialogPanel>
+        </div>
+      </Dialog> 
       </main>
     </div>
   )

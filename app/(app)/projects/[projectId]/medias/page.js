@@ -8,7 +8,7 @@ import { Lexend } from "next/font/google"
 import GroupedMediaGallery from "@/components/GroupedMediaGallery"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { Calendar, X, Image as ImageIcon } from "lucide-react"
+import { Calendar, X, Image as ImageIcon, Download } from "lucide-react"
 import clsx from "clsx"
 import { useUserData } from "@/hooks/useUserData"
 
@@ -60,6 +60,7 @@ export default function Medias({ params }) {
         .order('created_at', { ascending: false })
 
       if (data) {
+        console.log('medias', data)
         setMedias(data)
         setFilteredMedias(data)
       }
@@ -77,6 +78,10 @@ export default function Medias({ params }) {
     fetchUsers()
   }, [])
 
+  useEffect(() => {
+    console.log('selectedIds', selectedIds)
+  }, [selectedIds])
+
   // Fetch tags
   useEffect(() => {
     const fetchTags = async () => {
@@ -92,7 +97,8 @@ export default function Medias({ params }) {
 
     // Filter by canvas/plan
     if (selectedCanvas) {
-      result = result.filter(m => m.pdf_pins?.plan_id === selectedCanvas)
+      console.log('Filtering by canvas', selectedCanvas)
+      result = result.filter(m => m.pdf_pins?.plan_id == selectedCanvas)
     }
 
     // Filter by date range
@@ -125,6 +131,42 @@ export default function Medias({ params }) {
     setSelectedUsers([])
     setSelectedTags([])
   }
+
+  const handleDownload = async () => {
+    const ids = Array.from(selectedIds).join(',');
+    console.log('ids', ids)
+    const downloadUrl = `http://localhost:3001/api/mediareport?projectId=${projectId}&selectedIds=${ids}`;
+
+    // Optionally: show loading state here
+    
+    try {
+       const response = await fetch(downloadUrl);
+  if (!response.ok) {
+      console.error('Download Failed. Status:', response.status); // <--- ADD THIS LOG
+      // To see the server's error message, read the text response
+      const errorText = await response.text();
+      console.error('Server Error Message:', errorText); // <--- AND THIS LOG
+      throw new Error(`HTTP error! status: ${response.status}`);
+  }
+        
+        // Handle file download
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rapport-medias-server.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        console.error("Failed to download PDF:", error);
+        // Handle error display
+    } finally {
+        // Optionally: hide loading state
+    }
+};
 
   const hasActiveFilters = selectedCanvas || startDate || endDate || selectedUsers.length > 0 || selectedTags.length > 0
 
@@ -196,7 +238,7 @@ export default function Medias({ params }) {
               {/* Active filters badges */}
               {selectedCanvas && (
                 <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-medium border border-primary/20">
-                  Plan: {project?.plans?.find(p => p.id === selectedCanvas)?.name}
+                  Plan: {project?.plans?.find(p => p.id == selectedCanvas)?.name}
                   <button 
                     onClick={() => setSelectedCanvas("")}
                     className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
@@ -218,6 +260,20 @@ export default function Medias({ params }) {
                 </span>
               )}
             </div>
+              {selectedIds.size > 0 && (
+              <div className="px-6 py-4 border-t border-border/50 flex items-center justify-between">
+                {/* ... selection count ... */}
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleDownload}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Télécharger le rapport
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Gallery */}

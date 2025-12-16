@@ -6,6 +6,32 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import Link from "next/link";
 
+const translateError = (error?: string) => {
+  if (!error) return null;
+
+  const map: Record<string, string> = {
+    "Invalid login credentials": "Email ou mot de passe incorrect.",
+    "Invalid email or password": "Email ou mot de passe incorrect.",
+    "Email not confirmed": "Veuillez confirmer votre adresse email avant de vous connecter.",
+    "Email not found": "Cet email n’existe pas dans notre système.",
+    "User not found": "Cet utilisateur n'existe pas.",
+    "Password should be at least 6 characters":
+      "Le mot de passe doit contenir au moins 6 caractères.",
+    "Invalid refresh token": "Votre session a expiré. Veuillez vous reconnecter.",
+    "Token expired": "Votre lien ou code a expiré.",
+    "OTP expired": "Le code de vérification a expiré.",
+    "OTP code invalid": "Le code de vérification est invalide.",
+    "Rate limit exceeded": "Trop de tentatives. Veuillez réessayer dans quelques instants.",
+    "Over request limit": "Vous avez réalisé trop de demandes. Veuillez patienter.",
+    "Service unavailable":
+      "Le service d’authentification est momentanément indisponible.",
+    "Unexpected error occurred":
+      "Une erreur inattendue s’est produite. Veuillez réessayer.",
+  };
+
+  return map[error] ?? "Une erreur s’est produite. Veuillez réessayer.";
+};
+
 export default async function Login(props: { searchParams: Promise<Message> }) {
   const searchParams = await props.searchParams;
   return (
@@ -53,7 +79,11 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
               </Link>
             </p>
           </div>
-
+ {searchParams?.error && (
+            <div className="mb-6 w-full bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+              {translateError(searchParams.error)}
+            </div>
+          )}
           <form className="space-y-6">
             <div className="space-y-4">
               {/* Email Field */}

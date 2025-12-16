@@ -35,7 +35,7 @@ export function useUserData() {
 
       const { data: organization, error: orgError } = await supabase
         .from('organizations')
-        .select('*,members(*)')
+        .select(`*,members(count)`)
         .eq('id', profile.organization_id)
         .single();
 
