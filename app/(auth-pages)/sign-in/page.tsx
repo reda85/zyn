@@ -138,13 +138,12 @@ export default async function Login({
             </SubmitButton>
 
             {/* Form Message */}
-            <FormMessage
-  message={
-    searchParams?.error
-      ? ({ error: searchParams.error } as Message)
-      : undefined
-  }
-/>
+ {searchParams?.error && (
+  <FormMessage
+    message={{ error: searchParams.error }}
+  />
+)}
+
           </form>
         </div>
       </div>
