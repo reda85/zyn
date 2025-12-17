@@ -135,7 +135,7 @@ export default function Medias({ params }) {
   const handleDownload = async () => {
     const ids = Array.from(selectedIds).join(',');
     console.log('ids', ids)
-    const downloadUrl = `http://localhost:3001/api/mediareport?projectId=${projectId}&selectedIds=${ids}`;
+    const downloadUrl = `http://zaynbackend-production.up.railway.app/api/mediareport?projectId=${projectId}&selectedIds=${ids}`;
 
     // Optionally: show loading state here
     
