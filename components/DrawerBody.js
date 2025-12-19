@@ -14,7 +14,7 @@ import TagEditor from './TagEditor';
 
 
 
-export default function DrawerBody( {pin} ) {
+export default function DrawerBody( {pin, newComment} ) {
     const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
     const [pins, setPins] = useAtom(pinsAtom)
     const [name, setName] = useState(pin.name)
@@ -22,6 +22,8 @@ export default function DrawerBody( {pin} ) {
       const [tags, setTags] = useState(pin.tags || []);
       const [dueDate, setDueDate] = useState(pin.due_date ? new Date(pin.due_date) : null);
       const [intervenant, setIntervenant] = useState(pin.assigned_to || null);
+    
+
 
   
 
@@ -87,7 +89,7 @@ export default function DrawerBody( {pin} ) {
       {pin && <IntervenantDatePicker  pin={selectedPin} />}
       </div>
       </div>
-      <Timeline pin={selectedPin} />
+      <Timeline pin={selectedPin} newComment={newComment} />
     </div>
   );
 }

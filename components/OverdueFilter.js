@@ -9,7 +9,7 @@ export default function OverdueFilter({ active, onToggle }) {
       <div className="flex items-center justify-between bg-neutral-100 border border-border/50 p-3 rounded-xl">
         <div className="flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-destructive" />
-          <span className="text-foreground text-sm font-semibold">
+          <span className="text-foreground text-sm ">
             Tâches en retard
           </span>
         </div>

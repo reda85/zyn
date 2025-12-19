@@ -8,12 +8,12 @@ import { useAtom } from 'jotai'
 import { selectedOrganizationAtom, selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
 import { FolderKanban, Users, BarChart3, Settings, Plus, Search } from 'lucide-react'
 import Link from 'next/link'
-import { Lexend } from 'next/font/google'
+import { Lexend, Outfit } from 'next/font/google'
 import clsx from 'clsx'
 import { Dialog } from '@headlessui/react'
 import { useUserData } from '@/hooks/useUserData'
 
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
+const lexend = Outfit({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([])

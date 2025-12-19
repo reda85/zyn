@@ -16,6 +16,11 @@ import DateFilter from './DateFilter';
 import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
 import { a } from '@react-spring/web';
+import { Outfit } from 'next/font/google';
+import clsx from 'clsx';
+
+const outfit = Outfit({ subsets: ['latin'], display: 'swap' });
+
 
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
@@ -134,7 +139,7 @@ export default function FilterPanel({user}) {
           <div
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
-            className="absolute z-50 w-96 bg-card border border-border/50 shadow-2xl py-4 rounded-xl backdrop-blur-sm"
+            className={clsx("absolute z-50 w-96 bg-card border border-border/50 shadow-2xl py-4 rounded-xl backdrop-blur-sm", outfit.className)}
           >
             <div className="flex justify-between items-center mb-4 px-4">
               <h3 className="text-sm font-semibold font-heading text-foreground">Filtres</h3>

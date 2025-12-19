@@ -5,7 +5,7 @@ import NavBar from "@/components/NavBar"
 import { selectedProjectAtom } from "@/store/atoms"
 import { use, useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/client"
-import { Figtree, Lexend } from "next/font/google"
+import { DM_Sans, Figtree, Lexend, Outfit, PT_Sans, Rubik, Work_Sans } from "next/font/google"
 import Pin from "@/components/Pin"
 import { Square3Stack3DIcon } from "@heroicons/react/24/outline"
 import CategoryComboBox from "@/components/CategoryComboBox"
@@ -20,58 +20,92 @@ import ListFilterPanel from "../../../../../components/ListFilterPanel"
 import LoadingScreen from "@/components/LoadingScreen"
 import clsx from "clsx"
 import { useUserData } from "@/hooks/useUserData"
+import {fr} from 'date-fns/locale/fr'
 
-const figtree = Lexend({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
+const figtree = Outfit({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
 
-const DueDatePicker = ({ pin }) => {
- 
-    let isOverDue = false
-    if (pin?.due_date) {
-      const dueDate = new Date(pin?.due_date)
-      const now = new Date()
-      isOverDue = dueDate < now
+const DueDatePicker = ({ pin, onUpdate }) => {
+  const [selectedDate, setSelectedDate] = useState(
+    pin?.due_date ? new Date(pin.due_date) : null
+  );
+  const [open, setOpen] = useState(false);
+
+  const isOverDue =
+    selectedDate instanceof Date && selectedDate < new Date();
+
+  const handleChange = async (date) => {
+    setSelectedDate(date);
+    setOpen(false);
+
+    const { error } = await supabase
+      .from("pdf_pins")
+      .update({ due_date: date })
+      .eq("id", pin.id);
+
+    if (!error) {
+     // onUpdate(pin.id, date);
+    } else {
+      console.error("update due_date failed", error);
     }
-    const [selectedDate, setSelectedDate] = useState(pin?.due_date ? new Date(pin.due_date) : null );
-    const [isPickingDate, setIsPickingDate] = useState(false);
+  };
 
-    return (
-      <div className="w-48 relative">
-        {isPickingDate ? (
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date) => {
-              setSelectedDate(date);
-              setIsPickingDate(false);
-            }}
-            onBlur={() => setIsPickingDate(false)}
-            autoFocus
-            className="w-full border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
-            dateFormat="dd/MM/yyyy"
-            placeholderText="Sélectionner une date"
-          />
-        ) : (
-          <button
-            type="button"
-            className={clsx(
-              "w-full border rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 relative transition-all text-sm font-medium",
-              isOverDue ? "border-destructive text-destructive" : "border-border/50 text-foreground"
-            )}
-            onClick={() => setIsPickingDate(true)}
-          >
-           {selectedDate instanceof Date
-              ? selectedDate.toLocaleDateString('fr-FR')
-              : 'Ajouter échéance'}
-            <div className={clsx(
-              "absolute left-3 top-1/2 -translate-y-1/2",
-              isOverDue && "text-destructive"
-            )}>
-              <Calendar1Icon size={16} />
-            </div>
-          </button>
+  return (
+    <div className="relative w-48">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={clsx(
+          "w-full border rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 relative transition-all text-sm font-medium",
+          isOverDue
+            ? "border-destructive text-destructive"
+            : "border-border/50 text-foreground"
         )}
-      </div>
-    );
-}
+      >
+        {selectedDate
+          ? selectedDate.toLocaleDateString("fr-FR")
+          : "Ajouter échéance"}
+
+        <Calendar1Icon
+          size={16}
+          className={clsx(
+            "absolute left-3 top-1/2 -translate-y-1/2",
+            isOverDue && "text-destructive"
+          )}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-2">
+          <DatePicker
+            inline
+            selected={selectedDate}
+            onChange={handleChange}
+            dateFormat="dd/MM/yyyy"
+            locale={fr}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+const updateDueDate = async (date) => {
+    const { data, error } = await supabase
+      .from('pdf_pins')
+      .update({ due_date: date })
+      .eq('id', selectedPin.id)
+      .select('*')
+      .single();
+    if (data) {
+      console.log('updateDueDate', data);
+      setSelectedDate(date);
+      setPins(pins.map((p) => (p.id === selectedPin.id ? { ...p, due_date: date } : p)));
+    }
+    if (error) {
+      console.log('updateDueDate', error);
+    }
+  };
   
 export default function Tasks({ params }) {
    const [pins, setPins] = useState([])
@@ -87,6 +121,19 @@ export default function Tasks({ params }) {
      const { projectId } = params;
      const {user,profile,organization} = useUserData();
 
+    const handleDueDateUpdate = (pinId, date) => {
+  setPins((prev) =>
+    prev.map((p) =>
+      p.id === pinId ? { ...p, due_date: date } : p
+    )
+  );
+
+  setOriginalPins((prev) =>
+    prev.map((p) =>
+      p.id === pinId ? { ...p, due_date: date } : p
+    )
+  );
+};
    {/*  async function prepareSnapshots() {
     const pinsWithImages = await Promise.all(
       pins.filter((pin) => selectedIds.has(pin.id)).map(async (pin) => {
@@ -364,7 +411,7 @@ const handleDownload = async () => {
                     </td>
                     
                     <td className="p-4">
-                      <DueDatePicker pin={pin} />
+                      <DueDatePicker pin={pin} onUpdate={handleDueDateUpdate} />
                     </td>
                     
                     <td className="p-4">

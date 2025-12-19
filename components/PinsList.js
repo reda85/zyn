@@ -1,4 +1,4 @@
-import { Lexend, Figtree } from "next/font/google"
+import { Lexend, Figtree, Rubik, Outfit } from "next/font/google"
 import CustomSelect from './customSelect'
 import FilterPanel from './FilterPanel'
 import { useState } from "react";
@@ -13,13 +13,13 @@ dayjs.extend(relativeTime);
 dayjs.locale('fr');
 
 // Utiliser les fonts de votre page d'accueil
-const lexend = Lexend({ subsets: ['latin'], weight: ['400', '700'] })
+const lexend = Outfit({ subsets: ['latin'], display: 'swap' })
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function PinsList({ pins, plans }) {
+export default function PinsList({ pins, plans, user }) {
 
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
@@ -27,11 +27,11 @@ export default function PinsList({ pins, plans }) {
   const activePlan = plans.find(p => p.id === selectedPlan?.id) || plans[0];
 
   return (
-    <div className={classNames(lexend.className,'overflow-auto font-sans bg-white')}>
+    <div className={classNames(lexend.className,'overflow-auto  bg-white')}>
         {/* Header avec Select et Filter */}
         <div className="flex flex-row gap-2 p-4 items-baseline">
           <CustomSelect options={plans} selected={activePlan} onChange={setSelectedPlan} />
-          <FilterPanel />
+          <FilterPanel user={user} />
         </div>
         
         {/* Barre de comptage - Style cohérent */}
@@ -60,7 +60,7 @@ export default function PinsList({ pins, plans }) {
                 <Pin pin={pin} />
                 <div className="flex flex-col">
                   <p className="text-xs text-muted-foreground font-medium">ID: {index}</p>
-                  <p className="font-semibold text-sm text-foreground font-heading">
+                  <p className={classNames("font-semibold text-sm text-foreground font-heading",lexend.className)}>
                     {(selectedPin?.id === pin.id ? selectedPin.name : pin.name) || 'Pin sans nom'}
                   </p>
                 </div>

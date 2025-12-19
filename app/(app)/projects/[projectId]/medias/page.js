@@ -4,7 +4,7 @@ import { selectedPlanAtom, selectedProjectAtom } from "@/store/atoms"
 import NavBar from "@/components/NavBar"
 import { useEffect, useState } from "react"
 import { supabase } from "@/utils/supabase/client"
-import { Lexend } from "next/font/google"
+import { Lexend, Outfit } from "next/font/google"
 import GroupedMediaGallery from "@/components/GroupedMediaGallery"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
@@ -12,7 +12,7 @@ import { Calendar, X, Image as ImageIcon, Download } from "lucide-react"
 import clsx from "clsx"
 import { useUserData } from "@/hooks/useUserData"
 
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
+const lexend = Outfit({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
 export default function Medias({ params }) {
   const [plan, setPlan] = useAtom(selectedPlanAtom)

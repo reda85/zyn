@@ -111,7 +111,7 @@ const fetchPins = async () => {
   }, [pins])
 
   if (!project || !selectedPlan) return (
-    <div className="flex h-screen w-full items-center justify-center bg-background font-sans">
+    <div className="flex h-screen w-full items-center justify-center bg-background ">
       <div className="text-center">
         {/* Logo animé */}
         <div className="mb-8 flex justify-center">

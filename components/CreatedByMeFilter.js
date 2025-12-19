@@ -1,15 +1,19 @@
 'use client';
 import { Switch } from '@headlessui/react';
+import clsx from 'clsx';
 import { User } from 'lucide-react';
+import { Outfit } from 'next/font/google';
+
+const outfit = Outfit({ subsets: ['latin'], display: 'swap' });
 
 export default function CreatedByMeFilter({ active, onToggle }) {
   
   return (
-    <div className="px-4 mb-4">
+    <div className={clsx("px-4 mb-4", outfit.className)}>
       <div className="flex items-center justify-between bg-neutral-100 border border-border/50 p-3 rounded-xl">
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-muted-foreground" />
-          <span className="text-foreground text-sm font-semibold">
+          <span className="text-foreground text-sm ">
             Créés par moi
           </span>
         </div>

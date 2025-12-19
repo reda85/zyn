@@ -9,7 +9,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
-import { Lexend } from 'next/font/google'
+import { Lexend, Outfit } from 'next/font/google'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { useAtom } from 'jotai'
@@ -17,7 +17,7 @@ import { selectedPlanAtom } from '@/store/atoms'
 import { signOutAction } from '@/app/actions'
 
 const tabs = ['Plan', 'Tasks', 'Medias']
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const lexend = Outfit({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export default function Navbar({ id, user, project }) {
   const pathname = usePathname()

@@ -34,7 +34,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
         
         {/* Header avec "Tout sélectionner" */}
         <div className="flex items-center justify-between bg-secondary/50 border-b border-border/50 p-3">
-          <span className="text-foreground text-sm font-semibold">
+          <span className="text-foreground text-sm ">
             Filtrer par statut
           </span>
           <button

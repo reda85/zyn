@@ -56,6 +56,7 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [ghostPinPos, setGhostPinPos] = useState(null); // { x: number, y: number }
 const [pdfSize, setPdfSize] = useState({ width: 0, height: 0 });
 const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
+const [newComment, setNewComment] = useState(null)
 const containerRef = useRef(null);
 const pageRef = useRef(null); // NEW
 
@@ -431,12 +432,14 @@ function handlePdfClick(e) {
 
   {/* Scrollable Content */}
   <div className="flex-1 overflow-y-auto ">
-    <DrawerBody pin={selectedPin} onClose={closeDrawer} />
+    <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment} />
   </div>
 
   {/* Fixed Footer */}
   <div className="px-5 py-4 border-t border-gray-200 shrink-0">
-    <DrawerFooter pin={selectedPin} submit={closeDrawer} />
+    <DrawerFooter pin={selectedPin} submit={closeDrawer} onCommentAdded={(comment) => {
+    setNewComment(comment)
+  }} />
   </div>
 </div>
 

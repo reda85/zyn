@@ -30,12 +30,10 @@ export default function IntervenantDatePicker({ pin }) {
 
   console.log('pin props', selectedDate);
   
-  let isOverDue = false;
-  if (pin?.due_date) {
-    const dueDate = new Date(pin?.due_date);
-    const now = new Date();
-    isOverDue = dueDate < now;
-  }
+  const isOverDue = selectedDate
+  ? selectedDate < new Date()
+  : false;
+
 
   useEffect(() => {
     getAllIntervenants();
@@ -50,6 +48,7 @@ export default function IntervenantDatePicker({ pin }) {
   useEffect(() => {
     if (selectedDate) {
       updateDueDate(selectedDate);
+     
     }
   }, [selectedDate]);
 
@@ -138,6 +137,13 @@ export default function IntervenantDatePicker({ pin }) {
 
   const displayText = selectedIntervenant?.name || 'Assigner intervenant';
 
+  const IconCircle = ({ children }) => (
+  <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
+    {children}
+  </div>
+);
+
+
   return (
     <div className="flex flex-row text-sm gap-4 items-center">
       {/* Combobox */}
@@ -150,25 +156,29 @@ export default function IntervenantDatePicker({ pin }) {
                   <div className="relative">
                     <Combobox.Input
                       autoFocus
-                      className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-secondary/30 text-foreground placeholder:text-muted-foreground transition-all"
+                      className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-muted hover:bg-muted/80 text-foreground placeholder:text-muted-foreground transition-all"
                       onChange={(e) => setQuery(e.target.value)}
                       onFocus={() => setQuery('')}
                       displayValue={() => query || selectedIntervenant?.name || ''}
                       placeholder="Ajouter un intervenant..."
                     />
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-                      <User2Icon size={16} />
-                    </div>
+                  <div className="absolute left-2  top-1/2 -translate-y-1/2">
+  <IconCircle>
+    <User2Icon size={14} className="text-foreground" />
+  </IconCircle>
+</div>
                     <button
                       type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-2  top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => {
                         setSelectedIntervenant(null);
                         setQuery('');
                         setIsEditing(false);
                       }}
                     >
-                      <XIcon size={16} />
+                      <IconCircle>
+                      <XIcon size={14} className="text-foreground" />
+                      </IconCircle>
                     </button>
                   </div>
                   {open && (
@@ -210,15 +220,17 @@ export default function IntervenantDatePicker({ pin }) {
               ) : (
                 <Combobox.Button
                   as="button"
-                  className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 transition-all relative text-sm font-medium text-foreground"
+                  className="w-full border  border-border/50 rounded-lg px-3 py-2 pl-10 text-left bg-muted hover:bg-muted/80 transition-all relative text-sm font-medium text-foreground"
                   onClick={() => {
                     setIsEditing(true);
                     setTimeout(() => setQuery(''), 0);
                   }}
                 >
                   {displayText}
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground">
-                    <User2Icon size={16} />
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2  text-foreground">
+                  <IconCircle>
+                    <User2Icon size={14} className="text-foreground " />
+                  </IconCircle>
                   </div>
                 </Combobox.Button>
               )}
@@ -238,7 +250,7 @@ export default function IntervenantDatePicker({ pin }) {
             }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus
-            className="w-full border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-secondary/30 text-foreground"
+            className="w-full border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-muted hover:bg-muted/80 text-foreground"
             dateFormat="dd/MM/yyyy"
             placeholderText="Sélectionner une date"
           />
@@ -247,8 +259,8 @@ export default function IntervenantDatePicker({ pin }) {
             <button
               type="button"
               className={clsx(
-                'w-full border rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 relative transition-all text-sm font-medium',
-                isOverDue ? 'border-destructive text-destructive' : 'border-border/50 text-foreground'
+                'w-full border rounded-lg px-3 py-2 pl-10 text-left bg-muted hover:bg-muted/80 relative transition-all text-sm font-medium',
+                isOverDue ? 'border-destructive text-destructive bg-red-50' : 'border-border/50 text-foreground '
               )}
               onClick={() => setIsPickingDate(true)}
             >
@@ -258,11 +270,13 @@ export default function IntervenantDatePicker({ pin }) {
 
               <div
                 className={clsx(
-                  'absolute left-3 top-1/2 -translate-y-1/2',
+                  'absolute left-2 top-1/2 -translate-y-1/2',
                   isOverDue ? 'text-destructive' : 'text-foreground'
                 )}
               >
-                <CalendarIcon size={16} />
+                <IconCircle>
+                  <CalendarIcon size={14} className="text-foreground" />
+                </IconCircle>
               </div>
             </button>
 
@@ -272,7 +286,7 @@ export default function IntervenantDatePicker({ pin }) {
                 className={clsx(
                   'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
                   isOverDue
-                    ? 'text-destructive hover:text-destructive/80'
+                    ? 'text-destructive hover:text-destructive/80 bg-red-50'
                     : 'text-muted-foreground hover:text-destructive'
                 )}
                 onClick={(e) => {
@@ -281,7 +295,9 @@ export default function IntervenantDatePicker({ pin }) {
                   updateDueDate(null);
                 }}
               >
-                <XIcon size={16} />
+                <IconCircle>
+                  <XIcon size={14} className="text-foreground" />
+                </IconCircle>
               </button>
             )}
           </div>
