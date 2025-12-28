@@ -3,7 +3,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import {Anek_Devanagari, Cabin, Jost, Catamaran, Lato, Noto_Sans, Fira_Sans, Domine, Inconsolata, Karla, Maitree, Nanum_Gothic, Aleo, Figtree, Lexend} from 'next/font/google'
 import { useAtom } from 'jotai';
-import { categoriesAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom } from '@/store/atoms';
+import { categoriesAtom, focusOnPinAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom } from '@/store/atoms';
 import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
@@ -13,6 +13,7 @@ import GhostPin from './GhostPin';
 
 import { supabase } from '@/utils/supabase/client';
 import { classNames } from '@react-pdf-viewer/core';
+import { useSearchParams } from 'next/navigation';
 
 const inter = Lexend({subsets: ['latin'], variable: '--font-inter', display: 'swap'});
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -59,9 +60,18 @@ const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
 const [newComment, setNewComment] = useState(null)
 const containerRef = useRef(null);
 const pageRef = useRef(null); // NEW
-
+const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
 console.log('User', user)
 console.log('SelectedPin', selectedPin)
+
+useEffect(() => {
+  if (!focusOnPinOnce) return
+
+  setSelectedPin(focusOnPinOnce)
+  focusOnPin(focusOnPinOnce)
+
+  setFocusOnPinOnce(null) // consume
+}, [focusOnPinOnce])
 
 useEffect(() => {
  if (selectedPin) {

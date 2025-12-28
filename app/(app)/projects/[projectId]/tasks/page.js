@@ -1,6 +1,6 @@
 'use client'
 import { useAtom } from "jotai"
-import { categoriesAtom, pinsAtom, selectedPlanAtom, statusesAtom } from "@/store/atoms"
+import { categoriesAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, statusesAtom } from "@/store/atoms"
 import NavBar from "@/components/NavBar"
 import { selectedProjectAtom } from "@/store/atoms"
 import { use, useEffect, useState } from "react"
@@ -21,6 +21,7 @@ import LoadingScreen from "@/components/LoadingScreen"
 import clsx from "clsx"
 import { useUserData } from "@/hooks/useUserData"
 import {fr} from 'date-fns/locale/fr'
+import PinDrawer from "@/components/PinDrawer"
 
 const figtree = Outfit({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
 
@@ -115,6 +116,7 @@ export default function Tasks({ params }) {
     const [categories, setCategories] = useAtom(categoriesAtom)
     const [statuses, setStatuses] = useAtom(statusesAtom)
     const [searchQuery, setSearchQuery] = useState('')
+    const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
     
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null);
@@ -199,12 +201,17 @@ const handleDownload = async () => {
   }, [projectId])
 
   useEffect(() => {
-   if(projectId) {
+   if(projectId && user && profile) {
+    console.log('fetchPins', profile)
+    const isGuest = profile?.role === 'guest';
     const fetchPins = async () => {
+      if(isGuest) {
+        console.log('fetchPins', isGuest)
         const { data,error } = await supabase
             .from('pdf_pins')
             .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
             .eq('project_id', projectId)
+            .eq('assigned_to', profile.id)
         if (data) {
             setOriginalPins(data)
         }
@@ -212,9 +219,23 @@ const handleDownload = async () => {
             console.log('pins', error)
         }
     }
+  else {
+    const { data,error } = await supabase
+            .from('pdf_pins')
+            .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
+            .eq('project_id', projectId)
+            
+        if (data) {
+            setOriginalPins(data)
+        }
+        if (error) {
+            console.log('pins', error)
+        }
+
+  }}
     fetchPins()
    }
-  }, [projectId])
+  }, [projectId,user,profile])
 
   useEffect(() => {
   const filtered = originalPinspins.filter((pin) =>
@@ -376,14 +397,16 @@ const handleDownload = async () => {
                   <tr
                     key={pin.id}
                     className={clsx(
-                      "text-sm hover:bg-secondary/20 transition-colors",
+                      "text-sm hover:bg-secondary/20 transition-colors hover:cursor-pointer",
                       selectedIds.has(pin.id) && "bg-primary/5"
                     )}
+                    onClick={() => { setSelectedPin({ ...pin })}}
                   >
                     <td className="p-4">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(pin.id)}
+                        onClick={(e) => e.stopPropagation()}
                         onChange={() => toggleSelect(pin.id)}
                         className="w-4 h-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/20"
                       />
@@ -406,11 +429,11 @@ const handleDownload = async () => {
                       {pin.assigned_to?.name || '-'}
                     </td>
                     
-                    <td className="p-4">
+                    <td className="p-4" onClick={(e) => e.stopPropagation()}>
                       <CategoryComboBox pin={pin} />
                     </td>
                     
-                    <td className="p-4">
+                    <td className="p-4" onClick={(e) => e.stopPropagation()}>
                       <DueDatePicker pin={pin} onUpdate={handleDueDateUpdate} />
                     </td>
                     
@@ -433,6 +456,7 @@ const handleDownload = async () => {
           </div>
         </div>
       </div>
+      {selectedPin && ( <PinDrawer pin={selectedPin} /> )}
     </div>
   )}
   

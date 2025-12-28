@@ -20,6 +20,7 @@ export default function Medias({ params }) {
   const {user, profile, organization} = useUserData()
 
   const { projectId } = params
+  console.log('projectId', projectId)
 
   const [medias, setMedias] = useState([])
   const [filteredMedias, setFilteredMedias] = useState([])
@@ -52,7 +53,32 @@ export default function Medias({ params }) {
 
   // Fetch medias
   useEffect(() => {
+    console.log('fetchMedias', profile, user, projectId)
+    if (!projectId || !user || !profile) return;
     const fetchMedias = async () => {
+      console.log('on est dans fetchMedias')
+      if (profile?.role === 'guest') {
+        console.log('fetchMedias isguest')
+        const { data, error } = await supabase
+    .from('pins_photos')
+    .select(`
+      *,
+      pdf_pins!inner(
+        *,
+        assigned_to
+      )
+    `)
+    .eq('project_id', projectId)
+    .eq('pdf_pins.assigned_to', profile.id) // C'est ici que le filtre s'applique
+    .order('created_at', { ascending: false });
+     if (data) {
+        console.log('medias', data)
+        setMedias(data)
+        setFilteredMedias(data)
+      }
+      if (error) console.error("Medias error", error)
+      }
+      else {
       const { data, error } = await supabase
         .from('pins_photos')
         .select('*, pdf_pins(*,assigned_to(id,name))')
@@ -66,8 +92,13 @@ export default function Medias({ params }) {
       }
       if (error) console.error("Medias error", error)
     }
-    if (projectId) fetchMedias()
-  }, [projectId])
+    }
+    if (projectId && user  && profile) {
+      console.log('fetchMedias 1')
+      fetchMedias()
+    }
+    
+  }, [projectId, user, profile])
 
   // Fetch users
   useEffect(() => {
