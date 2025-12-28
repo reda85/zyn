@@ -43,13 +43,14 @@ function AcceptInviteContent() {
         
         // Check if user already has a password set
         const { data: { user } } = await supabase.auth.getUser()
-        if (user?.aud === 'authenticated') {
+        if (user) {
           // User is already authenticated, redirect to app
-          router.push('/projects')
+         // router.push('/projects')
         }
       } else {
         setLinkExpired(true)
         setError('Aucune session trouvée. Veuillez cliquer sur le lien dans votre email.')
+        setTimeout(() => router.replace('/sign-in'), 3000)
       }
     }
 
