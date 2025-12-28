@@ -94,7 +94,7 @@ function AcceptInviteContent() {
       setSuccess(true)
 
       setTimeout(() => {
-        router.push('/projects')
+        router.push('/(app)/projects')
       }, 2000)
 
     } catch (error) {
