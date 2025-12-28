@@ -19,18 +19,17 @@ export async function POST(request) {
     console.log('Sending invite with base URL:', redirectUrl)
 
     // Send auth invitation
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      email,
-      {
-        data: { 
-          name, 
-          role, 
-          organization_id: organizationId 
-        }
-        // Remove redirectTo parameter - we'll handle it in the email template
-      }
-    )
-
+   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+  email,
+  {
+    redirectTo: `${origin}/accept-invite`,   // ← this is what you want
+    data: { 
+      name, 
+      role, 
+      organization_id: organizationId 
+    }
+  }
+)
     if (authError) {
       console.error('Auth error:', authError)
       throw authError
