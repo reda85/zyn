@@ -12,8 +12,7 @@ const AUTH_PATHS = [
     '/sign-up',
     '/forgot-password',
     '/reset-password',
-    '/auth/callback',
-    '/accept-invite'
+    '/auth/callback'  
 ];
 
 // Vérifie si un chemin donné est une page d'authentification
