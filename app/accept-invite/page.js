@@ -94,7 +94,7 @@ function AcceptInviteContent() {
       setSuccess(true)
 
       setTimeout(() => {
-        router.push('/(app)/projects')
+        router.push('https://app.zaynspace.com/projects')
       }, 2000)
 
     } catch (error) {
