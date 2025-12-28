@@ -482,9 +482,9 @@ export default function MembersPage() {
         </Dialog>
 
         <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} className="relative z-50">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
-          <div className="fixed inset-0 flex justify-center items-center p-6">
-            <DialogPanel className="bg-card border border-border/50 rounded-xl shadow-xl w-full max-w-lg p-6">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
+          <div className="fixed inset-0 flex justify-center items-center p-6 overflow-y-auto">
+            <DialogPanel className="bg-card border border-border/50 rounded-xl shadow-xl w-full max-w-lg p-6 relative">
               <div className="flex justify-between items-center mb-6">
                 <DialogTitle className="text-xl font-bold font-heading">
                   Inviter un nouveau membre
@@ -492,6 +492,7 @@ export default function MembersPage() {
                 <button
                   onClick={() => setInviteOpen(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  type="button"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -510,10 +511,11 @@ export default function MembersPage() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2" htmlFor="invite-name">
                       Nom complet
                     </label>
                     <input
+                      id="invite-name"
                       type="text"
                       value={inviteName}
                       onChange={(e) => setInviteName(e.target.value)}
@@ -523,12 +525,13 @@ export default function MembersPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2" htmlFor="invite-email">
                       Adresse email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
                       <input
+                        id="invite-email"
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
@@ -550,7 +553,7 @@ export default function MembersPage() {
                             <ChevronDown className="h-5 w-5 text-muted-foreground" />
                           </span>
                         </ListboxButton>
-                        <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-card border border-border/50 shadow-xl z-10 py-1">
+                        <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-xl bg-card border border-border/50 shadow-xl z-[60] py-1">
                           {roles.map((role) => (
                             <ListboxOption
                               key={role.id}
@@ -625,6 +628,7 @@ export default function MembersPage() {
 
                   <div className="flex gap-3 pt-2">
                     <button
+                      type="button"
                       onClick={() => setInviteOpen(false)}
                       className="flex-1 py-2.5 bg-secondary/40 hover:bg-secondary rounded-xl text-sm font-medium transition-colors"
                       disabled={inviteLoading}
@@ -632,6 +636,7 @@ export default function MembersPage() {
                       Annuler
                     </button>
                     <button
+                      type="button"
                       onClick={sendInvitation}
                       disabled={inviteLoading}
                       className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
