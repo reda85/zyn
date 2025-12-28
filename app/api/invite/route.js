@@ -15,6 +15,11 @@ export async function POST(request) {
     // IMPORTANT: Don't add /accept-invite here, just use the base domain
     // Supabase will handle the redirect via email template
     const redirectUrl = origin
+    // Use root domain for redirectTo (since accept-invite lives there)
+
+
+// or hardcode for now to test:
+const redirectTo = 'https://zaynspace.com/accept-invite';
     
     console.log('Sending invite with base URL:', redirectUrl)
 
@@ -22,7 +27,7 @@ export async function POST(request) {
    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
   email,
   {
-    redirectTo: `${origin}/accept-invite`,   // ← this is what you want
+    redirectTo: `${redirectTo}`,   // ← this is what you want
     data: { 
       name, 
       role, 
