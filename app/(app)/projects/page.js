@@ -66,9 +66,9 @@ export default function ProjectsPage() {
   )
 
   return (
-    <div className={clsx("flex min-h-screen bg-background font-sans", lexend.className)}>
+    <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
       {/* Side Navigation */}
-      <aside className="w-64 bg-secondary/20 border-r border-border/40 flex flex-col">
+      <aside className="w-64 h-screen bg-secondary/20 border-r border-border/40 flex flex-col">
         {/* Organization Card */}
         <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
           <h2 className="text-sm font-semibold font-heading text-foreground">{organization?.name}</h2>
@@ -102,10 +102,34 @@ export default function ProjectsPage() {
             <Settings className="w-5 h-5" /> Paramètres
           </Link>
         </nav>
+
+          {/* PROFILE (BOTTOM) */}
+          <div className="px-4 pb-6">
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/50 hover:bg-secondary/50 transition-all"
+            >
+              {/* Avatar */}
+              <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+                {/* Replace with img if you have avatar_url */}
+                MR
+              </div>
+        
+              {/* User info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">
+                  Marouane Reda
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  Mon profil
+                </p>
+              </div>
+            </Link>
+          </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-10">
+      <main className="flex-1 overflow-y-auto p-10">
         {/* Header */}
         <div className="flex flex-row items-baseline mb-8 mt-12 gap-3">
           <h1 className="text-4xl font-bold font-heading text-foreground">Projets</h1>

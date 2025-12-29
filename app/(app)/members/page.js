@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { Lexend } from 'next/font/google'
 import clsx from 'clsx'
 import { Dialog, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Switch } from '@headlessui/react'
+import { useUserData } from '@/hooks/useUserData'
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
@@ -62,6 +63,7 @@ export default function MembersPage() {
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const [inviteSuccess, setInviteSuccess] = useState(false)
+  const { user, profile, organization } = useUserData();
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -242,11 +244,11 @@ export default function MembersPage() {
   }, [members, searchQuery, selectedRoles])
 
   return (
-    <div className={clsx("flex min-h-screen bg-background font-sans", lexend.className)}>
-      <aside className="w-64 bg-secondary/20 border-r border-border/40 flex flex-col">
+    <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
+      <aside className="w-64 h-screen bg-secondary/20 border-r border-border/40 flex flex-col">
         <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
-          <h2 className="text-sm font-semibold font-heading text-foreground">{selectedOrganization?.name}</h2>
-          <p className="text-xs text-muted-foreground">{selectedOrganization?.members[0]?.count} membres</p>
+          <h2 className="text-sm font-semibold font-heading text-foreground">{organization?.name}</h2>
+          <p className="text-xs text-muted-foreground">{organization?.members[0]?.count} membres</p>
         </div>
       
         <nav className="flex-1 px-4 space-y-2">
@@ -275,9 +277,33 @@ export default function MembersPage() {
             <Settings className="w-5 h-5" /> Paramètres
           </Link>
         </nav>
+
+          {/* PROFILE (BOTTOM) */}
+          <div className="px-4 pb-6">
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/50 hover:bg-secondary/50 transition-all"
+            >
+              {/* Avatar */}
+              <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+                {/* Replace with img if you have avatar_url */}
+                MR
+              </div>
+        
+              {/* User info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">
+                  Marouane Reda
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  Mon profil
+                </p>
+              </div>
+            </Link>
+          </div>
       </aside>
 
-      <main className="flex-1 p-10">
+      <main className="flex-1 overflow-y-auto p-10">
         <div className="flex flex-col mb-8 mt-12 gap-2">
           <h1 className="text-4xl font-bold font-heading text-foreground">Membres de l'organisation</h1>
 
