@@ -49,6 +49,7 @@ export default function ProjectDetail({ params }) {
     }
 
     const fetchPlan = async () => {
+      setSelectedPlan(null)
       const { data } = await supabase.from('plans').select('*').eq('id', planId).single()
     //  setPlan(data)
       setSelectedPlan(data)
@@ -165,12 +166,15 @@ const fetchPins = async () => {
       {/* Content area - overflow only on this level */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-72 overflow-y-auto border-r border-border/40 bg-secondary/20">
-          <PinsList pins={pins} plans={project.plans} user={profile} projectId={projectId} />
-        </div>
+        {selectedPlan && (
+          <div className="w-72 overflow-y-auto border-r border-border/40 bg-secondary/20">
+            <PinsList pins={pins} plans={project.plans} user={profile} projectId={projectId} />
+          </div>
+        )}
 
         {/* Main content */}
         <div className="flex-1 overflow-auto">
+          {selectedPlan?.file_url && (
           <PdfCanvas
             fileUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.file_url).data.publicUrl}
             pins={pins}
@@ -178,6 +182,7 @@ const fetchPins = async () => {
             plan={selectedPlan}
             user={profile}
           />
+          )}
         </div>
       </div>
     </div>

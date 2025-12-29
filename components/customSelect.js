@@ -32,7 +32,7 @@ export default function CustomSelect({ options, selected, onChange }) {
               >
                 {({ selected : isSelected }) => (
                   <>
-                    <span className={`block truncate ${selected ? 'font-semibold font-heading' : 'font-normal'}`}>
+                    <span className={`block truncate ${isSelected ? 'font-semibold font-heading' : 'font-normal'}`}>
                       {option.name}
                     </span>
                     {isSelected ? (
