@@ -10,6 +10,8 @@ import DrawerBody from './DrawerBody';
 import MapPin from './MapPin';
 import { Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon, PointerIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import GhostPin from './GhostPin';
+import { Stage, Layer, Rect, Image as KonvaImage, Line, Text } from 'react-konva';
+import useImage from 'use-image';
 
 import { supabase } from '@/utils/supabase/client';
 import { classNames } from '@react-pdf-viewer/core';
@@ -61,6 +63,7 @@ const [newComment, setNewComment] = useState(null)
 const containerRef = useRef(null);
 const pageRef = useRef(null); // NEW
 const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
+
 console.log('User', user)
 console.log('SelectedPin', selectedPin)
 

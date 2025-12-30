@@ -25,6 +25,7 @@
     "dayjs": "^1.11.13",
     "html2canvas": "^1.4.1",
     "jotai": "^2.12.5",
+    "konva": "^8.4.3",
     "lodash": "^4.17.21",
     "lucide-react": "^0.468.0",
     "lucide-static": "^0.541.0",
@@ -37,9 +38,11 @@
     "react-beautiful-dnd": "^13.1.1",
     "react-datepicker": "^8.4.0",
     "react-dom": "^18.3.1",
+    "react-konva": "^18.2.14",
     "react-pdf": "^6.0.3",
     "react-pdf-tailwind": "^2.3.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "use-image": "^1.1.4"
   },
   "devDependencies": {
     "@types/node": "22.10.2",

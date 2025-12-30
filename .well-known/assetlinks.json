@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.simplenextjs.zyn",
+      "sha256_cert_fingerprints": ["9D:65:05:4B:84:2F:DB:8B:27:F8:22:E4:98:CF:C4:54:85:EF:48:BF:37:37:80:6E:BF:78:17:C3:A3:FE:32:72"]
+    }
+  }
+]
