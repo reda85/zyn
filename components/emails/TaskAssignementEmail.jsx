@@ -26,7 +26,7 @@ export default function TaskAssignmentEmail({
       <Preview>Nouvelle tâche assignée : {taskName}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>zaynspace</Heading>
+          <Heading style={h1}>Zaynspace</Heading>
           <Heading style={h2}>Nouvelle tâche assignée</Heading>
           
           <Text style={text}>Bonjour {assignedUserName},</Text>
