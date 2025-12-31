@@ -99,7 +99,7 @@ export default function IntervenantDatePicker({ pin }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          intervenantId: intervenant.id,
+          
           taskId: selectedPin.id,
           projectId: selectedProject.id,
           assignedBy: user.name,
