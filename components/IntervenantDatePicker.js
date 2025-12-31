@@ -93,6 +93,38 @@ export default function IntervenantDatePicker({ pin }) {
       .single();
     if (data) {
       console.log('updateAssignedIntervenant', data);
+      const response = await fetch('/api/send-task-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          intervenantId: intervenant.id,
+          taskId: selectedPin.id,
+          projectId: selectedProject.id,
+          assignedBy: user.name,
+          assignedUserEmail: intervenant.email,
+          assignedUserName: intervenant.name,
+           dueDate: selectedPin.due_date,
+           taskName: selectedPin.name,
+        })
+      })
+
+      const result = await response.json()
+
+       if (response.ok) {
+      console.log('✅ Email sent successfully:', result);
+      Alert.alert(
+        'Tâche assignée',
+        `${userName} a été assigné à cette tâche et a reçu une notification par email.`
+      );
+    } else {
+      console.error('❌ Error sending email:', result);
+      Alert.alert(
+        'Tâche assignée',
+        `${userName} a été assigné à cette tâche, mais l'email n'a pas pu être envoyé.`
+      );
+    }
       setSelectedIntervenant(intervenant);
       setPins(
         pins.map((p) =>
