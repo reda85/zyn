@@ -1,5 +1,6 @@
 import { render } from '@react-email/components';
-import TaskAssignmentEmail from '../../components/emails/TaskAssignementEmail';
+import TaskAssignmentEmail from '../../../components/emails/TaskAssignementEmail';
+
 
 const html = render(TaskAssignmentEmail({
   assignedUserName,
