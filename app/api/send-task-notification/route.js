@@ -25,33 +25,34 @@ export async function POST(req) {
       dueDate,
     } = body;
 
+    console.log('body', body)
+
     // 🔒 Validation minimale
     if (!assignedUserEmail || !taskName || !deepLink) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields' },       
         { status: 400 }
       );
     }
 
     // 📧 Génération du HTML email
-    const html = render(
-      TaskAssignmentEmail({
-        assignedUserName,
-        taskName,
-        taskDescription,
-        deepLink,
-        projectName,
-        assignedBy,
-        dueDate,
-      })
-    );
+   const emailComponent = TaskAssignmentEmail({
+  assignedUserName,
+  taskName,
+  taskDescription,
+  deepLink,
+  projectName,
+  assignedBy,
+  dueDate,
+});
+
 
     // 🚀 Envoi de l’email
     const { error } = await resend.emails.send({
       from: 'Zaynspace <notifications@zaynspace.com>',
       to: [assignedUserEmail],
       subject: `Nouvelle tâche assignée : ${taskName}`,
-      html,
+      react: emailComponent,
     });
 
     if (error) {

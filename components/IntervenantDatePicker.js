@@ -8,6 +8,7 @@ import { supabase } from '@/utils/supabase/client';
 import { useAtom } from 'jotai';
 import { pinsAtom, selectedPinAtom } from '@/store/atoms';
 import clsx from 'clsx';
+import { useUserData } from '@/hooks/useUserData';
 
 const intervenants = [
   { id: 1, name: 'Alice Dupont', email: 'alice@example.com' },
@@ -23,6 +24,7 @@ export default function IntervenantDatePicker({ pin }) {
   const [allOptions, setAllOptions] = useState([{ id: 0, name: 'Aucun intervenant', email: '' }]);
   const [pins, setPins] = useAtom(pinsAtom);
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
+  const {user, profile, organization} = useUserData();
 
   const [selectedDate, setSelectedDate] = useState(
     pin?.due_date ? new Date(pin?.due_date) : null
@@ -92,6 +94,8 @@ export default function IntervenantDatePicker({ pin }) {
       .select('*')
       .single();
     if (data) {
+      
+   
       console.log('updateAssignedIntervenant', data);
       const response = await fetch('/api/send-task-notification', {
         method: 'POST',
@@ -99,14 +103,14 @@ export default function IntervenantDatePicker({ pin }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          
+          deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
           taskId: selectedPin.id,
-          projectId: selectedProject.id,
+          projectId: selectedPin.project_id,
           assignedBy: user.name,
           assignedUserEmail: intervenant.email,
           assignedUserName: intervenant.name,
            dueDate: selectedPin.due_date,
-           taskName: selectedPin.name,
+           taskName: selectedPin?.name || 'Sans nom',
         })
       })
 
@@ -114,17 +118,43 @@ export default function IntervenantDatePicker({ pin }) {
 
        if (response.ok) {
       console.log('✅ Email sent successfully:', result);
-      Alert.alert(
-        'Tâche assignée',
-        `${userName} a été assigné à cette tâche et a reçu une notification par email.`
-      );
+      
     } else {
       console.error('❌ Error sending email:', result);
-      Alert.alert(
-        'Tâche assignée',
-        `${userName} a été assigné à cette tâche, mais l'email n'a pas pu être envoyé.`
-      );
+      
     }
+
+    //notification
+    console.log('notification');
+     const response2 = await fetch('https://zaynbackend-production.up.railway.app/api/pins/assign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
+          pinId: selectedPin.id,
+          projectId: selectedPin.project_id,
+          assignedByName: user?.name || 'user',
+          assignedUserEmail: intervenant.email,
+          assignedUserName: intervenant.name,
+          assignedToUserId: intervenant.auth_id,
+           dueDate: selectedPin.due_date,
+           taskName: selectedPin?.name || 'Sans nom',
+        })
+      })
+
+      const result2 = await response2.json()
+
+       if (response2.ok) {
+      console.log('✅ notification sent successfully:', result2);
+     
+    } else {
+      console.error('❌ Error sending notification:', result2);
+      
+    }
+
+
       setSelectedIntervenant(intervenant);
       setPins(
         pins.map((p) =>
