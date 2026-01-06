@@ -39,6 +39,15 @@ function PinIcon({ size = 24, color = 'red' }) {
   );
 }
 
+function getDistance(touches) {
+  if (touches.length < 2) return 0;
+  const [t1, t2] = touches;
+  const dx = t2.clientX - t1.clientX;
+  const dy = t2.clientY - t1.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+
 export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom);
   const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom);
@@ -63,9 +72,56 @@ const [newComment, setNewComment] = useState(null)
 const containerRef = useRef(null);
 const pageRef = useRef(null); // NEW
 const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
+const [touches, setTouches] = useState([]);
+const [initialDistance, setInitialDistance] = useState(null);
+const [initialScale, setInitialScale] = useState(scale);
+
 
 console.log('User', user)
 console.log('SelectedPin', selectedPin)
+
+function onTouchStart(e) {
+  if (e.touches.length === 1) {
+    // Single touch → drag
+    const t = e.touches[0];
+    setDragging(true);
+    setStartDrag({ x: t.clientX, y: t.clientY });
+  } else if (e.touches.length === 2) {
+    // Pinch start → zoom
+    setTouches([e.touches[0], e.touches[1]]);
+    setInitialDistance(getDistance(e.touches));
+    setInitialScale(scale);
+  }
+}
+
+function onTouchMove(e) {
+  if (dragging && e.touches.length === 1) {
+    const t = e.touches[0];
+    const dx = t.clientX - startDrag.x;
+    const dy = t.clientY - startDrag.y;
+    setStartDrag({ x: t.clientX, y: t.clientY });
+    setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+  } else if (e.touches.length === 2) {
+    const distance = getDistance(e.touches);
+    if (initialDistance) {
+      const factor = distance / initialDistance;
+      zoom(factor * initialScale / scale); // Adjust zoom relative to initial pinch
+    }
+  }
+
+  if (pinMode && e.touches.length === 1) {
+    const t = e.touches[0];
+    setGhostPinPos({ x: t.clientX, y: t.clientY });
+  }
+}
+
+function onTouchEnd(e) {
+  setDragging(false);
+  if (e.touches.length < 2) {
+    setInitialDistance(null);
+  }
+}
+
 
 useEffect(() => {
   if (!focusOnPinOnce) return
@@ -271,6 +327,13 @@ function handlePdfClick(e) {
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
         onWheel={handleWheel}
+
+        onTouchStart={onTouchStart}
+  onTouchMove={onTouchMove}
+  onTouchEnd={onTouchEnd}
+  onTouchCancel={onTouchEnd}
+
+  
         style={{
          
           cursor: dragging ? 'grabbing' : 'grab',
