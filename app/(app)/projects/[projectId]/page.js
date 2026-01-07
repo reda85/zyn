@@ -15,26 +15,27 @@ export default function Projectreroute({params}) {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                const { data } = await supabase
-                    .from('projects')
-                    .select('id,created_at,name,plans(id,name)')
-                    .eq('id', projectId)
-                    .single()
+                console.log('Fetching project reroute...', projectId);
+                const { data,error } = await supabase
+                    .from('plans')
+                    .select('*')
+                    .eq('project_id', projectId)
+                    
                 
+                if (error) console.error('Error fetching project supabase:', error);
+if(data) console.log('Fetched project in reroute:', data);
                 setProject(data)
-                router.push(`/projects/${projectId}/${data.plans[0].id}`);
+                router.push(`/projects/${projectId}/${data[0]?.id}`);
             } catch (error) {
                 console.error('Error fetching project:', error);
                 setIsLoading(false);
             }
         }
 
-        if(!selectedProject) {
+       
             fetchProject();
-        } else {
-            router.push(`/projects/${projectId}/${selectedProject.plans[0].id}`)
-        }
-    }, [])
+       
+    }, [projectId])
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center font-sans">

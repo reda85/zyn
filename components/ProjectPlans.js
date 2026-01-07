@@ -198,13 +198,13 @@ export default function ProjectPlans({ project, onClose }) {
                     onChange={(e) => handleNameChange(plan.id, e.target.value)}
                     placeholder="Nom du plan"
                   />
-                  <button
+                { plans.length > 1 && <button
                     onClick={() => deletePlan(plan)}
                     className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                     title="Supprimer"
                   >
                     <Trash2 className="w-5 h-5" />
-                  </button>
+                  </button> }
                 </div>
 
                 <div className="border border-border/50 rounded-xl overflow-hidden bg-secondary/20">
