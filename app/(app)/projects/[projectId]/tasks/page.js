@@ -22,6 +22,9 @@ import clsx from "clsx"
 import { useUserData } from "@/hooks/useUserData"
 import {fr} from 'date-fns/locale/fr'
 import PinDrawer from "@/components/PinDrawer"
+import * as XLSX from "xlsx"
+ import ExcelJS from "exceljs"
+
 
 const figtree = Outfit({subsets: ['latin'], variable: '--font-figtree', display: 'swap'});
 
@@ -267,6 +270,109 @@ const handleDownload = async () => {
     }
   };
 
+
+  const handleExportExcel = () => {
+  const selectedPins = pins.filter(pin => selectedIds.has(pin.id))
+
+  if (selectedPins.length === 0) return
+
+  const data = selectedPins.map(pin => ({
+    Nom: pin.name || "Pin sans nom",
+    ID: `${pin.projects?.project_number}-${pin.pin_number}`,
+    "Assigné à": pin.assigned_to?.name || "",
+    Catégorie: pin.categories?.name || "",
+    Échéance: pin.due_date
+      ? new Date(pin.due_date).toLocaleDateString("fr-FR")
+      : "",
+    Localisation: pin.pdf_name || "",
+    Description: pin.note || "", // ✅ NOUVELLE COLONNE
+    "Date de création": pin.created_at
+      ? new Date(pin.created_at).toLocaleDateString("fr-FR")
+      : ""
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(data)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Tâches")
+
+  XLSX.writeFile(workbook, "liste-des-taches.xlsx")
+}
+
+
+ 
+
+const handleExportExcelWithEmbeddedMedia = async () => {
+  const selectedPins = pins.filter(pin => selectedIds.has(pin.id))
+  if (selectedPins.length === 0) return
+
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet("Pins & Médias")
+
+  sheet.columns = [
+    { header: "Nom pin", key: "name", width: 25 },
+    { header: "ID pin", key: "id", width: 15 },
+    { header: "Assigné à", key: "assignee", width: 20 },
+    { header: "Catégorie", key: "category", width: 20 },
+    { header: "Échéance", key: "due", width: 15 },
+    { header: "Description", key: "note", width: 40 },
+    { header: "Plan", key: "plan", width: 20 },
+    { header: "Média", key: "media", width: 25 }
+  ]
+
+  for (const pin of selectedPins) {
+    const medias = pin.pins_photos?.length ? pin.pins_photos : [null]
+
+    for (const media of medias) {
+      const row = sheet.addRow({
+        name: pin.name || "Pin sans nom",
+        id: `${pin.projects?.project_number}-${pin.pin_number}`,
+        assignee: pin.assigned_to?.name || "",
+        category: pin.categories?.name || "",
+        due: pin.due_date
+          ? new Date(pin.due_date).toLocaleDateString("fr-FR")
+          : "",
+        note: pin.note || "",
+        plan: pin.pdf_name || ""
+      })
+
+      // Hauteur de ligne pour l’image
+      row.height = 90
+
+      if (media?.public_url) {
+        try {
+          const response = await fetch(media.public_url)
+          const blob = await response.blob()
+          const buffer = await blob.arrayBuffer()
+
+          const imageId = workbook.addImage({
+            buffer,
+            extension: "jpeg" // ou png
+          })
+
+          sheet.addImage(imageId, {
+            tl: { col: 7, row: row.number - 1 },
+            ext: { width: 120, height: 80 }
+          })
+        } catch (err) {
+          console.error("Image fetch failed", err)
+        }
+      }
+    }
+  }
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  })
+
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = "pins-medias-avec-images.xlsx"
+  a.click()
+  window.URL.revokeObjectURL(url)
+}
+
   return (
   <>  
   {categories && statuses && (
@@ -359,6 +465,22 @@ const handleDownload = async () => {
         <Download className="w-4 h-4" />
         Télécharger le rapport
       </button>
+
+      <button
+  onClick={handleExportExcel}
+  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium hover:bg-secondary/80 transition-all flex items-center gap-2"
+>
+  <Download className="w-4 h-4" />
+  Exporter Excel
+</button>
+
+<button
+  onClick={handleExportExcelWithEmbeddedMedia}
+  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium hover:bg-secondary/80 transition-all flex items-center gap-2"
+>
+  <Download className="w-4 h-4" />
+  Export Excel Pins + Médias
+</button>
     </div>
   </div>
 )}

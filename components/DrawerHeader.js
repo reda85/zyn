@@ -8,17 +8,17 @@ import { focusOnPinAtom } from '@/store/atoms';
 export default function DrawerHeader({ pin, onClose }) {
   const [focusOnPin, setFocusOnPin] = useAtom(focusOnPinAtom);
   const router = useRouter();
-
+console.log('DrawerHeader pin', pin);
   const goToCanvas = () => {
     console.log('header', pin)
     setFocusOnPin(pin);
-    router.push(`/projects/${pin.project_id}/${pin?.plan_id}`);
+    router.push(`/projects/${pin.project_id}/${pin?.plans?.id}`);
   };
 
   const activateSnippetMode = () => {
     // Active le mode snippet et navigue vers la page du plan
     setFocusOnPin({ ...pin, snippetMode: true });
-    router.push(`/projects/${pin.project_id}/${pin?.plan_id}/snippet/${pin.id}`);
+    router.push(`/projects/${pin.project_id}/${pin?.plans?.id}/snippet/${pin.id}`);
   };
 
   return (
@@ -28,12 +28,12 @@ export default function DrawerHeader({ pin, onClose }) {
         <CategoryComboBox pin={pin} />
       </div>
       <div className="flex flex-row gap-2 items-center">
-        <button
+        { pin.plans && <button
           className="hover:bg-gray-100 hover:text-gray-800 rounded-full p-2 text-gray-500"
           onClick={goToCanvas}
         >
           <EyeIcon size={20} />
-        </button>
+        </button>}
         <button
           className="hover:bg-pink-100 hover:text-pink-600 rounded-full p-2 text-pink-500"
           onClick={activateSnippetMode}
