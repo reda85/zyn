@@ -73,6 +73,7 @@ export default function MembersPage() {
           *,
           members_projects(count)
         `)
+        .eq('organization_id', organization?.id)
         .order('created_at', { ascending: false })
 
       const formatted = rawMembers.map((m) => ({
@@ -93,7 +94,7 @@ export default function MembersPage() {
 
     fetchMembers()
     fetchProjects()
-  }, [refresh, selectedOrganization])
+  }, [refresh, selectedOrganization, organization])
 
   const openManageModal = async (member) => {
     setCurrentMember(member)
@@ -293,7 +294,7 @@ export default function MembersPage() {
               {/* User info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">
-                  Marouane Reda
+                  {profile?.full_name || user?.email || 'Utilisateur'}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
                   Mon profil

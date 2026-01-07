@@ -161,7 +161,7 @@ export default function ProjectsPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">
-                Marouane Reda
+                {profile?.full_name || user?.email || 'Utilisateur'}
               </p>
               <p className="text-xs text-muted-foreground truncate">
                 Mon profil
