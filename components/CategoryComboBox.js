@@ -5,9 +5,10 @@ import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { categoriesAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
 import { ZapIcon, DropletsIcon, PaintRoller, GripIcon, FireExtinguisherIcon, CheckIcon, DoorClosedIcon, SnowflakeIcon } from 'lucide-react'
+import {categoriesIcons} from '@/utils/categories'
 import clsx from 'clsx'
 
-const categoriesIcons = {
+/*const categoriesIcons = {
   'unassigned': <CheckIcon className="text-muted-foreground h-4 w-4" />,
   'zap': <ZapIcon className="text-muted-foreground h-4 w-4" />,
   'droplets': <DropletsIcon className="text-muted-foreground h-4 w-4" />,
@@ -17,6 +18,7 @@ const categoriesIcons = {
   'doors': <DoorClosedIcon className="text-muted-foreground h-4 w-4" />,
   'snowflake': <SnowflakeIcon className="text-muted-foreground h-4 w-4" />,
 }
+*/
 
 export default function CategoryComboBox({ pin }) {
   const [categories] = useAtom(categoriesAtom)

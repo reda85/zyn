@@ -90,14 +90,12 @@ export const updateSession = async (request: NextRequest) => {
     
     // A. Protect the entire app subdomain
     if (isAppSubdomain && !user) {
-      const mainDomainHost = baseDomain;
+      // FIX: Keep user on app subdomain for sign-in after session expiry
+      const appHost = hostHeader; // Stay on app.zaynspace.com
       
-      // Use request.nextUrl.protocol to preserve http/https scheme
-      const redirectUrl = `${request.nextUrl.protocol}//${mainDomainHost}${SIGN_IN_URL}`;
-      
-      // FIX: Permet l'accès aux chemins d'authentification sur le sous-domaine
-      // pour que la connexion puisse être initiée de là si nécessaire.
+      // Only redirect if NOT already on an auth path
       if (!isAuthPath(request.nextUrl.pathname)) {
+        const redirectUrl = `${request.nextUrl.protocol}//${appHost}${SIGN_IN_URL}`;
         return NextResponse.redirect(new URL(redirectUrl));
       }
     }

@@ -14,7 +14,7 @@ import {
   Snowflake,
   DoorClosed,
   PaintRoller,
-  CheckCheckIcon,
+  CheckIcon,
   GripIcon,
 } from 'lucide-react';
 
@@ -30,7 +30,7 @@ const iconOptions: IconOption[] = [
   { name: 'snowflake', Icon: Snowflake },
   { name: 'doors', Icon: DoorClosed },
   { name: 'paint', Icon: PaintRoller },
-  { name: 'unassigned', Icon: CheckCheckIcon },
+  { name: 'unassigned', Icon: CheckIcon },
   { name: 'carrelage', Icon: GripIcon },
 ];
 

@@ -14,20 +14,13 @@ import {
 import { format as formatDate } from "date-fns";
 import clsx from "clsx";
 import { Snowburst_One } from "next/font/google";
+import { categoriesPinIcons } from "@/utils/categories";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const categoriesIcons = {
-  unassigned: <CheckIcon className="text-white h-4 w-4" />,
-  zap: <ZapIcon className="text-white h-4 w-4" />,
-  droplets: <DropletsIcon className="text-white h-4 w-4" />,
-  paint: <PaintRoller className="text-white h-4 w-4" />,
-  carrelage: <GripIcon className="text-white h-4 w-4" />,
-  snowflake: <SnowflakeIcon className="text-white h-4 w-4" />,
-  "fire-extinguisher": <FireExtinguisherIcon className="text-white h-4 w-4" />
-};
+const categoriesIcons = categoriesPinIcons
 
 const statusColors = {
   "En cours": "bg-green-600",
