@@ -16,6 +16,7 @@ import useImage from 'use-image';
 import { supabase } from '@/utils/supabase/client';
 import { classNames } from '@react-pdf-viewer/core';
 import { useSearchParams } from 'next/navigation';
+import { create } from 'domain';
 
 const inter = Lexend({subsets: ['latin'], variable: '--font-inter', display: 'swap'});
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -238,7 +239,7 @@ console.log('handlePinAdd', pin)
     setPins( pins => [...pins, data]);
     setPinMode(false);
     console.log('handlePinAdd', pins)
-    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.assigned_to, pin_id:data.id,event:  ' a cree ce pin', category: 'creation'}).select('*').single()
+    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.created_by, pin_id:data.id,event:  ' a créé ce pin', category: 'creation'}).select('*').single()
     console.log('eventdata', eventdata)
     if (eventerror) {
       console.log('eventerror', eventerror)
@@ -308,7 +309,7 @@ function handlePdfClick(e) {
     project_id: project.id,
     pdf_name: plan.name,
     plan_id: plan.id,
-    created_by: user?.id,
+    created_by: user?.id || null,
   };
 
   handlePinAdd(newPin,user);
@@ -333,7 +334,7 @@ function handlePdfClick(e) {
   onTouchEnd={onTouchEnd}
   onTouchCancel={onTouchEnd}
 
-  
+
         style={{
          
           cursor: dragging ? 'grabbing' : 'grab',

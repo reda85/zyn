@@ -2,8 +2,7 @@ import { supabase } from "@/utils/supabase/client"
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import dayjs from "dayjs"
-import { Switch } from "@headlessui/react"
-import { Clock } from "lucide-react"
+import { Clock, X, Download, ExternalLink } from "lucide-react"
 import 'dayjs/locale/fr'
 
 dayjs.locale('fr')
@@ -11,6 +10,7 @@ dayjs.locale('fr')
 export default function Timeline({ pin, newComment }) {
   const [events, setEvents] = useState([])
   const [enabled, setEnabled] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
     if (pin) {
@@ -61,19 +61,46 @@ export default function Timeline({ pin, newComment }) {
     }
   }
 
+  const handleDownload = async (url, filename) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = filename || 'image.jpg'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+      console.error('Download failed:', error)
+    }
+  }
+
+  const openImageModal = (item) => {
+    setSelectedImage({
+      url: item.pins_photos.public_url,
+      event: item.event,
+      userName: item.members?.name,
+      timestamp: dayjs(item.created_at).format('D MMM YYYY à HH:mm'),
+      category: item.category,
+      description: item?.pins_photos?.description,
+    })
+  }
+
   return (
     <div className="bg-secondary/20 min-h-screen">
       <div className="flex items-center justify-between p-4 bg-secondary/40 border-b border-border/50">
         <p className="text-sm font-medium text-foreground">
           Afficher tous les événements
         </p>
-        <Switch
-          checked={enabled}
-          onChange={setEnabled}
+        <button
+          onClick={() => setEnabled(!enabled)}
           className={`${enabled ? 'bg-primary' : 'bg-muted'} relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
         >
           <span className={`${enabled ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform bg-white rounded-full transition-transform shadow-sm`} />
-        </Switch>
+        </button>
       </div>
 
       <div className="relative p-6">
@@ -106,7 +133,6 @@ export default function Timeline({ pin, newComment }) {
           return (
             <div key={`${item.timelineType}-${item.id}`} className="relative mb-8 ml-8">
               <div className="flex items-start gap-3">
-                {/* Avatar */}
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 ${
                     item.timelineType === 'comment'
@@ -119,13 +145,11 @@ export default function Timeline({ pin, newComment }) {
 
                 <div className="flex-1">
                   <div className="flex flex-col">
-                    {/* Header */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-semibold text-foreground">
                         {userName}
                       </span>
 
-                      {/* ✅ ALL events inline */}
                       {item.timelineType === 'event' && (
                         <span className="text-sm text-muted-foreground">
                           {item.event}
@@ -139,7 +163,6 @@ export default function Timeline({ pin, newComment }) {
                       )}
                     </div>
 
-                    {/* Content */}
                     {item.timelineType === 'comment' && (
                       <div className="mt-1 bg-white p-3 rounded-xl border border-slate-100 shadow-sm text-slate-700 leading-relaxed text-sm">
                         {item.comment}
@@ -151,13 +174,21 @@ export default function Timeline({ pin, newComment }) {
                     </div>
 
                     {item.pins_photos?.public_url && (
-                      <div className="mt-3 relative w-full h-[240px] bg-secondary/30 rounded-lg overflow-hidden border border-border/40">
+                      <div 
+                        className="mt-3 relative w-full h-[240px] bg-secondary/30 rounded-lg overflow-hidden border border-border/40 cursor-pointer hover:opacity-90 transition-opacity group"
+                        onClick={() => openImageModal(item)}
+                      >
                         <Image
                           src={item.pins_photos.public_url}
                           alt="event photo"
                           fill
                           className="object-cover"
                         />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 px-3 py-1.5 rounded-lg text-sm font-medium">
+                            Cliquer pour agrandir
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -167,6 +198,68 @@ export default function Timeline({ pin, newComment }) {
           )
         })}
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div 
+            className="relative max-w-6xl w-full max-h-[90vh] bg-white rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent z-10 p-4">
+              <div className="flex items-start justify-between">
+                <div className="text-white">
+                  <h3 className="font-semibold text-lg">{selectedImage.event}</h3>
+                  <p className="text-sm text-white/80">{selectedImage.userName}</p>
+                  <p className="text-xs text-white/60 mt-1">{selectedImage.timestamp}</p>
+                  {selectedImage.category && (
+                    <span className="inline-block mt-2 text-xs bg-white/20 px-2 py-1 rounded backdrop-blur-sm">
+                      {selectedImage.description}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleDownload(selectedImage.url, `photo-${Date.now()}.jpg`)}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                    title="Télécharger"
+                  >
+                    <Download className="w-5 h-5 text-white" />
+                  </button>
+                  <button
+                    onClick={() => window.open(selectedImage.url, '_blank')}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                    title="Ouvrir dans un nouvel onglet"
+                  >
+                    <ExternalLink className="w-5 h-5 text-white" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedImage(null)}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                    title="Fermer"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Image */}
+            <div className="relative w-full h-[80vh]">
+              <Image
+                src={selectedImage.url}
+                alt={selectedImage.event}
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
