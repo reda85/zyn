@@ -102,7 +102,7 @@ export default function ProjectPlans({ project, onClose }) {
       prev.map((plan) => editedNames[plan.id] ? { ...plan, name: editedNames[plan.id] } : plan)
     )
     setEditedNames({})
-    router.back()
+    router.push(`/projects/${project.id}`)
   }
 
   return (
