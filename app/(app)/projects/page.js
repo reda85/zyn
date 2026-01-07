@@ -35,6 +35,7 @@ export default function ProjectsPage() {
       const { data } = await supabase
         .from('projects')
         .select('*,plans(*),organizations(*,members(*))')
+        .eq('organization_id', selectedOrganization?.id || organization?.id)
         .order('created_at', { ascending: false })
       setProjects(data || [])
     }
