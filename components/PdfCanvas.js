@@ -3,7 +3,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import {Anek_Devanagari, Cabin, Jost, Catamaran, Lato, Noto_Sans, Fira_Sans, Domine, Inconsolata, Karla, Maitree, Nanum_Gothic, Aleo, Figtree, Lexend} from 'next/font/google'
 import { useAtom } from 'jotai';
-import { categoriesAtom, focusOnPinAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom } from '@/store/atoms';
+import { categoriesAtom, filteredPinsAtom, focusOnPinAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom } from '@/store/atoms';
 import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
@@ -62,7 +62,7 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
   const [categories, setCategories] = useAtom(categoriesAtom);
   const [statuses, setStatuses] = useAtom(statusesAtom);
-  const [pins, setPins] = useAtom(pinsAtom);
+  const [pins, setPins] = useAtom(filteredPinsAtom);
   const [showPins, setShowPins] = useState(true);
   const [pinMode, setPinMode] = useState(false);
   const [mousePos, setMousePos] = useState(null);

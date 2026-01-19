@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { ListFilterIcon } from 'lucide-react';
 import { useAtom } from 'jotai';
-import { pinsAtom, selectedProjectAtom } from '@/store/atoms';
+import { filteredPinsAtom, pinsAtom, selectedProjectAtom } from '@/store/atoms';
 import dayjs from 'dayjs';
 import isToday from 'dayjs/plugin/isToday';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
@@ -38,7 +38,7 @@ export default function FilterPanel({user, projectId}) {
   //const [project] = useAtom(selectedProjectAtom);
 
   const [pins, setPins] = useAtom(pinsAtom);
-  const [filteredPins, setFilteredPins] = useState(pins);
+  const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom);
   const [allPins, setAllPins] = useState([]);
   console.log('filtered 0', pins)
 
@@ -48,6 +48,7 @@ export default function FilterPanel({user, projectId}) {
     if (pins && allPins.length === 0) {
       console.log('filtered 1', pins)
       setAllPins(pins);
+      setFilteredPins(pins);
     }
   }, [pins]);
 
@@ -133,7 +134,7 @@ useEffect(() => {
     
     console.log('filtered2', filtered);
     console.log('setPins9')
-    setPins(filtered);
+    setFilteredPins(filtered);
   };
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import ImageCanvas from '@/components/ImageCanvas';
 import PinsList from '@/components/PinsList';
 import NavBar from '@/components/NavBar';
 import { useAtom } from 'jotai';
-import { categoriesAtom, pinsAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
+import { categoriesAtom, filteredPinsAtom, pinsAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
 import { useUser } from '@/components/UserContext';
 import { useUserData } from '@/hooks/useUserData';
 import Image from 'next/image';
@@ -20,6 +20,7 @@ export default function ProjectDetail({ params }) {
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
   const [statuses, setStatuses] = useAtom(statusesAtom)
   const [categories, setCategories] = useAtom(categoriesAtom)
+  const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom)
 
   const { user, profile, organization } = useUserData();
 
@@ -80,7 +81,7 @@ export default function ProjectDetail({ params }) {
 
 
  useEffect(() => {
-    if ( !selectedPlan || !user || !profile) return;
+    if ( !planId || !user || !profile) return;
 
 const fetchPins = async () => {
       
@@ -101,7 +102,7 @@ const fetchPins = async () => {
           categories(name),
           ${assignedToSelect} // Use the conditional select string
         `)
-        .eq('plan_id', selectedPlan.id)
+        .eq('plan_id', planId)
         .is('deleted_at', null)
         .order('created_at', { ascending: true })
 
@@ -133,7 +134,7 @@ const fetchPins = async () => {
     }
 
     fetchPins()
-  }, [ selectedPlan?.id]) // Dependencies remain correct
+  }, [ selectedPlan?.id,profile?.id,planId]) // Dependencies remain correct
 
   useEffect(() => {
     console.log('pins', pins)
@@ -196,7 +197,7 @@ const fetchPins = async () => {
         {/* Sidebar */}
         {selectedPlan && (
           <div className="w-72 overflow-y-auto border-r border-border/40 bg-secondary/20">
-            <PinsList pins={pins} plans={project.plans} user={profile} projectId={projectId} organizationId={organizationId} />
+            <PinsList pins={filteredPins} plans={project.plans} user={profile} projectId={projectId} organizationId={organizationId} />
           </div>
         )}
 
@@ -205,7 +206,7 @@ const fetchPins = async () => {
           {selectedPlan?.file_url && (
           <PdfCanvas
             fileUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.file_url).data.publicUrl}
-            pins={pins}
+            pins={filteredPins}
             project={project}
             plan={selectedPlan}
             user={profile}
