@@ -70,6 +70,7 @@ export default function Medias({ params }) {
     `)
     .eq('project_id', projectId)
     .eq('pdf_pins.assigned_to', profile.id) // C'est ici que le filtre s'applique
+    .is('deleted_at', null)
     .order('created_at', { ascending: false });
      if (data) {
         console.log('medias', data)
@@ -83,6 +84,7 @@ export default function Medias({ params }) {
         .from('pins_photos')
         .select('*, pdf_pins(*,assigned_to(id,name))')
         .eq('project_id', projectId)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
       if (data) {

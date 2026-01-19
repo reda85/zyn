@@ -99,6 +99,7 @@ export default function StatusSelect({ pin }) {
     if (data) {
       const newSelected = safeStatuses.find((s) => s.id === status_id) || statuses.find((s) => s.id === status_id);
       setSelected(newSelected);
+      console.log('setPins13')
       setPin({ ...pin, status_id });
       setPins(pins.map((p) => (p.id === pin.id ? { ...p, status_id: status_id } : p)));
     }

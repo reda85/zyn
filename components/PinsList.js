@@ -19,7 +19,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function PinsList({ pins = [], plans = [], user, projectId }) {
+export default function PinsList({ pins = [], plans = [], user, projectId, organizationId }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
   const router = useRouter()
@@ -38,11 +38,11 @@ export default function PinsList({ pins = [], plans = [], user, projectId }) {
             options={plans}
             selected={activePlan}
              onChange={(plan) => {
-    router.push(`/projects/${projectId}/${plan.id}`)
+    router.push(`/${organizationId}/projects/${projectId}/${plan.id}`)
   }}
           />
         )}
-        <FilterPanel user={user} />
+        <FilterPanel user={user} projectId={projectId} />
       </div>
 
       {/* Counter bar */}

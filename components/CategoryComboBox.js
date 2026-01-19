@@ -53,7 +53,14 @@ export default function CategoryComboBox({ pin }) {
         if (selectedPin) {
           setSelectedPin({ ...selectedPin, category_id: data.category_id })
         }
-        setPins(pins.map(p => (p.id === pin.id ? { ...p, category_id: data.category_id } : p)))
+        console.log('setPins5')
+        setPins((prevPins) => {
+    if (!prevPins || prevPins.length === 0) return prevPins; // don't overwrite empty array
+    return prevPins.map((p) =>
+        p.id === pin.id ? { ...p, category_id: data.category_id } : p
+    );
+});
+
       }
     }
 

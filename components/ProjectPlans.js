@@ -1,12 +1,11 @@
 'use client'
-
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import { Lexend } from 'next/font/google'
 import { useRouter } from 'next/navigation'
-import { Upload, FileText, Trash2, Save, X } from 'lucide-react'
+import { Upload, FileText, Trash2, Save, X, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
@@ -14,95 +13,232 @@ const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 
 
 export default function ProjectPlans({ project, onClose }) {
   const [plans, setPlans] = useState([])
-  const [file, setFile] = useState(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadState, setUploadState] = useState({
+    file: null,
+    uploading: false,
+    progress: 0,
+    error: null,
+    success: false,
+    pageCount: null,
+    currentPage: 0
+  })
   const [dragActive, setDragActive] = useState(false)
   const dropRef = useRef(null)
   const router = useRouter()
 
   useEffect(() => {
     if (!project?.id) return
-
     const fetchPlans = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('plans')
         .select('*')
         .eq('project_id', project.id)
-      setPlans(data || [])
+        .is('deleted_at', null)
+        .order('name', { ascending: true })
+      if (error) {
+        console.error('Error fetching plans:', error)
+      } else {
+        setPlans(data || [])
+      }
     }
-
     fetchPlans()
   }, [project.id])
 
-  // Local state to track edited names
   const [editedNames, setEditedNames] = useState({})
 
-  // Update local edited name
   const handleNameChange = (planId, value) => {
     setEditedNames((prev) => ({ ...prev, [planId]: value }))
   }
 
-  const handleFileDrop = async (e) => {
-    e.preventDefault()
-    setDragActive(false)
+  const handleFileSelect = (file) => {
+    if (!file) return
 
-    const dropped = e.dataTransfer.files[0]
-    if (dropped?.type === 'application/pdf') {
-      setFile(dropped)
-      await handleUpload(dropped)
-    } else {
-      alert('Seuls les fichiers PDF sont autorisés.')
-    }
-  }
-
-  const handleUpload = async (pdfFile = file) => {
-    if (!pdfFile) return
-
-    const filePath = `${project.id}/${Date.now()}-${pdfFile.name}`
-
-    const { data: uploadData, error } = await supabase.storage
-      .from('project-plans')
-      .upload(filePath, pdfFile)
-
-    if (error) {
-      console.log(error)
-      alert('Échec du téléchargement')
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      setUploadState({
+        file: null,
+        uploading: false,
+        progress: 0,
+        error: 'Seuls les fichiers PDF sont acceptés',
+        success: false,
+        pageCount: null,
+        currentPage: 0
+      })
+      setShowUploadModal(true)
       return
     }
 
-    const planName = pdfFile.name.replace('.pdf', '')
-
-    const { data: newPlan } = await supabase
-      .from('plans')
-      .insert({
-        name: planName,
-        project_id: project.id,
-        file_url: uploadData.path,
+    // Validate file size (50MB)
+    const maxSize = 50 * 1024 * 1024
+    if (file.size > maxSize) {
+      setUploadState({
+        file: null,
+        uploading: false,
+        progress: 0,
+        error: 'La taille du fichier ne doit pas dépasser 50 MB',
+        success: false,
+        pageCount: null,
+        currentPage: 0
       })
-      .select()
-      .single()
+      setShowUploadModal(true)
+      return
+    }
 
-    setPlans((prev) => [...prev, newPlan])
-    setFile(null)
+    setUploadState({
+      file,
+      uploading: false,
+      progress: 0,
+      error: null,
+      success: false,
+      pageCount: null,
+      currentPage: 0
+    })
+    setShowUploadModal(true)
+  }
+
+  const handleFileDrop = (e) => {
+    e.preventDefault()
+    setDragActive(false)
+    const dropped = e.dataTransfer.files[0]
+    if (dropped) {
+      handleFileSelect(dropped)
+    }
+  }
+
+  const handleUpload = async () => {
+    if (!uploadState.file) return
+
+    setUploadState(prev => ({
+      ...prev,
+      uploading: true,
+      progress: 0,
+      error: null
+    }))
+
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadState.file)
+      formData.append('projectId', project.id)
+
+      // Simulate progress during upload
+      const progressInterval = setInterval(() => {
+        setUploadState(prev => ({
+          ...prev,
+          progress: Math.min(prev.progress + 5, 90)
+        }))
+      }, 200)
+
+      const response = await fetch('http://localhost:3001/api/upload-pdf', {
+        method: 'POST',
+        body: formData
+      })
+
+      clearInterval(progressInterval)
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Erreur lors du téléchargement')
+      }
+
+      const result = await response.json()
+      
+      // Update progress to 100%
+      setUploadState(prev => ({
+        ...prev,
+        progress: 100,
+        pageCount: result.pageCount,
+        currentPage: result.pageCount
+      }))
+
+      // Refresh all plans from database to get the newly created ones
+      const { data: allPlans, error: fetchError } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('project_id', project.id)
+        .is('deleted_at', null)
+        .order('name', { ascending: true })
+
+      if (fetchError) {
+        console.error('Error fetching plans:', fetchError)
+      } else {
+        // Update plans list with all plans
+        setPlans(allPlans)
+      }
+
+      setUploadState(prev => ({
+        ...prev,
+        uploading: false,
+        success: true
+      }))
+
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setShowUploadModal(false)
+        setTimeout(() => {
+          setUploadState({
+            file: null,
+            uploading: false,
+            progress: 0,
+            error: null,
+            success: false,
+            pageCount: null,
+            currentPage: 0
+          })
+        }, 300)
+      }, 2000)
+
+    } catch (error) {
+      console.error('Upload error:', error)
+      setUploadState(prev => ({
+        ...prev,
+        uploading: false,
+        error: error.message,
+        progress: 0
+      }))
+    }
+  }
+
+  const resetUpload = () => {
+    setUploadState({
+      file: null,
+      uploading: false,
+      progress: 0,
+      error: null,
+      success: false,
+      pageCount: null,
+      currentPage: 0
+    })
+  }
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
   }
 
   const deletePlan = async (plan) => {
-    await supabase.from('plans').delete().eq('id', plan.id)
+    const {data,error} = await supabase.rpc('soft_delete_plan', { p_plan_id: plan.id });
+   if (error) { console.error('Error deleting plan:', error) }
+   if (data) { console.log('Plan deleted:', data) }
     await supabase.storage.from('project-plans').remove([plan.file_url])
     setPlans(plans.filter((p) => p.id !== plan.id))
   }
 
-  // Save all edited names
   const handleSaveAndClose = async () => {
     const updates = Object.entries(editedNames)
     for (const [planId, name] of updates) {
       await supabase.from('plans').update({ name }).eq('id', planId)
     }
-
     setPlans((prev) =>
-      prev.map((plan) => editedNames[plan.id] ? { ...plan, name: editedNames[plan.id] } : plan)
+      prev.map((plan) =>
+        editedNames[plan.id] ? { ...plan, name: editedNames[plan.id] } : plan
+      )
     )
     setEditedNames({})
-    router.push(`/projects/${project.id}`)
+    router.push(`${project.organization_id}/projects/${project.id}`)
   }
 
   return (
@@ -120,49 +256,50 @@ export default function ProjectPlans({ project, onClose }) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
             <p className='text-muted-foreground text-sm mb-6 leading-relaxed'>
-              Gérez les plans PDF de votre projet : mettez à jour vos plans existants ou ajoutez de nouveaux plans.
+              Gérez les plans PDF de votre projet. Le PDF sera automatiquement séparé en pages individuelles.
             </p>
-
-            {/* Dropzone */}
+            {/* Enhanced Dropzone */}
             <div
               ref={dropRef}
               onDrop={handleFileDrop}
               onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
               onDragLeave={() => setDragActive(false)}
               className={`border-2 border-dashed rounded-xl p-8 flex flex-col justify-center items-center transition-all ${
-                dragActive 
-                  ? 'bg-primary/10 border-primary' 
-                  : 'border-border/50 hover:border-primary/30 bg-card/50'
+                dragActive ? 'bg-primary/10 border-primary scale-[1.02]' : 'border-border/50 hover:border-primary/30 bg-card/50 hover:bg-card'
               }`}
             >
-              <Upload className={`w-12 h-12 mb-4 ${dragActive ? 'text-primary' : 'text-muted-foreground'}`} />
-              <p className="text-center mb-3 text-sm font-medium text-foreground">
-                {file ? `${file.name} sélectionné` : 'Glissez-déposez un PDF ici'}
+              <div className={`p-4 rounded-full mb-4 transition-all ${
+                dragActive ? 'bg-primary/20' : 'bg-secondary/50'
+              }`}>
+                <Upload className={`w-8 h-8 transition-colors ${
+                  dragActive ? 'text-primary' : 'text-muted-foreground'
+                }`} />
+              </div>
+              <p className="text-center mb-2 text-sm font-semibold text-foreground">
+                Glissez-déposez un PDF ici
+              </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Maximum 50 MB
               </p>
               <input
                 type="file"
                 accept="application/pdf"
                 className="hidden"
                 id="upload"
-                onChange={async (e) => {
+                onChange={(e) => {
                   const f = e.target.files[0]
-                  if (f?.type === 'application/pdf') {
-                    setFile(f)
-                    await handleUpload(f)
-                  }
+                  if (f) handleFileSelect(f)
                 }}
               />
-              <label 
-                htmlFor="upload" 
-                className="text-sm text-primary font-medium cursor-pointer hover:underline"
+              <label
+                htmlFor="upload"
+                className="px-4 py-2 bg-primary/10 text-primary text-sm font-medium rounded-lg cursor-pointer hover:bg-primary/20 transition-all"
               >
-                ou parcourir les fichiers
+                Parcourir les fichiers
               </label>
             </div>
           </div>
-
           {/* Save & Close Button */}
           <button
             onClick={handleSaveAndClose}
@@ -177,20 +314,21 @@ export default function ProjectPlans({ project, onClose }) {
         <div className="flex-1 overflow-auto bg-background p-6 space-y-6">
           {plans.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <FileText className="w-16 h-16 text-muted-foreground/50 mb-4" />
+              <div className="p-6 bg-secondary/30 rounded-2xl mb-4">
+                <FileText className="w-16 h-16 text-muted-foreground/50" />
+              </div>
               <h3 className="text-xl font-semibold font-heading text-foreground mb-2">
                 Aucun plan disponible
               </h3>
-              <p className="text-muted-foreground">
-                Commencez par ajouter un plan PDF depuis le panneau de gauche
+              <p className="text-muted-foreground max-w-md">
+                Commencez par ajouter un plan PDF depuis le panneau de gauche. Il sera automatiquement divisé en pages.
               </p>
             </div>
           )}
-
           {plans.map((plan) => {
             const publicUrl = supabase.storage.from('project-plans').getPublicUrl(plan.file_url).data.publicUrl
             return (
-              <div key={plan.id} className="border border-border/50 bg-card rounded-xl p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
+              <div key={plan.id} className="border border-border/50 bg-card rounded-xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all hover:border-border">
                 <div className="flex justify-between items-center gap-3">
                   <input
                     className="border border-border/50 bg-secondary/30 rounded-lg px-3 py-2 flex-1 text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
@@ -198,24 +336,19 @@ export default function ProjectPlans({ project, onClose }) {
                     onChange={(e) => handleNameChange(plan.id, e.target.value)}
                     placeholder="Nom du plan"
                   />
-                { plans.length > 1 && <button
-                    onClick={() => deletePlan(plan)}
-                    className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                    title="Supprimer"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button> }
+                  {plans.length > 1 && (
+                    <button
+                      onClick={() => deletePlan(plan)}
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
-
                 <div className="border border-border/50 rounded-xl overflow-hidden bg-secondary/20">
                   <Document file={publicUrl}>
-                    <Page 
-                      pageNumber={1} 
-                      width={800} 
-                      renderTextLayer={false} 
-                      renderAnnotationLayer={false}
-                      className="mx-auto"
-                    />
+                    <Page pageNumber={1} width={800} renderTextLayer={false} renderAnnotationLayer={false} className="mx-auto" />
                   </Document>
                 </div>
               </div>
@@ -223,6 +356,173 @@ export default function ProjectPlans({ project, onClose }) {
           })}
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-background rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <div>
+                <h2 className="text-2xl font-bold font-heading text-foreground">
+                  Importer un fichier PDF
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Le PDF sera automatiquement divisé en pages • Maximum 50 MB
+                </p>
+              </div>
+              <button
+                onClick={() => !uploadState.uploading && setShowUploadModal(false)}
+                disabled={uploadState.uploading}
+                className="p-2 hover:bg-secondary rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {!uploadState.file && !uploadState.error ? (
+                // Upload Zone
+                <label className="block">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const f = e.target.files[0]
+                      if (f) {
+                        handleFileSelect(f)
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <div className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-200">
+                    <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto mb-4">
+                      <Upload className="w-12 h-12 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      Cliquez pour sélectionner un fichier
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      ou glissez-déposez votre PDF ici
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      PDF uniquement, maximum 50 MB
+                    </p>
+                  </div>
+                </label>
+              ) : (
+                // File Preview & Upload
+                <div className="space-y-4">
+                  {/* File Info */}
+                  {uploadState.file && (
+                    <div className="flex items-start gap-4 p-4 bg-secondary/50 rounded-lg border border-border/50">
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        <FileText className="w-6 h-6 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-foreground truncate">
+                          {uploadState.file.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {formatFileSize(uploadState.file.size)}
+                        </p>
+                      </div>
+                      {!uploadState.uploading && !uploadState.success && (
+                        <button
+                          onClick={resetUpload}
+                          className="p-2 hover:bg-background rounded-lg transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {/* Progress Bar */}
+                  {uploadState.uploading && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Traitement en cours...
+                          {uploadState.currentPage > 0 && ` (${uploadState.currentPage}/${uploadState.pageCount})`}
+                        </span>
+                        <span className="text-foreground font-semibold">{uploadState.progress}%</span>
+                      </div>
+                      <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ease-out shadow-lg shadow-primary/20"
+                          style={{ width: `${uploadState.progress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Séparation et téléchargement des pages...
+                      </p>
+                    </div>
+                  )}
+                  {/* Success Message */}
+                  {uploadState.success && (
+                    <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold text-green-700 dark:text-green-400">
+                          Fichier téléchargé avec succès !
+                        </h4>
+                        {uploadState.pageCount && (
+                          <p className="text-sm text-green-600 dark:text-green-500 mt-1">
+                            {uploadState.pageCount} page{uploadState.pageCount > 1 ? 's' : ''} importée{uploadState.pageCount > 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {/* Error Message */}
+                  {uploadState.error && (
+                    <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-red-700 dark:text-red-400">
+                          Erreur de téléchargement
+                        </h4>
+                        <p className="text-sm text-red-600 dark:text-red-500 mt-1">
+                          {uploadState.error}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-border bg-secondary/30">
+              <button
+                onClick={() => setShowUploadModal(false)}
+                disabled={uploadState.uploading}
+                className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploadState.success ? 'Fermer' : 'Annuler'}
+              </button>
+              {uploadState.file && !uploadState.success && !uploadState.error && (
+                <button
+                  onClick={handleUpload}
+                  disabled={uploadState.uploading}
+                  className="px-6 py-2 text-sm font-semibold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-primary/20"
+                >
+                  {uploadState.uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Téléchargement...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Télécharger
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

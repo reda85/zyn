@@ -7,7 +7,7 @@ import 'dayjs/locale/fr'
 
 dayjs.locale('fr')
 
-export default function Timeline({ pin, newComment }) {
+export default function Timeline({ pin, newComment, refreshKey }) {
   const [events, setEvents] = useState([])
   const [enabled, setEnabled] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
@@ -17,6 +17,12 @@ export default function Timeline({ pin, newComment }) {
       getTimeline(pin.id)
     }
   }, [pin])
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+     getTimeline(pin.id);
+    }
+  }, [refreshKey]);
 
   const normalizeComment = (comment) => ({
     ...comment,

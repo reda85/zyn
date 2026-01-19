@@ -82,6 +82,7 @@ const fetchPins = async () => {
           ${assignedToSelect} // Use the conditional select string
         `)
         .eq('plan_id', selectedPlan.id)
+        .is('deleted_at', null)
         .order('created_at', { ascending: true })
 
       // 2. CONDITIONAL FILTERING

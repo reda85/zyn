@@ -99,6 +99,7 @@ const updateDueDate = async (date) => {
       .from('pdf_pins')
       .update({ due_date: date })
       .eq('id', selectedPin.id)
+      .is('deleted_at', null)
       .select('*')
       .single();
     if (data) {
@@ -214,6 +215,7 @@ const handleDownload = async () => {
             .from('pdf_pins')
             .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
             .eq('project_id', projectId)
+            .is('deleted_at', null)
             .eq('assigned_to', profile.id)
         if (data) {
             setOriginalPins(data)
@@ -226,6 +228,7 @@ const handleDownload = async () => {
     const { data,error } = await supabase
             .from('pdf_pins')
             .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
+            .is('deleted_at', null)
             .eq('project_id', projectId)
             
         if (data) {

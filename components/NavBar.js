@@ -19,7 +19,7 @@ import { signOutAction } from '@/app/actions'
 const tabs = ['Plan', 'Tasks', 'Medias']
 const lexend = Outfit({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
-export default function Navbar({ id, user, project }) {
+export default function Navbar({ id, user, project, organizationId }) {
   const pathname = usePathname()
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -32,11 +32,11 @@ export default function Navbar({ id, user, project }) {
 
   // Derive the current tab from pathname
   const currentTab = (() => {
-    if (pathname === `/projects/${id}` || pathname === `/projects/${id}/`) {
+    if (pathname === `/${organizationId}/projects/${id}` || pathname === `/${organizationId}/projects/${id}/`) {
       return 'Plan'
     }
     const match = tabs.find(tab =>
-      pathname.startsWith(`/projects/${id}/${tab.toLowerCase()}`)
+      pathname.startsWith(`/${organizationId}/projects/${id}/${tab.toLowerCase()}`)
     )
     return match ?? 'Plan'
   })()
@@ -89,7 +89,7 @@ export default function Navbar({ id, user, project }) {
               <ul className="py-2 text-sm">
                 <li>
                   <Link
-                    href="/projects"
+                    href={`/${organizationId}/projects`}
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
@@ -98,7 +98,7 @@ export default function Navbar({ id, user, project }) {
                 </li>
                 <li>
                   <Link
-                    href={`/projects/${id}`}
+                    href={`/${organizationId}/projects/${id}/details`}
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
@@ -107,7 +107,7 @@ export default function Navbar({ id, user, project }) {
                 </li>
                 <li>
                   <Link
-                    href={`/projects/${id}/sources`}
+                    href={`/${organizationId}/projects/${id}/sources`}
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
@@ -116,7 +116,7 @@ export default function Navbar({ id, user, project }) {
                 </li>
                 <li>
                   <Link
-                    href={`/projects/${id}/categories`}
+                    href={`/${organizationId}/projects/${id}/categories`}
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
@@ -125,7 +125,7 @@ export default function Navbar({ id, user, project }) {
                 </li>
                 <li>
                   <Link
-                    href={`/projects/${id}/status`}
+                    href={`/${organizationId}/projects/${id}/status`}
                     className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
@@ -141,8 +141,8 @@ export default function Navbar({ id, user, project }) {
         <div className="absolute left-1/2 flex -translate-x-1/2 space-x-6">
           {tabs.map(tab => {
             const path = tab === 'Plan'
-              ? `/projects/${id}`
-              : `/projects/${id}/${tab.toLowerCase()}`
+              ? `/${organizationId}/projects/${id}`
+              : `/${organizationId}/projects/${id}/${tab.toLowerCase()}`
             return (
               <Link key={tab} href={path}>
                 <button
@@ -195,7 +195,7 @@ export default function Navbar({ id, user, project }) {
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <UserGroupIcon className="mr-3 h-5 w-5 text-muted-foreground" />
-                    Profile
+                    Profil
                   </Link>
 
                   {/* Sign Out Option */}
@@ -205,7 +205,7 @@ export default function Navbar({ id, user, project }) {
                     role="menuitem"
                   >
                     <ArrowRightStartOnRectangleIcon className="mr-3 h-5 w-5" />
-                    Sign Out
+                    Se déconnecter
                   </button>
                 </div>
               </div>

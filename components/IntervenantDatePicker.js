@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Combobox } from '@headlessui/react';
 import { XIcon, User2Icon, CalendarIcon } from 'lucide-react';
 import DatePicker from 'react-datepicker';
@@ -30,6 +30,9 @@ export default function IntervenantDatePicker({ pin }) {
     pin?.due_date ? new Date(pin?.due_date) : null
   );
 
+  // Utiliser une ref pour suivre l'ID de l'intervenant précédent
+  const previousIntervenantIdRef = useRef(pin?.assigned_to);
+
   console.log('pin props', selectedDate);
   
   const isOverDue = selectedDate
@@ -45,6 +48,8 @@ export default function IntervenantDatePicker({ pin }) {
     setSelectedPin(pin);
     setSelectedIntervenant(pin.assigned_to || null);
     setSelectedDate(pin.due_date ? new Date(pin.due_date) : null);
+    // Mettre à jour la ref avec l'ID actuel
+    previousIntervenantIdRef.current = pin?.assigned_to;
   }, [pin]);
 
   useEffect(() => {
@@ -91,6 +96,7 @@ export default function IntervenantDatePicker({ pin }) {
       .from('pdf_pins')
       .update({ assigned_to: intervenant?.id })
       .eq('id', selectedPin.id)
+      .is('deleted_at', null)
       .select('*')
       .single();
     if (data) {
@@ -156,11 +162,17 @@ export default function IntervenantDatePicker({ pin }) {
 
 
       setSelectedIntervenant(intervenant);
-      setPins(
-        pins.map((p) =>
-          p.id === selectedPin.id ? { ...p, intervenant_id: intervenant.id } : p
-        )
-      );
+      console.log('setPins10')
+     setPins(prevPins => {
+  if (!prevPins?.length) return prevPins;
+
+  return prevPins.map(p =>
+    p.id === selectedPin.id
+      ? { ...p, intervenant_id: intervenant.id }
+      : p
+  );
+});
+
     }
     if (error) {
       console.log('updateAssignedIntervenant', error);
@@ -169,8 +181,14 @@ export default function IntervenantDatePicker({ pin }) {
 
   useEffect(() => {
     console.log('selectedIntervenant', selectedIntervenant);
-    if (selectedIntervenant?.id !== 0 && selectedIntervenant?.id !== null) {
+    
+    // Vérifier si l'intervenant a réellement changé
+    const hasIntervenantChanged = selectedIntervenant?.id !== previousIntervenantIdRef.current;
+    
+    if (hasIntervenantChanged && selectedIntervenant?.id !== 0 && selectedIntervenant?.id !== null) {
       updateAssignedIntervenant(selectedIntervenant);
+      // Mettre à jour la ref après l'envoi de la notification
+      previousIntervenantIdRef.current = selectedIntervenant.id;
     }
   }, [selectedIntervenant]);
 
@@ -190,7 +208,18 @@ export default function IntervenantDatePicker({ pin }) {
     if (data) {
       console.log('updateDueDate', data);
       setSelectedDate(date);
-      setPins(pins.map((p) => (p.id === selectedPin.id ? { ...p, due_date: date } : p)));
+      console.log('setPins11')
+     setPins(prevPins => {
+  if (!prevPins?.length) return prevPins;
+
+  return prevPins.map(p =>
+    p.id === selectedPin.id
+      ? { ...p, due_date: date }
+      : p
+  );
+});
+
+
     }
     if (error) {
       console.log('updateDueDate', error);

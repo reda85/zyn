@@ -46,6 +46,7 @@ export async function GET(request) {
         plans(id,name,file_url)
       `)
       .in("id", selectedIds)
+      .is('deleted_at', null)
       .eq("project_id", projectId);
 
     if (error || !pins) throw new Error("Failed to fetch pins");

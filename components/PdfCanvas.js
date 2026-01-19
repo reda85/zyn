@@ -1,4 +1,4 @@
-import React, { useState, useRef, use, useEffect } from 'react';
+import React, { useState, useRef, use, useEffect, useCallback } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import {Anek_Devanagari, Cabin, Jost, Catamaran, Lato, Noto_Sans, Fira_Sans, Domine, Inconsolata, Karla, Maitree, Nanum_Gothic, Aleo, Figtree, Lexend} from 'next/font/google'
@@ -55,6 +55,7 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(0.25);
+  const [renderScale] = useState(3); // Fixed at 2 - never changes
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
@@ -66,29 +67,32 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [pinMode, setPinMode] = useState(false);
   const [mousePos, setMousePos] = useState(null);
   const [hoveredPinId, setHoveredPinId] = useState(null);
-  const [ghostPinPos, setGhostPinPos] = useState(null); // { x: number, y: number }
-const [pdfSize, setPdfSize] = useState({ width: 0, height: 0 });
-const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
-const [newComment, setNewComment] = useState(null)
-const containerRef = useRef(null);
-const pageRef = useRef(null); // NEW
-const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
-const [touches, setTouches] = useState([]);
-const [initialDistance, setInitialDistance] = useState(null);
-const [initialScale, setInitialScale] = useState(scale);
+  const [ghostPinPos, setGhostPinPos] = useState(null);
+  const [pdfSize, setPdfSize] = useState({ width: 0, height: 0 });
+  const [basePdfSize, setBasePdfSize] = useState({ width: 0, height: 0 }); // Store original size at scale 1
+  const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
+  const [newComment, setNewComment] = useState(null)
+  const containerRef = useRef(null);
+  const pageRef = useRef(null);
+  const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
+  const [touches, setTouches] = useState([]);
+  const [initialDistance, setInitialDistance] = useState(null);
+  const [initialScale, setInitialScale] = useState(scale);
+const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
 
+  const handlePhotoUploaded = () => {
+    setPhotoUploadTrigger(prev => prev + 1);
+  };
 
 console.log('User', user)
 console.log('SelectedPin', selectedPin)
 
 function onTouchStart(e) {
   if (e.touches.length === 1) {
-    // Single touch → drag
     const t = e.touches[0];
     setDragging(true);
     setStartDrag({ x: t.clientX, y: t.clientY });
   } else if (e.touches.length === 2) {
-    // Pinch start → zoom
     setTouches([e.touches[0], e.touches[1]]);
     setInitialDistance(getDistance(e.touches));
     setInitialScale(scale);
@@ -106,7 +110,7 @@ function onTouchMove(e) {
     const distance = getDistance(e.touches);
     if (initialDistance) {
       const factor = distance / initialDistance;
-      zoom(factor * initialScale / scale); // Adjust zoom relative to initial pinch
+      zoom(factor * initialScale / scale);
     }
   }
 
@@ -125,13 +129,16 @@ function onTouchEnd(e) {
 
 
 useEffect(() => {
-  if (!focusOnPinOnce) return
+  if (!focusOnPinOnce) return;
 
-  setSelectedPin(focusOnPinOnce)
-  focusOnPin(focusOnPinOnce)
+  const pin = pins.find(p => p.id === focusOnPinOnce);
+  if (!pin) return;
 
-  setFocusOnPinOnce(null) // consume
-}, [focusOnPinOnce])
+  setSelectedPin(pin);
+  focusOnPin(pin);
+  setFocusOnPinOnce(null);
+}, [focusOnPinOnce, pins]);
+
 
 useEffect(() => {
  if (selectedPin) {
@@ -139,7 +146,9 @@ useEffect(() => {
 }
 }, [selectedPin]);
 
-
+useEffect(() => {
+  console.log('PdfCanvas pins', pins.length)
+}, [pins])
 
 useEffect(() => {
   if (containerRef.current) {
@@ -147,8 +156,6 @@ useEffect(() => {
     setContainerRect({ left: rect.left, top: rect.top });
   }
 }, [pdfSize,scale,offset]);
-
-
 
 
   function onDocumentLoadSuccess({ numPages }) {
@@ -160,18 +167,18 @@ useEffect(() => {
 
   const rect = containerRef.current.getBoundingClientRect();
 
-  // Center of the container
+  // Center of the viewport
   const centerX = rect.width / 2;
   const centerY = rect.height / 2;
 
-  // Convert center point to PDF coordinate space
+  // Current point in PDF space that's at the center of viewport
   const pdfX = (centerX - offset.x) / scale;
   const pdfY = (centerY - offset.y) / scale;
 
-  // Calculate new scale
+  // Calculate new scale with limits
   const newScale = Math.max(0.125, Math.min(scale * factor, 5));
 
-  // Recalculate offset to keep center stable
+  // Calculate new offset to keep the same PDF point centered
   const newOffsetX = centerX - pdfX * newScale;
   const newOffsetY = centerY - pdfY * newScale;
 
@@ -188,13 +195,9 @@ function zoomOut() {
 }
 
  const handleWheel = (event) => {
-    // event.deltaY indicates the vertical scroll amount
-    // A positive value means scrolling down, a negative value means scrolling up
-    if (event.deltaY > 0) {
-      zoomOut();
-    } else if (event.deltaY < 0) {
-      zoomIn();
-    }
+    event.preventDefault();
+    const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1; // Smaller increments for smoother zoom
+    zoom(zoomFactor);
   };
 
   function onMouseDown(e) {
@@ -221,7 +224,7 @@ function zoomOut() {
   }
 
   if (pinMode) {
-    setGhostPinPos({ x: e.clientX, y: e.clientY }); // absolute position on screen
+    setGhostPinPos({ x: e.clientX, y: e.clientY });
   }
 }
 
@@ -230,12 +233,12 @@ function classNames(...classes) {
 }
 
 const handlePinAdd = async (pin,user) => {
-  //if (!selectedPin) return;
 console.log('handlePinAdd', pin)
   const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*,projects(*),plans(*)').single()
   if (data) {
     console.log('handlePinAdd data', data)
     setSelectedPin(data);
+    console.log('setPins12')
     setPins( pins => [...pins, data]);
     setPinMode(false);
     console.log('handlePinAdd', pins)
@@ -259,17 +262,16 @@ useEffect(()=> {
   }
 
   function focusOnPin(pin) {
-  if (!pageRef.current || !containerRef.current || !pdfSize) return;
+  if (!pageRef.current || !containerRef.current || !basePdfSize.width) return;
 
-  const pinX = pin.x * pdfSize.width;
-  const pinY = pin.y * pdfSize.height;
+  // Use base PDF size for consistent positioning
+  const pinX = pin.x * basePdfSize.width * renderScale;
+  const pinY = pin.y * basePdfSize.height * renderScale;
 
-  // Calculate viewport center
   const container = containerRef.current.getBoundingClientRect();
   const centerX = container.width / 4;
   const centerY = container.height / 2;
 
-  // New offset so the pin appears centered
   const newOffset = {
     x: centerX - pinX * scale,
     y: centerY - pinY * scale,
@@ -282,21 +284,17 @@ useEffect(()=> {
 function handlePdfClick(e) {
   if (!pinMode || dragging || !containerRef.current || !pageRef.current) return;
 
-  // Get the actual PDF page element bounds
   const pdfElement = pageRef.current;
   if (!pdfElement) return;
   
   const pdfRect = pdfElement.getBoundingClientRect();
   
-  // Calculate click position relative to PDF element
   const clickX = e.clientX - pdfRect.left;
   const clickY = e.clientY - pdfRect.top;
   
-  // Convert to normalized coordinates (0-1)
   const x = clickX / pdfRect.width;
   const y = clickY / pdfRect.height;
   
-  // Ensure click is within PDF bounds
   if (x < 0 || x > 1 || y < 0 || y > 1) return;
 
   const newPin = {
@@ -314,8 +312,6 @@ function handlePdfClick(e) {
 
   handlePinAdd(newPin,user);
 }
-
-
 
 
   return (
@@ -347,7 +343,7 @@ function handlePdfClick(e) {
           height: 'calc(100vh - 64px)',
         }}
       >
-        {/* Floating Controls Bar - IMPROVED */}
+        {/* Floating Controls Bar */}
         <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
           {/* Zoom Controls Group */}
           <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
@@ -358,6 +354,9 @@ function handlePdfClick(e) {
             >
               <ZoomOut className="h-5 w-5 text-gray-700" />
             </button>
+            <div className="px-3 text-sm font-medium text-gray-600 border-r border-gray-200 min-w-[60px] text-center">
+              {Math.round(scale * 100)}%
+            </div>
             <button
               onClick={zoomIn}
               className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
@@ -399,37 +398,62 @@ function handlePdfClick(e) {
   onClick={handlePdfClick}
   style={{
     transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-   // border: '2px solid red',
-  // transform: `translate(${offset.x}px, ${offset.y}px)`,
     transformOrigin: 'top left',
     width: 'fit-content',
     margin: 'auto',
     position: 'relative',
     cursor: pinMode ? 'pointer' : dragging ? 'grabbing' : 'default',
-    transition: 'transform 0.3s ease',
-     
-   
+    willChange: 'transform',
+    transition: dragging ? 'none' : 'transform 0.3s ease',
   }}
 >
-  <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} loading="Loading PDF...">
+  <Document 
+    file={fileUrl} 
+    onLoadSuccess={onDocumentLoadSuccess} 
+    loading={
+      <div className="flex items-center justify-center p-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement du PDF...</p>
+        </div>
+      </div>
+    }
+    options={{
+      cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+      cMapPacked: true,
+      standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
+      enableXfa: true,
+    }}
+  >
    <Page
   pageNumber={pageNumber}
-  scale={4}
+  scale={renderScale}
   renderTextLayer={false}
   renderAnnotationLayer={false}
   inputRef={pageRef}
   onRenderSuccess={({ width, height }) => {
     setPdfSize({ width, height });
+    
+    // Store base size for consistent pin positioning
+    if (basePdfSize.width === 0) {
+      setBasePdfSize({ 
+        width: width / renderScale, 
+        height: height / renderScale 
+      });
+    }
   }}
+  onLoadError={(error) => console.error('Page load error:', error)}
+  loading={null}
+  renderMode="canvas"
 />
   </Document>
 
 
-          {/* Pins */}
-          {pins.map((pin, idx) => {
-  // Calculate position relative to the PDF's actual rendered size
-  const scaledX = pin.x * pdfSize.width;
-  const scaledY = pin.y * pdfSize.height;
+          {/* Pins - Use base size for consistent positioning */}
+          {basePdfSize.width > 0 && pins.map((pin, idx) => {
+  // Calculate position using base size - completely stable
+  const scaledX = pin.x * basePdfSize.width * renderScale;
+  const scaledY = pin.y * basePdfSize.height * renderScale;
 
  const z =
             selectedPin?.id === pin.id ? 3000 :
@@ -444,38 +468,15 @@ function handlePdfClick(e) {
         left: scaledX,
         transform: `translate(-50%, -50%) scale(${1 / scale})`,
         pointerEvents: 'auto',
-        zIndex: 10,
-        transition: 'transform 0.3s ease',
-         zIndex: z
+        zIndex: z,
         
       }}
       onMouseEnter={() => setHoveredPinId(pin.id)}
-              onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
+      onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
       onClick={() => { setSelectedPin({ ...pin, index: idx })}}
       title={`Pin #${idx + 1}`}
     >
       <MapPin pin={pin} hovered={hoveredPinId === pin.id}/>
-
-      {/*isOverDue && (
-        <div
-          style={{
-            position: "absolute",
-            top: "-10px",
-            right: "-10px",
-            backgroundColor: "red",
-            color: "white",
-            borderRadius: "50%",
-            padding: "3px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "20px",
-            height: "20px",
-          }}
-        >
-          <CalendarDaysIcon size={12} />
-        </div>
-      )*/}
     </div>
   );
 })}
@@ -504,12 +505,12 @@ function handlePdfClick(e) {
 >
   {/* Fixed Header */}
   <div className="px-5 py-4 border-b border-gray-200 shrink-0">
-    <DrawerHeader pin={selectedPin} onClose={closeDrawer} />
+    <DrawerHeader pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={handlePhotoUploaded} />
   </div>
 
   {/* Scrollable Content */}
   <div className="flex-1 overflow-y-auto ">
-    <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment} />
+    <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment}  photoUploadTrigger={photoUploadTrigger} />
   </div>
 
   {/* Fixed Footer */}

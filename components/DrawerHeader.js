@@ -1,56 +1,170 @@
-import { EyeIcon, Paperclip, Scissors, X } from 'lucide-react';
-import { useState } from 'react';
-import CategoryComboBox from './CategoryComboBox';
-import { useRouter } from 'next/navigation';
-import { useAtom } from 'jotai';
-import { focusOnPinAtom } from '@/store/atoms';
+import { EyeIcon, Paperclip, Scissors, X, Trash2 } from 'lucide-react'
+import { useRef } from 'react'
+import CategoryComboBox from './CategoryComboBox'
+import { useRouter } from 'next/navigation'
+import { useAtom } from 'jotai'
+import { focusOnPinAtom, pinsAtom } from '@/store/atoms'
+import { supabase } from '@/utils/supabase/client'
+import { useUserData } from '@/hooks/useUserData'
 
-export default function DrawerHeader({ pin, onClose }) {
-  const [focusOnPin, setFocusOnPin] = useAtom(focusOnPinAtom);
-  const router = useRouter();
-console.log('DrawerHeader pin', pin);
+
+export default function DrawerHeader({ pin, onClose, onPhotoUploaded }) {
+  const [, setFocusOnPin] = useAtom(focusOnPinAtom)
+  const [pins, setPins] = useAtom(pinsAtom)
+  const router = useRouter()
+  const fileInputRef = useRef(null)
+
+  const {user, profile, organization} = useUserData()
+
   const goToCanvas = () => {
-    console.log('header', pin)
-    setFocusOnPin(pin);
-    router.push(`/projects/${pin.project_id}/${pin?.plans?.id}`);
-  };
+    setFocusOnPin(pin)
+    router.push(`/${pin.projects?.organization_id}/projects/${pin.project_id}/${pin?.plans?.id}`)
+  }
 
   const activateSnippetMode = () => {
-    // Active le mode snippet et navigue vers la page du plan
-    setFocusOnPin({ ...pin, snippetMode: true });
-    router.push(`/projects/${pin.project_id}/${pin?.plans?.id}/snippet/${pin.id}`);
-  };
+    setFocusOnPin(pin.id)
+    router.push(
+      `${pin.projects?.organization_id}/projects/${pin.project_id}/${pin?.plans?.id}/snippet/${pin.id}`
+    )
+  }
+
+  // 📎 Upload image → create pdf_pin + event
+  const onUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e) => {
+    console.log('File input changed', e.target.files)
+    const file = e.target.files?.[0]
+    if (!file ) return
+
+    try {
+      // 1️⃣ Upload to storage
+      const filePath = `${pin.project_id}/${crypto.randomUUID()}-${file.name}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('pinphotos')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const {data: { publicUrl }} = await supabase.storage
+        .from('pinphotos')
+        .getPublicUrl(filePath)
+
+      // 2️⃣ Create new pins_photos
+      const { data: newPin, error: pinError } = await supabase
+        .from('pins_photos')
+        .insert({
+          project_id: pin.project_id,
+          pin_id: pin.id,
+          public_url: publicUrl,
+          sender_id: user.auth_id
+        })
+        .select()
+        .single()
+
+      if (pinError) throw pinError
+
+      // 3️⃣ Create event
+      const { error: eventError } = await supabase.from('events').insert({
+        pin_id: pin.id,
+        category: 'photo_upload',
+        pin_photo_id: newPin.id,
+        project_id: pin.project_id,
+        user_id: user.auth_id
+      })
+
+      if (eventError) throw eventError
+
+      // 4️⃣ Notify parent component
+      console.log('onPhotoUploaded exists?', !!onPhotoUploaded)
+      if (onPhotoUploaded) {
+        console.log('Calling onPhotoUploaded')
+        onPhotoUploaded()
+      } else {
+        console.log('onPhotoUploaded is not defined!')
+      }
+
+      
+    } catch (err) {
+      console.error(err)
+      alert('Upload failed')
+    } finally {
+      e.target.value = ''
+    }
+  }
+
+  // 🗑 Soft delete pin
+  const deletePin = async () => {
+    if (!pin?.id) return
+    if (!confirm('Are you sure you want to delete this pin?')) return
+
+    const { error } = await supabase.rpc('soft_delete_pin', { p_pin_id: pin.id })
+    if (error) {
+      console.error(error)
+      alert('Failed to delete pin')
+    } else {
+      setPins(prev => prev.filter(p => p.id !== pin.id))
+      onClose()
+    }
+  }
 
   return (
-    <div className="div flex flex-row justify-between items-center">
-      {/* Header content */}
+    <div className="flex flex-row justify-between items-center">
       <div className="text-sm">
         <CategoryComboBox pin={pin} />
       </div>
+
       <div className="flex flex-row gap-2 items-center">
-        { pin.plans && <button
-          className="hover:bg-gray-100 hover:text-gray-800 rounded-full p-2 text-gray-500"
-          onClick={goToCanvas}
-        >
-          <EyeIcon size={20} />
-        </button>}
+        {pin.plans && (
+          <button
+            className="hover:bg-gray-100 rounded-full p-2 text-gray-500"
+            onClick={goToCanvas}
+          >
+            <EyeIcon size={20} />
+          </button>
+        )}
+
         <button
-          className="hover:bg-pink-100 hover:text-pink-600 rounded-full p-2 text-pink-500"
+          className="hover:bg-pink-100 rounded-full p-2 text-pink-500"
           onClick={activateSnippetMode}
           title="Créer un snippet du plan"
         >
           <Scissors size={20} />
         </button>
-        <button className="hover:bg-gray-100 hover:text-gray-800 rounded-full p-2 text-gray-500">
+
+        {/* 📎 Upload photo */}
+        <button
+          className="hover:bg-gray-100 rounded-full p-2 text-gray-500"
+          onClick={onUploadClick}
+          title="Attach photo"
+        >
           <Paperclip size={20} />
         </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+
         <button
-          className="hover:bg-gray-100 hover:text-gray-800 rounded-full p-2 text-gray-500"
+          className="hover:bg-red-100 rounded-full p-2 text-red-500"
+          onClick={deletePin}
+        >
+          <Trash2 size={20} />
+        </button>
+
+        <button
+          className="hover:bg-gray-100 rounded-full p-2 text-gray-500"
           onClick={onClose}
         >
           <X size={20} />
         </button>
       </div>
     </div>
-  );
+  )
 }

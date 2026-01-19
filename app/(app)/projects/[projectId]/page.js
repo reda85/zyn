@@ -7,7 +7,7 @@ import { selectedProjectAtom } from '@/store/atoms'
 import { supabase } from '@/utils/supabase/client'
  
 export default function Projectreroute({params}) {
-    const {projectId} = params;
+    const {projectId,organizationId} = params;
     const [selectedProject, setProject] = useAtom(selectedProjectAtom);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -25,7 +25,7 @@ export default function Projectreroute({params}) {
                 if (error) console.error('Error fetching project supabase:', error);
 if(data) console.log('Fetched project in reroute:', data);
                 setProject(data)
-                router.push(`/projects/${projectId}/${data[0]?.id}`);
+                router.push(`${organizationId}/projects/${projectId}/${data[0]?.id}`);
             } catch (error) {
                 console.error('Error fetching project:', error);
                 setIsLoading(false);

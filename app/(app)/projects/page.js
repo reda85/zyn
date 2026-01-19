@@ -13,7 +13,8 @@ import { useUserData } from '@/hooks/useUserData'
 
 const lexend = Outfit({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
-export default function ProjectsPage() {
+export default function ProjectsPage({params}) {
+  const {organizationId} = params;
   const [projects, setProjects] = useState([])
   const [newProjectName, setNewProjectName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -31,16 +32,48 @@ export default function ProjectsPage() {
   const menuRef = useRef(null)
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      const { data } = await supabase
-        .from('projects')
-        .select('*,plans(*),organizations(*,members(*))')
-        .eq('organization_id',  organization?.id)
-        .order('created_at', { ascending: false })
-      setProjects(data || [])
+  const fetchProjects = async () => {
+    if (!organization?.id || !user?.id || !profile?.id) return;
+
+    // Check if user is admin
+    const isAdmin = profile?.role === 'admin'; // Adjust based on your role field
+
+    let query = supabase
+      .from('projects')
+      .select('*,plans(*),organizations(*,members(*))')
+      .eq('organization_id', organization?.id)
+      .order('created_at', { ascending: false });
+
+    // If not admin, filter by user's assigned projects
+    if (!isAdmin) {
+      // First get project IDs the user has access to
+      const { data: memberProjects, error } = await supabase
+        .from('members_projects')
+        .select('project_id')
+        .eq('member_id', profile?.id);
+        if (error) {
+          console.error('Error fetching member projects:', error);
+          setProjects([]);
+          return;
+        }
+        if(memberProjects) { console.log('Member Projects:', memberProjects); }
+      
+      const projectIds = memberProjects?.map(mp => mp.project_id) || [];
+      
+      if (projectIds.length === 0) {
+        setProjects([]);
+        return;
+      }
+      
+      query = query.in('id', projectIds);
     }
-    fetchProjects()
-  }, [refresh, organization])
+
+    const { data } = await query;
+    setProjects(data || []);
+  };
+
+  fetchProjects();
+}, [refresh, organization, user, profile]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -125,7 +158,7 @@ export default function ProjectsPage() {
         {/* Navigation Links */}
         <nav className="flex-1 px-4 space-y-2">
           <Link 
-            href="/projects" 
+            href={`/${organizationId}/projects`} 
             className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 bg-primary/10 text-primary rounded-xl shadow-sm border border-primary/20"
           >
             <FolderKanban className="w-5 h-5" /> Projects
@@ -256,7 +289,7 @@ export default function ProjectsPage() {
                   }
                   setSelectedProject(proj)
                   setSelectedPlan(proj.plans[0])
-                  router.push(`/projects/${proj.id}/${proj?.plans[0]?.id}`)
+                  router.push(`${organizationId}/projects/${proj.id}/${proj?.plans[0]?.id}`)
                 }}
               >
                 <div className="flex items-start justify-between mb-3 pr-8">

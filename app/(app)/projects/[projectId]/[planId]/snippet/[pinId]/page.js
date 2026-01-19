@@ -13,7 +13,7 @@ const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 's
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 export default function SnippetPage({ params }) {
-  const { projectId, planId, pinId } = params;
+  const { projectId, planId, pinId, organizationId } = params;
   const router = useRouter();
 
   const [plan, setPlan] = useState(null);
@@ -63,6 +63,7 @@ export default function SnippetPage({ params }) {
         .from('pdf_pins')
         .select('*')
         .eq('id', pinId)
+        .is('deleted_at', null)
         .single();
 
       setPlan(planData);
@@ -398,7 +399,7 @@ export default function SnippetPage({ params }) {
 
       if (photoError) throw photoError;
 
-      router.push(`/projects/${projectId}/${planId}`);
+      router.push(`${organizationId}/projects/${projectId}/${planId}`);
       
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
