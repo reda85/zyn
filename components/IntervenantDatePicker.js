@@ -183,12 +183,13 @@ export default function IntervenantDatePicker({ pin }) {
     console.log('selectedIntervenant', selectedIntervenant);
     
     // Vérifier si l'intervenant a réellement changé
-    const hasIntervenantChanged = selectedIntervenant?.id !== previousIntervenantIdRef.current;
+    const currentId = selectedIntervenant?.id ?? null;
+    const hasIntervenantChanged = currentId !== previousIntervenantIdRef.current;
     
-    if (hasIntervenantChanged && selectedIntervenant?.id !== 0 && selectedIntervenant?.id !== null) {
+    if (hasIntervenantChanged && currentId !== 0 && currentId !== null) {
       updateAssignedIntervenant(selectedIntervenant);
       // Mettre à jour la ref après l'envoi de la notification
-      previousIntervenantIdRef.current = selectedIntervenant.id;
+      previousIntervenantIdRef.current = currentId;
     }
   }, [selectedIntervenant]);
 
