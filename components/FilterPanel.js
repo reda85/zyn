@@ -85,7 +85,7 @@ useEffect(() => {
   const [dateTags, setDateTags] = useState([]);
 
   const applyFilters = () => {
-    let filtered = [...allPins];
+    let filtered = [...pins];
     console.log('filtered1', filtered);
 
     if (filters.me) {
@@ -139,7 +139,7 @@ useEffect(() => {
 
   useEffect(() => {
     applyFilters();
-  }, [allPins,filters, categoryTags, dateTags, statusTags,selectedMemberId]);
+  }, [pins,filters, categoryTags, dateTags, statusTags,selectedMemberId]);
 
   useEffect(() => {
     if (open && buttonRef.current) {
