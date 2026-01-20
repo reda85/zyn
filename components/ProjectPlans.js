@@ -129,7 +129,7 @@ export default function ProjectPlans({ project, onClose }) {
         }))
       }, 200)
 
-      const response = await fetch('http://localhost:3001/api/upload-pdf', {
+      const response = await fetch('https://zaynbackend-production.up.railway.app/api/upload-pdf', {
         method: 'POST',
         body: formData
       })
