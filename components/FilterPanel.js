@@ -139,7 +139,7 @@ useEffect(() => {
 
   useEffect(() => {
     applyFilters();
-  }, [filters, categoryTags, dateTags, statusTags,selectedMemberId]);
+  }, [allPins,filters, categoryTags, dateTags, statusTags,selectedMemberId]);
 
   useEffect(() => {
     if (open && buttonRef.current) {
