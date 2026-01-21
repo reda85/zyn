@@ -580,7 +580,7 @@ const handleCreateTask = async () => {
 
       // Call your PDF generation endpoint
       try {
-        const response = await fetch("http://localhost:3001/api/report", {
+        const response = await fetch("https://zaynbackend-production.up.railway.app/api/report", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
