@@ -5,11 +5,7 @@ import { useUser } from '@/components/UserContext';
 import { createBrowserClient } from '@supabase/ssr';
 import { useAtom } from 'jotai';
 import { selectedOrganizationAtom } from '@/store/atoms';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { supabase } from '@/utils/supabaseClient';
 
 export function useUserData() {
   const user = useUser();
