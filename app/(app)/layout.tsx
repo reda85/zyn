@@ -2,10 +2,12 @@ import { createClient } from '../../utils/supabase/server';
 import { redirect } from 'next/navigation';
 
 import { UserProviderWrapper } from '../../components/UserPoviderWrapper';
-import { useUserData } from '@/hooks/useUserData';
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const {user} = useUserData();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   console.log('user', user)
 
