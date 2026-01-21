@@ -33,12 +33,13 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded }) {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = async (e) => {
-    console.log('File input changed', e.target.files)
-    const file = e.target.files?.[0]
-    if (!file ) return
+const handleFileChange = async (e) => {
+  const files = Array.from(e.target.files || []).slice(0, 10)
 
-    try {
+  if (files.length === 0) return
+
+  try {
+    for (const file of files) {
       // 1️⃣ Upload to storage
       const filePath = `${pin.project_id}/${crypto.randomUUID()}-${file.name}`
 
@@ -48,52 +49,51 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded }) {
 
       if (uploadError) throw uploadError
 
-      const {data: { publicUrl }} = await supabase.storage
+      const {
+        data: { publicUrl },
+      } = await supabase.storage
         .from('pinphotos')
         .getPublicUrl(filePath)
 
-      // 2️⃣ Create new pins_photos
-      const { data: newPin, error: pinError } = await supabase
+      // 2️⃣ Create pins_photos record
+      const { data: newPinPhoto, error: pinPhotoError } = await supabase
         .from('pins_photos')
         .insert({
           project_id: pin.project_id,
           pin_id: pin.id,
           public_url: publicUrl,
-          sender_id: user.auth_id
+          sender_id: user.auth_id,
         })
         .select()
         .single()
 
-      if (pinError) throw pinError
+      if (pinPhotoError) throw pinPhotoError
 
       // 3️⃣ Create event
       const { error: eventError } = await supabase.from('events').insert({
         pin_id: pin.id,
         category: 'photo_upload',
-        pin_photo_id: newPin.id,
+        pin_photo_id: newPinPhoto.id,
         project_id: pin.project_id,
-        user_id: user.auth_id
+        user_id: user.auth_id,
       })
 
       if (eventError) throw eventError
-
-      // 4️⃣ Notify parent component
-      console.log('onPhotoUploaded exists?', !!onPhotoUploaded)
-      if (onPhotoUploaded) {
-        console.log('Calling onPhotoUploaded')
-        onPhotoUploaded()
-      } else {
-        console.log('onPhotoUploaded is not defined!')
-      }
-
-      
-    } catch (err) {
-      console.error(err)
-      alert('Upload failed')
-    } finally {
-      e.target.value = ''
     }
+
+    // 4️⃣ Notify parent once after all uploads
+    if (onPhotoUploaded) {
+      onPhotoUploaded()
+    }
+  } catch (err) {
+    console.error(err)
+    alert('Upload failed')
+  } finally {
+    // Important: allow re-selecting the same files later
+    e.target.value = ''
   }
+}
+
 
   // 🗑 Soft delete pin
   const deletePin = async () => {
@@ -145,6 +145,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded }) {
 
         <input
           ref={fileInputRef}
+          multiple
           type="file"
           accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
           onChange={handleFileChange}

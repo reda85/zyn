@@ -1,6 +1,6 @@
 'use client'
 import { useAtom } from "jotai"
-import { categoriesAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, statusesAtom } from "@/store/atoms"
+import { categoriesAtom, pinsAtom, projectPlansAtom, selectedPinAtom, selectedPlanAtom, statusesAtom } from "@/store/atoms"
 import NavBar from "@/components/NavBar"
 import { selectedProjectAtom } from "@/store/atoms"
 import { use, useEffect, useState } from "react"
@@ -125,12 +125,29 @@ export default function Tasks({ params }) {
 const [newTaskName, setNewTaskName] = useState('')
 const [newTaskDescription, setNewTaskDescription] = useState('')
 const [isCreating, setIsCreating] = useState(false)
+const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
 
     
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null);
      const { projectId,organizationId } = params;
      const {user,profile,organization} = useUserData();
+
+
+
+     const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+const [reportFields, setReportFields] = useState({
+  description: true,
+  photos: true,
+  snapshot: true,
+  assignedTo: true,
+  dueDate: true,
+  category: true,
+  status: true,
+})
+
+
+
 
     const handleDueDateUpdate = (pinId, date) => {
       console.log('setPins2')
@@ -209,7 +226,7 @@ const handleDownload = async () => {
      useEffect(() => {
     const fetchProject = async () => {
       const { data } = await supabase.from('projects').select('id,created_at,name,plans(id,name)').is('plans.deleted_at',null).eq('id', projectId).single();
-     if(data) { setProject(data)}
+     if(data) { setProject(data); setProjectPlans(data.plans)}
     }
     fetchProject()
   }, [projectId])
@@ -523,7 +540,7 @@ const handleCreateTask = async () => {
     {/* ... selection count ... */}
     <div className="flex gap-3">
       <button 
-        onClick={handleDownload}
+        onClick={() => setIsReportModalOpen(true)}
         className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center gap-2"
       >
         <Download className="w-4 h-4" />
@@ -548,6 +565,46 @@ const handleCreateTask = async () => {
     </div>
   </div>
 )}
+
+
+{isReportModalOpen && (
+  <ReportFieldsModal
+    fields={reportFields}
+    setFields={setReportFields}
+    onClose={() => setIsReportModalOpen(false)}
+    onConfirm={async () => {
+      setIsReportModalOpen(false)
+
+      // Get selected pins
+      const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
+
+      // Call your PDF generation endpoint
+      try {
+        const response = await fetch("http://localhost:3001/api/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            selectedIds: selectedPinsArr.map((p) => p.id),
+            fields: reportFields, // pass user choices
+          }),
+        })
+        if (!response.ok) throw new Error("Erreur lors de la génération PDF")
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = "rapport-taches.pdf"
+        a.click()
+        window.URL.revokeObjectURL(url)
+      } catch (err) {
+        console.error(err)
+        alert("Impossible de générer le rapport")
+      }
+    }}
+  />
+)}
+
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -691,5 +748,47 @@ const handleCreateTask = async () => {
   
   {(!categories || !statuses) && <LoadingScreen projectId={projectId} />}
   </>
+  )
+}
+
+function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
+  const toggle = (key) => setFields((f) => ({ ...f, [key]: !f[key] }))
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-card w-full max-w-md rounded-xl border border-border/50 shadow-xl p-6">
+        <h3 className="text-lg font-bold mb-4">Sélection des champs du rapport</h3>
+
+        <div className="space-y-3">
+          {Object.entries(fields).map(([key, value]) => (
+            <label key={key} className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={value}
+                onChange={() => toggle(key)}
+              />
+              <span className="text-sm capitalize">
+                {key.replace(/([A-Z])/g, " $1")}
+              </span>
+            </label>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded-lg hover:bg-secondary/50"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
+          >
+            Générer PDF
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

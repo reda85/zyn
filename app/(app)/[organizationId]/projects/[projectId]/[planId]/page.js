@@ -7,7 +7,7 @@ import ImageCanvas from '@/components/ImageCanvas';
 import PinsList from '@/components/PinsList';
 import NavBar from '@/components/NavBar';
 import { useAtom } from 'jotai';
-import { categoriesAtom, filteredPinsAtom, pinsAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
+import { categoriesAtom, filteredPinsAtom, pinsAtom, projectPlansAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
 import { useUser } from '@/components/UserContext';
 import { useUserData } from '@/hooks/useUserData';
 import Image from 'next/image';
@@ -21,7 +21,7 @@ export default function ProjectDetail({ params }) {
   const [statuses, setStatuses] = useAtom(statusesAtom)
   const [categories, setCategories] = useAtom(categoriesAtom)
   const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom)
-
+const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
   const { user, profile, organization } = useUserData();
 
   console.log('uuuser', user, profile, organization)
@@ -53,6 +53,7 @@ export default function ProjectDetail({ params }) {
       .is('plans.deleted_at',null)
       .single()
     setProject(data)
+    setProjectPlans(data.plans)
   }
 
   const fetchPlan = async () => {

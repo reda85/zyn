@@ -15,6 +15,7 @@ import CreatedByMeFilter from './CreatedByMeFilter';
 import DateFilter from './DateFilter';
 import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
+import ProjectPlanFilter from './ProjectPlanFilter'; // ✅ Import the new filter
 
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
@@ -35,16 +36,18 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
     category: false,
     date: false,
     overdue: false,
+    projectPlan: false, // ✅ Add project plan filter state
   });
 
   const [categoryTags, setCategoryTags] = useState([]);
   const [dateTags, setDateTags] = useState([]);
+  const [projectPlanTags, setProjectPlanTags] = useState([]); // ✅ Add project plan tags state
 
   const applyFilters = () => {
     let filtered = [...originalPins];
 
     if (filters.me) {
-      filtered = filtered.filter((pin) => pin.created_by === user.id ); // Replace 'me' with actual user logic
+      filtered = filtered.filter((pin) => pin.created_by === user.id );
     }
 
     if (filters.category && categoryTags.length > 0) {
@@ -55,47 +58,54 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
       filtered = filtered.filter((pin) => {
         const date = dayjs(pin.created_at);
         return dateTags.some((tag) => {
-          if (tag === 'Aujourd’hui') return date.isToday();
+          if (tag === 'Aujourd\'hui') return date.isToday();
           if (tag === 'Cette semaine') return date.isSameOrAfter(dayjs().startOf('week'));
           if (tag === 'Ce mois-ci') return date.isSameOrAfter(dayjs().startOf('month'));
           return false;
         });
       });
     }
+
     if (statusTags.length > 0) {
       console.log('statusTags', statusTags);
       console.log('filtered', filtered);
-  filtered = filtered.filter((pin) => statusTags.includes(pin.status_id));
-}
+      filtered = filtered.filter((pin) => statusTags.includes(pin.status_id));
+    }
 
-if (filters.overdue) {
-  filtered = filtered.filter((pin) => {
-    return pin.due_date && dayjs(pin.due_date).isBefore(dayjs(), 'day');
-  });
-}
+    if (filters.overdue) {
+      filtered = filtered.filter((pin) => {
+        return pin.due_date && dayjs(pin.due_date).isBefore(dayjs(), 'day');
+      });
+    }
+
+    // ✅ Add project plan filter logic
+    if (filters.projectPlan && projectPlanTags.length > 0) {
+      filtered = filtered.filter((pin) => projectPlanTags.includes(pin.plans?.name));
+    }
+
     setPins(filtered);
   };
 
   useEffect(() => {
     applyFilters();
-  }, [filters, categoryTags, dateTags, statusTags]);
+  }, [filters, categoryTags, dateTags, statusTags, projectPlanTags]); // ✅ Add projectPlanTags to dependencies
 
   useEffect(() => {
-  if (open && buttonRef.current) {
-    const rect = buttonRef.current.getBoundingClientRect();
-    const panelWidth = 384; // w-96 = 384px
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const panelWidth = 384;
 
-    const left = Math.min(
-      rect.left + window.scrollX,
-      window.innerWidth - panelWidth - 16 // prevent going off screen (16px padding)
-    );
+      const left = Math.min(
+        rect.left + window.scrollX,
+        window.innerWidth - panelWidth - 16
+      );
 
-    setPosition({
-      top: rect.bottom + window.scrollY + 8,
-      left,
-    });
-  }
-}, [open]);
+      setPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left,
+      });
+    }
+  }, [open]);
 
 
   useEffect(() => {
@@ -121,8 +131,8 @@ if (filters.overdue) {
         className="flex items-center gap-2 px-2 py-2 bg-stone-100 rounded-md shadow hover:bg-stone-200 border border-gray-300"
       >
         <div className="flex flex-row items-center gap-2">
-        <ListFilterIcon className="h-5 w-5" />
-        <span className="text-xs font-semibold">Filtres</span>
+          <ListFilterIcon className="h-5 w-5" />
+          <span className="text-xs font-semibold">Filtres</span>
         </div>
       </button>
 
@@ -131,7 +141,7 @@ if (filters.overdue) {
           <div
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
-           className="absolute z-50 w-[24rem] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 shadow-lg py-4 rounded-md"
+            className="absolute z-50 w-[24rem] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 shadow-lg py-4 rounded-md"
           >
             <div className="flex justify-between items-center mb-3 px-4">
               <h3 className="text-sm font-semibold">Filtres</h3>
@@ -167,16 +177,28 @@ if (filters.overdue) {
               tags={dateTags}
               setTags={setDateTags}
             />
+
             <StatusFilter
-  activeStatuses={statusTags}
-  setActiveStatuses={setStatusTags}
-/>
-<OverdueFilter
-  active={filters.overdue}
-  onToggle={(value) =>
-    setFilters((prev) => ({ ...prev, overdue: value }))
-  }
-/>
+              activeStatuses={statusTags}
+              setActiveStatuses={setStatusTags}
+            />
+
+            <OverdueFilter
+              active={filters.overdue}
+              onToggle={(value) =>
+                setFilters((prev) => ({ ...prev, overdue: value }))
+              }
+            />
+
+            {/* ✅ Add ProjectPlanFilter component */}
+            <ProjectPlanFilter
+              active={filters.projectPlan}
+              onToggle={(value) =>
+                setFilters((prev) => ({ ...prev, projectPlan: value }))
+              }
+              selectedPlans={projectPlanTags}
+              setSelectedPlans={setProjectPlanTags}
+            />
 
           </div>,
           document.body
