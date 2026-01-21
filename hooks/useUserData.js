@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useUser } from '@/components/UserContext';
-import { createBrowserClient } from '@supabase/ssr';
 import { useAtom } from 'jotai';
 import { selectedOrganizationAtom } from '@/store/atoms';
-import { supabase } from '@/utils/supabaseClient';
+import { supabase } from '@/utils/supabase/client';
 
 export function useUserData() {
   const user = useUser();
@@ -44,7 +43,11 @@ export function useUserData() {
     };
 
     fetchUserData();
-  }, [user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]); 
+ 
 
   return { user, profile, organization };
 }
