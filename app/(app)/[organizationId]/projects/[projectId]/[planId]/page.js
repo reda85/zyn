@@ -213,9 +213,9 @@ const fetchPins = async () => {
             user={profile}
           />
           )}
-        {/*  {selectedPlan?.webp_url && (
+        {/*  {selectedPlan?.png_url && (
             <ImageCanvas
-              imageUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.webp_url).data.publicUrl}
+              imageUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.png_url).data.publicUrl}
               pins={pins}
               project={project}
               plan={selectedPlan}

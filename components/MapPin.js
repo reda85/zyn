@@ -28,7 +28,7 @@ const statusColors = {
   Termine: "bg-red-600"
 };
 
-export default function MapPin({ pin, hovered = false }) {
+export default function MapPin({ pin, dragging=false, hovered = false }) {
   const [selectedPin] = useAtom(selectedPinAtom);
   const [categories] = useAtom(categoriesAtom);
   const [statuses] = useAtom(statusesAtom);
@@ -51,7 +51,7 @@ export default function MapPin({ pin, hovered = false }) {
   return (
     <div className="relative flex flex-col items-center">
       {/* Popover: only when NOT selected and hovered */}
-      {!isSelected && hovered && (
+      {!isSelected && hovered && !dragging && (
         <div
           className="
             absolute bottom-full left-1/2 -translate-x-1/2

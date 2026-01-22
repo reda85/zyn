@@ -572,7 +572,7 @@ const handleCreateTask = async () => {
     fields={reportFields}
     setFields={setReportFields}
     onClose={() => setIsReportModalOpen(false)}
-    onConfirm={async () => {
+    onConfirm={async (displayMode) => {
       setIsReportModalOpen(false)
 
       // Get selected pins
@@ -586,7 +586,8 @@ const handleCreateTask = async () => {
           body: JSON.stringify({
             projectId,
             selectedIds: selectedPinsArr.map((p) => p.id),
-            fields: reportFields, // pass user choices
+            fields: reportFields,
+            displayMode: displayMode // pass user choices
           }),
         })
         if (!response.ok) throw new Error("Erreur lors de la génération PDF")
@@ -752,39 +753,110 @@ const handleCreateTask = async () => {
 }
 
 function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
+  const [displayMode, setDisplayMode] = useState("list") // "list" ou "table"
+  
   const toggle = (key) => setFields((f) => ({ ...f, [key]: !f[key] }))
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-card w-full max-w-md rounded-xl border border-border/50 shadow-xl p-6">
-        <h3 className="text-lg font-bold mb-4">Sélection des champs du rapport</h3>
+        <h3 className="text-lg font-bold mb-4">Options du rapport</h3>
 
-        <div className="space-y-3">
-          {Object.entries(fields).map(([key, value]) => (
-            <label key={key} className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={value}
-                onChange={() => toggle(key)}
-              />
-              <span className="text-sm capitalize">
-                {key.replace(/([A-Z])/g, " $1")}
-              </span>
-            </label>
-          ))}
+        {/* Display Mode Selection */}
+        <div className="mb-6">
+          <p className="text-sm font-semibold text-foreground mb-3">Mode d'affichage</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDisplayMode("list")}
+              className={clsx(
+                "flex-1 px-4 py-3 rounded-lg border transition-all text-sm font-medium",
+                displayMode === "list"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/30 text-foreground border-border/50 hover:bg-secondary/50"
+              )}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <FileText className="w-5 h-5" />
+                <span>Liste détaillée</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => setDisplayMode("table")}
+              className={clsx(
+                "flex-1 px-4 py-3 rounded-lg border transition-all text-sm font-medium",
+                displayMode === "table"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/30 text-foreground border-border/50 hover:bg-secondary/50"
+              )}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <svg 
+                  className="w-5 h-5" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" 
+                  />
+                </svg>
+                <span>Tableau compact</span>
+              </div>
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            {displayMode === "list" 
+              ? "Affichage détaillé avec snapshots et photos" 
+              : "Vue tableau compacte idéale pour l'impression"}
+          </p>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        {/* Fields Selection */}
+        <div className="border-t border-border/50 pt-4">
+          <p className="text-sm font-semibold text-foreground mb-3">Champs à inclure</p>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {Object.entries(fields).map(([key, value]) => (
+              <label 
+                key={key} 
+                className="flex items-center gap-3 hover:bg-secondary/30 p-2 rounded-lg transition-colors cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={value}
+                  onChange={() => toggle(key)}
+                  className="w-4 h-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/20"
+                />
+                <span className="text-sm capitalize">
+                  {key === "assignedTo" && "Assigné à"}
+                  {key === "dueDate" && "Échéance"}
+                  {key === "category" && "Catégorie"}
+                  {key === "status" && "Statut"}
+                  {key === "description" && "Description"}
+                  {key === "photos" && "Photos"}
+                  {key === "snapshot" && "Snapshot du plan"}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border/50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg hover:bg-secondary/50"
+            className="px-4 py-2 text-sm rounded-lg hover:bg-secondary/50 transition-colors"
           >
             Annuler
           </button>
           <button
-            onClick={onConfirm}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
+            onClick={() => onConfirm(displayMode)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-all flex items-center gap-2"
           >
+            <Download className="w-4 h-4" />
             Générer PDF
           </button>
         </div>
