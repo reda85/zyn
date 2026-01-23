@@ -55,21 +55,23 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(0.25);
-  const [renderScale] = useState(3); // Fixed at 2 - never changes
+  const [renderScale] = useState(3);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
   const [categories, setCategories] = useAtom(categoriesAtom);
   const [statuses, setStatuses] = useAtom(statusesAtom);
-  const [pins, setPins] = useAtom(filteredPinsAtom);
+  const [allPins, setAllPins] = useAtom(pinsAtom);
+const [pins] = useAtom(filteredPinsAtom); // read-only
+
   const [showPins, setShowPins] = useState(true);
   const [pinMode, setPinMode] = useState(false);
   const [mousePos, setMousePos] = useState(null);
   const [hoveredPinId, setHoveredPinId] = useState(null);
   const [ghostPinPos, setGhostPinPos] = useState(null);
   const [pdfSize, setPdfSize] = useState({ width: 0, height: 0 });
-  const [basePdfSize, setBasePdfSize] = useState({ width: 0, height: 0 }); // Store original size at scale 1
+  const [basePdfSize, setBasePdfSize] = useState({ width: 0, height: 0 });
   const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
   const [newComment, setNewComment] = useState(null)
   const containerRef = useRef(null);
@@ -78,214 +80,261 @@ export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
   const [touches, setTouches] = useState([]);
   const [initialDistance, setInitialDistance] = useState(null);
   const [initialScale, setInitialScale] = useState(scale);
-const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
-const [draggingPin, setDraggingPin] = useState(null);
-const [pinDragStart, setPinDragStart] = useState(null);
+  const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
+  const [draggingPin, setDraggingPin] = useState(null);
+  const [pinDragStart, setPinDragStart] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const draggingPinRef = useRef(null);
 
-
-const handlePinMouseDown = (e, pin) => {
-  e.stopPropagation();
-  if (pinMode) return; // Don't drag in pin mode
-  
-  const pdfElement = pageRef.current;
-  if (!pdfElement) return;
-  
-  const pdfRect = pdfElement.getBoundingClientRect();
-  
-  setDraggingPin(pin.id);
-  setPinDragStart({
-    mouseX: e.clientX,
-    mouseY: e.clientY,
-    pinX: pin.x,
-    pinY: pin.y,
-    pdfRect
-  });
-};
-
-const handlePinMouseMove = (e) => {
-  if (!draggingPin || !pinDragStart) return;
-  
-  // Calculate mouse movement in PDF coordinates
-  const mouseDeltaX = (e.clientX - pinDragStart.mouseX) / scale;
-  const mouseDeltaY = (e.clientY - pinDragStart.mouseY) / scale;
-  
-  // Convert to normalized coordinates (0-1)
-  const newX = pinDragStart.pinX + (mouseDeltaX / (basePdfSize.width * renderScale));
-  const newY = pinDragStart.pinY + (mouseDeltaY / (basePdfSize.height * renderScale));
-  
-  // Clamp to PDF bounds
-  const clampedX = Math.max(0, Math.min(1, newX));
-  const clampedY = Math.max(0, Math.min(1, newY));
-  
-  setPins(prevPins => 
-    prevPins.map(p => 
-      p.id === draggingPin 
-        ? { ...p, x: clampedX, y: clampedY }
-        : p
-    )
-  );
-};
-
-const handlePinMouseUp = async (e) => {
-  if (!draggingPin) return;
-  
-  const updatedPin = pins.find(p => p.id === draggingPin);
-  
-  if (updatedPin) {
-    // Update the database
-    const { error } = await supabase
-      .from('pdf_pins')
-      .update({ x: updatedPin.x, y: updatedPin.y })
-      .eq('id', updatedPin.id);
+  const handlePinMouseDown = (e, pin) => {
+    e.stopPropagation();
+    if (pinMode) return;
     
-    if (error) {
-      console.error('Error updating pin position:', error);
-    } else {
-      console.log('Pin position updated successfully');
+    const pdfElement = pageRef.current;
+    if (!pdfElement) return;
+    
+    const pdfRect = pdfElement.getBoundingClientRect();
+    
+    draggingPinRef.current = pin.id;
+    setIsDragging(false); // Reset dragging state
+    
+    setPinDragStart({
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      pinX: pin.x,
+      pinY: pin.y,
+      pinId: pin.id,
+      pdfRect,
+      hasMoved: false
+    });
+  };
+
+  const handlePinMouseMove = useCallback((e) => {
+    if (!pinDragStart) return;
+    
+    const deltaX = Math.abs(e.clientX - pinDragStart.mouseX);
+    const deltaY = Math.abs(e.clientY - pinDragStart.mouseY);
+    const hasMoved = deltaX > 5 || deltaY > 5;
+    
+    if (!hasMoved) return;
+    
+    if (!pinDragStart.hasMoved) {
+      setPinDragStart(prev => ({ ...prev, hasMoved: true }));
+      setDraggingPin(pinDragStart.pinId);
+      setIsDragging(true); // Mark that we're actually dragging
     }
-  }
-  
-  setDraggingPin(null);
-  setPinDragStart(null);
-};
-
-// Add this useEffect to handle global mouse events during pin dragging:
-
-useEffect(() => {
-  if (draggingPin) {
-    window.addEventListener('mousemove', handlePinMouseMove);
-    window.addEventListener('mouseup', handlePinMouseUp);
     
-    return () => {
-      window.removeEventListener('mousemove', handlePinMouseMove);
-      window.removeEventListener('mouseup', handlePinMouseUp);
-    };
-  }
-}, [draggingPin, pinDragStart, scale, basePdfSize, pins]);
+    const activePinId = draggingPinRef.current;
+    if (!activePinId) return;
+    
+    const mouseDeltaX = (e.clientX - pinDragStart.mouseX) / scale;
+    const mouseDeltaY = (e.clientY - pinDragStart.mouseY) / scale;
+    
+    const newX = pinDragStart.pinX + (mouseDeltaX / (basePdfSize.width * renderScale));
+    const newY = pinDragStart.pinY + (mouseDeltaY / (basePdfSize.height * renderScale));
+    
+    const clampedX = Math.max(0, Math.min(1, newX));
+    const clampedY = Math.max(0, Math.min(1, newY));
+    
+   setAllPins(prev =>
+  prev.map(p =>
+    p.id === activePinId ? { ...p, x: clampedX, y: clampedY } : p
+  )
+);
 
+setSelectedPin(prev =>
+  prev?.id === activePinId
+    ? { ...prev, x: clampedX, y: clampedY }
+    : prev
+);
+
+  }, [pinDragStart, scale, basePdfSize, renderScale]);
+
+  const handlePinMouseUp = useCallback(async (e) => {
+    const wasDragging = isDragging;
+    
+    if (pinDragStart && !pinDragStart.hasMoved) {
+      setPinDragStart(null);
+      setDraggingPin(null);
+      setIsDragging(false);
+      draggingPinRef.current = null;
+      return;
+    }
+    
+    const activePinId = draggingPinRef.current;
+    if (!activePinId) return;
+    
+    const updatedPin = pins.find(p => p.id === activePinId);
+    
+    if (updatedPin && wasDragging) {
+      // Store the new coordinates
+      const newX = updatedPin.x;
+      const newY = updatedPin.y;
+      
+      // Update database
+      const { error } = await supabase
+        .from('pdf_pins')
+        .update({ x: newX, y: newY })
+        .eq('id', updatedPin.id);
+      
+      if (error) {
+        console.error('Error updating pin position:', error);
+        // Optionally: revert the position in state if save failed
+      } else {
+        console.log('Pin position updated successfully');
+        // Ensure the pin state is updated with the saved coordinates
+        setAllPins(prev =>
+  prev.map(p =>
+    p.id === activePinId
+      ? { ...p, x: newX, y: newY }
+      : p
+  )
+);
+
+      }
+    }
+    
+    setDraggingPin(null);
+    setPinDragStart(null);
+    draggingPinRef.current = null;
+    
+    // Small delay to prevent click event from firing
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 50);
+  }, [pinDragStart, pins, isDragging]);
+
+  useEffect(() => {
+    if (pinDragStart) {
+      window.addEventListener('mousemove', handlePinMouseMove);
+      window.addEventListener('mouseup', handlePinMouseUp);
+      
+      return () => {
+        window.removeEventListener('mousemove', handlePinMouseMove);
+        window.removeEventListener('mouseup', handlePinMouseUp);
+      };
+    }
+  }, [pinDragStart, handlePinMouseMove, handlePinMouseUp]);
 
   const handlePhotoUploaded = () => {
     setPhotoUploadTrigger(prev => prev + 1);
   };
 
-console.log('User', user)
-console.log('SelectedPin', selectedPin)
+  console.log('User', user)
+  console.log('SelectedPin', selectedPin)
 
-function onTouchStart(e) {
-  if (e.touches.length === 1) {
-    const t = e.touches[0];
-    setDragging(true);
-    setStartDrag({ x: t.clientX, y: t.clientY });
-  } else if (e.touches.length === 2) {
-    setTouches([e.touches[0], e.touches[1]]);
-    setInitialDistance(getDistance(e.touches));
-    setInitialScale(scale);
-  }
-}
-
-function onTouchMove(e) {
-  if (dragging && e.touches.length === 1) {
-    const t = e.touches[0];
-    const dx = t.clientX - startDrag.x;
-    const dy = t.clientY - startDrag.y;
-    setStartDrag({ x: t.clientX, y: t.clientY });
-    setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
-  } else if (e.touches.length === 2) {
-    const distance = getDistance(e.touches);
-    if (initialDistance) {
-      const factor = distance / initialDistance;
-      zoom(factor * initialScale / scale);
+  function onTouchStart(e) {
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      setDragging(true);
+      setStartDrag({ x: t.clientX, y: t.clientY });
+    } else if (e.touches.length === 2) {
+      setTouches([e.touches[0], e.touches[1]]);
+      setInitialDistance(getDistance(e.touches));
+      setInitialScale(scale);
     }
   }
 
-  if (pinMode && e.touches.length === 1) {
-    const t = e.touches[0];
-    setGhostPinPos({ x: t.clientX, y: t.clientY });
+  function onTouchMove(e) {
+    if (dragging && e.touches.length === 1) {
+      const t = e.touches[0];
+      const dx = t.clientX - startDrag.x;
+      const dy = t.clientY - startDrag.y;
+      setStartDrag({ x: t.clientX, y: t.clientY });
+      setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+    } else if (e.touches.length === 2) {
+      const distance = getDistance(e.touches);
+      if (initialDistance) {
+        const factor = distance / initialDistance;
+        zoom(factor * initialScale / scale);
+      }
+    }
+
+    if (pinMode && e.touches.length === 1) {
+      const t = e.touches[0];
+      setGhostPinPos({ x: t.clientX, y: t.clientY });
+    }
   }
-}
 
-function onTouchEnd(e) {
-  setDragging(false);
-  if (e.touches.length < 2) {
-    setInitialDistance(null);
+  function onTouchEnd(e) {
+    setDragging(false);
+    if (e.touches.length < 2) {
+      setInitialDistance(null);
+    }
   }
-}
 
+  useEffect(() => {
+    if (!focusOnPinOnce) return;
 
-useEffect(() => {
-  if (!focusOnPinOnce) return;
+    const pin = pins.find(p => p.id === focusOnPinOnce);
+    if (!pin) return;
 
-  const pin = pins.find(p => p.id === focusOnPinOnce);
-  if (!pin) return;
+    setSelectedPin(pin);
+    focusOnPin(pin);
+    setFocusOnPinOnce(null);
+  }, [focusOnPinOnce, pins, setSelectedPin, setFocusOnPinOnce]);
 
-  setSelectedPin(pin);
-  focusOnPin(pin);
-  setFocusOnPinOnce(null);
-}, [focusOnPinOnce, pins]);
+  useEffect(() => {
+    if (selectedPin && !isDragging) {
+      // Find the latest pin data from pins array
+      const latestPin = pins.find(p => p.id === selectedPin.id);
+      if (latestPin) {
+        focusOnPin(latestPin);
+      }
+    }
+  }, [selectedPin?.id, isDragging, pins]);
 
+  useEffect(() => {
+    console.log('PdfCanvas pins', pins.length)
+  }, [pins])
 
-useEffect(() => {
- if (selectedPin) {
-  focusOnPin(selectedPin);
-}
-}, [selectedPin]);
-
-useEffect(() => {
-  console.log('PdfCanvas pins', pins.length)
-}, [pins])
-
-useEffect(() => {
-  if (containerRef.current) {
-    const rect = containerRef.current.getBoundingClientRect();
-    setContainerRect({ left: rect.left, top: rect.top });
-  }
-}, [pdfSize,scale,offset]);
-
+  useEffect(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerRect({ left: rect.left, top: rect.top });
+    }
+  }, [pdfSize,scale,offset]);
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
   }
 
- function zoom(factor) {
-  if (!containerRef.current) return;
+  function zoom(factor) {
+    if (!containerRef.current) return;
 
-  const rect = containerRef.current.getBoundingClientRect();
+    const rect = containerRef.current.getBoundingClientRect();
 
-  // Center of the viewport
-  const centerX = rect.width / 2;
-  const centerY = rect.height / 2;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
 
-  // Current point in PDF space that's at the center of viewport
-  const pdfX = (centerX - offset.x) / scale;
-  const pdfY = (centerY - offset.y) / scale;
+    const pdfX = (centerX - offset.x) / scale;
+    const pdfY = (centerY - offset.y) / scale;
 
-  // Calculate new scale with limits
-  const newScale = Math.max(0.125, Math.min(scale * factor, 5));
+    const newScale = Math.max(0.125, Math.min(scale * factor, 5));
 
-  // Calculate new offset to keep the same PDF point centered
-  const newOffsetX = centerX - pdfX * newScale;
-  const newOffsetY = centerY - pdfY * newScale;
+    const newOffsetX = centerX - pdfX * newScale;
+    const newOffsetY = centerY - pdfY * newScale;
 
-  setScale(newScale);
-  setOffset({ x: newOffsetX, y: newOffsetY });
-}
+    setScale(newScale);
+    setOffset({ x: newOffsetX, y: newOffsetY });
+  }
 
-function zoomIn() {
-  zoom(2);
-}
+  function zoomIn() {
+    zoom(2);
+  }
 
-function zoomOut() {
-  zoom(0.5);
-}
+  function zoomOut() {
+    zoom(0.5);
+  }
 
- const handleWheel = (event) => {
+  const handleWheel = (event) => {
     event.preventDefault();
-    const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1; // Smaller increments for smoother zoom
+    const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
     zoom(zoomFactor);
   };
 
   function onMouseDown(e) {
-    if (draggingPin) return
+    if (draggingPin) return;
     setDragging(true);
     setStartDrag({ x: e.clientX, y: e.clientY });
   }
@@ -298,126 +347,119 @@ function zoomOut() {
     setDragging(false);
   }
 
- function onMouseMove(e) {
-  if (!containerRef.current) return;
+  function onMouseMove(e) {
+    if (!containerRef.current) return;
 
-  if (dragging && !draggingPin) { // Added !draggingPin check
-    const dx = e.clientX - startDrag.x;
-    const dy = e.clientY - startDrag.y;
-    setStartDrag({ x: e.clientX, y: e.clientY });
-    setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
-  }
+    if (dragging && !draggingPin) {
+      const dx = e.clientX - startDrag.x;
+      const dy = e.clientY - startDrag.y;
+      setStartDrag({ x: e.clientX, y: e.clientY });
+      setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+    }
 
-  if (pinMode) {
-    setGhostPinPos({ x: e.clientX, y: e.clientY });
-  }
-}
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
-const handlePinAdd = async (pin,user) => {
-console.log('handlePinAdd', pin)
-  const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*,projects(*),plans(*)').single()
-  if (data) {
-    console.log('handlePinAdd data', data)
-    setSelectedPin(data);
-    console.log('setPins12')
-    setPins( pins => [...pins, data]);
-    setPinMode(false);
-    console.log('handlePinAdd', pins)
-    const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.created_by, pin_id:data.id,event:  ' a créé ce pin', category: 'creation'}).select('*').single()
-    console.log('eventdata', eventdata)
-    if (eventerror) {
-      console.log('eventerror', eventerror)
+    if (pinMode) {
+      setGhostPinPos({ x: e.clientX, y: e.clientY });
     }
   }
-  if (error) {
-    console.log('handlePinAdd', error)
-  }
-}
 
-useEffect(()=> {
-  console.log('mypins', pins)
-},[pins])
+  function classNames(...classes) {
+    return classes.filter(Boolean).join(' ')
+  }
+
+  const handlePinAdd = async (pin,user) => {
+    console.log('handlePinAdd', pin)
+    const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*,projects(*),plans(*)').single()
+    if (data) {
+      console.log('handlePinAdd data', data)
+      setSelectedPin(data);
+      console.log('setPins12')
+      setPins( pins => [...pins, data]);
+      setPinMode(false);
+      console.log('handlePinAdd', pins)
+      const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.created_by, pin_id:data.id,event:  ' a créé ce pin', category: 'creation'}).select('*').single()
+      console.log('eventdata', eventdata)
+      if (eventerror) {
+        console.log('eventerror', eventerror)
+      }
+    }
+    if (error) {
+      console.log('handlePinAdd', error)
+    }
+  }
+
+  useEffect(()=> {
+    console.log('mypins', pins)
+  },[pins])
 
   function closeDrawer() {
     setSelectedPin(null);
   }
 
   function focusOnPin(pin) {
-  if (!pageRef.current || !containerRef.current || !basePdfSize.width) return;
+    if (!pageRef.current || !containerRef.current || !basePdfSize.width) return;
 
-  // Use base PDF size for consistent positioning
-  const pinX = pin.x * basePdfSize.width * renderScale;
-  const pinY = pin.y * basePdfSize.height * renderScale;
+    const pinX = pin.x * basePdfSize.width * renderScale;
+    const pinY = pin.y * basePdfSize.height * renderScale;
 
-  const container = containerRef.current.getBoundingClientRect();
-  const centerX = container.width / 4;
-  const centerY = container.height / 2;
+    const container = containerRef.current.getBoundingClientRect();
+    const centerX = container.width / 4;
+    const centerY = container.height / 2;
 
-  const newOffset = {
-    x: centerX - pinX * scale,
-    y: centerY - pinY * scale,
-  };
+    const newOffset = {
+      x: centerX - pinX * scale,
+      y: centerY - pinY * scale,
+    };
 
-  setOffset(newOffset);
-}
+    setOffset(newOffset);
+  }
 
+  function handlePdfClick(e) {
+    if (!pinMode || dragging || !containerRef.current || !pageRef.current) return;
 
-function handlePdfClick(e) {
-  if (!pinMode || dragging || !containerRef.current || !pageRef.current) return;
+    const pdfElement = pageRef.current;
+    if (!pdfElement) return;
+    
+    const pdfRect = pdfElement.getBoundingClientRect();
+    
+    const clickX = e.clientX - pdfRect.left;
+    const clickY = e.clientY - pdfRect.top;
+    
+    const x = clickX / pdfRect.width;
+    const y = clickY / pdfRect.height;
+    
+    if (x < 0 || x > 1 || y < 0 || y > 1) return;
 
-  const pdfElement = pageRef.current;
-  if (!pdfElement) return;
-  
-  const pdfRect = pdfElement.getBoundingClientRect();
-  
-  const clickX = e.clientX - pdfRect.left;
-  const clickY = e.clientY - pdfRect.top;
-  
-  const x = clickX / pdfRect.width;
-  const y = clickY / pdfRect.height;
-  
-  if (x < 0 || x > 1 || y < 0 || y > 1) return;
+    const newPin = {
+      category_id: categories.find(c => c.order === 0)?.id ,
+      x,
+      y,
+      status_id: statuses.find(s => s.order === 0)?.id ,
+      note: '',
+      name: '',
+      project_id: project.id,
+      pdf_name: plan.name,
+      plan_id: plan.id,
+      created_by: user?.id || null,
+    };
 
-  const newPin = {
-    category_id: categories.find(c => c.order === 0)?.id ,
-    x,
-    y,
-    status_id: statuses.find(s => s.order === 0)?.id ,
-    note: '',
-    name: '',
-    project_id: project.id,
-    pdf_name: plan.name,
-    plan_id: plan.id,
-    created_by: user?.id || null,
-  };
-
-  handlePinAdd(newPin,user);
-}
-
+    handlePinAdd(newPin,user);
+  }
 
   return (
     <>
       <div
-      className={inter.className}
+        className={inter.className}
         ref={containerRef}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
         onMouseMove={onMouseMove}
         onWheel={handleWheel}
-
         onTouchStart={onTouchStart}
-  onTouchMove={onTouchMove}
-  onTouchEnd={onTouchEnd}
-  onTouchCancel={onTouchEnd}
-
-
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onTouchCancel={onTouchEnd}
         style={{
-         
           cursor: dragging ? 'grabbing' : 'grab',
           overflow: 'hidden',
           width: '100%',
@@ -480,138 +522,141 @@ function handlePdfClick(e) {
 
         {/* PDF + Pins */}
         <div
-  onClick={handlePdfClick}
-  style={{
-  transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-  transformOrigin: 'top left',
-  width: 'fit-content',
-  margin: 'auto',
-  position: 'relative',
-  cursor: pinMode ? 'pointer' : draggingPin ? 'grabbing' : 'default', // Updated cursor logic
-  willChange: 'transform',
-  transition: dragging || draggingPin ? 'none' : 'transform 0.3s ease', // No transition while dragging
-}}
->
-  <Document 
-    file={fileUrl} 
-    onLoadSuccess={onDocumentLoadSuccess} 
-    loading={
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement du PDF...</p>
-        </div>
-      </div>
-    }
-    options={{
-      cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-      cMapPacked: true,
-      standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
-      enableXfa: true,
-    }}
-  >
-   <Page
-  pageNumber={pageNumber}
-  scale={renderScale}
-  renderTextLayer={false}
-  renderAnnotationLayer={false}
-  inputRef={pageRef}
-  onRenderSuccess={({ width, height }) => {
-    setPdfSize({ width, height });
-    
-    // Store base size for consistent pin positioning
-    if (basePdfSize.width === 0) {
-      setBasePdfSize({ 
-        width: width / renderScale, 
-        height: height / renderScale 
-      });
-    }
-  }}
-  onLoadError={(error) => console.error('Page load error:', error)}
-  loading={null}
-  renderMode="canvas"
-/>
-  </Document>
-
+          onClick={handlePdfClick}
+          style={{
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+            transformOrigin: 'top left',
+            width: 'fit-content',
+            margin: 'auto',
+            position: 'relative',
+            cursor: pinMode ? 'pointer' : draggingPin ? 'grabbing' : 'default',
+            willChange: 'transform',
+            transition: dragging || draggingPin ? 'none' : 'transform 0.3s ease',
+          }}
+        >
+          <Document 
+            file={fileUrl} 
+            onLoadSuccess={onDocumentLoadSuccess} 
+            loading={
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Chargement du PDF...</p>
+                </div>
+              </div>
+            }
+            options={{
+              cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+              cMapPacked: true,
+              standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
+              enableXfa: true,
+            }}
+          >
+            <Page
+              pageNumber={pageNumber}
+              scale={renderScale}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+              inputRef={pageRef}
+              onRenderSuccess={({ width, height }) => {
+                setPdfSize({ width, height });
+                
+                if (basePdfSize.width === 0) {
+                  setBasePdfSize({ 
+                    width: width / renderScale, 
+                    height: height / renderScale 
+                  });
+                }
+              }}
+              onLoadError={(error) => console.error('Page load error:', error)}
+              loading={null}
+              renderMode="canvas"
+            />
+          </Document>
 
           {/* Pins - Use base size for consistent positioning */}
-  {basePdfSize.width > 0 && pins.map((pin, idx) => {
-  const scaledX = pin.x * basePdfSize.width * renderScale;
-  const scaledY = pin.y * basePdfSize.height * renderScale;
+          {basePdfSize.width > 0 && pins.map((pin, idx) => {
+            const scaledX = pin.x * basePdfSize.width * renderScale;
+            const scaledY = pin.y * basePdfSize.height * renderScale;
 
-  const z =
-    selectedPin?.id === pin.id ? 3000 :
-    hoveredPinId === pin.id ? 2000 : 10;
-  
-  return (
-    <div
-      key={idx}
-      style={{
-        position: 'absolute',
-        top: scaledY,
-        left: scaledX,
-        transform: `translate(-50%, -50%) scale(${1 / scale})`,
-        pointerEvents: 'auto',
-        zIndex: z,
-        cursor: pinMode ? 'pointer' : 'move', // Change cursor based on mode
-        opacity: draggingPin === pin.id ? 0.7 : 1, // Visual feedback while dragging
-      }}
-      onMouseEnter={() => setHoveredPinId(pin.id)}
-      onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
-      onMouseDown={(e) => handlePinMouseDown(e, pin)} // Add drag handler
-      onClick={(e) => {
-        if (!draggingPin && !pinMode) { // Only select if not dragging
-          e.stopPropagation();
-          setSelectedPin({ ...pin, index: idx });
-        }
-      }}
-      title={`Pin #${idx + 1}`}
-    >
-      <MapPin pin={pin} dragging={draggingPin === pin.id} hovered={hoveredPinId === pin.id}/>
-    </div>
-  );
-})}
-          
+            const z =
+              selectedPin?.id === pin.id ? 3000 :
+              hoveredPinId === pin.id ? 2000 : 10;
+            
+            return (
+              <div
+                key={idx}
+                style={{
+                  position: 'absolute',
+                  top: scaledY,
+                  left: scaledX,
+                  transform: `translate(-50%, -50%) scale(${1 / scale})`,
+                  pointerEvents: 'auto',
+                  zIndex: z,
+                  cursor: pinMode ? 'pointer' : 'move',
+                  opacity: draggingPin === pin.id ? 0.7 : 1,
+                }}
+                onMouseEnter={() => setHoveredPinId(pin.id)}
+                onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
+                onMouseDown={(e) => handlePinMouseDown(e, pin)}
+                onClick={(e) => {
+                  // Don't open drawer if we just finished dragging
+                  if (isDragging || pinDragStart?.hasMoved || draggingPin) {
+                    e.stopPropagation();
+                    return;
+                  }
+                  e.stopPropagation();
+                  // Use the current pin data from pins array, not stale data
+                  const currentPin = pins.find(p => p.id === pin.id);
+                  setSelectedPin({ ...currentPin, index: idx });
+                }}
+                title={`Pin #${idx + 1}`}
+              >
+                <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id}/>
+              </div>
+            );
+          })}
         </div>
       </div>
-{pinMode && ghostPinPos && (
-  <div
-    style={{
-      position: 'fixed',
-      top: ghostPinPos.y,
-      left: ghostPinPos.x,
-      transform: 'translate(-50%, -100%)',
-      pointerEvents: 'none',
-      opacity: 0.5,
-      zIndex: 9999,
-    }}
-  >
-    <GhostPin />
-  </div>
-)}
+
+      {pinMode && ghostPinPos && (
+        <div
+          style={{
+            position: 'fixed',
+            top: ghostPinPos.y,
+            left: ghostPinPos.x,
+            transform: 'translate(-50%, -100%)',
+            pointerEvents: 'none',
+            opacity: 0.5,
+            zIndex: 9999,
+          }}
+        >
+          <GhostPin />
+        </div>
+      )}
+
       {/* Right Drawer */}
       {selectedPin && (
-    <div
-  className={`${inter.className} fixed  top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}
->
-  {/* Fixed Header */}
-  <div className="px-5 py-4 border-b border-gray-200 shrink-0">
-    <DrawerHeader pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={handlePhotoUploaded} />
-  </div>
+        <div
+          className={`${inter.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}
+        >
+          {/* Fixed Header */}
+          <div className="px-5 py-4 border-b border-gray-200 shrink-0">
+            <DrawerHeader pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={handlePhotoUploaded} />
+          </div>
 
-  {/* Scrollable Content */}
-  <div className="flex-1 overflow-y-auto ">
-    <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment}  photoUploadTrigger={photoUploadTrigger} />
-  </div>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto ">
+            <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment} photoUploadTrigger={photoUploadTrigger} />
+          </div>
 
-  {/* Fixed Footer */}
-  <div className="px-5 py-4 border-t border-gray-200 shrink-0">
-    <DrawerFooter pin={selectedPin} submit={closeDrawer} onCommentAdded={(comment) => {
-    setNewComment(comment)
-  }} />
-  </div>
-</div>
-
+          {/* Fixed Footer */}
+          <div className="px-5 py-4 border-t border-gray-200 shrink-0">
+            <DrawerFooter pin={selectedPin} submit={closeDrawer} onCommentAdded={(comment) => {
+              setNewComment(comment)
+            }} />
+          </div>
+        </div>
       )}
     </>
   );
