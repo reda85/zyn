@@ -11,7 +11,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zaynbackend-production.up.railway.app'
+const API_URL =  'https://zaynbackend-production.up.railway.app'
 
 export default function ProjectPlans({ project, onClose }) {
   const [plans, setPlans] = useState([])

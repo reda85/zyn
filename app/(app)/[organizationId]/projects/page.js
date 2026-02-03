@@ -88,16 +88,18 @@ export default function ProjectsPage({params}) {
   }, [])
 
   const createProject = async () => {
+    
     if (!newProjectName.trim()) return
     setLoading(true)
     const { data, error } = await supabase
-      .rpc('create_project_with_defaults', {
+      .rpc('create_project_with_defaults_new', {
         p_name: newProjectName,
-        p_organization_id: selectedOrganization?.id || selectedProject?.organization_id || projects[0]?.organization_id
+        p_organization_id: organizationId
       });
 
     if (error) {
       alert('Failed to create project.')
+      console.error(error)
       setLoading(false)
       return
     }
