@@ -1,253 +1,462 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react'
+import { supabase } from '@/utils/supabase/client'
+import { useUserData } from '@/hooks/useUserData'
+import ReportTemplateBuilder from '@/components/ReportTemplateBuilder'
 import { 
-  Image as ImageIcon, Layout, Settings, FileText, Eye, 
-  Users, AlignLeft, Plus, Trash2, MessageSquare, Grid, Upload 
-} from "lucide-react";
+  FileText, Plus, Edit, Trash2, Copy, Star, StarOff, 
+  Search, ArrowLeft, Settings, FolderKanban, Users, BarChart3
+} from 'lucide-react'
+import Link from 'next/link'
+import clsx from 'clsx'
+import { Outfit } from 'next/font/google'
 
-export default function TemplateBuilder() {
-  const [config, setConfig] = useState({
-    primaryColor: "#2563eb",
-    reportTitle: "RAPPORT DE CHANTIER",
-    // Page 1
-    showCompanyLogo: true,
-    showClientLogo: true,
-    showProjectPhoto: true,
-    projectPhotoSize: "medium",
-    projectImageSrc: null, // Pour stocker l'image uploadée
-    showSummary: true,
-    summaryText: "Le projet progresse conformément au planning initial. Les fondations sont terminées.",
-    showParticipants: true,
-    participants: [
-      { name: "Jean Dupont", role: "Architecte" },
-      { name: "Marie Curie", role: "Chef de Projet" }
-    ],
-    // Page 2
-    showRemarks: true,
-    remarks: "1. Vérifier l'étanchéité du sous-sol.\n2. Livraison des briques prévue mardi prochain.",
-    showPhotoGrid: true,
-    gridCount: 4,
-    gridImages: {}, // Stocke les images de la galerie par index
-    // Infos générales
-    projectInfo: {
-      name: "Rénovation Résidence Horizon",
-      location: "Nice, France",
-      date: "26 Décembre 2025",
-      clientName: "SCI Valrose",
-    },
-  });
+const lexend = Outfit({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
-  const photoSizeMap = {
-    small: "w-40 h-40",
-    medium: "w-2/3 h-64",
-    full: "w-full h-80",
-  };
+export default function ReportsPage({ params }) {
+  const { organizationId } = params
+  const { user, profile, organization } = useUserData()
 
-  // --- Handlers pour les Images ---
-  const handleMainImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setConfig({ ...config, projectImageSrc: URL.createObjectURL(file) });
+  const [templates, setTemplates] = useState([])
+  const [filteredTemplates, setFilteredTemplates] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentView, setCurrentView] = useState('list')
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [isCreating, setIsCreating] = useState(false)
+
+  useEffect(() => {
+    fetchTemplates()
+  }, [organizationId])
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredTemplates(templates)
+    } else {
+      const filtered = templates.filter(t => 
+        t.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredTemplates(filtered)
     }
-  };
+  }, [searchQuery, templates])
 
-  const handleGridImageUpload = (e, index) => {
-    const file = e.target.files[0];
-    if (file) {
-      setConfig({
-        ...config,
-        gridImages: { ...config.gridImages, [index]: URL.createObjectURL(file) }
-      });
+  const fetchTemplates = async () => {
+    try {
+      setIsLoading(true)
+      const { data, error } = await supabase
+        .from('report_templates')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setTemplates(data || [])
+      setFilteredTemplates(data || [])
+    } catch (error) {
+      console.error('Error fetching templates:', error)
+      alert('Erreur lors du chargement des templates')
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
-  // --- Handlers Participants ---
-  const addParticipant = () => {
-    setConfig({ ...config, participants: [...config.participants, { name: "", role: "" }] });
-  };
+  const handleSaveTemplate = async (config) => {
+    try {
+      const templateData = {
+        name: config.reportTitle,
+        config: config,
+        organization_id: organizationId,
+        user_id: user.id,
+        updated_at: new Date().toISOString()
+      }
 
-  const updateParticipant = (index, field, value) => {
-    const newParts = [...config.participants];
-    newParts[index][field] = value;
-    setConfig({ ...config, participants: newParts });
-  };
+      if (selectedTemplate?.id && !isCreating) {
+        const { data, error } = await supabase
+          .from('report_templates')
+          .update(templateData)
+          .eq('id', selectedTemplate.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        setTemplates(prev => prev.map(t => t.id === data.id ? data : t))
+        alert('Template mis à jour avec succès!')
+      } else {
+        const { data, error } = await supabase
+          .from('report_templates')
+          .insert(templateData)
+          .select()
+          .single()
+
+        if (error) throw error
+        setTemplates(prev => [data, ...prev])
+        alert('Template créé avec succès!')
+      }
+
+      setCurrentView('list')
+      setSelectedTemplate(null)
+      setIsCreating(false)
+    } catch (error) {
+      console.error('Error saving template:', error)
+      alert('Erreur lors de la sauvegarde du template')
+    }
+  }
+
+  const handleDeleteTemplate = async (templateId) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) return
+
+    try {
+      const { error } = await supabase
+        .from('report_templates')
+        .delete()
+        .eq('id', templateId)
+
+      if (error) throw error
+      setTemplates(prev => prev.filter(t => t.id !== templateId))
+      alert('Template supprimé avec succès')
+    } catch (error) {
+      console.error('Error deleting template:', error)
+      alert('Erreur lors de la suppression')
+    }
+  }
+
+  const handleDuplicateTemplate = async (template) => {
+    try {
+      const { data, error } = await supabase
+        .from('report_templates')
+        .insert({
+          name: `${template.name} (Copie)`,
+          config: template.config,
+          organization_id: organizationId,
+          user_id: user.id
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      setTemplates(prev => [data, ...prev])
+      alert('Template dupliqué avec succès')
+    } catch (error) {
+      console.error('Error duplicating template:', error)
+      alert('Erreur lors de la duplication')
+    }
+  }
+
+  const handleSetDefault = async (templateId) => {
+    try {
+      await supabase
+        .from('report_templates')
+        .update({ is_default: false })
+        .eq('organization_id', organizationId)
+
+      const { error } = await supabase
+        .from('report_templates')
+        .update({ is_default: true })
+        .eq('id', templateId)
+
+      if (error) throw error
+      fetchTemplates()
+      alert('Template défini comme par défaut')
+    } catch (error) {
+      console.error('Error setting default:', error)
+      alert('Erreur lors de la mise à jour')
+    }
+  }
+
+  const handleCreateNew = () => {
+    setSelectedTemplate(null)
+    setIsCreating(true)
+    setCurrentView('builder')
+  }
+
+  const handleEditTemplate = (template) => {
+    setSelectedTemplate(template)
+    setIsCreating(false)
+    setCurrentView('builder')
+  }
+
+  const handleBackToList = () => {
+    setCurrentView('list')
+    setSelectedTemplate(null)
+    setIsCreating(false)
+  }
+
+  if (currentView === 'builder') {
+    return (
+      <div className={clsx(lexend.className, "h-screen bg-background")}>
+        <button
+          onClick={handleBackToList}
+          className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 bg-card border border-border/50 rounded-xl shadow-lg hover:bg-secondary transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Retour à la liste</span>
+        </button>
+
+        <ReportTemplateBuilder
+          initialTemplate={selectedTemplate}
+          onSave={handleSaveTemplate}
+        />
+      </div>
+    )
+  }
 
   return (
-    <div className="flex h-screen bg-slate-200 text-slate-900 font-sans">
+    <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
+      <aside className="w-64 h-screen bg-secondary/20 border-r border-border/40 flex flex-col">
+        <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
+          <h2 className="text-sm font-semibold font-heading text-foreground">{organization?.name}</h2>
+          <p className="text-xs text-muted-foreground">{organization?.members?.[0]?.count || 0} membres</p>
+        </div>
       
-      {/* --- PANNEAU DE CONTRÔLE (GAUCHE) --- */}
-      <aside className="w-96 bg-white border-r border-slate-300 flex flex-col shadow-2xl z-20">
-        <div className="p-6 border-b bg-slate-900 text-white">
-          <h1 className="text-xl font-bold flex items-center gap-2 italic">
-            <Settings className="w-5 h-5 text-blue-400" /> REPORT GEN
-          </h1>
-        </div>
+        <nav className="flex-1 px-4 space-y-2">
+          <Link 
+            href={`/${organizationId}/projects`}
+            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50"
+          >
+            <FolderKanban className="w-5 h-5" /> Projects
+          </Link>
+          <Link 
+            href={`/${organizationId}/members`} 
+            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50"
+          >
+            <Users className="w-5 h-5" /> Membres
+          </Link>
+          <Link 
+            href={`/${organizationId}/reports`} 
+            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 bg-primary/10 text-primary rounded-xl shadow-sm border border-primary/20"
+          >
+            <BarChart3 className="w-5 h-5" /> Rapports
+          </Link>
+          <Link 
+            href={`/${organizationId}/settings`} 
+            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50"
+          >
+            <Settings className="w-5 h-5" /> Paramètres
+          </Link>
+        </nav>
 
-        <div className="p-6 overflow-y-auto space-y-8 flex-1">
-          {/* Design & En-tête */}
-          <section className="space-y-4">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Configuration Globale</h3>
-            <input 
-              type="text" 
-              value={config.reportTitle} 
-              onChange={(e) => setConfig({...config, reportTitle: e.target.value})}
-              className="w-full p-2 border rounded font-bold text-sm"
-            />
-            <div className="flex items-center gap-4">
-               <input type="color" value={config.primaryColor} onChange={(e) => setConfig({...config, primaryColor: e.target.value})} className="w-12 h-8 cursor-pointer" />
-               <span className="text-xs text-slate-500 font-medium tracking-tight">Couleur du thème</span>
+        <div className="px-4 pb-6">
+          <Link
+            href={`/${organizationId}/profile`}
+            className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/50 hover:bg-secondary/50 transition-all"
+          >
+            <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+              {profile?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
-          </section>
-
-          {/* Page 1 : Photo & Taille */}
-          <section className="pt-4 border-t">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Photo de Couverture</h3>
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={config.showProjectPhoto} onChange={(e) => setConfig({...config, showProjectPhoto: e.target.checked})} /> Afficher la photo</label>
-              
-              {config.showProjectPhoto && (
-                <>
-                  <input type="file" accept="image/*" onChange={handleMainImageUpload} className="text-xs w-full border p-1 rounded bg-slate-50" />
-                  <div className="flex bg-slate-100 p-1 rounded">
-                    {["small", "medium", "full"].map((s) => (
-                      <button key={s} onClick={() => setConfig({...config, projectPhotoSize: s})} className={`flex-1 py-1 text-[10px] uppercase font-bold rounded ${config.projectPhotoSize === s ? "bg-white shadow text-blue-600" : "text-slate-400"}`}>{s}</button>
-                    ))}
-                  </div>
-                </>
-              )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">
+                {profile?.full_name || user?.email || 'Utilisateur'}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                Mon profil
+              </p>
             </div>
-          </section>
-
-          {/* Résumé & Participants */}
-          <section className="pt-4 border-t space-y-4">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Contenu Page 1</h3>
-            <textarea value={config.summaryText} onChange={(e) => setConfig({...config, summaryText: e.target.value})} className="w-full p-2 border rounded text-xs h-20" placeholder="Résumé..."/>
-            <button onClick={addParticipant} className="w-full py-2 border-2 border-dashed rounded text-[10px] font-bold text-slate-400 hover:text-blue-500 hover:border-blue-500">+ AJOUTER PARTICIPANT</button>
-          </section>
-
-          {/* Page 2 : Remarques & Grille */}
-          <section className="pt-4 border-t space-y-4">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Contenu Page 2</h3>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium">Grille Photos</span>
-              <select value={config.gridCount} onChange={(e) => setConfig({...config, gridCount: parseInt(e.target.value)})} className="text-xs border rounded p-1">
-                {[2, 4, 6].map(n => <option key={n} value={n}>{n} emplacements</option>)}
-              </select>
-            </div>
-            <textarea value={config.remarks} onChange={(e) => setConfig({...config, remarks: e.target.value})} className="w-full p-2 border rounded text-xs h-24 font-mono" placeholder="Remarques techniques..."/>
-          </section>
-        </div>
-
-        <div className="p-6 border-t bg-slate-50">
-          <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-black text-sm shadow-xl hover:bg-blue-700 transition-all uppercase tracking-widest">
-            Exporter en PDF
-          </button>
+          </Link>
         </div>
       </aside>
 
-      {/* --- ZONE DE PREVIEW --- */}
-      <main className="flex-1 overflow-y-auto p-12 space-y-12 flex flex-col items-center">
-        
-        {/* PAGE 1 */}
-        <div className="relative bg-white shadow-2xl w-[210mm] h-[297mm] p-[25mm] flex flex-col shrink-0 overflow-hidden">
-          <div className="flex justify-between items-start mb-16">
-            <div className="w-32 h-12 bg-slate-50 border border-dashed flex items-center justify-center text-[8px] text-slate-400 uppercase">Logo Entreprise</div>
-            <div className="w-32 h-12 bg-slate-50 border border-dashed flex items-center justify-center text-[8px] text-slate-400 uppercase font-bold tracking-tighter">Logo Client</div>
-          </div>
-
-          <div className="border-l-[12px] pl-8 mb-12" style={{ borderColor: config.primaryColor }}>
-            <h1 className="text-6xl font-black mb-4 tracking-tighter uppercase leading-none" style={{ color: config.primaryColor }}>{config.reportTitle}</h1>
-            <p className="text-2xl text-slate-400 font-light tracking-tight">{config.projectInfo.name}</p>
-          </div>
-
-          {config.showProjectPhoto && (
-            <div className="flex flex-col items-center mb-10">
-              <div className={`${photoSizeMap[config.projectPhotoSize]} relative group bg-slate-100 rounded-2xl overflow-hidden border-4 border-white shadow-2xl flex items-center justify-center`}>
-                {config.projectImageSrc ? (
-                  <img src={config.projectImageSrc} className="w-full h-full object-cover" alt="Projet" />
-                ) : (
-                  <div className="text-center">
-                    <ImageIcon className="w-12 h-12 text-slate-200 mx-auto" />
-                    <p className="text-[10px] text-slate-300 font-bold uppercase mt-2">Photo de garde</p>
-                  </div>
-                )}
-              </div>
-              <p className="mt-4 text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">{config.projectInfo.location} — {config.projectInfo.date}</p>
-            </div>
-          )}
-
-          {config.showSummary && (
-            <div className="mt-8 bg-slate-50 p-6 rounded-2xl border-l-4" style={{ borderLeftColor: config.primaryColor }}>
-              <h4 className="text-[10px] font-black uppercase mb-2 tracking-[0.2em]" style={{ color: config.primaryColor }}>Résumé Exécutif</h4>
-              <p className="text-slate-600 leading-relaxed text-xs font-medium italic">"{config.summaryText}"</p>
-            </div>
-          )}
-
-          {config.showParticipants && (
-            <div className="mt-8">
-              <h4 className="text-[10px] font-black uppercase mb-4 tracking-[0.2em] text-slate-300">Équipe Projet</h4>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                {config.participants.map((p, i) => (
-                  <div key={i} className="border-b border-slate-100 pb-2">
-                    <p className="text-xs font-black text-slate-800 uppercase tracking-tighter">{p.name || "..."}</p>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase">{p.role || "..."}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-auto pt-6 border-t flex justify-between text-[9px] text-slate-300 font-bold uppercase tracking-[0.3em]">
-            <span>{config.projectInfo.clientName}</span>
-            <span>Page 01</span>
-          </div>
+      <main className="flex-1 overflow-y-auto p-10">
+        <div className="flex flex-row items-baseline mb-8 mt-12 gap-3">
+          <h1 className="text-4xl font-bold font-heading text-foreground">Templates de rapports</h1>
+          <span className="text-2xl font-semibold text-muted-foreground">({templates.length})</span>
         </div>
 
-        {/* PAGE 2 */}
-        <div className="relative bg-white shadow-2xl w-[210mm] h-[297mm] p-[25mm] flex flex-col shrink-0 overflow-hidden">
-          <div className="flex items-center gap-6 mb-12">
-            <h2 className="text-2xl font-black uppercase tracking-tighter" style={{ color: config.primaryColor }}>Détails & Galerie</h2>
-            <div className="flex-1 h-px bg-slate-100" />
+        <p className="text-muted-foreground mb-8">
+          Gérez vos templates pour personnaliser l'apparence de vos rapports PDF
+        </p>
+
+        <div className="flex flex-row mb-8 justify-between items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Rechercher un template..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border border-border/50 bg-card/50 backdrop-blur-sm pl-10 pr-4 py-2.5 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
+            />
           </div>
-
-          {config.showRemarks && (
-            <div className="mb-12">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-[0.2em]">Observations de terrain</h3>
-              <div className="bg-slate-50 p-8 rounded-3xl text-sm text-slate-700 leading-loose whitespace-pre-line border border-slate-100">
-                {config.remarks}
-              </div>
-            </div>
-          )}
-
-          {config.showPhotoGrid && (
-            <div className="flex-1">
-              <h3 className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-[0.2em]">Galerie de photos détaillées</h3>
-              <div className={`grid ${config.gridCount === 2 ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
-                {Array.from({ length: config.gridCount }).map((_, i) => (
-                  <label key={i} className="aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-blue-400 transition-all overflow-hidden relative group">
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleGridImageUpload(e, i)} />
-                    {config.gridImages[i] ? (
-                      <img src={config.gridImages[i]} className="w-full h-full object-cover" alt="Detail" />
-                    ) : (
-                      <>
-                        <Upload className="w-6 h-6 text-slate-200 group-hover:text-blue-400 transition-colors" />
-                        <span className="text-[8px] text-slate-300 font-black mt-2 uppercase tracking-widest">Upload Photo {i+1}</span>
-                      </>
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-auto pt-6 border-t flex justify-between text-[9px] text-slate-300 font-bold uppercase tracking-[0.3em]">
-            <span>Rapport Technique — {config.projectInfo.name}</span>
-            <span>Page 02</span>
-          </div>
+          <button
+            onClick={handleCreateNew}
+            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Nouveau template
+          </button>
         </div>
 
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Chargement des templates...</p>
+            </div>
+          </div>
+        ) : filteredTemplates.length === 0 ? (
+          <div className="text-center py-20">
+            <FileText className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              {searchQuery ? 'Aucun template trouvé' : 'Aucun template'}
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery 
+                ? 'Essayez une autre recherche'
+                : 'Commencez par créer votre premier template de rapport'}
+            </p>
+            {!searchQuery && (
+              <button
+                onClick={handleCreateNew}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95"
+              >
+                <Plus className="w-5 h-5" />
+                Créer un template
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onEdit={handleEditTemplate}
+                onDelete={handleDeleteTemplate}
+                onDuplicate={handleDuplicateTemplate}
+                onSetDefault={handleSetDefault}
+              />
+            ))}
+          </div>
+        )}
       </main>
     </div>
-  );
+  )
+}
+
+function TemplateCard({ template, onEdit, onDelete, onDuplicate, onSetDefault }) {
+  const [showActions, setShowActions] = useState(false)
+  const config = template.config || {}
+  const isDefault = template.is_default
+
+  return (
+    <div
+      className={clsx(
+        "bg-secondary/30 border rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden group hover:-translate-y-1",
+        isDefault ? "border-primary/50 ring-2 ring-primary/20" : "border-border/50 hover:border-primary/20"
+      )}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
+      <div className="relative h-48 bg-gradient-to-br from-secondary/30 to-secondary/10 p-6 overflow-hidden">
+        <div className="space-y-3">
+          <div 
+            className="h-8 rounded"
+            style={{ 
+              backgroundColor: config.primaryColor || '#44403c',
+              opacity: 0.2
+            }}
+          />
+          <div className="space-y-2">
+            <div className="h-2 bg-foreground/10 rounded w-3/4" />
+            <div className="h-2 bg-foreground/10 rounded w-1/2" />
+          </div>
+        </div>
+
+        {isDefault && (
+          <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
+            <Star className="w-3 h-3 fill-current" />
+            Par défaut
+          </div>
+        )}
+
+        <div
+          className={clsx(
+            "absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-2 transition-opacity",
+            showActions ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <button
+            onClick={() => onEdit(template)}
+            className="p-2 bg-white/90 hover:bg-white rounded-lg transition-all"
+            title="Modifier"
+          >
+            <Edit className="w-5 h-5 text-foreground" />
+          </button>
+
+          <button
+            onClick={() => onDuplicate(template)}
+            className="p-2 bg-white/90 hover:bg-white rounded-lg transition-all"
+            title="Dupliquer"
+          >
+            <Copy className="w-5 h-5 text-foreground" />
+          </button>
+
+          <button
+            onClick={() => onDelete(template.id)}
+            className="p-2 bg-red-500/90 hover:bg-red-500 rounded-lg transition-all"
+            title="Supprimer"
+          >
+            <Trash2 className="w-5 h-5 text-white" />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-bold text-foreground mb-2 line-clamp-1">
+          {template.name}
+        </h3>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+          <div 
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: config.primaryColor || '#44403c' }}
+          />
+          <span>{config.fontFamily || 'helvetica'}</span>
+          <span>•</span>
+          <span>{config.tasks?.displayMode === 'table' ? 'Tableau' : 'Liste'}</span>
+        </div>
+
+        <div className="flex flex-wrap gap-1 mb-4">
+          {config.coverPage?.enabled && (
+            <span className="px-2 py-1 bg-secondary/50 rounded text-xs">
+              Page de garde
+            </span>
+          )}
+          {config.summary?.enabled && (
+            <span className="px-2 py-1 bg-secondary/50 rounded text-xs">
+              Résumé
+            </span>
+          )}
+          {config.footer?.enabled && (
+            <span className="px-2 py-1 bg-secondary/50 rounded text-xs">
+              Pied de page
+            </span>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEdit(template)}
+            className="flex-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-medium transition-all"
+          >
+            Modifier
+          </button>
+
+          {!isDefault && (
+            <button
+              onClick={() => onSetDefault(template.id)}
+              className="px-3 py-2 border border-border/50 hover:bg-secondary/50 rounded-lg transition-all"
+              title="Définir par défaut"
+            >
+              <StarOff className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground mt-3">
+          Modifié {new Date(template.updated_at).toLocaleDateString('fr-FR')}
+        </p>
+      </div>
+    </div>
+  )
 }

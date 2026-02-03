@@ -14,7 +14,7 @@ export default function Workspaces({params}) {
     
     useEffect(() => {
         
-                router.push(`${organization?.id}/projects/`);
+             if(user?.id && organization?.id)   {router.push(`${organization?.id}/projects/`);}
            
        
     }, [organization?.id, router])

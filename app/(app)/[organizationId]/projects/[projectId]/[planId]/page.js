@@ -204,7 +204,7 @@ const fetchPins = async () => {
 
         {/* Main content */}
         <div className="flex-1 overflow-auto">
-          {selectedPlan?.file_url && (
+          {/*selectedPlan?.file_url && (
           <PdfCanvas
             fileUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.file_url).data.publicUrl}
             pins={filteredPins}
@@ -212,8 +212,8 @@ const fetchPins = async () => {
             plan={selectedPlan}
             user={profile}
           />
-          )}
-        {/*  {selectedPlan?.png_url && (
+          )*/}
+        {selectedPlan?.png_url && (
             <ImageCanvas
               imageUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.png_url).data.publicUrl}
               pins={pins}
@@ -221,7 +221,7 @@ const fetchPins = async () => {
               plan={selectedPlan}
               user={profile}
             />
-          )} */}
+          )} 
         </div>
       </div>
     </div>

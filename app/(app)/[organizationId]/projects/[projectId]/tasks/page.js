@@ -9,7 +9,7 @@ import { DM_Sans, Figtree, Lexend, Outfit, PT_Sans, Rubik, Work_Sans } from "nex
 import Pin from "@/components/Pin"
 import { Square3Stack3DIcon } from "@heroicons/react/24/outline"
 import CategoryComboBox from "@/components/CategoryComboBox"
-import { Calendar1Icon, Download, FileText, Search } from "lucide-react"
+import { Calendar1Icon, Download, FileText, Search, Settings, X, XIcon } from "lucide-react"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css";
 import { Document, Page, PDFDownloadLink, Text } from "@react-pdf/renderer"
@@ -22,6 +22,7 @@ import clsx from "clsx"
 import { useUserData } from "@/hooks/useUserData"
 import {fr} from 'date-fns/locale/fr'
 import PinDrawer from "@/components/PinDrawer"
+//import ReportTemplateBuilder from "@/components/ReportTemplateBuilder"
 import * as XLSX from "xlsx"
  import ExcelJS from "exceljs"
 
@@ -145,6 +146,103 @@ const [reportFields, setReportFields] = useState({
   category: true,
   status: true,
 })
+
+
+ //const [isTemplateBuilderOpen, setIsTemplateBuilderOpen] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [availableTemplates, setAvailableTemplates] = useState([])
+
+  // CHARGER LES TEMPLATES AU DÉMARRAGE
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      const { data, error } = await supabase
+        .from('report_templates')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
+      
+      if (data) {
+        setAvailableTemplates(data)
+        // Sélectionner le template par défaut ou le plus récent
+        const defaultTemplate = data.find(t => t.is_default) || data[0]
+        setSelectedTemplate(defaultTemplate)
+      }
+    }
+    
+    if (organizationId) {
+      fetchTemplates()
+    }
+  }, [organizationId])
+
+
+  // FONCTION POUR SAUVEGARDER UN TEMPLATE
+  const handleSaveTemplate = async (config) => {
+    try {
+      const { data, error } = await supabase
+        .from('report_templates')
+        .upsert({
+          name: config.reportTitle,
+          config: config,
+          organization_id: organizationId,
+          user_id: user.id,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+      
+      if (error) throw error
+      
+      setAvailableTemplates(prev => {
+        const existing = prev.find(t => t.id === data.id)
+        if (existing) {
+          return prev.map(t => t.id === data.id ? data : t)
+        }
+        return [data, ...prev]
+      })
+      
+      setSelectedTemplate(data)
+      setIsTemplateBuilderOpen(false)
+      
+      alert('Template sauvegardé avec succès!')
+    } catch (error) {
+      console.error('Error saving template:', error)
+      alert('Erreur lors de la sauvegarde du template')
+    }
+  }
+
+
+  const handleGenerateReport = async (displayMode) => {
+    setIsReportModalOpen(false)
+
+    const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
+
+    try {
+      const response = await fetch("https://zaynbackend-production.up.railway.app/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          selectedIds: selectedPinsArr.map((p) => p.id),
+          fields: reportFields,
+          displayMode: displayMode,
+          templateConfig: selectedTemplate?.config || null // AJOUT DU TEMPLATE
+        }),
+      })
+      
+      if (!response.ok) throw new Error("Erreur lors de la génération PDF")
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "rapport-taches.pdf"
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      alert("Impossible de générer le rapport")
+    }
+  }
 
 
 
@@ -536,17 +634,45 @@ const handleCreateTask = async () => {
           )}
           */}
           {selectedIds.size > 0 && (
-  <div className="px-6 py-4 bg-secondary/30 border-t border-border/50 flex items-center justify-between">
-    {/* ... selection count ... */}
-    <div className="flex gap-3">
-      <button 
-        onClick={() => setIsReportModalOpen(true)}
-        className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 flex items-center gap-2"
-      >
-        <Download className="w-4 h-4" />
-        Télécharger le rapport
-      </button>
+   <div className="px-6 py-4 bg-secondary/30 border-t border-border/50 flex items-center justify-between">
+          <p className="text-sm font-medium text-foreground">
+            {selectedIds.size} tâche{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}
+          </p>
+          
+          <div className="flex gap-3">
+            {/* NOUVEAU: Sélecteur de template */}
+            <select
+              value={selectedTemplate?.id || ''}
+              onChange={(e) => {
+                const template = availableTemplates.find(t => t.id === e.target.value)
+                setSelectedTemplate(template)
+              }}
+              className="px-4 py-2 bg-secondary/30 text-secondary-foreground rounded-lg text-sm font-medium border border-border/50 hover:bg-secondary/50 transition-all"
+            >
+              <option value="">Template par défaut</option>
+              {availableTemplates.map(template => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
 
+            {/* NOUVEAU: Bouton pour créer/modifier template 
+            <button
+              onClick={() => setIsTemplateBuilderOpen(true)}
+              className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-all flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Gérer les templates
+            </button>
+*/}
+            <button 
+              onClick={() => setIsReportModalOpen(true)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-all flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Télécharger le rapport
+            </button>
       <button
   onClick={handleExportExcel}
   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium hover:bg-secondary/80 transition-all flex items-center gap-2"
@@ -567,44 +693,17 @@ const handleCreateTask = async () => {
 )}
 
 
-{isReportModalOpen && (
-  <ReportFieldsModal
-    fields={reportFields}
-    setFields={setReportFields}
-    onClose={() => setIsReportModalOpen(false)}
-    onConfirm={async (displayMode) => {
-      setIsReportModalOpen(false)
 
-      // Get selected pins
-      const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
 
-      // Call your PDF generation endpoint
-      try {
-        const response = await fetch("https://zaynbackend-production.up.railway.app/api/report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            projectId,
-            selectedIds: selectedPinsArr.map((p) => p.id),
-            fields: reportFields,
-            displayMode: displayMode // pass user choices
-          }),
-        })
-        if (!response.ok) throw new Error("Erreur lors de la génération PDF")
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = "rapport-taches.pdf"
-        a.click()
-        window.URL.revokeObjectURL(url)
-      } catch (err) {
-        console.error(err)
-        alert("Impossible de générer le rapport")
-      }
-    }}
-  />
-)}
+      {/* Votre modal ReportFieldsModal existant */}
+      {isReportModalOpen && (
+        <ReportFieldsModal
+          fields={reportFields}
+          setFields={setReportFields}
+          onClose={() => setIsReportModalOpen(false)}
+          onConfirm={handleGenerateReport} // Fonction mise à jour
+        />
+      )}
 
           {/* Table */}
           <div className="overflow-x-auto">

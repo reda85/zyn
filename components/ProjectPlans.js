@@ -5,11 +5,13 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
 import { Lexend } from 'next/font/google'
 import { useRouter } from 'next/navigation'
-import { Upload, FileText, Trash2, Save, X, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { Upload, FileText, Trash2, Save, X, AlertCircle, CheckCircle2, Loader2, Clock } from 'lucide-react'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zaynbackend-production.up.railway.app'
 
 export default function ProjectPlans({ project, onClose }) {
   const [plans, setPlans] = useState([])
@@ -17,16 +19,22 @@ export default function ProjectPlans({ project, onClose }) {
   const [uploadState, setUploadState] = useState({
     file: null,
     uploading: false,
+    processing: false,
     progress: 0,
     error: null,
     success: false,
-    pageCount: null,
-    currentPage: 0
+    planId: null,
+    jobId: null,
+    estimatedTime: '',
+    status: null
   })
   const [dragActive, setDragActive] = useState(false)
   const dropRef = useRef(null)
   const router = useRouter()
+  const pollingIntervalRef = useRef(null)
+  const realtimeChannelRef = useRef(null)
 
+  // Fetch plans
   useEffect(() => {
     if (!project?.id) return
     const fetchPlans = async () => {
@@ -45,6 +53,18 @@ export default function ProjectPlans({ project, onClose }) {
     fetchPlans()
   }, [project.id])
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current)
+      }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [])
+
   const [editedNames, setEditedNames] = useState({})
 
   const handleNameChange = (planId, value) => {
@@ -59,27 +79,33 @@ export default function ProjectPlans({ project, onClose }) {
       setUploadState({
         file: null,
         uploading: false,
+        processing: false,
         progress: 0,
         error: 'Seuls les fichiers PDF sont acceptés',
         success: false,
-        pageCount: null,
-        currentPage: 0
+        planId: null,
+        jobId: null,
+        estimatedTime: '',
+        status: null
       })
       setShowUploadModal(true)
       return
     }
 
-    // Validate file size (50MB)
-    const maxSize = 50 * 1024 * 1024
+    // Validate file size (100MB)
+    const maxSize = 100 * 1024 * 1024
     if (file.size > maxSize) {
       setUploadState({
         file: null,
         uploading: false,
+        processing: false,
         progress: 0,
-        error: 'La taille du fichier ne doit pas dépasser 50 MB',
+        error: 'La taille du fichier ne doit pas dépasser 100 MB',
         success: false,
-        pageCount: null,
-        currentPage: 0
+        planId: null,
+        jobId: null,
+        estimatedTime: '',
+        status: null
       })
       setShowUploadModal(true)
       return
@@ -88,11 +114,14 @@ export default function ProjectPlans({ project, onClose }) {
     setUploadState({
       file,
       uploading: false,
+      processing: false,
       progress: 0,
       error: null,
       success: false,
-      pageCount: null,
-      currentPage: 0
+      planId: null,
+      jobId: null,
+      estimatedTime: '',
+      status: null
     })
     setShowUploadModal(true)
   }
@@ -106,6 +135,135 @@ export default function ProjectPlans({ project, onClose }) {
     }
   }
 
+  /**
+   * Start Realtime tracking for plan progress
+   */
+  const startRealtimeTracking = (planId) => {
+    // Cleanup previous listener
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current)
+    }
+
+    // Create Realtime channel
+    const channel = supabase
+      .channel(`plan:${planId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'plans',
+          filter: `id=eq.${planId}`
+        },
+        (payload) => {
+          console.log('📡 Realtime update:', payload.new)
+
+          const { status, processing_progress } = payload.new
+
+          setUploadState(prev => ({
+            ...prev,
+            progress: processing_progress || 0,
+            status
+          }))
+
+          if (status === 'ready') {
+            setUploadState(prev => ({
+              ...prev,
+              processing: false,
+              success: true
+            }))
+
+            // Refresh plans list
+            fetchPlansAfterProcessing()
+
+            // Cleanup
+            supabase.removeChannel(channel)
+          } else if (status === 'failed') {
+            setUploadState(prev => ({
+              ...prev,
+              processing: false,
+              error: payload.new.error_message || 'Erreur lors du traitement'
+            }))
+
+            supabase.removeChannel(channel)
+          }
+        }
+      )
+      .subscribe()
+
+    realtimeChannelRef.current = channel
+  }
+
+  /**
+   * Fallback: Polling if Realtime fails
+   */
+  const startPolling = (planId) => {
+    // Start polling after 5 seconds (let Realtime try first)
+    const timeoutId = setTimeout(() => {
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/upload-pdf/status/${planId}`)
+          const data = await response.json()
+
+          setUploadState(prev => ({
+            ...prev,
+            progress: data.processing_progress || 0,
+            status: data.status
+          }))
+
+          if (data.status === 'ready' || data.status === 'failed') {
+            clearInterval(pollingIntervalRef.current)
+
+            if (data.status === 'ready') {
+              setUploadState(prev => ({
+                ...prev,
+                processing: false,
+                success: true
+              }))
+              fetchPlansAfterProcessing()
+            } else {
+              setUploadState(prev => ({
+                ...prev,
+                processing: false,
+                error: data.error_message || 'Erreur lors du traitement'
+              }))
+            }
+          }
+        } catch (error) {
+          console.error('Polling error:', error)
+        }
+      }, 3000) // Poll every 3 seconds
+    }, 5000)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }
+
+  /**
+   * Fetch plans after processing is complete
+   */
+  const fetchPlansAfterProcessing = async () => {
+    const { data: allPlans, error: fetchError } = await supabase
+      .from('plans')
+      .select('*')
+      .eq('project_id', project.id)
+      .is('deleted_at', null)
+      .order('name', { ascending: true })
+
+    if (fetchError) {
+      console.error('Error fetching plans:', fetchError)
+    } else {
+      setPlans(allPlans)
+    }
+  }
+
+  /**
+   * Handle upload with job queue
+   */
   const handleUpload = async () => {
     if (!uploadState.file) return
 
@@ -121,20 +279,11 @@ export default function ProjectPlans({ project, onClose }) {
       formData.append('file', uploadState.file)
       formData.append('projectId', project.id)
 
-      // Simulate progress during upload
-      const progressInterval = setInterval(() => {
-        setUploadState(prev => ({
-          ...prev,
-          progress: Math.min(prev.progress + 5, 90)
-        }))
-      }, 200)
-
-      const response = await fetch('https://zaynbackend-production.up.railway.app/api/upload-pdf', {
+      // Upload to backend (returns immediately with job ID)
+      const response = await fetch(`${API_URL}/api/upload-pdf`, {
         method: 'POST',
         body: formData
       })
-
-      clearInterval(progressInterval)
 
       if (!response.ok) {
         const error = await response.json()
@@ -142,57 +291,31 @@ export default function ProjectPlans({ project, onClose }) {
       }
 
       const result = await response.json()
-      
-      // Update progress to 100%
-      setUploadState(prev => ({
-        ...prev,
-        progress: 100,
-        pageCount: result.pageCount,
-        currentPage: result.pageCount
-      }))
 
-      // Refresh all plans from database to get the newly created ones
-      const { data: allPlans, error: fetchError } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('project_id', project.id)
-        .is('deleted_at', null)
-        .order('name', { ascending: true })
+      console.log('✅ Upload successful:', result)
 
-      if (fetchError) {
-        console.error('Error fetching plans:', fetchError)
-      } else {
-        // Update plans list with all plans
-        setPlans(allPlans)
-      }
-
+      // Update state with job info
       setUploadState(prev => ({
         ...prev,
         uploading: false,
-        success: true
+        processing: true,
+        planId: result.planId,
+        jobId: result.jobId,
+        estimatedTime: result.estimatedTime,
+        status: 'processing',
+        progress: 0
       }))
 
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        setShowUploadModal(false)
-        setTimeout(() => {
-          setUploadState({
-            file: null,
-            uploading: false,
-            progress: 0,
-            error: null,
-            success: false,
-            pageCount: null,
-            currentPage: 0
-          })
-        }, 300)
-      }, 2000)
+      // Start real-time tracking
+      startRealtimeTracking(result.planId)
+      startPolling(result.planId)
 
     } catch (error) {
       console.error('Upload error:', error)
       setUploadState(prev => ({
         ...prev,
         uploading: false,
+        processing: false,
         error: error.message,
         progress: 0
       }))
@@ -200,14 +323,24 @@ export default function ProjectPlans({ project, onClose }) {
   }
 
   const resetUpload = () => {
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current)
+    }
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+    }
+
     setUploadState({
       file: null,
       uploading: false,
+      processing: false,
       progress: 0,
       error: null,
       success: false,
-      pageCount: null,
-      currentPage: 0
+      planId: null,
+      jobId: null,
+      estimatedTime: '',
+      status: null
     })
   }
 
@@ -220,9 +353,9 @@ export default function ProjectPlans({ project, onClose }) {
   }
 
   const deletePlan = async (plan) => {
-    const {data,error} = await supabase.rpc('soft_delete_plan', { p_plan_id: plan.id });
-   if (error) { console.error('Error deleting plan:', error) }
-   if (data) { console.log('Plan deleted:', data) }
+    const { data, error } = await supabase.rpc('soft_delete_plan', { p_plan_id: plan.id })
+    if (error) { console.error('Error deleting plan:', error) }
+    if (data) { console.log('Plan deleted:', data) }
     await supabase.storage.from('project-plans').remove([plan.file_url])
     setPlans(plans.filter((p) => p.id !== plan.id))
   }
@@ -239,6 +372,13 @@ export default function ProjectPlans({ project, onClose }) {
     )
     setEditedNames({})
     router.push(`${project.organization_id}/projects/${project.id}`)
+  }
+
+  const closeModal = () => {
+    if (!uploadState.uploading && !uploadState.processing) {
+      setShowUploadModal(false)
+      setTimeout(resetUpload, 300)
+    }
   }
 
   return (
@@ -280,7 +420,7 @@ export default function ProjectPlans({ project, onClose }) {
                 Glissez-déposez un PDF ici
               </p>
               <p className="text-xs text-muted-foreground mb-4">
-                Maximum 50 MB
+                Maximum 100 MB
               </p>
               <input
                 type="file"
@@ -357,7 +497,7 @@ export default function ProjectPlans({ project, onClose }) {
         </div>
       </div>
 
-      {/* Upload Modal */}
+      {/* Upload Modal with Job Queue Support */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-background rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
@@ -368,17 +508,18 @@ export default function ProjectPlans({ project, onClose }) {
                   Importer un fichier PDF
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Le PDF sera automatiquement divisé en pages • Maximum 50 MB
+                  Le PDF sera automatiquement divisé en pages • Maximum 100 MB
                 </p>
               </div>
               <button
-                onClick={() => !uploadState.uploading && setShowUploadModal(false)}
-                disabled={uploadState.uploading}
+                onClick={closeModal}
+                disabled={uploadState.uploading || uploadState.processing}
                 className="p-2 hover:bg-secondary rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
+
             {/* Content */}
             <div className="p-6 space-y-6">
               {!uploadState.file && !uploadState.error ? (
@@ -406,12 +547,12 @@ export default function ProjectPlans({ project, onClose }) {
                       ou glissez-déposez votre PDF ici
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      PDF uniquement, maximum 50 MB
+                      PDF uniquement, maximum 100 MB
                     </p>
                   </div>
                 </label>
               ) : (
-                // File Preview & Upload
+                // File Preview & Processing
                 <div className="space-y-4">
                   {/* File Info */}
                   {uploadState.file && (
@@ -427,7 +568,7 @@ export default function ProjectPlans({ project, onClose }) {
                           {formatFileSize(uploadState.file.size)}
                         </p>
                       </div>
-                      {!uploadState.uploading && !uploadState.success && (
+                      {!uploadState.uploading && !uploadState.processing && !uploadState.success && (
                         <button
                           onClick={resetUpload}
                           className="p-2 hover:bg-background rounded-lg transition-colors"
@@ -437,13 +578,30 @@ export default function ProjectPlans({ project, onClose }) {
                       )}
                     </div>
                   )}
-                  {/* Progress Bar */}
+
+                  {/* Progress Bar - Upload Phase */}
                   {uploadState.uploading && (
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          Traitement en cours...
-                          {uploadState.currentPage > 0 && ` (${uploadState.currentPage}/${uploadState.pageCount})`}
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Upload en cours...
+                        </span>
+                        <span className="text-foreground font-semibold">Envoi...</span>
+                      </div>
+                      <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-primary to-primary/80 animate-pulse" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Progress Bar - Processing Phase */}
+                  {uploadState.processing && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Génération des tiles...
                         </span>
                         <span className="text-foreground font-semibold">{uploadState.progress}%</span>
                       </div>
@@ -453,34 +611,43 @@ export default function ProjectPlans({ project, onClose }) {
                           style={{ width: `${uploadState.progress}%` }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Séparation et téléchargement des pages...
+
+                      {/* Estimated Time */}
+                      {uploadState.estimatedTime && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>Temps estimé: {uploadState.estimatedTime}</span>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-muted-foreground text-center bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                        ℹ️ Le traitement continue en arrière-plan. Vous pouvez fermer cette fenêtre.
                       </p>
                     </div>
                   )}
+
                   {/* Success Message */}
                   {uploadState.success && (
                     <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
                       <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-semibold text-green-700 dark:text-green-400">
-                          Fichier téléchargé avec succès !
+                          PDF traité avec succès !
                         </h4>
-                        {uploadState.pageCount && (
-                          <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-                            {uploadState.pageCount} page{uploadState.pageCount > 1 ? 's' : ''} importée{uploadState.pageCount > 1 ? 's' : ''}
-                          </p>
-                        )}
+                        <p className="text-sm text-green-600 dark:text-green-500 mt-1">
+                          Les pages ont été générées et sont maintenant disponibles.
+                        </p>
                       </div>
                     </div>
                   )}
+
                   {/* Error Message */}
                   {uploadState.error && (
                     <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                       <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <h4 className="font-semibold text-red-700 dark:text-red-400">
-                          Erreur de téléchargement
+                          Erreur de traitement
                         </h4>
                         <p className="text-sm text-red-600 dark:text-red-500 mt-1">
                           {uploadState.error}
@@ -491,16 +658,17 @@ export default function ProjectPlans({ project, onClose }) {
                 </div>
               )}
             </div>
+
             {/* Footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-border bg-secondary/30">
               <button
-                onClick={() => setShowUploadModal(false)}
-                disabled={uploadState.uploading}
+                onClick={closeModal}
+                disabled={uploadState.uploading || uploadState.processing}
                 className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {uploadState.success ? 'Fermer' : 'Annuler'}
+                {uploadState.success ? 'Fermer' : uploadState.processing ? 'Fermer (continuer en arrière-plan)' : 'Annuler'}
               </button>
-              {uploadState.file && !uploadState.success && !uploadState.error && (
+              {uploadState.file && !uploadState.success && !uploadState.error && !uploadState.processing && (
                 <button
                   onClick={handleUpload}
                   disabled={uploadState.uploading}
@@ -509,7 +677,7 @@ export default function ProjectPlans({ project, onClose }) {
                   {uploadState.uploading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Téléchargement...
+                      Upload...
                     </>
                   ) : (
                     <>
