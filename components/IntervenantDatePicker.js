@@ -39,6 +39,8 @@ export default function IntervenantDatePicker({ pin }) {
   ? selectedDate < new Date()
   : false;
 
+  const isGuest = profile?.role === 'guest';
+
 
   useEffect(() => {
     getAllIntervenants();
@@ -82,6 +84,8 @@ export default function IntervenantDatePicker({ pin }) {
       .toUpperCase();
 
   const handleSelect = (value) => {
+    if (isGuest) return;
+    
     if (value?.id === 0) {
       setSelectedIntervenant(null);
     } else {
@@ -92,6 +96,8 @@ export default function IntervenantDatePicker({ pin }) {
   };
 
   const updateAssignedIntervenant = async (intervenant) => {
+    if (isGuest) return;
+    
     const { data, error } = await supabase
       .from('pdf_pins')
       .update({ assigned_to: intervenant?.id })
@@ -200,6 +206,8 @@ export default function IntervenantDatePicker({ pin }) {
   }, [selectedDate]);
 
   const updateDueDate = async (date) => {
+    if (isGuest) return;
+    
     const { data, error } = await supabase
       .from('pdf_pins')
       .update({ due_date: date })
@@ -240,10 +248,10 @@ export default function IntervenantDatePicker({ pin }) {
     <div className="flex flex-row text-sm gap-4 items-center">
       {/* Combobox */}
       <div className="w-56 relative">
-        <Combobox value={selectedIntervenant} onChange={handleSelect}>
+        <Combobox value={selectedIntervenant} onChange={handleSelect} disabled={isGuest}>
           {({ open }) => (
             <div className="relative w-full">
-              {isEditing ? (
+              {isEditing && !isGuest ? (
                 <>
                   <div className="relative">
                     <Combobox.Input
@@ -312,10 +320,18 @@ export default function IntervenantDatePicker({ pin }) {
               ) : (
                 <Combobox.Button
                   as="button"
-                  className="w-full border  border-border/50 rounded-lg px-3 py-2 pl-10 text-left bg-muted hover:bg-muted/80 transition-all relative text-sm font-medium text-foreground"
+                  disabled={isGuest}
+                  className={clsx(
+                    "w-full border border-border/50 rounded-lg px-3 py-2 pl-10 text-left transition-all relative text-sm font-medium",
+                    isGuest 
+                      ? 'bg-muted/70 cursor-not-allowed opacity-80 text-muted-foreground' 
+                      : 'bg-muted hover:bg-muted/80 text-foreground cursor-pointer'
+                  )}
                   onClick={() => {
-                    setIsEditing(true);
-                    setTimeout(() => setQuery(''), 0);
+                    if (!isGuest) {
+                      setIsEditing(true);
+                      setTimeout(() => setQuery(''), 0);
+                    }
                   }}
                 >
                   {displayText}
@@ -333,7 +349,7 @@ export default function IntervenantDatePicker({ pin }) {
 
       {/* DatePicker */}
       <div className="w-48 relative">
-        {isPickingDate ? (
+        {isPickingDate && !isGuest ? (
           <DatePicker
             selected={selectedDate}
             onChange={(date) => {
@@ -350,11 +366,20 @@ export default function IntervenantDatePicker({ pin }) {
           <div className="relative w-full">
             <button
               type="button"
+              disabled={isGuest}
               className={clsx(
-                'w-full border rounded-lg px-3 py-2 pl-10 text-left bg-muted hover:bg-muted/80 relative transition-all text-sm font-medium',
-                isOverDue ? 'border-destructive text-destructive bg-red-50' : 'border-border/50 text-foreground '
+                'w-full border rounded-lg px-3 py-2 pl-10 text-left relative transition-all text-sm font-medium',
+                isGuest 
+                  ? 'bg-muted/70 cursor-not-allowed opacity-80 border-border/50 text-muted-foreground'
+                  : isOverDue 
+                    ? 'border-destructive text-destructive bg-red-50 hover:bg-red-50/80 cursor-pointer' 
+                    : 'border-border/50 text-foreground bg-muted hover:bg-muted/80 cursor-pointer'
               )}
-              onClick={() => setIsPickingDate(true)}
+              onClick={() => {
+                if (!isGuest) {
+                  setIsPickingDate(true);
+                }
+              }}
             >
               {selectedDate
                 ? selectedDate.toLocaleDateString('fr-FR')
@@ -372,7 +397,7 @@ export default function IntervenantDatePicker({ pin }) {
               </div>
             </button>
 
-            {selectedDate && (
+            {selectedDate && !isGuest && (
               <button
                 type="button"
                 className={clsx(

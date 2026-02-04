@@ -16,6 +16,8 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded }) {
 
   const {user, profile, organization} = useUserData()
 
+  const isGuest = profile?.role === 'guest'
+
   const goToCanvas = () => {
     setFocusOnPin(pin)
     router.push(`/${pin.projects?.organization_id}/projects/${pin.project_id}/${pin?.plans?.id}`)
@@ -97,7 +99,7 @@ const handleFileChange = async (e) => {
 
   // 🗑 Soft delete pin
   const deletePin = async () => {
-    if (!pin?.id) return
+    if (!pin?.id || isGuest) return
     if (!confirm('Are you sure you want to delete this pin?')) return
 
     const { error } = await supabase.rpc('soft_delete_pin', { p_pin_id: pin.id })
@@ -152,12 +154,15 @@ const handleFileChange = async (e) => {
           style={{ display: 'none' }}
         />
 
-        <button
-          className="hover:bg-red-100 rounded-full p-2 text-red-500"
-          onClick={deletePin}
-        >
-          <Trash2 size={20} />
-        </button>
+        {/* Only show delete button for non-guests */}
+        {!isGuest && (
+          <button
+            className="hover:bg-red-100 rounded-full p-2 text-red-500"
+            onClick={deletePin}
+          >
+            <Trash2 size={20} />
+          </button>
+        )}
 
         <button
           className="hover:bg-gray-100 rounded-full p-2 text-gray-500"

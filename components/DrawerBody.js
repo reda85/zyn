@@ -10,6 +10,7 @@ import { Tag } from 'lucide-react';
 import { supabase } from '@/utils/supabase/client';
 import Timeline from './Timeline';
 import TagEditor from './TagEditor';
+import { useUserData } from '@/hooks/useUserData';
 
 
 
@@ -23,6 +24,9 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
   const [dueDate, setDueDate] = useState(pin.due_date ? new Date(pin.due_date) : null);
   const [intervenant, setIntervenant] = useState(pin.assigned_to || null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const {user, profile, organization} = useUserData();
+
+  const isGuest = profile?.role === 'guest';
 
   useEffect(() => {
     if (photoUploadTrigger > 0) {
@@ -32,6 +36,8 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
   }, [photoUploadTrigger]);
 
   const handleUpdateTags = async (updatedTags) => {
+    if (isGuest) return;
+    
     setTags(updatedTags);
     const { data } = await supabase
       .from('pdf_pins')
@@ -56,7 +62,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
   }, [pin])
 
   const handleUpdateName = async () => {
-    if (!name) return
+    if (!name || isGuest) return
 
     const { data } = await supabase.from('pdf_pins').update({ name }).eq('id', pin.id).select('*').single()
     if (data) {
@@ -68,7 +74,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
   }
 
   const handleUpdateNote = async () => {
-    if (!note) return
+    if (!note || isGuest) return
 
     const { data } = await supabase.from('pdf_pins').update({ note }).eq('id', pin.id).select('*').single()
     if (data) {
@@ -98,7 +104,8 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
             placeholder='Ajouter le nom ici ...' 
             value={name || ''} 
             onChange={(e) => setName(e.target.value)} 
-            className="w-full resize-none text-lg focus:outline-none placeholder:text-lg" 
+            disabled={isGuest}
+            className="w-full resize-none text-lg focus:outline-none placeholder:text-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-muted/50" 
           />
         </div>
         <div className="text-xs">
@@ -107,10 +114,11 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
             placeholder='Ajouter une description ici ...' 
             onBlur={handleUpdateNote} 
             onChange={(e) => setNote(e.target.value)} 
-            className="w-full resize-none text-sm placeholder:text-sm focus:outline-none" 
+            disabled={isGuest}
+            className="w-full resize-none text-sm placeholder:text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-muted/50" 
           />
         </div>
-        <TagEditor tags={tags} onChange={handleUpdateTags} />
+        <TagEditor tags={tags} onChange={handleUpdateTags} disabled={isGuest} />
         <div className='flex flex-row gap-2 items-center'> 
           {pin && <IntervenantDatePicker pin={selectedPin} />}
         </div>

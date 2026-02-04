@@ -6,7 +6,21 @@ import {
   GripIcon, 
   FireExtinguisherIcon, 
   DoorClosedIcon, 
-  SnowflakeIcon 
+  SnowflakeIcon,
+  FolderIcon,
+  AirVentIcon,
+  AlarmSmokeIcon,
+  CheckCircleIcon,
+  PackageIcon,
+  BrickWallIcon,
+  BrushIcon,
+  ConstructionIcon,
+  DropletOffIcon,
+  DoorOpenIcon,
+  TrendingUpIcon,
+  FlameIcon,
+  TrendingDownIcon,
+  WifiIcon,
 } from 'lucide-react';
 
 export const categoriesIcons = {
@@ -18,6 +32,20 @@ export const categoriesIcons = {
   'fire-extinguisher': <FireExtinguisherIcon className="text-muted-foreground h-4 w-4" />,
   'doors': <DoorClosedIcon className="text-muted-foreground h-4 w-4" />,
   'snowflake': <SnowflakeIcon className="text-muted-foreground h-4 w-4" />,
+  'folder': <FolderIcon className="text-muted-foreground h-4 w-4" />,
+  'air-vent': <AirVentIcon className="text-muted-foreground h-4 w-4" />,
+  'alarm-smoke': <AlarmSmokeIcon className="text-muted-foreground h-4 w-4" />,
+  'check-circle': <CheckCircleIcon className="text-muted-foreground h-4 w-4" />,
+  'package': <PackageIcon className="text-muted-foreground h-4 w-4" />,
+  'brick-wall': <BrickWallIcon className="text-muted-foreground h-4 w-4" />,
+  'brush-cleaning': <BrushIcon className="text-muted-foreground h-4 w-4" />,
+  'construction': <ConstructionIcon className="text-muted-foreground h-4 w-4" />,
+  'droplet-off': <DropletOffIcon className="text-muted-foreground h-4 w-4" />,
+  'door-open': <DoorOpenIcon className="text-muted-foreground h-4 w-4" />,
+  'trending-up': <TrendingUpIcon className="text-muted-foreground h-4 w-4" />,
+  'flame': <FlameIcon className="text-muted-foreground h-4 w-4" />,
+  'trending-down': <TrendingDownIcon className="text-muted-foreground h-4 w-4" />,
+  'wifi': <WifiIcon className="text-muted-foreground h-4 w-4" />,
 };
 
 export const categoriesPinIcons = {
@@ -28,6 +56,20 @@ export const categoriesPinIcons = {
   carrelage: <GripIcon className="text-white h-4 w-4" />,
   snowflake: <SnowflakeIcon className="text-white h-4 w-4" />,
   "fire-extinguisher": <FireExtinguisherIcon className="text-white h-4 w-4" />,
-  doors: <DoorClosedIcon className="text-white h-4 w-4" />
+  doors: <DoorClosedIcon className="text-white h-4 w-4" />,
+  folder: <FolderIcon className="text-white h-4 w-4" />,
+  "air-vent": <AirVentIcon className="text-white h-4 w-4" />,
+  "alarm-smoke": <AlarmSmokeIcon className="text-white h-4 w-4" />,
+  "check-circle": <CheckCircleIcon className="text-white h-4 w-4" />,
+  package: <PackageIcon className="text-white h-4 w-4" />,
+  "brick-wall": <BrickWallIcon className="text-white h-4 w-4" />,
+  "brush-cleaning": <BrushIcon className="text-white h-4 w-4" />,
+  construction: <ConstructionIcon className="text-white h-4 w-4" />,
+  "droplet-off": <DropletOffIcon className="text-white h-4 w-4" />,
+  "door-open": <DoorOpenIcon className="text-white h-4 w-4" />,
+  "trending-up": <TrendingUpIcon className="text-white h-4 w-4" />,
+  "flame": <FlameIcon className="text-white h-4 w-4" />,
+  "trending-down": <TrendingDownIcon className="text-white h-4 w-4" />,
+  "wifi": <WifiIcon className="text-white h-4 w-4" />,
 };
 
