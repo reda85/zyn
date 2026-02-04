@@ -17,7 +17,7 @@ const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 
 
 const roles = [
   { id: 1, name: 'Membres', value: 'membres' },
-  { id: 2, name: 'Invités', value: 'invites' },
+  { id: 2, name: 'guest', value: 'guest' },
   { id: 3, name: 'Admins', value: 'admins' },
 ];
 

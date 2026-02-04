@@ -56,7 +56,7 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
       </div>
 
       {/* Pins list */}
-      <div className="flex flex-col gap-3 p-4">
+      <div className="flex flex-col gap-3 p-4 min-h-[800px]">
         {pins.map((pin, index) => (
           <div
             key={pin.id}
