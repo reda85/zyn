@@ -258,7 +258,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     const imageX = (centerX - offset.x) / scale;
     const imageY = (centerY - offset.y) / scale;
 
-    const newScale = Math.max(0.125, Math.min(scale * factor, 5));
+    const newScale = Math.max(0.025, Math.min(scale * factor, 5));
 
     const newOffsetX = centerX - imageX * newScale;
     const newOffsetY = centerY - imageY * newScale;

@@ -310,7 +310,7 @@ setSelectedPin(prev =>
     const pdfX = (centerX - offset.x) / scale;
     const pdfY = (centerY - offset.y) / scale;
 
-    const newScale = Math.max(0.125, Math.min(scale * factor, 5));
+    const newScale = Math.max(0.05, Math.min(scale * factor, 5));
 
     const newOffsetX = centerX - pdfX * newScale;
     const newOffsetY = centerY - pdfY * newScale;
