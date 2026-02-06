@@ -9,6 +9,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { Lexend } from 'next/font/google'
 import { useUserData } from '@/hooks/useUserData'
+import Sidebar from '@/components/Sidebar'
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
@@ -79,60 +80,7 @@ export default function UserSettingsPage({params}) {
   return (
     <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
       {/* ASIDE */}
- <aside className="w-64 h-screen bg-secondary/20 border-r border-border/40 flex flex-col">
-  {/* ORG CARD */}
-  <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
-    <h2 className="text-sm font-semibold font-heading text-foreground">
-      {organization?.name}
-    </h2>
-    <p className="text-xs text-muted-foreground">
-      {organization?.members[0]?.count} membres
-    </p>
-  </div>
-
-  {/* NAV */}
-  <nav className="flex-1 px-4 space-y-2">
-    <Link href={`/${organizationId}/projects`} className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50">
-      <FolderKanban className="w-5 h-5" /> Projects
-    </Link>
-
-    <Link href={`/${organizationId}/members`} className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50">
-      <Users className="w-5 h-5" /> Membres
-    </Link>
-
-    <Link href={`/${organizationId}/reports`} className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50">
-      <BarChart3 className="w-5 h-5" /> Rapports
-    </Link>
-
-    <Link href={`/${organizationId}/settings`} className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50">
-      <Settings className="w-5 h-5" /> Paramètres
-    </Link>
-  </nav>
-
-  {/* PROFILE (BOTTOM) */}
-  <div className="px-4 pb-6">
-    <Link
-      href={`/${organizationId}/settings/account`}
-      className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/50 hover:bg-secondary/50 transition-all"
-    >
-      {/* Avatar */}
-      <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-        {/* Replace with img if you have avatar_url */}
-        MR
-      </div>
-
-      {/* User info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">
-          Marouane Reda
-        </p>
-        <p className="text-xs text-muted-foreground truncate">
-          Mon profil
-        </p>
-      </div>
-    </Link>
-  </div>
-</aside>
+<Sidebar organizationId={organizationId} currentPage="profile" />
 
 
       {/* MAIN */}

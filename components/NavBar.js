@@ -15,6 +15,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAtom } from 'jotai'
 import { selectedPlanAtom } from '@/store/atoms'
 import { signOutAction } from '@/app/actions'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 const tabs = ['Plan', 'Tasks', 'Medias']
 const lexend = Outfit({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -23,6 +24,7 @@ export default function Navbar({ id, user, project, organizationId }) {
   const pathname = usePathname()
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const { isAdmin } = useIsAdmin()
   
   const projectMenuRef = useRef(null)
   const userMenuRef = useRef(null)
@@ -96,42 +98,48 @@ export default function Navbar({ id, user, project, organizationId }) {
                     Tous les projets
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href={`/${organizationId}/projects/${id}/details`}
-                    className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
-                    onClick={() => setProjectMenuOpen(false)}
-                  >
-                    Détails du projet
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href={`/${organizationId}/projects/${id}/sources`}
-                    className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
-                    onClick={() => setProjectMenuOpen(false)}
-                  >
-                    Plans du projet
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href={`/${organizationId}/projects/${id}/categories`}
-                    className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
-                    onClick={() => setProjectMenuOpen(false)}
-                  >
-                    Gestionnaire de catégories
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href={`/${organizationId}/projects/${id}/status`}
-                    className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
-                    onClick={() => setProjectMenuOpen(false)}
-                  >
-                    Gestionnaire de statuts
-                  </Link>
-                </li>
+                
+                {/* Admin-only menu items */}
+                {isAdmin && (
+                  <>
+                    <li>
+                      <Link
+                        href={`/${organizationId}/projects/${id}/details`}
+                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        onClick={() => setProjectMenuOpen(false)}
+                      >
+                        Détails du projet
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={`/${organizationId}/projects/${id}/sources`}
+                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        onClick={() => setProjectMenuOpen(false)}
+                      >
+                        Plans du projet
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={`/${organizationId}/projects/${id}/categories`}
+                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        onClick={() => setProjectMenuOpen(false)}
+                      >
+                        Gestionnaire de catégories
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={`/${organizationId}/projects/${id}/status`}
+                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        onClick={() => setProjectMenuOpen(false)}
+                      >
+                        Gestionnaire de statuts
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
           )}

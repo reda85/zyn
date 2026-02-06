@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { useUserData } from '@/hooks/useUserData'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useRouter } from 'next/navigation'
 import ReportTemplateBuilder from '@/components/ReportTemplateBuilder'
+import Sidebar from '@/components/Sidebar'
 import { 
   FileText, Plus, Edit, Trash2, Copy, Star, StarOff, 
-  Search, ArrowLeft, Settings, FolderKanban, Users, BarChart3
+  Search, ArrowLeft
 } from 'lucide-react'
-import Link from 'next/link'
 import clsx from 'clsx'
 import { Outfit } from 'next/font/google'
 
@@ -16,7 +18,9 @@ const lexend = Outfit({ subsets: ['latin'], variable: '--font-lexend', display: 
 
 export default function ReportsPage({ params }) {
   const { organizationId } = params
+  const router = useRouter()
   const { user, profile, organization } = useUserData()
+  const { isAdmin, isLoading: isCheckingAccess } = useIsAdmin()
 
   const [templates, setTemplates] = useState([])
   const [filteredTemplates, setFilteredTemplates] = useState([])
@@ -26,9 +30,18 @@ export default function ReportsPage({ params }) {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
 
+  // Redirect non-admins
   useEffect(() => {
-    fetchTemplates()
-  }, [organizationId])
+    if (!isCheckingAccess && !isAdmin) {
+      router.push(`/${organizationId}/projects`)
+    }
+  }, [isAdmin, isCheckingAccess, router, organizationId])
+
+  useEffect(() => {
+    if (!isCheckingAccess && isAdmin) {
+      fetchTemplates()
+    }
+  }, [organizationId, isCheckingAccess, isAdmin])
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -182,6 +195,18 @@ export default function ReportsPage({ params }) {
     setIsCreating(false)
   }
 
+  // Show loading while checking access OR if user is not admin (during redirect)
+  if (isCheckingAccess || !isAdmin) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Vérification des accès...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (currentView === 'builder') {
     return (
       <div className={clsx(lexend.className, "h-screen bg-background")}>
@@ -203,58 +228,7 @@ export default function ReportsPage({ params }) {
 
   return (
     <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
-      <aside className="w-64 h-screen bg-secondary/20 border-r border-border/40 flex flex-col">
-        <div className="px-4 py-5 flex-col border border-border/50 bg-card/80 backdrop-blur-sm flex mx-4 my-6 rounded-xl gap-2 shadow-sm">
-          <h2 className="text-sm font-semibold font-heading text-foreground">{organization?.name}</h2>
-          <p className="text-xs text-muted-foreground">{organization?.members?.[0]?.count || 0} membres</p>
-        </div>
-      
-        <nav className="flex-1 px-4 space-y-2">
-          <Link 
-            href={`/${organizationId}/projects`}
-            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50"
-          >
-            <FolderKanban className="w-5 h-5" /> Projects
-          </Link>
-          <Link 
-            href={`/${organizationId}/members`} 
-            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50"
-          >
-            <Users className="w-5 h-5" /> Membres
-          </Link>
-          <Link 
-            href={`/${organizationId}/reports`} 
-            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 bg-primary/10 text-primary rounded-xl shadow-sm border border-primary/20"
-          >
-            <BarChart3 className="w-5 h-5" /> Rapports
-          </Link>
-          <Link 
-            href={`/${organizationId}/settings`} 
-            className="flex text-sm font-medium items-center gap-3 px-4 py-2.5 text-foreground hover:bg-secondary/50 hover:text-primary rounded-xl transition-all border border-transparent hover:border-border/50"
-          >
-            <Settings className="w-5 h-5" /> Paramètres
-          </Link>
-        </nav>
-
-        <div className="px-4 pb-6">
-          <Link
-            href={`/${organizationId}/profile`}
-            className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/50 hover:bg-secondary/50 transition-all"
-          >
-            <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-              {profile?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">
-                {profile?.full_name || user?.email || 'Utilisateur'}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                Mon profil
-              </p>
-            </div>
-          </Link>
-        </div>
-      </aside>
+      <Sidebar organizationId={organizationId} currentPage="reports" />
 
       <main className="flex-1 overflow-y-auto p-10">
         <div className="flex flex-row items-baseline mb-8 mt-12 gap-3">

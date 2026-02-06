@@ -405,6 +405,11 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     setImageLoaded(true);
   };
 
+  // Check if user is a guest (no user or no id)
+  const isGuest = !user || !user.id;
+
+
+
   return (
     <>
       <div
@@ -453,31 +458,33 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
             </button>
           </div>
 
-          {/* Mode Toggle Group */}
-          <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-            <button
-              onClick={() => setPinMode(false)}
-              className={`p-3 transition-all border-r border-gray-200 ${
-                !pinMode
-                  ? 'bg-pink-50 text-pink-600'
-                  : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
-              }`}
-              title="Select Mode"
-            >
-              <PointerIcon className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setPinMode(true)}
-              className={`p-3 transition-all ${
-                pinMode
-                  ? 'bg-pink-50 text-pink-600'
-                  : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
-              }`}
-              title="Pin Mode"
-            >
-              <MapPinIcon className="h-5 w-5" />
-            </button>
-          </div>
+          {/* Mode Toggle Group - Hidden for guests */}
+          {!isGuest && (
+            <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+              <button
+                onClick={() => setPinMode(false)}
+                className={`p-3 transition-all border-r border-gray-200 ${
+                  !pinMode
+                    ? 'bg-pink-50 text-pink-600'
+                    : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
+                }`}
+                title="Select Mode"
+              >
+                <PointerIcon className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setPinMode(true)}
+                className={`p-3 transition-all ${
+                  pinMode
+                    ? 'bg-pink-50 text-pink-600'
+                    : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
+                }`}
+                title="Pin Mode"
+              >
+                <MapPinIcon className="h-5 w-5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Image + Pins */}
