@@ -10,11 +10,7 @@ import { pinsAtom, selectedPinAtom } from '@/store/atoms';
 import clsx from 'clsx';
 import { useUserData } from '@/hooks/useUserData';
 
-const intervenants = [
-  { id: 1, name: 'Alice Dupont', email: 'alice@example.com' },
-  { id: 2, name: 'Jean Martin', email: 'jean@example.com' },
-  { id: 3, name: 'Claire Bernard', email: 'claire@example.com' },
-];
+
 
 export default function IntervenantDatePicker({ pin }) {
   const [selectedIntervenant, setSelectedIntervenant] = useState(null);
@@ -32,6 +28,8 @@ export default function IntervenantDatePicker({ pin }) {
 
   // Utiliser une ref pour suivre l'ID de l'intervenant précédent
   const previousIntervenantIdRef = useRef(pin?.assigned_to);
+  // Flag pour éviter l'exécution au premier mount
+  const isFirstMountRef = useRef(true);
 
   console.log('pin props', selectedDate);
   
@@ -43,8 +41,10 @@ export default function IntervenantDatePicker({ pin }) {
 
 
   useEffect(() => {
-    getAllIntervenants();
-  }, []);
+    if (pin?.project_id) {
+      getAllIntervenants();
+    }
+  }, [pin?.project_id]);
 
   useEffect(() => {
     setSelectedPin(pin);
@@ -52,20 +52,24 @@ export default function IntervenantDatePicker({ pin }) {
     setSelectedDate(pin.due_date ? new Date(pin.due_date) : null);
     // Mettre à jour la ref avec l'ID actuel
     previousIntervenantIdRef.current = pin?.assigned_to;
-  }, [pin]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      updateDueDate(selectedDate);
-     
-    }
-  }, [selectedDate]);
+  }, [pin?.id]); // Ne se déclencher que quand l'ID du pin change
 
   const getAllIntervenants = async () => {
-    const { data, error } = await supabase.from('members').select('*');
+    // Get members who are part of this project
+    const { data, error } = await supabase
+      .from('members_projects')
+      .select('members(*)')
+      .eq('project_id', pin?.project_id);
+      
     if (data) {
       console.log('getAllIntervenants', data);
-      setAllOptions([{ id: 0, name: 'Aucun intervenant', email: '' }, ...data]);
+      // Extract members from the join result
+      const projectMembers = data.map(item => item.members).filter(Boolean);
+      setAllOptions([{ id: 0, name: 'Aucun intervenant', email: '' }, ...projectMembers]);
+    }
+    
+    if (error) {
+      console.error('Error fetching project members:', error);
     }
   };
 
@@ -188,6 +192,12 @@ export default function IntervenantDatePicker({ pin }) {
   useEffect(() => {
     console.log('selectedIntervenant', selectedIntervenant);
     
+    // Skip sur le premier mount
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      return;
+    }
+    
     // Vérifier si l'intervenant a réellement changé
     const currentId = selectedIntervenant?.id ?? null;
     const hasIntervenantChanged = currentId !== previousIntervenantIdRef.current;
@@ -198,12 +208,6 @@ export default function IntervenantDatePicker({ pin }) {
       previousIntervenantIdRef.current = currentId;
     }
   }, [selectedIntervenant]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      updateDueDate(selectedDate);
-    }
-  }, [selectedDate]);
 
   const updateDueDate = async (date) => {
     if (isGuest) return;
@@ -355,6 +359,7 @@ export default function IntervenantDatePicker({ pin }) {
             onChange={(date) => {
               setSelectedDate(date);
               setIsPickingDate(false);
+              updateDueDate(date);
             }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus

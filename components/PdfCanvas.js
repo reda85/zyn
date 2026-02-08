@@ -1,4 +1,4 @@
-import React, { useState, useRef, use, useEffect, useCallback } from 'react';
+import React, { useState, useRef, use, useEffect, useCallback, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import {Anek_Devanagari, Cabin, Jost, Catamaran, Lato, Noto_Sans, Fira_Sans, Domine, Inconsolata, Karla, Maitree, Nanum_Gothic, Aleo, Figtree, Lexend} from 'next/font/google'
@@ -76,6 +76,9 @@ const [pins] = useAtom(filteredPinsAtom); // read-only
   const [newComment, setNewComment] = useState(null)
   const containerRef = useRef(null);
   const pageRef = useRef(null);
+  const pinsContainerRef = useRef(null);
+  const scaleRef = useRef(scale);
+  const offsetRef = useRef(offset);
   const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
   const [touches, setTouches] = useState([]);
   const [initialDistance, setInitialDistance] = useState(null);
@@ -315,6 +318,13 @@ setSelectedPin(prev =>
     const newOffsetX = centerX - pdfX * newScale;
     const newOffsetY = centerY - pdfY * newScale;
 
+    // Update CSS variables immediately for instant visual update
+    if (containerRef.current) {
+      containerRef.current.style.setProperty('--pdf-scale', newScale);
+      containerRef.current.style.setProperty('--pdf-offset-x', `${newOffsetX}px`);
+      containerRef.current.style.setProperty('--pdf-offset-y', `${newOffsetY}px`);
+    }
+
     setScale(newScale);
     setOffset({ x: newOffsetX, y: newOffsetY });
   }
@@ -390,6 +400,51 @@ setSelectedPin(prev =>
   useEffect(()=> {
     console.log('mypins', pins)
   },[pins])
+
+  const memoizedPins = useMemo(() => {
+    if (basePdfSize.width === 0) return null;
+    
+    return pins.map((pin, idx) => {
+      // Calculate position in PDF coordinates (constant)
+      const pdfX = pin.x * basePdfSize.width * renderScale;
+      const pdfY = pin.y * basePdfSize.height * renderScale;
+
+      const z =
+        selectedPin?.id === pin.id ? 3000 :
+        hoveredPinId === pin.id ? 2000 : 10;
+      
+      return (
+        <div
+          key={pin.id}
+          style={{
+            position: 'absolute',
+            left: `calc(${pdfX}px * var(--pdf-scale) + var(--pdf-offset-x))`,
+            top: `calc(${pdfY}px * var(--pdf-scale) + var(--pdf-offset-y))`,
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'auto',
+            zIndex: z,
+            cursor: pinMode ? 'pointer' : 'move',
+            opacity: draggingPin === pin.id ? 0.7 : 1,
+          }}
+          onMouseEnter={() => setHoveredPinId(pin.id)}
+          onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
+          onMouseDown={(e) => handlePinMouseDown(e, pin)}
+          onClick={(e) => {
+            if (isDragging || pinDragStart?.hasMoved || draggingPin) {
+              e.stopPropagation();
+              return;
+            }
+            e.stopPropagation();
+            const currentPin = pins.find(p => p.id === pin.id);
+            setSelectedPin({ ...currentPin, index: idx });
+          }}
+          title={`Pin #${idx + 1}`}
+        >
+          <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id}/>
+        </div>
+      );
+    });
+  }, [pins, basePdfSize, renderScale, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, pinDragStart?.hasMoved]);
 
   function closeDrawer() {
     setSelectedPin(null);
@@ -468,6 +523,9 @@ setSelectedPin(prev =>
           backgroundColor: '#eee',
           userSelect: 'none',
           height: 'calc(100vh - 64px)',
+          '--pdf-scale': scale,
+          '--pdf-offset-x': `${offset.x}px`,
+          '--pdf-offset-y': `${offset.y}px`,
         }}
       >
         {/* Floating Controls Bar */}
@@ -520,7 +578,7 @@ setSelectedPin(prev =>
           </div>
         </div>
 
-        {/* PDF + Pins */}
+        {/* PDF Layer */}
         <div
           onClick={handlePdfClick}
           style={{
@@ -531,7 +589,6 @@ setSelectedPin(prev =>
             position: 'relative',
             cursor: pinMode ? 'pointer' : draggingPin ? 'grabbing' : 'default',
             willChange: 'transform',
-            transition: dragging || draggingPin ? 'none' : 'transform 0.3s ease',
           }}
         >
           <Document 
@@ -573,49 +630,11 @@ setSelectedPin(prev =>
               renderMode="canvas"
             />
           </Document>
+        </div>
 
-          {/* Pins - Use base size for consistent positioning */}
-          {basePdfSize.width > 0 && pins.map((pin, idx) => {
-            const scaledX = pin.x * basePdfSize.width * renderScale;
-            const scaledY = pin.y * basePdfSize.height * renderScale;
-
-            const z =
-              selectedPin?.id === pin.id ? 3000 :
-              hoveredPinId === pin.id ? 2000 : 10;
-            
-            return (
-              <div
-                key={idx}
-                style={{
-                  position: 'absolute',
-                  top: scaledY,
-                  left: scaledX,
-                  transform: `translate(-50%, -50%) scale(${1 / scale})`,
-                  pointerEvents: 'auto',
-                  zIndex: z,
-                  cursor: pinMode ? 'pointer' : 'move',
-                  opacity: draggingPin === pin.id ? 0.7 : 1,
-                }}
-                onMouseEnter={() => setHoveredPinId(pin.id)}
-                onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
-                onMouseDown={(e) => handlePinMouseDown(e, pin)}
-                onClick={(e) => {
-                  // Don't open drawer if we just finished dragging
-                  if (isDragging || pinDragStart?.hasMoved || draggingPin) {
-                    e.stopPropagation();
-                    return;
-                  }
-                  e.stopPropagation();
-                  // Use the current pin data from pins array, not stale data
-                  const currentPin = pins.find(p => p.id === pin.id);
-                  setSelectedPin({ ...currentPin, index: idx });
-                }}
-                title={`Pin #${idx + 1}`}
-              >
-                <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id}/>
-              </div>
-            );
-          })}
+        {/* Pins Layer - Uses CSS calc() with custom properties for instant updates */}
+        <div ref={pinsContainerRef}>
+          {memoizedPins}
         </div>
       </div>
 
