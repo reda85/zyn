@@ -47,11 +47,15 @@ export default function IntervenantDatePicker({ pin }) {
   }, [pin?.project_id]);
 
   useEffect(() => {
+    // Mettre à jour silencieusement sans déclencher de notification
     setSelectedPin(pin);
+    
+    // Mettre à jour la ref AVANT de mettre à jour le state
+    previousIntervenantIdRef.current = pin?.assigned_to;
+    
+    // Ensuite mettre à jour le state (le useEffect verra que la ref est déjà à jour)
     setSelectedIntervenant(pin.assigned_to || null);
     setSelectedDate(pin.due_date ? new Date(pin.due_date) : null);
-    // Mettre à jour la ref avec l'ID actuel
-    previousIntervenantIdRef.current = pin?.assigned_to;
   }, [pin?.id]); // Ne se déclencher que quand l'ID du pin change
 
   const getAllIntervenants = async () => {
@@ -190,11 +194,15 @@ export default function IntervenantDatePicker({ pin }) {
   };
 
   useEffect(() => {
-    console.log('selectedIntervenant', selectedIntervenant);
+    console.log('selectedIntervenant changed:', selectedIntervenant);
+    console.log('isFirstMount:', isFirstMountRef.current);
+    console.log('previousIntervenantId:', previousIntervenantIdRef.current);
+    console.log('currentId:', selectedIntervenant?.id ?? null);
     
     // Skip sur le premier mount
     if (isFirstMountRef.current) {
       isFirstMountRef.current = false;
+      console.log('⏭️ Skipping first mount');
       return;
     }
     
@@ -202,10 +210,15 @@ export default function IntervenantDatePicker({ pin }) {
     const currentId = selectedIntervenant?.id ?? null;
     const hasIntervenantChanged = currentId !== previousIntervenantIdRef.current;
     
+    console.log('hasIntervenantChanged:', hasIntervenantChanged);
+    
     if (hasIntervenantChanged && currentId !== 0 && currentId !== null) {
+      console.log('📧 Sending notification for intervenant change');
       updateAssignedIntervenant(selectedIntervenant);
       // Mettre à jour la ref après l'envoi de la notification
       previousIntervenantIdRef.current = currentId;
+    } else {
+      console.log('⏭️ Skipping notification - no real change');
     }
   }, [selectedIntervenant]);
 

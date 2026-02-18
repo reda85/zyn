@@ -17,7 +17,7 @@ import { selectedPlanAtom } from '@/store/atoms'
 import { signOutAction } from '@/app/actions'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 
-const tabs = ['Plan', 'Tasks', 'Medias']
+const tabs = ['Plan', 'Tasks', 'Medias', 'Documents', 'Discussions']
 const lexend = Outfit({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export default function Navbar({ id, user, project, organizationId }) {

@@ -1,505 +1,491 @@
-import React, { useState, useRef, use, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import {Anek_Devanagari, Cabin, Jost, Catamaran, Lato, Noto_Sans, Fira_Sans, Domine, Inconsolata, Karla, Maitree, Nanum_Gothic, Aleo, Figtree, Lexend} from 'next/font/google'
+import { Lexend } from 'next/font/google';
 import { useAtom } from 'jotai';
-import { categoriesAtom, filteredPinsAtom, focusOnPinAtom, pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom } from '@/store/atoms';
+import {
+  categoriesAtom, filteredPinsAtom, focusOnPinAtom,
+  pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom
+} from '@/store/atoms';
 import DrawerHeader from './DrawerHeader';
 import DrawerFooter from './DrawerFooter';
 import DrawerBody from './DrawerBody';
 import MapPin from './MapPin';
-import { Calendar, CalendarDaysIcon, GrabIcon, MapPinIcon, PointerIcon, ZoomIn, ZoomOut } from 'lucide-react';
+import { MapPinIcon, PointerIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import GhostPin from './GhostPin';
-import { Stage, Layer, Rect, Image as KonvaImage, Line, Text } from 'react-konva';
-import useImage from 'use-image';
-
 import { supabase } from '@/utils/supabase/client';
-import { classNames } from '@react-pdf-viewer/core';
-import { useSearchParams } from 'next/navigation';
-import { create } from 'domain';
 
-const inter = Lexend({subsets: ['latin'], variable: '--font-inter', display: 'swap'});
+const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-function PinIcon({ size = 24, color = 'red' }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={color}
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ cursor: 'pointer', filter: 'drop-shadow(0 0 1px black)' }}
-    >
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-      <circle cx="12" cy="9" r="2.5" fill="white" />
-    </svg>
-  );
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
+const TILE_SIZE          = 512;  // px per tile in PDF native coords
+const TILE_RENDER_SCALE  = 2;    // render each tile at 2× for retina sharpness
+const MAX_TILES_IN_MEMORY = 24;  // LRU evict beyond this count
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getDistance(touches) {
-  if (touches.length < 2) return 0;
   const [t1, t2] = touches;
-  const dx = t2.clientX - t1.clientX;
-  const dy = t2.clientY - t1.clientY;
-  return Math.sqrt(dx * dx + dy * dy);
+  return Math.sqrt((t2.clientX - t1.clientX) ** 2 + (t2.clientY - t1.clientY) ** 2);
 }
 
+// ─── TileCanvas ───────────────────────────────────────────────────────────────
+// Blits a rendered offscreen canvas into a visible canvas.
+// React.memo = never re-renders unless the canvas object itself changes.
+const TileCanvas = React.memo(({ canvas, left, top, width, height }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!ref.current || !canvas) return;
+    ref.current.width  = canvas.width;
+    ref.current.height = canvas.height;
+    ref.current.getContext('2d').drawImage(canvas, 0, 0);
+  }, [canvas]);
+  return (
+    <canvas
+      ref={ref}
+      style={{
+        position: 'absolute',
+        left, top, width, height,
+        display: 'block',
+      }}
+    />
+  );
+});
 
+// ─── Main Component ────────────────────────────────────────────────────────────
 export default function PdfCanvas({ fileUrl, onPinAdd, project, plan, user }) {
-  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom);
-  const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom);
-  const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(0.25);
-  const [renderScale] = useState(3);
+  // ── Atoms ──────────────────────────────────────────────────────────────────
+  const [selectedPin, setSelectedPin]       = useAtom(selectedPinAtom);
+  const [categories]                         = useAtom(categoriesAtom);
+  const [statuses]                           = useAtom(statusesAtom);
+  const [allPins, setAllPins]               = useAtom(pinsAtom);
+  const [pins]                               = useAtom(filteredPinsAtom);
+  const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom);
+
+  // ── PDF state ──────────────────────────────────────────────────────────────
+  const [pageNumber]                            = useState(1);
+  const pdfPageRef                              = useRef(null);   // pdf.js PDFPageProxy
+  const [pdfNativeSize, setPdfNativeSize]       = useState({ w: 0, h: 0 }); // at scale=1
+  const [pdfReady, setPdfReady]                 = useState(false);
+
+  // ── Tile state ─────────────────────────────────────────────────────────────
+  const tileCacheRef  = useRef(new Map());     // key → { canvas, lastUsed, tileX, tileY, tileW, tileH }
+  const pendingRef    = useRef(new Set());     // keys currently rendering
+  const [tiles, setTiles] = useState([]);      // visible tiles for render
+
+  // ── Transform (DOM-direct, like RN useSharedValue) ─────────────────────────
+  const [scale,  setScale]  = useState(0.25);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
-  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
-  const [categories, setCategories] = useAtom(categoriesAtom);
-  const [statuses, setStatuses] = useAtom(statusesAtom);
-  const [allPins, setAllPins] = useAtom(pinsAtom);
-const [pins] = useAtom(filteredPinsAtom); // read-only
+  const scaleRef   = useRef(0.25);
+  const offsetRef  = useRef({ x: 0, y: 0 });
+  const pdfLayerRef  = useRef(null);
+  const pinsLayerRef = useRef(null);
 
-  const [showPins, setShowPins] = useState(true);
-  const [pinMode, setPinMode] = useState(false);
-  const [mousePos, setMousePos] = useState(null);
-  const [hoveredPinId, setHoveredPinId] = useState(null);
-  const [ghostPinPos, setGhostPinPos] = useState(null);
-  const [pdfSize, setPdfSize] = useState({ width: 0, height: 0 });
-  const [basePdfSize, setBasePdfSize] = useState({ width: 0, height: 0 });
-  const [containerRect, setContainerRect] = useState({ left: 0, top: 0 });
-  const [newComment, setNewComment] = useState(null)
-  const containerRef = useRef(null);
-  const pageRef = useRef(null);
-  const pinsContainerRef = useRef(null);
-  const scaleRef = useRef(scale);
-  const offsetRef = useRef(offset);
-  const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom)
-  const [touches, setTouches] = useState([]);
-  const [initialDistance, setInitialDistance] = useState(null);
-  const [initialScale, setInitialScale] = useState(scale);
+  const applyTransform = useCallback((s, o) => {
+    scaleRef.current  = s;
+    offsetRef.current = o;
+    const t = `translate(${o.x}px, ${o.y}px) scale(${s})`;
+    if (pdfLayerRef.current)  pdfLayerRef.current.style.transform  = t;
+    if (pinsLayerRef.current) pinsLayerRef.current.style.transform = t;
+  }, []);
+
+  // Commit syncs refs → React state (triggers UI re-render for % indicator etc.)
+  const commitTransform = useCallback(() => {
+    setScale(scaleRef.current);
+    setOffset({ ...offsetRef.current });
+  }, []);
+
+  // ── Misc interaction state ─────────────────────────────────────────────────
+  const containerRef   = useRef(null);
+  const [dragging, setDragging]             = useState(false);
+  const startDragRef   = useRef({ x: 0, y: 0 });
+  const [pinMode, setPinMode]               = useState(false);
+  const [ghostPinPos, setGhostPinPos]       = useState(null);
+  const [hoveredPinId, setHoveredPinId]     = useState(null);
+  const [newComment, setNewComment]         = useState(null);
   const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
-  const [draggingPin, setDraggingPin] = useState(null);
-  const [pinDragStart, setPinDragStart] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [draggingPin, setDraggingPin]       = useState(null);
+  const [pinDragStart, setPinDragStart]     = useState(null);
+  const [isDragging, setIsDragging]         = useState(false);
   const draggingPinRef = useRef(null);
+  const initialDistanceRef = useRef(null);
+  const initialScaleRef    = useRef(0.25);
 
-  const handlePinMouseDown = (e, pin) => {
-    e.stopPropagation();
-    if (pinMode) return;
-    
-    const pdfElement = pageRef.current;
-    if (!pdfElement) return;
-    
-    const pdfRect = pdfElement.getBoundingClientRect();
-    
-    draggingPinRef.current = pin.id;
-    setIsDragging(false); // Reset dragging state
-    
-    setPinDragStart({
-      mouseX: e.clientX,
-      mouseY: e.clientY,
-      pinX: pin.x,
-      pinY: pin.y,
-      pinId: pin.id,
-      pdfRect,
-      hasMoved: false
-    });
-  };
-
-  const handlePinMouseMove = useCallback((e) => {
-    if (!pinDragStart) return;
-    
-    const deltaX = Math.abs(e.clientX - pinDragStart.mouseX);
-    const deltaY = Math.abs(e.clientY - pinDragStart.mouseY);
-    const hasMoved = deltaX > 5 || deltaY > 5;
-    
-    if (!hasMoved) return;
-    
-    if (!pinDragStart.hasMoved) {
-      setPinDragStart(prev => ({ ...prev, hasMoved: true }));
-      setDraggingPin(pinDragStart.pinId);
-      setIsDragging(true); // Mark that we're actually dragging
+  // ── PDF load ───────────────────────────────────────────────────────────────
+  // react-pdf's onLoadSuccess gives us the # of pages but not the raw pdf.js doc.
+  // We load directly via pdfjs.getDocument to get PDFPageProxy for tile rendering.
+  const onDocumentLoadSuccess = useCallback(async () => {
+    try {
+      const rawDoc = await pdfjs.getDocument({
+        url: fileUrl,
+        cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+        cMapPacked: true,
+      }).promise;
+      const page = await rawDoc.getPage(pageNumber);
+      const vp   = page.getViewport({ scale: 1 });
+      pdfPageRef.current = page;
+      setPdfNativeSize({ w: vp.width, h: vp.height });
+      setPdfReady(true);
+    } catch (e) {
+      console.error('PDF load error', e);
     }
-    
-    const activePinId = draggingPinRef.current;
-    if (!activePinId) return;
-    
-    const mouseDeltaX = (e.clientX - pinDragStart.mouseX) / scale;
-    const mouseDeltaY = (e.clientY - pinDragStart.mouseY) / scale;
-    
-    const newX = pinDragStart.pinX + (mouseDeltaX / (basePdfSize.width * renderScale));
-    const newY = pinDragStart.pinY + (mouseDeltaY / (basePdfSize.height * renderScale));
-    
-    const clampedX = Math.max(0, Math.min(1, newX));
-    const clampedY = Math.max(0, Math.min(1, newY));
-    
-   setAllPins(prev =>
-  prev.map(p =>
-    p.id === activePinId ? { ...p, x: clampedX, y: clampedY } : p
-  )
-);
+  }, [fileUrl, pageNumber]);
 
-setSelectedPin(prev =>
-  prev?.id === activePinId
-    ? { ...prev, x: clampedX, y: clampedY }
-    : prev
-);
+  // ── Tile system ────────────────────────────────────────────────────────────
+  const getVisibleTileKeys = useCallback((s, o) => {
+    const { w, h } = pdfNativeSize;
+    if (!w) return [];
+    const cw = containerRef.current?.clientWidth  ?? window.innerWidth;
+    const ch = containerRef.current?.clientHeight ?? window.innerHeight;
 
-  }, [pinDragStart, scale, basePdfSize, renderScale]);
+    const buf   = TILE_SIZE * 0.5;
+    const left  = Math.max(0, (-o.x / s) - buf);
+    const top   = Math.max(0, (-o.y / s) - buf);
+    const right  = Math.min(w, (cw - o.x) / s + buf);
+    const bottom = Math.min(h, (ch - o.y) / s + buf);
 
-  const handlePinMouseUp = useCallback(async (e) => {
-    const wasDragging = isDragging;
-    
-    if (pinDragStart && !pinDragStart.hasMoved) {
-      setPinDragStart(null);
-      setDraggingPin(null);
-      setIsDragging(false);
-      draggingPinRef.current = null;
-      return;
+    const keys = [];
+    const c0 = Math.max(0, Math.floor(left  / TILE_SIZE));
+    const c1 = Math.ceil (right  / TILE_SIZE);
+    const r0 = Math.max(0, Math.floor(top   / TILE_SIZE));
+    const r1 = Math.ceil (bottom / TILE_SIZE);
+
+    for (let r = r0; r < r1; r++)
+      for (let c = c0; c < c1; c++)
+        keys.push(`${c}_${r}`);
+
+    return keys;
+  }, [pdfNativeSize]);
+
+  const updateTiles = useCallback(async () => {
+    const page = pdfPageRef.current;
+    if (!page || !pdfNativeSize.w) return;
+
+    const { w: nw, h: nh } = pdfNativeSize;
+    const s   = scaleRef.current;
+    const o   = offsetRef.current;
+    const now = Date.now();
+    const cache = tileCacheRef.current;
+
+    const visibleKeys = getVisibleTileKeys(s, o);
+
+    // Render tiles that are not cached and not already being rendered
+    await Promise.allSettled(
+      visibleKeys
+        .filter(key => !cache.has(key) && !pendingRef.current.has(key))
+        .map(async (key) => {
+          pendingRef.current.add(key);
+          const [col, row] = key.split('_').map(Number);
+          const tx = col * TILE_SIZE;
+          const ty = row * TILE_SIZE;
+          const tw = Math.min(TILE_SIZE, nw - tx);
+          const th = Math.min(TILE_SIZE, nh - ty);
+          if (tw <= 0 || th <= 0) { pendingRef.current.delete(key); return; }
+
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width  = Math.round(tw * TILE_RENDER_SCALE);
+            canvas.height = Math.round(th * TILE_RENDER_SCALE);
+            const ctx = canvas.getContext('2d');
+            const vp  = page.getViewport({ scale: TILE_RENDER_SCALE });
+
+            // Clip to tile region
+            ctx.save();
+            ctx.translate(-tx * TILE_RENDER_SCALE, -ty * TILE_RENDER_SCALE);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            ctx.restore();
+
+            cache.set(key, { canvas, lastUsed: now, tileX: tx, tileY: ty, tileW: tw, tileH: th });
+          } catch {
+            // Rendering was cancelled (e.g. page navigated away) — safe to ignore
+          } finally {
+            pendingRef.current.delete(key);
+          }
+        })
+    );
+
+    // Update lastUsed for visible cached tiles
+    visibleKeys.forEach(k => { if (cache.has(k)) cache.get(k).lastUsed = now; });
+
+    // LRU eviction
+    if (cache.size > MAX_TILES_IN_MEMORY) {
+      [...cache.entries()]
+        .sort((a, b) => a[1].lastUsed - b[1].lastUsed)
+        .slice(0, cache.size - MAX_TILES_IN_MEMORY)
+        .forEach(([k]) => cache.delete(k));
     }
-    
-    const activePinId = draggingPinRef.current;
-    if (!activePinId) return;
-    
-    const updatedPin = pins.find(p => p.id === activePinId);
-    
-    if (updatedPin && wasDragging) {
-      // Store the new coordinates
-      const newX = updatedPin.x;
-      const newY = updatedPin.y;
-      
-      // Update database
-      const { error } = await supabase
-        .from('pdf_pins')
-        .update({ x: newX, y: newY })
-        .eq('id', updatedPin.id);
-      
-      if (error) {
-        console.error('Error updating pin position:', error);
-        // Optionally: revert the position in state if save failed
-      } else {
-        console.log('Pin position updated successfully');
-        // Ensure the pin state is updated with the saved coordinates
-        setAllPins(prev =>
-  prev.map(p =>
-    p.id === activePinId
-      ? { ...p, x: newX, y: newY }
-      : p
-  )
-);
 
-      }
+    // Push visible tiles to state for render
+    setTiles(
+      visibleKeys
+        .filter(k => cache.has(k))
+        .map(k => {
+          const { canvas, tileX, tileY, tileW, tileH } = cache.get(k);
+          return { key: k, canvas, left: tileX, top: tileY, width: tileW, height: tileH };
+        })
+    );
+  }, [pdfNativeSize, getVisibleTileKeys]);
+
+  // Debounce tile updates during gestures; fire immediately on gesture end
+  const tileTimerRef = useRef(null);
+  const scheduleTileUpdate = useCallback((immediate = false) => {
+    clearTimeout(tileTimerRef.current);
+    if (immediate) {
+      updateTiles();
+    } else {
+      tileTimerRef.current = setTimeout(updateTiles, 120);
     }
-    
-    setDraggingPin(null);
-    setPinDragStart(null);
-    draggingPinRef.current = null;
-    
-    // Small delay to prevent click event from firing
-    setTimeout(() => {
-      setIsDragging(false);
-    }, 50);
-  }, [pinDragStart, pins, isDragging]);
+  }, [updateTiles]);
 
   useEffect(() => {
-    if (pinDragStart) {
-      window.addEventListener('mousemove', handlePinMouseMove);
-      window.addEventListener('mouseup', handlePinMouseUp);
-      
-      return () => {
-        window.removeEventListener('mousemove', handlePinMouseMove);
-        window.removeEventListener('mouseup', handlePinMouseUp);
-      };
-    }
-  }, [pinDragStart, handlePinMouseMove, handlePinMouseUp]);
+    if (pdfReady) scheduleTileUpdate(true);
+  }, [pdfReady, scheduleTileUpdate]);
 
-  const handlePhotoUploaded = () => {
-    setPhotoUploadTrigger(prev => prev + 1);
-  };
-
-  console.log('User', user)
-  console.log('SelectedPin', selectedPin)
-
-  function onTouchStart(e) {
-    if (e.touches.length === 1) {
-      const t = e.touches[0];
-      setDragging(true);
-      setStartDrag({ x: t.clientX, y: t.clientY });
-    } else if (e.touches.length === 2) {
-      setTouches([e.touches[0], e.touches[1]]);
-      setInitialDistance(getDistance(e.touches));
-      setInitialScale(scale);
-    }
-  }
-
-  function onTouchMove(e) {
-    if (dragging && e.touches.length === 1) {
-      const t = e.touches[0];
-      const dx = t.clientX - startDrag.x;
-      const dy = t.clientY - startDrag.y;
-      setStartDrag({ x: t.clientX, y: t.clientY });
-      setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
-    } else if (e.touches.length === 2) {
-      const distance = getDistance(e.touches);
-      if (initialDistance) {
-        const factor = distance / initialDistance;
-        zoom(factor * initialScale / scale);
-      }
-    }
-
-    if (pinMode && e.touches.length === 1) {
-      const t = e.touches[0];
-      setGhostPinPos({ x: t.clientX, y: t.clientY });
-    }
-  }
-
-  function onTouchEnd(e) {
-    setDragging(false);
-    if (e.touches.length < 2) {
-      setInitialDistance(null);
-    }
-  }
-
-  useEffect(() => {
-    if (!focusOnPinOnce) return;
-
-    const pin = pins.find(p => p.id === focusOnPinOnce);
-    if (!pin) return;
-
-    setSelectedPin(pin);
-    focusOnPin(pin);
-    setFocusOnPinOnce(null);
-  }, [focusOnPinOnce, pins, setSelectedPin, setFocusOnPinOnce]);
-
-  useEffect(() => {
-    if (selectedPin && !isDragging) {
-      // Find the latest pin data from pins array
-      const latestPin = pins.find(p => p.id === selectedPin.id);
-      if (latestPin) {
-        focusOnPin(latestPin);
-      }
-    }
-  }, [selectedPin?.id, isDragging, pins]);
-
-  useEffect(() => {
-    console.log('PdfCanvas pins', pins.length)
-  }, [pins])
-
-  useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setContainerRect({ left: rect.left, top: rect.top });
-    }
-  }, [pdfSize,scale,offset]);
-
-  function onDocumentLoadSuccess({ numPages }) {
-    setNumPages(numPages);
-  }
-
-  function zoom(factor) {
+  // ── Gesture handlers ───────────────────────────────────────────────────────
+  function zoom(factor, cx, cy) {
     if (!containerRef.current) return;
-
     const rect = containerRef.current.getBoundingClientRect();
-
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-
-    const pdfX = (centerX - offset.x) / scale;
-    const pdfY = (centerY - offset.y) / scale;
-
-    const newScale = Math.max(0.05, Math.min(scale * factor, 5));
-
-    const newOffsetX = centerX - pdfX * newScale;
-    const newOffsetY = centerY - pdfY * newScale;
-
-    // Update CSS variables immediately for instant visual update
-    if (containerRef.current) {
-      containerRef.current.style.setProperty('--pdf-scale', newScale);
-      containerRef.current.style.setProperty('--pdf-offset-x', `${newOffsetX}px`);
-      containerRef.current.style.setProperty('--pdf-offset-y', `${newOffsetY}px`);
-    }
-
-    setScale(newScale);
-    setOffset({ x: newOffsetX, y: newOffsetY });
+    const x = cx ?? rect.width  / 2;
+    const y = cy ?? rect.height / 2;
+    const pdfX = (x - offsetRef.current.x) / scaleRef.current;
+    const pdfY = (y - offsetRef.current.y) / scaleRef.current;
+    const ns   = Math.max(0.05, Math.min(scaleRef.current * factor, 5));
+    applyTransform(ns, { x: x - pdfX * ns, y: y - pdfY * ns });
+    commitTransform();
+    scheduleTileUpdate(true);
   }
 
-  function zoomIn() {
-    zoom(2);
-  }
+  const zoomIn  = () => zoom(2);
+  const zoomOut = () => zoom(0.5);
 
-  function zoomOut() {
-    zoom(0.5);
-  }
-
-  const handleWheel = (event) => {
-    event.preventDefault();
-    const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
-    zoom(zoomFactor);
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const rect = containerRef.current.getBoundingClientRect();
+    zoom(e.deltaY > 0 ? 0.9 : 1.1, e.clientX - rect.left, e.clientY - rect.top);
   };
 
   function onMouseDown(e) {
     if (draggingPin) return;
     setDragging(true);
-    setStartDrag({ x: e.clientX, y: e.clientY });
+    startDragRef.current = { x: e.clientX, y: e.clientY };
   }
-
   function onMouseUp() {
+    if (dragging) { commitTransform(); scheduleTileUpdate(true); }
     setDragging(false);
   }
-
   function onMouseLeave() {
+    if (dragging) { commitTransform(); scheduleTileUpdate(true); }
     setDragging(false);
   }
-
   function onMouseMove(e) {
-    if (!containerRef.current) return;
-
     if (dragging && !draggingPin) {
-      const dx = e.clientX - startDrag.x;
-      const dy = e.clientY - startDrag.y;
-      setStartDrag({ x: e.clientX, y: e.clientY });
-      setOffset((o) => ({ x: o.x + dx, y: o.y + dy }));
+      const dx = e.clientX - startDragRef.current.x;
+      const dy = e.clientY - startDragRef.current.y;
+      startDragRef.current = { x: e.clientX, y: e.clientY };
+      applyTransform(scaleRef.current, { x: offsetRef.current.x + dx, y: offsetRef.current.y + dy });
+      scheduleTileUpdate();
     }
+    if (pinMode) setGhostPinPos({ x: e.clientX, y: e.clientY });
+  }
 
-    if (pinMode) {
-      setGhostPinPos({ x: e.clientX, y: e.clientY });
+  function onTouchStart(e) {
+    if (e.touches.length === 1) {
+      setDragging(true);
+      startDragRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else if (e.touches.length === 2) {
+      initialDistanceRef.current = getDistance(e.touches);
+      initialScaleRef.current    = scaleRef.current;
+    }
+  }
+  function onTouchMove(e) {
+    if (e.touches.length === 1 && dragging) {
+      const dx = e.touches[0].clientX - startDragRef.current.x;
+      const dy = e.touches[0].clientY - startDragRef.current.y;
+      startDragRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      applyTransform(scaleRef.current, { x: offsetRef.current.x + dx, y: offsetRef.current.y + dy });
+      scheduleTileUpdate();
+    } else if (e.touches.length === 2 && initialDistanceRef.current) {
+      const factor = getDistance(e.touches) / initialDistanceRef.current;
+      const ns = Math.max(0.05, Math.min(initialScaleRef.current * factor, 5));
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const pdfX = (cx - offsetRef.current.x) / initialScaleRef.current;
+      const pdfY = (cy - offsetRef.current.y) / initialScaleRef.current;
+      applyTransform(ns, { x: cx - pdfX * ns, y: cy - pdfY * ns });
+      scheduleTileUpdate();
+    }
+    if (pinMode && e.touches.length === 1)
+      setGhostPinPos({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  }
+  function onTouchEnd(e) {
+    setDragging(false);
+    if (e.touches.length < 2) {
+      initialDistanceRef.current = null;
+      commitTransform();
+      scheduleTileUpdate(true);
     }
   }
 
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+  // ── Pin drag ───────────────────────────────────────────────────────────────
+  const handlePinMouseDown = (e, pin) => {
+    e.stopPropagation();
+    if (pinMode) return;
+    draggingPinRef.current = pin.id;
+    setIsDragging(false);
+    setPinDragStart({ mouseX: e.clientX, mouseY: e.clientY, pinX: pin.x, pinY: pin.y, hasMoved: false });
+  };
+
+  const handlePinMouseMove = useCallback((e) => {
+    if (!pinDragStart) return;
+    if (Math.abs(e.clientX - pinDragStart.mouseX) <= 5 && Math.abs(e.clientY - pinDragStart.mouseY) <= 5) return;
+    if (!pinDragStart.hasMoved) {
+      setPinDragStart(p => ({ ...p, hasMoved: true }));
+      setDraggingPin(pinDragStart.pinId);
+      setIsDragging(true);
+    }
+    const id = draggingPinRef.current;
+    if (!id) return;
+    const newX = Math.max(0, Math.min(1,
+      pinDragStart.pinX + (e.clientX - pinDragStart.mouseX) / scaleRef.current / (pdfNativeSize.w * TILE_RENDER_SCALE)
+    ));
+    const newY = Math.max(0, Math.min(1,
+      pinDragStart.pinY + (e.clientY - pinDragStart.mouseY) / scaleRef.current / (pdfNativeSize.h * TILE_RENDER_SCALE)
+    ));
+    setAllPins(prev => prev.map(p => p.id === id ? { ...p, x: newX, y: newY } : p));
+    setSelectedPin(prev => prev?.id === id ? { ...prev, x: newX, y: newY } : prev);
+  }, [pinDragStart, pdfNativeSize]);
+
+  const handlePinMouseUp = useCallback(async () => {
+    if (pinDragStart && !pinDragStart.hasMoved) {
+      setPinDragStart(null); setDraggingPin(null);
+      setIsDragging(false); draggingPinRef.current = null;
+      return;
+    }
+    const id = draggingPinRef.current;
+    if (!id) return;
+    const pin = pins.find(p => p.id === id);
+    if (pin && isDragging)
+      await supabase.from('pdf_pins').update({ x: pin.x, y: pin.y }).eq('id', pin.id);
+    setDraggingPin(null); setPinDragStart(null);
+    draggingPinRef.current = null;
+    setTimeout(() => setIsDragging(false), 50);
+  }, [pinDragStart, pins, isDragging]);
+
+  useEffect(() => {
+    if (!pinDragStart) return;
+    window.addEventListener('mousemove', handlePinMouseMove);
+    window.addEventListener('mouseup', handlePinMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handlePinMouseMove);
+      window.removeEventListener('mouseup', handlePinMouseUp);
+    };
+  }, [pinDragStart, handlePinMouseMove, handlePinMouseUp]);
+
+  // ── Focus on pin ───────────────────────────────────────────────────────────
+  function focusOnPin(pin) {
+    if (!containerRef.current || !pdfNativeSize.w) return;
+    const { width, height } = containerRef.current.getBoundingClientRect();
+    const pinX = pin.x * pdfNativeSize.w * TILE_RENDER_SCALE;
+    const pinY = pin.y * pdfNativeSize.h * TILE_RENDER_SCALE;
+    applyTransform(scaleRef.current, {
+      x: width  / 4 - pinX * scaleRef.current,
+      y: height / 2 - pinY * scaleRef.current,
+    });
+    commitTransform();
+    scheduleTileUpdate(true);
   }
 
-  const handlePinAdd = async (pin,user) => {
-    console.log('handlePinAdd', pin)
-    const { error,data } = await supabase.from('pdf_pins').insert(pin).select('*,projects(*),plans(*)').single()
+  useEffect(() => {
+    if (!focusOnPinOnce) return;
+    const pin = pins.find(p => p.id === focusOnPinOnce);
+    if (!pin) return;
+    setSelectedPin(pin); focusOnPin(pin); setFocusOnPinOnce(null);
+  }, [focusOnPinOnce, pins]);
+
+  useEffect(() => {
+    if (selectedPin && !isDragging) {
+      const p = pins.find(p => p.id === selectedPin.id);
+      if (p) focusOnPin(p);
+    }
+  }, [selectedPin?.id, isDragging]);
+
+  // ── Add pin ────────────────────────────────────────────────────────────────
+  function handlePdfClick(e) {
+    if (!pinMode || dragging) return;
+    const rect = pdfLayerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top)  / rect.height;
+    if (x < 0 || x > 1 || y < 0 || y > 1) return;
+    handlePinAdd({ x, y });
+  }
+
+  const handlePinAdd = async ({ x, y }) => {
+    const pin = {
+      category_id: categories.find(c => c.order === 0)?.id,
+      x, y,
+      status_id: statuses.find(s => s.order === 0)?.id,
+      note: '', name: '',
+      project_id: project.id, pdf_name: plan.name,
+      plan_id: plan.id, created_by: user?.id || null,
+    };
+    const { data, error } = await supabase
+      .from('pdf_pins').insert(pin)
+      .select('*,projects(*),plans(*)').single();
     if (data) {
-      console.log('handlePinAdd data', data)
       setSelectedPin(data);
-      console.log('setPins12')
-      setPins( pins => [...pins, data]);
+      setAllPins(prev => [...prev, data]);
       setPinMode(false);
-      console.log('handlePinAdd', pins)
-      const { data: eventdata, error: eventerror } = await supabase.from('events').insert({user_id:data.created_by, pin_id:data.id,event:  ' a créé ce pin', category: 'creation'}).select('*').single()
-      console.log('eventdata', eventdata)
-      if (eventerror) {
-        console.log('eventerror', eventerror)
-      }
+      await supabase.from('events').insert({
+        user_id: data.created_by, pin_id: data.id,
+        event: ' a créé ce pin', category: 'creation',
+      });
     }
-    if (error) {
-      console.log('handlePinAdd', error)
-    }
-  }
+    if (error) console.error('handlePinAdd', error);
+  };
 
-  useEffect(()=> {
-    console.log('mypins', pins)
-  },[pins])
-
+  // ── Pins (memoized, counter-scaled) ───────────────────────────────────────
   const memoizedPins = useMemo(() => {
-    if (basePdfSize.width === 0) return null;
-    
+    if (!pdfNativeSize.w) return null;
     return pins.map((pin, idx) => {
-      // Calculate position in PDF coordinates (constant)
-      const pdfX = pin.x * basePdfSize.width * renderScale;
-      const pdfY = pin.y * basePdfSize.height * renderScale;
-
-      const z =
-        selectedPin?.id === pin.id ? 3000 :
-        hoveredPinId === pin.id ? 2000 : 10;
-      
+      const pdfX = pin.x * pdfNativeSize.w * TILE_RENDER_SCALE;
+      const pdfY = pin.y * pdfNativeSize.h * TILE_RENDER_SCALE;
+      const z = selectedPin?.id === pin.id ? 3000 : hoveredPinId === pin.id ? 2000 : 10;
       return (
         <div
           key={pin.id}
           style={{
             position: 'absolute',
-            left: `calc(${pdfX}px * var(--pdf-scale) + var(--pdf-offset-x))`,
-            top: `calc(${pdfY}px * var(--pdf-scale) + var(--pdf-offset-y))`,
-            transform: 'translate(-50%, -50%)',
+            left: pdfX, top: pdfY,
+            transform: `translate(-50%, -50%) scale(${1 / scale})`,
+            transformOrigin: 'center center',
             pointerEvents: 'auto',
             zIndex: z,
-            cursor: pinMode ? 'pointer' : 'move',
+            cursor: pinMode ? 'crosshair' : 'move',
             opacity: draggingPin === pin.id ? 0.7 : 1,
           }}
           onMouseEnter={() => setHoveredPinId(pin.id)}
-          onMouseLeave={() => setHoveredPinId((id) => (id === pin.id ? null : id))}
-          onMouseDown={(e) => handlePinMouseDown(e, pin)}
-          onClick={(e) => {
-            if (isDragging || pinDragStart?.hasMoved || draggingPin) {
-              e.stopPropagation();
-              return;
-            }
+          onMouseLeave={() => setHoveredPinId(id => id === pin.id ? null : id)}
+          onMouseDown={e => handlePinMouseDown(e, pin)}
+          onClick={e => {
+            if (isDragging || pinDragStart?.hasMoved || draggingPin) { e.stopPropagation(); return; }
             e.stopPropagation();
-            const currentPin = pins.find(p => p.id === pin.id);
-            setSelectedPin({ ...currentPin, index: idx });
+            setSelectedPin({ ...pins.find(p => p.id === pin.id), index: idx });
           }}
           title={`Pin #${idx + 1}`}
         >
-          <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id}/>
+          <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id} />
         </div>
       );
     });
-  }, [pins, basePdfSize, renderScale, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, pinDragStart?.hasMoved]);
+  }, [pins, pdfNativeSize, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, pinDragStart?.hasMoved, scale]);
 
-  function closeDrawer() {
-    setSelectedPin(null);
-  }
+  const closeDrawer = () => setSelectedPin(null);
 
-  function focusOnPin(pin) {
-    if (!pageRef.current || !containerRef.current || !basePdfSize.width) return;
+  const totalW = pdfNativeSize.w * TILE_RENDER_SCALE;
+  const totalH = pdfNativeSize.h * TILE_RENDER_SCALE;
 
-    const pinX = pin.x * basePdfSize.width * renderScale;
-    const pinY = pin.y * basePdfSize.height * renderScale;
-
-    const container = containerRef.current.getBoundingClientRect();
-    const centerX = container.width / 4;
-    const centerY = container.height / 2;
-
-    const newOffset = {
-      x: centerX - pinX * scale,
-      y: centerY - pinY * scale,
-    };
-
-    setOffset(newOffset);
-  }
-
-  function handlePdfClick(e) {
-    if (!pinMode || dragging || !containerRef.current || !pageRef.current) return;
-
-    const pdfElement = pageRef.current;
-    if (!pdfElement) return;
-    
-    const pdfRect = pdfElement.getBoundingClientRect();
-    
-    const clickX = e.clientX - pdfRect.left;
-    const clickY = e.clientY - pdfRect.top;
-    
-    const x = clickX / pdfRect.width;
-    const y = clickY / pdfRect.height;
-    
-    if (x < 0 || x > 1 || y < 0 || y > 1) return;
-
-    const newPin = {
-      category_id: categories.find(c => c.order === 0)?.id ,
-      x,
-      y,
-      status_id: statuses.find(s => s.order === 0)?.id ,
-      note: '',
-      name: '',
-      project_id: project.id,
-      pdf_name: plan.name,
-      plan_id: plan.id,
-      created_by: user?.id || null,
-    };
-
-    handlePinAdd(newPin,user);
-  }
-
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <>
       <div
@@ -518,162 +504,133 @@ setSelectedPin(prev =>
           cursor: dragging ? 'grabbing' : 'grab',
           overflow: 'hidden',
           width: '100%',
-          height: '80vh',
           position: 'relative',
           backgroundColor: '#eee',
           userSelect: 'none',
           height: 'calc(100vh - 64px)',
-          '--pdf-scale': scale,
-          '--pdf-offset-x': `${offset.x}px`,
-          '--pdf-offset-y': `${offset.y}px`,
         }}
       >
-        {/* Floating Controls Bar */}
+        {/* Controls */}
         <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
-          {/* Zoom Controls Group */}
           <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-            <button
-              onClick={zoomOut}
-              className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors border-r border-gray-200"
-              title="Zoom Out"
-            >
+            <button onClick={zoomOut} className="p-3 hover:bg-gray-50 transition-colors border-r border-gray-200">
               <ZoomOut className="h-5 w-5 text-gray-700" />
             </button>
             <div className="px-3 text-sm font-medium text-gray-600 border-r border-gray-200 min-w-[60px] text-center">
               {Math.round(scale * 100)}%
             </div>
-            <button
-              onClick={zoomIn}
-              className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-              title="Zoom In"
-            >
+            <button onClick={zoomIn} className="p-3 hover:bg-gray-50 transition-colors">
               <ZoomIn className="h-5 w-5 text-gray-700" />
             </button>
           </div>
 
-          {/* Mode Toggle Group */}
           <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
             <button
               onClick={() => setPinMode(false)}
-              className={`p-3 transition-all border-r border-gray-200 ${
-                !pinMode
-                  ? 'bg-pink-50 text-pink-600'
-                  : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
-              }`}
-              title="Select Mode"
+              className={`p-3 transition-all border-r border-gray-200 ${!pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               <PointerIcon className="h-5 w-5" />
             </button>
             <button
               onClick={() => setPinMode(true)}
-              className={`p-3 transition-all ${
-                pinMode
-                  ? 'bg-pink-50 text-pink-600'
-                  : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'
-              }`}
-              title="Pin Mode"
+              className={`p-3 transition-all ${pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}
             >
               <MapPinIcon className="h-5 w-5" />
             </button>
           </div>
+
+          {/* Memory debug badge */}
+          <div className="bg-black/60 text-white text-xs px-2 py-1 rounded font-mono">
+            {tileCacheRef.current.size}/{MAX_TILES_IN_MEMORY} tiles
+          </div>
         </div>
 
-        {/* PDF Layer */}
-        <div
-          onClick={handlePdfClick}
-          style={{
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-            transformOrigin: 'top left',
-            width: 'fit-content',
-            margin: 'auto',
-            position: 'relative',
-            cursor: pinMode ? 'pointer' : draggingPin ? 'grabbing' : 'default',
-            willChange: 'transform',
-          }}
-        >
-          <Document 
-            file={fileUrl} 
-            onLoadSuccess={onDocumentLoadSuccess} 
-            loading={
-              <div className="flex items-center justify-center p-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Chargement du PDF...</p>
-                </div>
-              </div>
-            }
-            options={{
-              cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-              cMapPacked: true,
-              standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
-              enableXfa: true,
-            }}
-          >
-            <Page
-              pageNumber={pageNumber}
-              scale={renderScale}
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-              inputRef={pageRef}
-              onRenderSuccess={({ width, height }) => {
-                setPdfSize({ width, height });
-                
-                if (basePdfSize.width === 0) {
-                  setBasePdfSize({ 
-                    width: width / renderScale, 
-                    height: height / renderScale 
-                  });
-                }
-              }}
-              onLoadError={(error) => console.error('Page load error:', error)}
-              loading={null}
-              renderMode="canvas"
-            />
+        {/* Hidden react-pdf Document — only needed to trigger pdf.js worker init */}
+        <div style={{ display: 'none' }}>
+          <Document file={fileUrl} onLoadSuccess={onDocumentLoadSuccess} options={{
+            cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+            cMapPacked: true,
+            standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts`,
+          }}>
+            <Page pageNumber={pageNumber} scale={0.01} renderTextLayer={false} renderAnnotationLayer={false} loading={null} />
           </Document>
         </div>
 
-        {/* Pins Layer - Uses CSS calc() with custom properties for instant updates */}
-        <div ref={pinsContainerRef}>
+        {/* PDF tiled layer */}
+        <div
+          ref={pdfLayerRef}
+          onClick={handlePdfClick}
+          style={{
+            position: 'absolute',
+            width: totalW || '100%',
+            height: totalH || '100%',
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+            transformOrigin: 'top left',
+            willChange: 'transform',
+            backgroundColor: 'white',
+            cursor: pinMode ? 'crosshair' : draggingPin ? 'grabbing' : 'default',
+          }}
+        >
+          {!pdfReady && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4" />
+                <p className="text-gray-600">Chargement du PDF...</p>
+              </div>
+            </div>
+          )}
+
+          {tiles.map(({ key, canvas, left, top, width, height }) => (
+            <TileCanvas
+              key={key}
+              canvas={canvas}
+              left={left * TILE_RENDER_SCALE}
+              top={top  * TILE_RENDER_SCALE}
+              width={width}
+              height={height}
+            />
+          ))}
+        </div>
+
+        {/* Pins layer — same transform, pins counter-scaled to stay sharp */}
+        <div
+          ref={pinsLayerRef}
+          style={{
+            position: 'absolute',
+            top: 0, left: 0,
+            width: totalW || '100%',
+            height: totalH || '100%',
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+            transformOrigin: 'top left',
+            willChange: 'transform',
+            pointerEvents: 'none',
+          }}
+        >
           {memoizedPins}
         </div>
       </div>
 
+      {/* Ghost pin cursor */}
       {pinMode && ghostPinPos && (
-        <div
-          style={{
-            position: 'fixed',
-            top: ghostPinPos.y,
-            left: ghostPinPos.x,
-            transform: 'translate(-50%, -100%)',
-            pointerEvents: 'none',
-            opacity: 0.5,
-            zIndex: 9999,
-          }}
-        >
+        <div style={{
+          position: 'fixed', top: ghostPinPos.y, left: ghostPinPos.x,
+          transform: 'translate(-50%, -100%)', pointerEvents: 'none', opacity: 0.5, zIndex: 9999,
+        }}>
           <GhostPin />
         </div>
       )}
 
-      {/* Right Drawer */}
+      {/* Right drawer */}
       {selectedPin && (
-        <div
-          className={`${inter.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}
-        >
-          {/* Fixed Header */}
+        <div className={`${inter.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}>
           <div className="px-5 py-4 border-b border-gray-200 shrink-0">
-            <DrawerHeader pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={handlePhotoUploaded} />
+            <DrawerHeader pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={() => setPhotoUploadTrigger(p => p + 1)} />
           </div>
-
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto ">
+          <div className="flex-1 overflow-y-auto">
             <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment} photoUploadTrigger={photoUploadTrigger} />
           </div>
-
-          {/* Fixed Footer */}
           <div className="px-5 py-4 border-t border-gray-200 shrink-0">
-            <DrawerFooter pin={selectedPin} submit={closeDrawer} onCommentAdded={(comment) => {
-              setNewComment(comment)
-            }} />
+            <DrawerFooter pin={selectedPin} submit={closeDrawer} onCommentAdded={setNewComment} />
           </div>
         </div>
       )}

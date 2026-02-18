@@ -175,6 +175,20 @@ const [reportFields, setReportFields] = useState({
   }, [organizationId])
 
 
+  useEffect(() => {
+  // Auto-open pin from URL hash (e.g., #pin-uuid)
+  const hash = window.location.hash;
+  if (hash.startsWith('#pin-')) {
+    const pinId = hash.substring(5); // Remove '#pin-' prefix
+    const pin = pins.find(p => p.id === pinId);
+    if (pin) {
+      setSelectedPin(pin);
+      // Clear hash after opening
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+}, [pins]);
+
   // FONCTION POUR SAUVEGARDER UN TEMPLATE
   const handleSaveTemplate = async (config) => {
     try {

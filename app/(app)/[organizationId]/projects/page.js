@@ -88,6 +88,30 @@ export default function ProjectsPage({params}) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Sync the URL organizationId into the atom whenever it changes
+useEffect(() => {
+  if (!organizationId || !organization) return;
+  // If the atom already matches the URL, do nothing
+  if (organization.id === organizationId) return;
+
+  const fetchOrg = async () => {
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*, members(count)')
+      .eq('id', organizationId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching organization:', error);
+      return;
+    }
+
+    setSelectedOrganization(data);
+  };
+
+  fetchOrg();
+}, [organizationId]);
+
   const createProject = async () => {
     
     if (!newProjectName.trim()) return
