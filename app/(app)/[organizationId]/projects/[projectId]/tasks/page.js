@@ -63,7 +63,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
           "w-full border rounded-lg px-3 py-2 pl-10 text-left bg-secondary/50 hover:bg-secondary/80 relative transition-all text-sm font-medium",
           isOverDue
             ? "border-destructive text-destructive"
-            : "border-border/50 text-foreground"
+            : "border-gray-200 text-stone-900"
         )}
       >
         {selectedDate
@@ -561,18 +561,18 @@ const handleCreateTask = async () => {
   return (
   <>  
   {categories && statuses && (
-    <div className={clsx(figtree.className, "min-h-screen bg-background font-sans")}>
+    <div className={clsx(figtree.className, "min-h-screen bg-gray-50 font-sans")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
       
       <div className="pt-6 px-6">
         {/* Header Card */}
-        <div className="bg-card border border-border/50 rounded-xl shadow-sm mb-6">
+        <div className="bg-card border border-gray-200 rounded-xl shadow-sm mb-6">
           <div className="flex flex-row items-center justify-between p-6">
             <div>
-              <h2 className="text-2xl font-bold font-heading text-foreground mb-1">
+              <h2 className="text-xl font-semibold font-heading text-stone-900 mb-1">
                 Liste des tâches
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-stone-500">
                 {pins.length} tâche{pins.length > 1 ? 's' : ''} au total
               </p>
             </div>
@@ -587,13 +587,13 @@ const handleCreateTask = async () => {
 </button>
 
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-500" />
                 <input
                   type="text"
                   placeholder="Rechercher une tâche..."
                   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64 rounded-xl border border-border/50 bg-secondary/30 pl-10 pr-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                  className="w-64 rounded-xl border border-gray-200 bg-secondary/30 pl-10 pr-4 py-2.5 text-sm placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                 />
               </div>
               <ListFilterPanel 
@@ -608,8 +608,8 @@ const handleCreateTask = async () => {
           
           {/* Actions Bar 
           {selectedIds.size > 0 && (
-            <div className="px-6 py-4 bg-secondary/30 border-t border-border/50 flex items-center justify-between">
-              <p className="text-sm font-medium text-foreground">
+            <div className="px-6 py-4 bg-secondary/30 border-t border-gray-200 flex items-center justify-between">
+              <p className="text-sm font-medium text-stone-900">
                 {selectedIds.size} tâche{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}
               </p>
               <div className="flex gap-3">
@@ -648,8 +648,8 @@ const handleCreateTask = async () => {
           )}
           */}
           {selectedIds.size > 0 && (
-   <div className="px-6 py-4 bg-secondary/30 border-t border-border/50 flex items-center justify-between">
-          <p className="text-sm font-medium text-foreground">
+   <div className="px-6 py-4 bg-secondary/30 border-t border-gray-200 flex items-center justify-between">
+          <p className="text-sm font-medium text-stone-900">
             {selectedIds.size} tâche{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}
           </p>
           
@@ -661,7 +661,7 @@ const handleCreateTask = async () => {
                 const template = availableTemplates.find(t => t.id === e.target.value)
                 setSelectedTemplate(template)
               }}
-              className="px-4 py-2 bg-secondary/30 text-secondary-foreground rounded-lg text-sm font-medium border border-border/50 hover:bg-secondary/50 transition-all"
+              className="px-4 py-2 bg-secondary/30 text-secondary-foreground rounded-lg text-sm font-medium border border-gray-200 hover:bg-secondary/50 transition-all"
             >
               <option value="">Template par défaut</option>
               {availableTemplates.map(template => (
@@ -723,17 +723,17 @@ const handleCreateTask = async () => {
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="bg-secondary/30 border-y border-border/50">
+                <tr className="bg-secondary/30 border-y border-gray-200">
                   <th className="text-left p-4">
                     <input
                       type="checkbox"
                       checked={selectedIds.size === pins.length && pins.length > 0}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/20"
+                      className="w-4 h-4 rounded border-gray-200 text-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </th>
                   {['Nom', 'ID', 'Assigné à', 'Catégorie', 'Échéance', 'Localisation', 'Tags'].map((header) => (
-                    <th key={header} className="p-4 text-left text-xs font-semibold font-heading text-foreground uppercase tracking-wider">
+                    <th key={header} className="p-4 text-left text-xs font-semibold font-heading text-stone-900 uppercase tracking-wider">
                       {header}
                     </th>
                   ))}
@@ -744,8 +744,8 @@ const handleCreateTask = async () => {
                 {pins.length === 0 && (
                   <tr>
                     <td colSpan={8} className="p-8 text-center">
-                      <FileText className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                      <p className="text-muted-foreground text-sm">Aucune tâche à afficher</p>
+                      <FileText className="w-12 h-12 text-stone-500/50 mx-auto mb-3" />
+                      <p className="text-stone-500 text-sm">Aucune tâche à afficher</p>
                     </td>
                   </tr>
                 )}
@@ -765,24 +765,24 @@ const handleCreateTask = async () => {
                         checked={selectedIds.has(pin.id)}
                         onClick={(e) => e.stopPropagation()}
                         onChange={() => toggleSelect(pin.id)}
-                        className="w-4 h-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/20"
+                        className="w-4 h-4 rounded border-gray-200 text-primary focus:ring-2 focus:ring-primary/20"
                       />
                     </td>
 
                     <td className="p-4">
                       <div className="flex flex-row items-center gap-3">
                         <Pin pin={pin} />
-                        <span className="text-sm font-semibold font-heading text-foreground">
+                        <span className="text-sm font-semibold font-heading text-stone-900">
                           {pin.name || "Pin sans nom"}
                         </span>
                       </div>
                     </td>
                     
-                    <td className="p-4 text-xs text-muted-foreground font-medium">
+                    <td className="p-4 text-xs text-stone-500 font-medium">
                       {pin.projects?.project_number}-{pin.pin_number}
                     </td>
                     
-                    <td className="p-4 text-sm text-foreground">
+                    <td className="p-4 text-sm text-stone-900">
                       {pin.assigned_to?.name || '-'}
                     </td>
                     
@@ -796,14 +796,14 @@ const handleCreateTask = async () => {
                     
                     <td className="p-4">
                       {pin.pdf_name ? (
-                        <div className="flex flex-row items-center gap-2 p-2 hover:cursor-pointer hover:bg-secondary/50 rounded-lg bg-secondary/30 w-fit transition-colors border border-border/50">
-                          <Square3Stack3DIcon className='w-5 h-5 text-muted-foreground' />
-                          <span className="text-sm text-foreground">{pin.pdf_name}</span>
+                        <div className="flex flex-row items-center gap-2 p-2 hover:cursor-pointer hover:bg-secondary/50 rounded-lg bg-secondary/30 w-fit transition-colors border border-gray-200">
+                          <Square3Stack3DIcon className='w-5 h-5 text-stone-500' />
+                          <span className="text-sm text-stone-900">{pin.pdf_name}</span>
                         </div>
                       ) : '-'}
                     </td>
                     
-                    <td className="p-4 text-sm text-foreground">
+                    <td className="p-4 text-sm text-stone-900">
                       {pin.tags?.length > 0 ? pin.tags.join(', ') : '-'}
                     </td>
                   </tr>
@@ -816,7 +816,7 @@ const handleCreateTask = async () => {
       {selectedPin && ( <PinDrawer pin={selectedPin} /> )}
       {isAddTaskOpen && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    <div className="bg-card w-full max-w-md rounded-xl border border-border/50 shadow-xl p-6">
+    <div className="bg-card w-full max-w-md rounded-xl border border-gray-200 shadow-xl p-6">
       <h3 className="text-lg font-bold mb-4">Nouvelle tâche</h3>
 
       <div className="space-y-4">
@@ -825,7 +825,7 @@ const handleCreateTask = async () => {
           placeholder="Nom de la tâche"
           value={newTaskName}
           onChange={(e) => setNewTaskName(e.target.value)}
-          className="w-full rounded-lg border border-border/50 bg-secondary/30 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-lg border border-gray-200 bg-secondary/30 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
 
         <textarea
@@ -833,7 +833,7 @@ const handleCreateTask = async () => {
           value={newTaskDescription}
           onChange={(e) => setNewTaskDescription(e.target.value)}
           rows={4}
-          className="w-full rounded-lg border border-border/50 bg-secondary/30 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+          className="w-full rounded-lg border border-gray-200 bg-secondary/30 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
         />
       </div>
 
@@ -872,12 +872,12 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-card w-full max-w-md rounded-xl border border-border/50 shadow-xl p-6">
+      <div className="bg-card w-full max-w-md rounded-xl border border-gray-200 shadow-xl p-6">
         <h3 className="text-lg font-bold mb-4">Options du rapport</h3>
 
         {/* Display Mode Selection */}
         <div className="mb-6">
-          <p className="text-sm font-semibold text-foreground mb-3">Mode d'affichage</p>
+          <p className="text-sm font-semibold text-stone-900 mb-3">Mode d'affichage</p>
           <div className="flex gap-3">
             <button
               onClick={() => setDisplayMode("list")}
@@ -885,7 +885,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
                 "flex-1 px-4 py-3 rounded-lg border transition-all text-sm font-medium",
                 displayMode === "list"
                   ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-secondary/30 text-foreground border-border/50 hover:bg-secondary/50"
+                  : "bg-secondary/30 text-stone-900 border-gray-200 hover:bg-secondary/50"
               )}
             >
               <div className="flex flex-col items-center gap-2">
@@ -900,7 +900,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
                 "flex-1 px-4 py-3 rounded-lg border transition-all text-sm font-medium",
                 displayMode === "table"
                   ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-secondary/30 text-foreground border-border/50 hover:bg-secondary/50"
+                  : "bg-secondary/30 text-stone-900 border-gray-200 hover:bg-secondary/50"
               )}
             >
               <div className="flex flex-col items-center gap-2">
@@ -921,7 +921,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
               </div>
             </button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className="text-xs text-stone-500 mt-2">
             {displayMode === "list" 
               ? "Affichage détaillé avec snapshots et photos" 
               : "Vue tableau compacte idéale pour l'impression"}
@@ -929,8 +929,8 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
         </div>
 
         {/* Fields Selection */}
-        <div className="border-t border-border/50 pt-4">
-          <p className="text-sm font-semibold text-foreground mb-3">Champs à inclure</p>
+        <div className="border-t border-gray-200 pt-4">
+          <p className="text-sm font-semibold text-stone-900 mb-3">Champs à inclure</p>
           <div className="space-y-3 max-h-64 overflow-y-auto">
             {Object.entries(fields).map(([key, value]) => (
               <label 
@@ -941,7 +941,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
                   type="checkbox"
                   checked={value}
                   onChange={() => toggle(key)}
-                  className="w-4 h-4 rounded border-border/50 text-primary focus:ring-2 focus:ring-primary/20"
+                  className="w-4 h-4 rounded border-gray-200 text-primary focus:ring-2 focus:ring-primary/20"
                 />
                 <span className="text-sm capitalize">
                   {key === "assignedTo" && "Assigné à"}
@@ -958,7 +958,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border/50">
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg hover:bg-secondary/50 transition-colors"

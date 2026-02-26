@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en" style="color-scheme:dark;">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>zaynspace — Design System v2</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="./default_ui_darkmode_1.css" />
+
+  <style>
+    /* Page layout shell */
+    html, body {
+      height: 100%;
+      background: #0d0d0d;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #e8e8e8;
+    }
+
+    .app-shell {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #0d0d0d;
+    }
+
+    .page-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+    }
+
+    /* ── Sidebar tweaks ── */
+    .sidebar { width: 220px; }
+
+    /* ── Section heading row ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b6b6b;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Stat grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    /* ── Two-column layout ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 16px;
+    }
+
+    /* ── Task list inside card ── */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 80ms ease;
+      cursor: pointer;
+    }
+
+    .task-item:hover { background: rgba(255,255,255,0.03); }
+    .task-item:last-child { border-bottom: none; }
+
+    .task-title {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 500;
+      color: #e8e8e8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-title.done {
+      text-decoration: line-through;
+      color: #6b6b6b;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .task-date {
+      font-size: 11px;
+      color: #6b6b6b;
+    }
+
+    .task-date.overdue { color: #ef4444; }
+
+    /* ── Project card ── */
+    .project-card {
+      background: #181818;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.40);
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+      cursor: pointer;
+    }
+
+    .project-card:hover {
+      border-color: rgba(255,255,255,0.10);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.30);
+    }
+
+    .project-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .project-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .project-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e8e8e8;
+      letter-spacing: -0.01em;
+    }
+
+    .project-desc {
+      font-size: 12px;
+      color: #6b6b6b;
+      line-height: 1.5;
+    }
+
+    .project-progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .project-progress-text {
+      font-size: 11px;
+      color: #6b6b6b;
+    }
+
+    .project-progress-pct {
+      font-size: 11px;
+      font-weight: 600;
+      color: #a0a0a0;
+    }
+
+    /* ── Activity feed ── */
+    .activity-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #464646;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .activity-dot.active { background: #22c55e; }
+    .activity-dot.alert  { background: #f59e0b; }
+
+    .activity-text {
+      font-size: 12px;
+      color: #a0a0a0;
+      line-height: 1.5;
+    }
+
+    .activity-text strong {
+      color: #e8e8e8;
+      font-weight: 500;
+    }
+
+    .activity-time {
+      font-size: 11px;
+      color: #464646;
+      margin-top: 2px;
+    }
+
+    /* ── Kbd tag ── */
+    kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 4px;
+      background: #1f1f1f;
+      border: 1px solid rgba(255,255,255,0.10);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #6b6b6b;
+    }
+
+    /* ── Nav active indicator dot ── */
+    .nav-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #e8e8e8;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* ── Quick command palette preview ── */
+    .command-bar {
+      background: #181818;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.50), 0 4px 8px rgba(0,0,0,0.35);
+      width: 440px;
+      margin: 0 auto 28px;
+    }
+
+    .command-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .command-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #e8e8e8;
+    }
+
+    .command-input::placeholder { color: #464646; }
+
+    .command-results {
+      padding: 6px;
+    }
+
+    .command-result-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #a0a0a0;
+      cursor: pointer;
+      transition: background 80ms ease;
+    }
+
+    .command-result-item:hover,
+    .command-result-item.selected {
+      background: rgba(255,255,255,0.06);
+      color: #e8e8e8;
+    }
+
+    .command-result-item .icon-wrap {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+      background: #1f1f1f;
+      border: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .command-result-item .shortcut {
+      margin-left: auto;
+    }
+
+    /* ── Inline filters row ── */
+    .filters-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 26px;
+      padding: 0 10px;
+      border-radius: 9999px;
+      background: #1f1f1f;
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 12px;
+      font-weight: 500;
+      color: #a0a0a0;
+      cursor: pointer;
+      transition: background 80ms ease, border-color 80ms ease, color 80ms ease;
+    }
+
+    .filter-chip:hover {
+      background: #252525;
+      border-color: rgba(255,255,255,0.14);
+      color: #e8e8e8;
+    }
+
+    .filter-chip.active {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.16);
+      color: #e8e8e8;
+    }
+
+    /* Section spacer */
+    .section-gap { margin-bottom: 28px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ═══════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <!-- Header: org selector -->
+    <div class="sidebar-header" style="justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer;padding:4px;border-radius:6px;transition:background 80ms;" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='transparent'">
+        <div class="sidebar-logo">Z</div>
+        <span class="sidebar-org-name">zaynspace</span>
+        <i data-lucide="chevrons-up-down" style="width:13px;height:13px;color:#6b6b6b;flex-shrink:0;"></i>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div style="padding:10px 8px 4px;">
+      <button class="btn btn-secondary btn-sm w-full" style="justify-content:flex-start;gap:6px;color:#a0a0a0;">
+        <i data-lucide="plus" style="width:14px;height:14px;"></i>
+        New task
+        <kbd style="margin-left:auto;">⌘K</kbd>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Workspace</div>
+
+      <a href="#" class="sidebar-nav-item active">
+        <i data-lucide="layout-dashboard" style="width:15px;height:15px;"></i>
+        Dashboard
+        <span class="nav-dot"></span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <i data-lucide="folder-kanban" style="width:15px;height:15px;"></i>
+        Projects
+        <span style="margin-left:auto;font-size:11px;color:#464646;font-weight:500;">4</span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <i data-lucide="check-square" style="width:15px;height:15px;"></i>
+        My Tasks
+        <span style="margin-left:auto;background:#1f1f1f;border:1px solid rgba(255,255,255,0.08);border-radius:9999px;padding:1px 6px;font-size:10px;color:#a0a0a0;font-weight:600;">12</span>
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <i data-lucide="message-square" style="width:15px;height:15px;"></i>
+        Discussions
+      </a>
+      <a href="#" class="sidebar-nav-item">
+        <i data-lucide="file-text" style="width:15px;height:15px;"></i>
+        Documents
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:8px;">Projects</div>
+
+      <a href="#" class="sidebar-nav-item" style="gap:8px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#60a5fa;flex-shrink:0;margin-left:3px;margin-right:3px;"></span>
+        Atlas Redesign
+      </a>
+      <a href="#" class="sidebar-nav-item" style="gap:8px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-left:3px;margin-right:3px;"></span>
+        API v3
+      </a>
+      <a href="#" class="sidebar-nav-item" style="gap:8px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;margin-left:3px;margin-right:3px;"></span>
+        Mobile App
+      </a>
+      <a href="#" class="sidebar-nav-item" style="gap:8px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#a855f7;flex-shrink:0;margin-left:3px;margin-right:3px;"></span>
+        Q2 Planning
+      </a>
+    </nav>
+
+    <!-- User footer -->
+    <div class="sidebar-footer">
+      <a href="#" class="sidebar-nav-item" style="gap:8px;margin-bottom:6px;">
+        <i data-lucide="settings" style="width:15px;height:15px;"></i>
+        Settings
+      </a>
+      <div class="sidebar-user">
+        <div class="avatar avatar-sm" style="background:#1f1f1f;font-size:10px;font-weight:700;color:#a0a0a0;">AL</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:500;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Amine Laaboudi</div>
+          <div style="font-size:11px;color:#6b6b6b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">admin</div>
+        </div>
+        <i data-lucide="more-horizontal" style="width:14px;height:14px;color:#6b6b6b;flex-shrink:0;"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════ -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>zaynspace</span>
+        <span class="topbar-breadcrumb-separator">/</span>
+        <span style="color:#a0a0a0;">Dashboard</span>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Search -->
+        <div class="search-input-wrapper" style="width:220px;">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" class="form-input search-input" placeholder="Search..." style="height:28px;font-size:12px;" />
+        </div>
+
+        <!-- Notification -->
+        <button class="btn-icon" style="position:relative;">
+          <i data-lucide="bell" style="width:15px;height:15px;"></i>
+          <span style="position:absolute;top:6px;right:6px;width:5px;height:5px;border-radius:50%;background:#d97706;"></span>
+        </button>
+
+        <!-- Avatar -->
+        <div class="avatar avatar-sm" style="background:#252525;cursor:pointer;border:1.5px solid rgba(255,255,255,0.10);">AL</div>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active">Overview</button>
+      <button class="tab">My Tasks <span class="tab-count">12</span></button>
+      <button class="tab">Team</button>
+      <button class="tab">Activity</button>
+    </div>
+
+    <!-- Page body -->
+    <div class="page-body">
+
+      <!-- Page heading -->
+      <div style="margin-bottom:24px;">
+        <h2 style="font-size:20px;font-weight:600;color:#e8e8e8;letter-spacing:-0.02em;margin-bottom:4px;">Good morning, Amine 👋</h2>
+        <p style="font-size:13px;color:#6b6b6b;">Here's what's happening across your workspace today.</p>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stats-grid section-gap">
+        <!-- Total tasks -->
+        <div class="stat-card">
+          <div class="stat-label">Total Tasks</div>
+          <div class="stat-value">142</div>
+          <div class="stat-change up">
+            <i data-lucide="trending-up" style="width:12px;height:12px;"></i>
+            +8 this week
+          </div>
+        </div>
+
+        <!-- In progress -->
+        <div class="stat-card">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value">24</div>
+          <div style="margin-top:8px;">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:68%;background:#60a5fa;"></div>
+            </div>
+            <div style="font-size:11px;color:#6b6b6b;margin-top:4px;">68% completion rate</div>
+          </div>
+        </div>
+
+        <!-- Overdue -->
+        <div class="stat-card" style="border-color:rgba(239,68,68,0.15);">
+          <div class="stat-label">Overdue</div>
+          <div class="stat-value" style="color:#ef4444;">5</div>
+          <div class="stat-change down">
+            <i data-lucide="alert-circle" style="width:12px;height:12px;"></i>
+            3 critical priority
+          </div>
+        </div>
+
+        <!-- Completed -->
+        <div class="stat-card">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value">113</div>
+          <div class="stat-change up">
+            <i data-lucide="check-circle" style="width:12px;height:12px;"></i>
+            +12 this month
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-column layout -->
+      <div class="two-col section-gap">
+
+        <!-- Tasks column -->
+        <div>
+          <!-- Filter row -->
+          <div class="section-header">
+            <span class="section-title">My Tasks</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button class="btn btn-ghost btn-sm" style="gap:5px;height:26px;font-size:12px;padding:0 8px;">
+                <i data-lucide="filter" style="width:12px;height:12px;"></i>
+                Filter
+              </button>
+              <button class="btn btn-ghost btn-sm" style="gap:5px;height:26px;font-size:12px;padding:0 8px;">
+                <i data-lucide="sort-asc" style="width:12px;height:12px;"></i>
+                Sort
+              </button>
+            </div>
+          </div>
+
+          <div class="filters-row">
+            <button class="filter-chip active">All</button>
+            <button class="filter-chip">Assigned to me</button>
+            <button class="filter-chip">
+              <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></span>
+              High priority
+            </button>
+            <button class="filter-chip">Due today</button>
+            <button class="filter-chip">
+              <i data-lucide="plus" style="width:10px;height:10px;"></i>
+              Filter
+            </button>
+          </div>
+
+          <!-- Task list card -->
+          <div class="card" style="border-radius:8px;overflow:hidden;">
+            <!-- Group label -->
+            <div style="padding:8px 16px 4px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.04);">
+              <span style="font-size:11px;font-weight:600;color:#6b6b6b;letter-spacing:0.06em;text-transform:uppercase;">Today</span>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" />
+              <span class="task-title">Finalize the API authentication flow</span>
+              <div class="task-meta">
+                <span class="badge badge-danger badge-priority" style="font-size:10px;padding:1px 6px;">High</span>
+                <span class="task-date overdue">2d ago</span>
+              </div>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" />
+              <span class="task-title">Review mobile app wireframes with team</span>
+              <div class="task-meta">
+                <span class="badge badge-warning badge-priority" style="font-size:10px;padding:1px 6px;">Med</span>
+                <span class="task-date">Today</span>
+                <div class="avatar avatar-xs" style="font-size:9px;">S</div>
+              </div>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" />
+              <span class="task-title">Update documentation for v2.3 release</span>
+              <div class="task-meta">
+                <span class="badge badge-success badge-priority" style="font-size:10px;padding:1px 6px;">Low</span>
+                <span class="task-date">Today</span>
+              </div>
+            </div>
+
+            <!-- Group label -->
+            <div style="padding:8px 16px 4px;background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);">
+              <span style="font-size:11px;font-weight:600;color:#6b6b6b;letter-spacing:0.06em;text-transform:uppercase;">This week</span>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" />
+              <span class="task-title">Design new onboarding flow screens</span>
+              <div class="task-meta">
+                <span class="badge badge-info badge-priority" style="font-size:10px;padding:1px 6px;border-radius:4px;">Design</span>
+                <span class="task-date">Feb 22</span>
+              </div>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" />
+              <span class="task-title">Set up CI/CD pipeline for staging environment</span>
+              <div class="task-meta">
+                <span class="badge badge-danger badge-priority" style="font-size:10px;padding:1px 6px;">High</span>
+                <span class="task-date">Feb 23</span>
+                <div class="avatar-group">
+                  <div class="avatar avatar-xs" style="font-size:9px;">A</div>
+                  <div class="avatar avatar-xs" style="font-size:9px;">B</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" checked />
+              <span class="task-title done">Migrate database schema to Postgres 15</span>
+              <div class="task-meta">
+                <i data-lucide="check-circle" style="width:13px;height:13px;color:#22c55e;"></i>
+                <span class="task-date">Done</span>
+              </div>
+            </div>
+
+            <div class="task-item">
+              <input type="checkbox" class="checkbox" checked />
+              <span class="task-title done">Write unit tests for user auth module</span>
+              <div class="task-meta">
+                <i data-lucide="check-circle" style="width:13px;height:13px;color:#22c55e;"></i>
+                <span class="task-date">Done</span>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:8px 16px;border-top:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;">
+              <button class="btn btn-ghost btn-sm" style="height:26px;font-size:12px;padding:0 6px;gap:4px;">
+                <i data-lucide="plus" style="width:12px;height:12px;"></i>
+                Add task
+              </button>
+              <span style="margin-left:auto;font-size:11px;color:#464646;">8 tasks · 2 completed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Projects summary -->
+          <div>
+            <div class="section-header">
+              <span class="section-title">Projects</span>
+              <button class="btn btn-ghost btn-sm" style="height:22px;font-size:11px;padding:0 6px;">View all →</button>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="project-card">
+                <div class="project-card-header">
+                  <div class="project-icon" style="background:rgba(96,165,250,0.12);">🎨</div>
+                  <div style="flex:1;min-width:0;">
+                    <div class="project-name">Atlas Redesign</div>
+                    <div class="project-desc">Brand refresh & new UI system</div>
+                  </div>
+                  <span class="badge badge-info" style="font-size:10px;border-radius:4px;padding:2px 6px;">Active</span>
+                </div>
+                <div>
+                  <div class="project-progress-label">
+                    <span class="project-progress-text">Progress</span>
+                    <span class="project-progress-pct">72%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width:72%;background:#60a5fa;"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="avatar-group">
+                    <div class="avatar avatar-xs">A</div>
+                    <div class="avatar avatar-xs">L</div>
+                    <div class="avatar avatar-xs" style="background:#1f1f1f;color:#6b6b6b;font-size:9px;">+3</div>
+                  </div>
+                  <span style="font-size:11px;color:#6b6b6b;">Due Mar 15</span>
+                </div>
+              </div>
+
+              <div class="project-card">
+                <div class="project-card-header">
+                  <div class="project-icon" style="background:rgba(34,197,94,0.12);">⚡</div>
+                  <div style="flex:1;min-width:0;">
+                    <div class="project-name">API v3</div>
+                    <div class="project-desc">RESTful API rewrite with GraphQL</div>
+                  </div>
+                  <span class="badge badge-warning" style="font-size:10px;border-radius:4px;padding:2px 6px;">Review</span>
+                </div>
+                <div>
+                  <div class="project-progress-label">
+                    <span class="project-progress-text">Progress</span>
+                    <span class="project-progress-pct">45%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width:45%;background:#22c55e;"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="avatar-group">
+                    <div class="avatar avatar-xs">B</div>
+                    <div class="avatar avatar-xs">C</div>
+                  </div>
+                  <span style="font-size:11px;color:#ef4444;">Overdue 2d</span>
+                </div>
+              </div>
+
+              <div class="project-card">
+                <div class="project-card-header">
+                  <div class="project-icon" style="background:rgba(168,85,247,0.12);">📱</div>
+                  <div style="flex:1;min-width:0;">
+                    <div class="project-name">Mobile App</div>
+                    <div class="project-desc">iOS & Android launch</div>
+                  </div>
+                  <span class="badge badge-default" style="font-size:10px;border-radius:4px;padding:2px 6px;">Planning</span>
+                </div>
+                <div>
+                  <div class="project-progress-label">
+                    <span class="project-progress-text">Progress</span>
+                    <span class="project-progress-pct">18%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width:18%;background:#a855f7;"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div class="avatar-group">
+                    <div class="avatar avatar-xs">D</div>
+                    <div class="avatar avatar-xs" style="background:#1f1f1f;color:#6b6b6b;font-size:9px;">+5</div>
+                  </div>
+                  <span style="font-size:11px;color:#6b6b6b;">Due Apr 30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity feed -->
+          <div>
+            <div class="section-header">
+              <span class="section-title">Recent Activity</span>
+            </div>
+
+            <div class="card" style="padding:4px 16px;">
+              <div class="activity-item">
+                <div class="activity-dot active"></div>
+                <div>
+                  <div class="activity-text"><strong>Sarah</strong> completed task "Set up staging DB"</div>
+                  <div class="activity-time">2 min ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot alert"></div>
+                <div>
+                  <div class="activity-text"><strong>API v3</strong> task is now overdue</div>
+                  <div class="activity-time">1 hour ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div>
+                  <div class="activity-text"><strong>Amine</strong> added comment on "Atlas Redesign"</div>
+                  <div class="activity-time">3 hours ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot active"></div>
+                <div>
+                  <div class="activity-text"><strong>Bilal</strong> opened a new discussion: "Q2 roadmap"</div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div>
+                  <div class="activity-text"><strong>5 tasks</strong> were moved to In Progress</div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── Design system tokens showcase ─── -->
+      <div style="margin-top:40px;padding-top:28px;border-top:1px solid rgba(255,255,255,0.05);">
+        <h3 style="font-size:12px;font-weight:600;color:#464646;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;">Design System Tokens</h3>
+
+        <!-- Colors -->
+        <div style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:10px;">Backgrounds</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:#0d0d0d;border-radius:6px;border:1px solid rgba(255,255,255,0.08);"></div>
+              <span style="font-size:10px;color:#6b6b6b;">base</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:#111111;border-radius:6px;border:1px solid rgba(255,255,255,0.08);"></div>
+              <span style="font-size:10px;color:#6b6b6b;">subtle</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:#181818;border-radius:6px;border:1px solid rgba(255,255,255,0.08);"></div>
+              <span style="font-size:10px;color:#6b6b6b;">surface</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:#1f1f1f;border-radius:6px;border:1px solid rgba(255,255,255,0.08);"></div>
+              <span style="font-size:10px;color:#6b6b6b;">elevated</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:#252525;border-radius:6px;border:1px solid rgba(255,255,255,0.08);"></div>
+              <span style="font-size:10px;color:#6b6b6b;">overlay</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Semantic -->
+        <div style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:10px;">Semantic Colors</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.30);border-radius:6px;display:flex;align-items:center;justify-content:center;"><span style="color:#ef4444;font-size:13px;">●</span></div>
+              <span style="font-size:10px;color:#6b6b6b;">danger</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.30);border-radius:6px;display:flex;align-items:center;justify-content:center;"><span style="color:#f59e0b;font-size:13px;">●</span></div>
+              <span style="font-size:10px;color:#6b6b6b;">warning</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.30);border-radius:6px;display:flex;align-items:center;justify-content:center;"><span style="color:#22c55e;font-size:13px;">●</span></div>
+              <span style="font-size:10px;color:#6b6b6b;">success</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.30);border-radius:6px;display:flex;align-items:center;justify-content:center;"><span style="color:#60a5fa;font-size:13px;">●</span></div>
+              <span style="font-size:10px;color:#6b6b6b;">info</span>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:56px;height:40px;background:rgba(217,119,6,0.12);border:1px solid rgba(217,119,6,0.35);border-radius:6px;display:flex;align-items:center;justify-content:center;"><span style="color:#f59e0b;font-size:13px;">●</span></div>
+              <span style="font-size:10px;color:#6b6b6b;">accent</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:10px;">Buttons</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-primary btn-md">Primary</button>
+            <button class="btn btn-secondary btn-md">Secondary</button>
+            <button class="btn btn-ghost btn-md">Ghost</button>
+            <button class="btn btn-accent btn-md">Accent</button>
+            <button class="btn btn-danger btn-md">Danger</button>
+            <button class="btn btn-primary btn-sm">Small</button>
+            <button class="btn btn-primary btn-lg">Large</button>
+            <button class="btn btn-primary btn-md" disabled>Disabled</button>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:10px;">Badges</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <span class="badge badge-default">Default</span>
+            <span class="badge badge-success">Success</span>
+            <span class="badge badge-warning">Warning</span>
+            <span class="badge badge-danger">Danger</span>
+            <span class="badge badge-info">Info</span>
+            <span class="badge badge-accent">Accent</span>
+            <span class="badge badge-priority badge-priority-high">High</span>
+            <span class="badge badge-priority badge-priority-medium">Medium</span>
+            <span class="badge badge-priority badge-priority-low">Low</span>
+          </div>
+        </div>
+
+        <!-- Typography -->
+        <div style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:10px;">Typography — Inter</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">36px / 700</span>
+              <span style="font-size:36px;font-weight:700;letter-spacing:-0.04em;color:#e8e8e8;line-height:1;">Display heading</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">24px / 600</span>
+              <span style="font-size:24px;font-weight:600;letter-spacing:-0.02em;color:#e8e8e8;line-height:1;">Page title</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">18px / 600</span>
+              <span style="font-size:18px;font-weight:600;letter-spacing:-0.02em;color:#e8e8e8;line-height:1;">Section heading</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">14px / 500</span>
+              <span style="font-size:14px;font-weight:500;color:#e8e8e8;">Emphasized body text</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">14px / 400</span>
+              <span style="font-size:14px;font-weight:400;color:#a0a0a0;">Regular body — secondary text that provides supporting context.</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">12px / 400</span>
+              <span style="font-size:12px;font-weight:400;color:#6b6b6b;">Small / caption text — timestamps, labels, metadata</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">11px / 600</span>
+              <span style="font-size:11px;font-weight:600;color:#6b6b6b;letter-spacing:0.08em;text-transform:uppercase;">SECTION LABEL</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:16px;">
+              <span style="font-size:11px;color:#464646;width:60px;flex-shrink:0;">mono</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#a0a0a0;background:#1f1f1f;padding:2px 8px;border-radius:4px;">const value = api.fetch()</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forms -->
+        <div style="margin-bottom:24px;max-width:400px;">
+          <div class="section-title" style="margin-bottom:10px;">Form Controls</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="form-field">
+              <label class="form-label">Task name</label>
+              <input class="form-input" type="text" placeholder="Enter task name..." />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Description</label>
+              <textarea class="form-textarea" rows="3" placeholder="Add a description..."></textarea>
+              <span class="form-helper">Supports markdown formatting.</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <div class="form-field" style="flex:1;">
+                <label class="form-label">Priority</label>
+                <select class="form-select">
+                  <option>High</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </select>
+              </div>
+              <div class="form-field" style="flex:1;">
+                <label class="form-label">Status</label>
+                <select class="form-select">
+                  <option>To Do</option>
+                  <option>In Progress</option>
+                  <option>Done</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <label class="checkbox-wrapper" style="gap:8px;cursor:pointer;">
+                <input type="checkbox" class="checkbox" checked />
+                <span style="font-size:13px;color:#a0a0a0;">Notify assignees</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shadows -->
+        <div style="margin-bottom:24px;">
+          <div class="section-title" style="margin-bottom:10px;">Shadows</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 1px 2px rgba(0,0,0,0.40);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">xs</span></div>
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 1px 3px rgba(0,0,0,0.40),0 1px 2px rgba(0,0,0,0.30);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">sm</span></div>
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 4px 6px rgba(0,0,0,0.45),0 2px 4px rgba(0,0,0,0.30),inset 0 1px 0 rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">md</span></div>
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 10px 20px rgba(0,0,0,0.50),0 4px 8px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">lg</span></div>
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 20px 40px rgba(0,0,0,0.55),0 8px 16px rgba(0,0,0,0.40),inset 0 1px 0 rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">xl</span></div>
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 0 0 1px rgba(255,255,255,0.06),0 2px 8px rgba(0,0,0,0.40);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">card</span></div>
+            <div style="width:80px;height:60px;border-radius:8px;background:#181818;box-shadow:0 0 0 1px rgba(255,255,255,0.10),0 8px 24px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.40);display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;color:#6b6b6b;">drop</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+<script>
+  // Initialize Lucide icons
+  lucide.createIcons();
+
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // Checkbox toggling
+  document.querySelectorAll('.checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const title = cb.closest('.task-item')?.querySelector('.task-title');
+      if (title) {
+        title.classList.toggle('done', cb.checked);
+      }
+    });
+  });
+</script>
+</body>
+</html>

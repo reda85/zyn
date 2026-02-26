@@ -7,17 +7,16 @@ import { selectedOrganizationAtom } from '@/store/atoms'
 import { FolderKanban, Users, BarChart3, Settings, Upload, User } from 'lucide-react'
 import Link from 'next/link'
 import clsx from 'clsx'
-import { Lexend } from 'next/font/google'
+import { Outfit } from 'next/font/google'
 import { useUserData } from '@/hooks/useUserData'
 import Sidebar from '@/components/Sidebar'
 
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
+const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 export default function UserSettingsPage({params}) {
   const {organizationId} = params;
   const [selectedOrganization] = useAtom(selectedOrganizationAtom)
 
-  //const [user, setUser] = useState(null)
   const [name, setName] = useState('')
   const [jobFunction, setJobFunction] = useState('')
   const [email, setEmail] = useState('')
@@ -30,17 +29,11 @@ export default function UserSettingsPage({params}) {
   console.log('organization', organization)
 
   useEffect(() => {
-   
-    
-
-      setName(profile?.name || '')
-      setJobFunction(profile?.job_description || '')
-      setAvatarUrl(profile?.avatar_url || '')
-      setEmail(user?.email || '')
-    }, [profile])
-
-  
-
+    setName(profile?.name || '')
+    setJobFunction(profile?.job_description || '')
+    setAvatarUrl(profile?.avatar_url || '')
+    setEmail(user?.email || '')
+  }, [profile])
 
   const saveProfile = async () => {
     if (!user) return
@@ -78,31 +71,30 @@ export default function UserSettingsPage({params}) {
   }
 
   return (
-    <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
-      {/* ASIDE */}
-<Sidebar organizationId={organizationId} currentPage="profile" />
-
+    <div className={clsx("flex h-screen bg-gray-50 overflow-hidden", outfit.className)}>
+      {/* Use the same Sidebar component for consistency */}
+      <Sidebar organizationId={organizationId} currentPage="profile" />
 
       {/* MAIN */}
-      <main className="flex-1 overflow-y-auto p-10">
-        <div className="mt-12 max-w-3xl">
-          <h1 className="text-4xl font-bold font-heading mb-8">
+      <main className="flex-1 overflow-y-auto px-8 py-8">
+        <div className="max-w-3xl">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-8 leading-8">
             Paramètres du compte
           </h1>
 
-          <div className="space-y-6 bg-neutral-50 border border-border/50 rounded-xl p-6 shadow-sm">
+          <div className="space-y-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             {/* AVATAR */}
             <div>
-              <label className="block text-sm font-medium mb-2">Photo de profil</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">Photo de profil</label>
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-full bg-secondary/40 border border-border/50 flex items-center justify-center overflow-hidden">
+                <div className="h-16 w-16 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
                   {avatarUrl ? (
-                    <img src={avatarUrl} className="h-full w-full object-cover" />
+                    <img src={avatarUrl} className="h-full w-full object-cover" alt="Avatar" />
                   ) : (
-                    <User className="w-6 h-6 text-muted-foreground" />
+                    <User className="w-6 h-6 text-gray-400" />
                   )}
                 </div>
-                <label className="cursor-pointer flex items-center gap-2 text-sm font-medium text-primary">
+                <label className="cursor-pointer flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors">
                   <Upload className="w-4 h-4" />
                   Changer la photo
                   <input
@@ -117,35 +109,35 @@ export default function UserSettingsPage({params}) {
 
             {/* NAME */}
             <div>
-              <label className="block text-sm font-medium mb-2">Nom complet</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">Nom complet</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-card/50 focus:ring-2 focus:ring-primary/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900"
               />
             </div>
 
             {/* JOB */}
             <div>
-              <label className="block text-sm font-medium mb-2">Fonction</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">Fonction</label>
               <input
                 value={jobFunction}
                 onChange={(e) => setJobFunction(e.target.value)}
                 placeholder="Chef de projet, Architecte…"
-                className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-card/50 focus:ring-2 focus:ring-primary/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900 placeholder:text-gray-400"
               />
             </div>
 
             {/* EMAIL (READ ONLY) */}
             <div>
-              <label className="block text-sm font-medium mb-2">Adresse email</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">Adresse email</label>
               <input
                 value={email}
                 disabled
-                className="w-full px-4 py-2.5 rounded-xl border border-border/50 bg-secondary/30 text-muted-foreground cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                L’adresse email ne peut pas être modifiée
+              <p className="text-xs text-gray-500 mt-1 leading-4">
+                L'adresse email ne peut pas être modifiée
               </p>
             </div>
 
@@ -154,7 +146,7 @@ export default function UserSettingsPage({params}) {
               <button
                 onClick={saveProfile}
                 disabled={saving}
-                className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all"
+                className="px-6 py-2.5 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Sauvegarde…' : 'Sauvegarder'}
               </button>
@@ -162,23 +154,6 @@ export default function UserSettingsPage({params}) {
           </div>
         </div>
       </main>
-
-      <style jsx>{`
-        .nav-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          padding: 0.625rem 1rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          border-radius: 0.75rem;
-          transition: all 0.2s;
-        }
-        .nav-item:hover {
-          background: hsl(var(--secondary) / 0.5);
-          color: hsl(var(--primary));
-        }
-      `}</style>
     </div>
   )
 }

@@ -252,8 +252,8 @@ function Dialog({ open, onClose, title, children, size = 'md' }) {
           >
             <DialogPanel className={`w-full ${maxW} bg-card rounded-2xl border border-border/50 shadow-2xl flex flex-col max-h-[90vh]`}>
               <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border/50 flex-shrink-0">
-                <DialogTitle className="text-lg font-bold text-foreground">{title}</DialogTitle>
-                <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                <DialogTitle className="text-lg font-bold text-stone-900">{title}</DialogTitle>
+                <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary/50 hover:bg-secondary flex items-center justify-center text-stone-500 hover:text-stone-900 transition-colors">
                   <X size={16} />
                 </button>
               </div>
@@ -288,7 +288,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
 
   return (
     <Dialog open={open} onClose={handleClose} title={mode === 'new' ? 'Ajouter un document' : 'Nouvelle version'}>
-      {mode === 'version' && documentName && <p className="text-sm text-muted-foreground -mt-2 mb-4">{documentName}</p>}
+      {mode === 'version' && documentName && <p className="text-sm text-stone-500 -mt-2 mb-4">{documentName}</p>}
       <div
         onClick={() => inputRef.current?.click()}
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -305,30 +305,30 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
         {file ? (
           <div>
             <div className="mb-2 flex justify-center"><FileText size={32} className="text-primary" /></div>
-            <p className="text-sm font-semibold text-foreground">{file.name}</p>
-            <p className="text-xs text-muted-foreground mt-1">{formatBytes(file.size)}</p>
+            <p className="text-sm font-semibold text-stone-900">{file.name}</p>
+            <p className="text-xs text-stone-500 mt-1">{formatBytes(file.size)}</p>
             <button onClick={e => { e.stopPropagation(); setFile(null); }}
               className="mt-2 text-xs text-primary hover:underline">Changer de fichier</button>
           </div>
         ) : (
           <div>
-            <div className="mb-3 flex justify-center"><UploadCloud size={40} className="text-muted-foreground" /></div>
-            <p className="text-sm font-semibold text-foreground">Glissez un fichier ou cliquez</p>
-            <p className="text-xs text-muted-foreground mt-1">PDF, Word, Excel, PowerPoint, Images</p>
+            <div className="mb-3 flex justify-center"><UploadCloud size={40} className="text-stone-500" /></div>
+            <p className="text-sm font-semibold text-stone-900">Glissez un fichier ou cliquez</p>
+            <p className="text-xs text-stone-500 mt-1">PDF, Word, Excel, PowerPoint, Images</p>
           </div>
         )}
       </div>
 
       {mode === 'new' && (
         <div className="mb-3">
-          <label className="block text-sm font-semibold text-foreground mb-1.5">Description <span className="font-normal text-muted-foreground">(optionnel)</span></label>
+          <label className="block text-sm font-semibold text-stone-900 mb-1.5">Description <span className="font-normal text-stone-500">(optionnel)</span></label>
           <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Décrivez brièvement ce document…"
             className="w-full bg-secondary/30 border border-border/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
         </div>
       )}
 
       <div className="mb-4">
-        <label className="block text-sm font-semibold text-foreground mb-1.5">Notes {mode === 'new' && <span className="font-normal text-muted-foreground">(optionnel)</span>}</label>
+        <label className="block text-sm font-semibold text-stone-900 mb-1.5">Notes {mode === 'new' && <span className="font-normal text-stone-500">(optionnel)</span>}</label>
         <textarea value={changeNotes} onChange={e => setChangeNotes(e.target.value)}
           placeholder={mode === 'new' ? 'ex. Première version' : 'ex. Mise à jour section 3…'} rows={3}
           className="w-full bg-secondary/30 border border-border/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none" />
@@ -346,7 +346,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
             <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
-          <p className="text-xs text-muted-foreground mt-1">Upload… {progress}%</p>
+          <p className="text-xs text-stone-500 mt-1">Upload… {progress}%</p>
         </div>
       )}
 
@@ -360,7 +360,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
       )}
 
       <div className="flex gap-3 pt-4 border-t border-border/50">
-        <button onClick={handleClose} className="flex-1 py-3 rounded-lg bg-secondary/50 hover:bg-secondary text-foreground font-semibold text-sm transition-colors">Annuler</button>
+        <button onClick={handleClose} className="flex-1 py-3 rounded-lg bg-secondary/50 hover:bg-secondary text-stone-900 font-semibold text-sm transition-colors">Annuler</button>
         <button onClick={handleSubmit} disabled={!file || loading}
           className="flex-1 py-3 rounded-lg font-semibold text-sm text-primary-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:bg-primary/90">
           {loading ? 'Upload…' : mode === 'new' ? 'Uploader' : 'Enregistrer'}
@@ -415,8 +415,8 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
       <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border/50">
         <FileIcon mimeType={doc?.mime_type} size="lg" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground truncate">{doc?.name}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">v{d?.current_version?.version_number ?? 1} · {formatBytes(d?.current_version?.file_size)} · {formatDate(d?.updated_at)}</p>
+          <p className="text-sm font-bold text-stone-900 truncate">{doc?.name}</p>
+          <p className="text-xs text-stone-500 mt-0.5">v{d?.current_version?.version_number ?? 1} · {formatBytes(d?.current_version?.file_size)} · {formatDate(d?.updated_at)}</p>
         </div>
         <button onClick={() => { onClose(); onUploadVersion(doc); }}
           className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-semibold px-3 py-2 rounded-lg hover:bg-primary/20 transition-colors flex-shrink-0">
@@ -433,7 +433,7 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
           <button key={t.id} onClick={() => setTab(t.id)}
             className={clsx(
               "px-4 py-2 rounded-lg text-sm border transition-colors",
-              tab === t.id ? 'bg-primary/10 border-primary/20 text-primary font-semibold' : 'bg-secondary/30 border-border/50 text-muted-foreground hover:bg-secondary/50 font-medium'
+              tab === t.id ? 'bg-primary/10 border-primary/20 text-primary font-semibold' : 'bg-secondary/30 border-border/50 text-stone-500 hover:bg-secondary/50 font-medium'
             )}>
             {t.label}
           </button>
@@ -442,15 +442,15 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
 
       {tab === 'preview' && (
         <div className="bg-secondary/30 rounded-xl flex items-center justify-center min-h-96">
-          {loadingUrl ? <p className="text-sm text-muted-foreground">Chargement…</p>
-          : !previewUrl ? <p className="text-sm text-muted-foreground">Aperçu non disponible</p>
+          {loadingUrl ? <p className="text-sm text-stone-500">Chargement…</p>
+          : !previewUrl ? <p className="text-sm text-stone-500">Aperçu non disponible</p>
           : isImage ? <img src={previewUrl} alt={doc?.name} className="max-w-full max-h-[540px] rounded-lg object-contain" />
           : isPDF ? <iframe src={previewUrl} title={doc?.name} className="w-full h-[540px] border-0 rounded-lg" />
           : (
             <div className="text-center p-10">
               <FileIcon mimeType={doc?.mime_type} size="lg" />
-              <p className="mt-4 text-sm font-semibold text-foreground">{doc?.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Aperçu non disponible pour ce type de fichier.</p>
+              <p className="mt-4 text-sm font-semibold text-stone-900">{doc?.name}</p>
+              <p className="mt-1 text-xs text-stone-500">Aperçu non disponible pour ce type de fichier.</p>
               <a href={previewUrl} target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-2 mt-4 bg-primary text-primary-foreground px-5 py-2.5 rounded-lg text-sm font-semibold no-underline hover:bg-primary/90 transition-colors">
                 <ExternalLink size={14} />
@@ -468,12 +468,12 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
             return (
               <div key={v.id} className={clsx("rounded-xl border p-4", isCurrent ? 'bg-primary/5 border-primary/20' : 'bg-card border-border/50')}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-foreground">v{v.version_number}</span>
+                  <span className="font-bold text-stone-900">v{v.version_number}</span>
                   {isCurrent && <span className="bg-primary/10 border border-primary/20 text-primary text-xs font-bold px-2 py-0.5 rounded-md">Actuelle</span>}
-                  <span className="ml-auto text-xs text-muted-foreground">{formatDate(v.created_at)}</span>
+                  <span className="ml-auto text-xs text-stone-500">{formatDate(v.created_at)}</span>
                 </div>
-                {v.change_notes && <p className="text-sm text-foreground mb-2 leading-relaxed">{v.change_notes}</p>}
-                <p className="text-xs text-muted-foreground mb-3">{formatBytes(v.file_size)}</p>
+                {v.change_notes && <p className="text-sm text-stone-900 mb-2 leading-relaxed">{v.change_notes}</p>}
+                <p className="text-xs text-stone-500 mb-3">{formatBytes(v.file_size)}</p>
                 <div className={clsx("flex gap-2 pt-3 border-t", isCurrent ? 'border-primary/10' : 'border-border/50')}>
                   <button onClick={() => { setPreviewVersion(v); setTab('preview'); loadPreview(v); }}
                     className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 text-primary text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
@@ -482,7 +482,7 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
                   </button>
                   {!isCurrent && (
                     <button onClick={() => handleRestore(v)} disabled={!!restoringId}
-                      className="flex items-center gap-1.5 bg-secondary/50 border border-border/50 text-foreground text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="flex items-center gap-1.5 bg-secondary/50 border border-border/50 text-stone-900 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                       {restoringId === v.id ? <><RotateCcw size={12} className="animate-spin" /><span>Restauration…</span></> : <><RotateCcw size={12} /><span>Restaurer</span></>}
                     </button>
                   )}
@@ -509,7 +509,7 @@ function SortDialog({ open, onClose, sortField, sortDir, onSelect }) {
       <div className="flex flex-col gap-0.5">
         {SORT_FIELDS.map(field => (
           <div key={field.key}>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-4 mb-2">{field.label}</p>
+            <p className="text-xs font-bold text-stone-500 uppercase tracking-widest mt-4 mb-2">{field.label}</p>
             {[
               { dir: 'asc',  label: field.isDate ? 'Du plus ancien au plus récent' : 'A → Z' },
               { dir: 'desc', label: field.isDate ? 'Du plus récent au plus ancien' : 'Z → A' },
@@ -519,7 +519,7 @@ function SortDialog({ open, onClose, sortField, sortDir, onSelect }) {
                 <button key={opt.dir} onClick={() => { onSelect(field.key, opt.dir); onClose(); }}
                   className={clsx(
                     "w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm mb-1 border transition-colors text-left",
-                    active ? 'bg-primary/10 border-primary/20 text-primary font-semibold' : 'bg-secondary/30 border-transparent text-foreground hover:bg-secondary/50 font-normal'
+                    active ? 'bg-primary/10 border-primary/20 text-primary font-semibold' : 'bg-secondary/30 border-transparent text-stone-900 hover:bg-secondary/50 font-normal'
                   )}>
                   <span>{opt.label}</span>
                   {active && <Check size={16} className="text-primary" />}
@@ -544,7 +544,7 @@ function RenameFolderDialog({ folder, onClose, onRename }) {
         onKeyDown={e => { if (e.key === 'Enter') submit(); }}
         className="w-full bg-secondary/30 border border-border/50 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all mb-4" />
       <div className="flex gap-3 pt-2 border-t border-border/50">
-        <button onClick={onClose} className="flex-1 py-3 rounded-lg bg-secondary/50 hover:bg-secondary text-foreground font-semibold text-sm transition-colors">Annuler</button>
+        <button onClick={onClose} className="flex-1 py-3 rounded-lg bg-secondary/50 hover:bg-secondary text-stone-900 font-semibold text-sm transition-colors">Annuler</button>
         <button onClick={submit} className="flex-1 py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm transition-colors">Renommer</button>
       </div>
     </Dialog>
@@ -716,15 +716,15 @@ export default function DocumentsPage({ params }) {
   };
 
   return (
-    <div className={clsx(outfit.className, "min-h-screen bg-background font-sans")}>
+    <div className={clsx(outfit.className, "min-h-screen bg-gray-50 font-sans")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
       
       <div className="pt-6 px-6">
         <div className="bg-card border border-border/50 rounded-xl shadow-sm mb-6">
           <div className="flex flex-row items-center justify-between p-6">
             <div>
-              <h2 className="text-2xl font-bold font-heading text-foreground mb-1">Documents</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="text-xl font-semibold font-heading text-stone-900 mb-1">Documents</h2>
+              <p className="text-sm text-stone-500">
                 {search 
                   ? `${filteredDocs.length} résultat${filteredDocs.length > 1 ? 's' : ''} · "${search}"`
                   : `${subfolders.length + filteredDocs.length} élément${(subfolders.length + filteredDocs.length) > 1 ? 's' : ''} au total`
@@ -734,18 +734,18 @@ export default function DocumentsPage({ params }) {
             
             <div className="flex flex-row gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-500" />
                 <input
                   type="text"
                   placeholder="Rechercher un document…"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-64 rounded-xl border border-border/50 bg-secondary/30 pl-10 pr-10 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                  className="w-64 rounded-xl border border-border/50 bg-secondary/30 pl-10 pr-10 py-2.5 text-sm placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                 />
                 {search && (
                   <button 
                     onClick={() => setSearch('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-900 transition-colors"
                   >
                     <X size={14} />
                   </button>
@@ -754,7 +754,7 @@ export default function DocumentsPage({ params }) {
 
               <button
                 onClick={() => setSortOpen(true)}
-                className="px-4 py-2.5 bg-secondary/50 hover:bg-secondary/80 text-foreground border border-border/50 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
+                className="px-4 py-2.5 bg-secondary/50 hover:bg-secondary/80 text-stone-900 border border-border/50 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
               >
                 <ArrowUpDown size={16} />
                 Trier
@@ -763,7 +763,7 @@ export default function DocumentsPage({ params }) {
               {!search && (
                 <button
                   onClick={() => setNewFolderOpen(true)}
-                  className="px-4 py-2.5 bg-secondary/50 hover:bg-secondary/80 text-foreground border border-border/50 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
+                  className="px-4 py-2.5 bg-secondary/50 hover:bg-secondary/80 text-stone-900 border border-border/50 rounded-xl text-sm font-medium transition-all flex items-center gap-2"
                 >
                   <Folder size={16} />
                   Nouveau dossier
@@ -784,8 +784,8 @@ export default function DocumentsPage({ params }) {
             <div className="px-6 pb-4 space-y-2">
               {uploads.map(u => (
                 <div key={u.name} className="flex items-center gap-3 bg-secondary/30 border border-border/50 rounded-lg px-4 py-3">
-                  <FileText size={16} className="text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm font-medium text-foreground flex-1 truncate">{u.name}</span>
+                  <FileText size={16} className="text-stone-500 flex-shrink-0" />
+                  <span className="text-sm font-medium text-stone-900 flex-1 truncate">{u.name}</span>
                   {u.error ? <span className="text-xs text-destructive">Erreur: {u.error}</span>
                   : u.done ? <span className="flex items-center gap-1 text-xs text-emerald-600 font-semibold"><Check size={12} />Terminé</span>
                   : (
@@ -799,7 +799,7 @@ export default function DocumentsPage({ params }) {
           )}
 
           {loading ? (
-            <div className="flex justify-center py-20"><div className="text-sm text-muted-foreground">Chargement…</div></div>
+            <div className="flex justify-center py-20"><div className="text-sm text-stone-500">Chargement…</div></div>
           ) : (
             <>
               {breadcrumbs.length > 0 && (
@@ -807,9 +807,9 @@ export default function DocumentsPage({ params }) {
                   <button onClick={() => goToBreadcrumb(null)} className="text-primary font-semibold hover:underline transition-colors">Documents</button>
                   {breadcrumbs.map((b, i) => (
                     <span key={b.id} className="flex items-center gap-1">
-                      <ChevronRight size={14} className="text-muted-foreground" />
+                      <ChevronRight size={14} className="text-stone-500" />
                       <button onClick={() => goToBreadcrumb(b.id)}
-                        className={clsx("font-semibold hover:underline transition-colors", i === breadcrumbs.length - 1 ? "text-foreground" : "text-primary")}>
+                        className={clsx("font-semibold hover:underline transition-colors", i === breadcrumbs.length - 1 ? "text-stone-900" : "text-primary")}>
                         {b.name}
                       </button>
                     </span>
@@ -826,17 +826,17 @@ export default function DocumentsPage({ params }) {
                       placeholder="Nom du dossier…"
                       className="flex-1 bg-background border border-border/50 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
                     <button onClick={handleCreateFolder} className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold px-4 py-2 rounded-lg transition-colors">Créer</button>
-                    <button onClick={() => setNewFolderOpen(false)} className="text-sm text-muted-foreground hover:text-foreground transition-colors px-2">Annuler</button>
+                    <button onClick={() => setNewFolderOpen(false)} className="text-sm text-stone-500 hover:text-stone-900 transition-colors px-2">Annuler</button>
                   </div>
                 )}
 
                 {subfolders.length === 0 && filteredDocs.length === 0 && !newFolderOpen ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <FileText size={64} className="text-muted-foreground/30 mb-4" />
-                    <h3 className="text-xl font-extrabold text-foreground mb-2">
+                    <FileText size={64} className="text-stone-500/30 mb-4" />
+                    <h3 className="text-xl font-extrabold text-stone-900 mb-2">
                       {search ? 'Aucun résultat' : 'Aucun élément'}
                     </h3>
-                    <p className="text-sm text-muted-foreground mb-6 max-w-xs leading-relaxed">
+                    <p className="text-sm text-stone-500 mb-6 max-w-xs leading-relaxed">
                       {search
                         ? `Aucun dossier ou document ne correspond à "${search}"`
                         : 'Créez un dossier ou uploadez un document pour commencer'}
@@ -844,7 +844,7 @@ export default function DocumentsPage({ params }) {
                     {!search && (
                       <div className="flex gap-3">
                         <button onClick={() => setNewFolderOpen(true)}
-                          className="bg-secondary hover:bg-secondary/80 text-foreground border border-border/50 font-semibold px-5 py-3 rounded-xl text-sm transition-all flex items-center gap-2">
+                          className="bg-secondary hover:bg-secondary/80 text-stone-900 border border-border/50 font-semibold px-5 py-3 rounded-xl text-sm transition-all flex items-center gap-2">
                           <Folder size={16} />
                           Nouveau dossier
                         </button>
@@ -873,8 +873,8 @@ export default function DocumentsPage({ params }) {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{folder.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">Dossier</p>
+                          <p className="text-sm font-semibold text-stone-900 truncate">{folder.name}</p>
+                          <p className="text-xs text-stone-500 mt-0.5">Dossier</p>
                         </div>
 
                         <div
@@ -884,20 +884,20 @@ export default function DocumentsPage({ params }) {
                           <button
                             onClick={() => setRenameTarget(folder)}
                             title="Renommer"
-                            className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                            className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-stone-500 hover:text-stone-900 transition-colors"
                           >
                             <Pencil size={14} />
                           </button>
                           <button
                             onClick={() => handleDeleteFolder(folder.id)}
                             title="Supprimer"
-                            className="w-8 h-8 rounded-lg hover:bg-destructive/10 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
+                            className="w-8 h-8 rounded-lg hover:bg-destructive/10 flex items-center justify-center text-stone-500 hover:text-destructive transition-colors"
                           >
                             <Trash2 size={14} />
                           </button>
                         </div>
 
-                        <ChevronRight size={18} className="text-muted-foreground flex-shrink-0" />
+                        <ChevronRight size={18} className="text-stone-500 flex-shrink-0" />
                       </div>
                     ))}
 
@@ -917,11 +917,11 @@ export default function DocumentsPage({ params }) {
                           <FileIcon mimeType={doc.mime_type} />
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-foreground truncate">{doc.name}</p>
+                            <p className="text-sm font-semibold text-stone-900 truncate">{doc.name}</p>
                             {doc.description && (
-                              <p className="text-xs text-muted-foreground mt-0.5 truncate">{doc.description}</p>
+                              <p className="text-xs text-stone-500 mt-0.5 truncate">{doc.description}</p>
                             )}
-                            <p className="text-xs text-muted-foreground/60 mt-1">
+                            <p className="text-xs text-stone-500/60 mt-1">
                               {formatBytes(version?.file_size)} · {formatDate(doc.updated_at)}
                             </p>
                           </div>
@@ -937,7 +937,7 @@ export default function DocumentsPage({ params }) {
                               console.log('Three dots clicked, setting context menu at', e.clientX, e.clientY);
                               setContextMenu({ doc, x: e.clientX, y: e.clientY });
                             }}
-                            className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-muted-foreground group-hover:text-foreground opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
+                            className="w-8 h-8 rounded-lg hover:bg-secondary flex items-center justify-center text-stone-500 group-hover:text-stone-900 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                               <circle cx="5" cy="12" r="2" />
@@ -973,7 +973,7 @@ export default function DocumentsPage({ params }) {
               setContextMenu(null); 
               openVersionUpload(contextMenu.doc); 
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-secondary/50 transition-colors text-left border-none bg-transparent cursor-pointer"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm text-stone-900 hover:bg-secondary/50 transition-colors text-left border-none bg-transparent cursor-pointer"
           >
             <UploadCloud size={14} className="text-primary" />
             <span>Nouvelle version</span>

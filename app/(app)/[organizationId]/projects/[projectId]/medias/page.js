@@ -204,7 +204,7 @@ export default function Medias({ params }) {
   const hasActiveFilters = selectedCanvas || startDate || endDate || selectedUsers.length > 0 || selectedTags.length > 0
 
   return (
-    <div className={clsx(lexend.className, "min-h-screen bg-background font-sans")}>
+    <div className={clsx(lexend.className, "min-h-screen bg-gray-50 font-sans")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
       
       <div className="pt-6 px-6">
@@ -215,10 +215,10 @@ export default function Medias({ params }) {
           <div className="p-6 border-b border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
               <div>
-                <h2 className="text-2xl font-bold font-heading text-foreground mb-1">
+                <h2 className="text-xl font-semibold font-heading text-stone-900 mb-1">
                   Médiathèque
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-stone-500">
                   {filteredMedias.length} photo{filteredMedias.length > 1 ? 's' : ''} {hasActiveFilters && `sur ${medias.length} au total`}
                 </p>
               </div>
@@ -226,7 +226,7 @@ export default function Medias({ params }) {
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+                  className="px-4 py-2 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
                   Réinitialiser les filtres
@@ -239,7 +239,7 @@ export default function Medias({ params }) {
               
               {/* Canvas select */}
               <select
-                className="border border-border/50 bg-secondary/30 rounded-xl px-4 py-2.5 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                className="border border-border/50 bg-secondary/30 rounded-xl px-4 py-2.5 text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                 value={selectedCanvas}
                 onChange={(e) => setSelectedCanvas(e.target.value)}
               >
@@ -262,10 +262,10 @@ export default function Medias({ params }) {
                   }}
                   isClearable
                   placeholderText="Période"
-                  className="border border-border/50 bg-secondary/30 rounded-xl px-4 py-2.5 pl-10 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all w-64"
+                  className="border border-border/50 bg-secondary/30 rounded-xl px-4 py-2.5 pl-10 text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all w-64"
                   dateFormat="dd/MM/yyyy"
                 />
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500 pointer-events-none" />
               </div>
 
               {/* Active filters badges */}
@@ -313,11 +313,11 @@ export default function Medias({ params }) {
           <div className="p-6">
             {filteredMedias.length === 0 ? (
               <div className="py-16 text-center">
-                <ImageIcon className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold font-heading text-foreground mb-2">
+                <ImageIcon className="w-16 h-16 text-stone-500/50 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold font-heading text-stone-900 mb-2">
                   Aucune photo trouvée
                 </h3>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-stone-500 text-sm">
                   {hasActiveFilters 
                     ? "Essayez de modifier vos filtres pour voir plus de résultats" 
                     : "Les photos ajoutées au projet apparaîtront ici"}

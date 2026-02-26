@@ -116,7 +116,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
       >
         {CategoryIcon && <div className="w-3 h-3 text-white">{CategoryIcon}</div>}
       </div>
-      <span className={isOwn ? 'text-white' : 'text-foreground'}>{item.label ?? item.item_id}</span>
+      <span className={isOwn ? 'text-white' : 'text-stone-900'}>{item.label ?? item.item_id}</span>
     </div>
   );
 }
@@ -375,7 +375,7 @@ export default function DiscussionsPage({ params }) {
         <div className="flex items-center justify-between px-4 py-4 border-b border-border/50">
           <div className="flex items-center gap-2">
             <MsgIcon />
-            <span className="font-bold text-foreground text-base tracking-tight">Discussions</span>
+            <span className="font-semibold text-stone-900 text-base tracking-tight">Discussions</span>
             {totalUnread > 0 && (
               <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
                 {totalUnread}
@@ -400,7 +400,7 @@ export default function DiscussionsPage({ params }) {
               ))}
             </div>
           ) : groups.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-16 px-6 text-center text-muted-foreground">
+            <div className="flex flex-col items-center gap-3 py-16 px-6 text-center text-stone-500">
               <div className="w-12 h-12 rounded-2xl bg-secondary/30 flex items-center justify-center opacity-60"><MsgIcon /></div>
               <p className="text-sm">Aucune discussion</p>
               <button onClick={() => setShowCreate(true)} className="text-xs bg-primary text-white px-4 py-1.5 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
@@ -426,12 +426,12 @@ export default function DiscussionsPage({ params }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="font-semibold text-sm text-foreground truncate">{g.name}</span>
-                    {lm && <span className="text-[10px] text-muted-foreground shrink-0">{fmtTime(lm.created_at)}</span>}
+                    <span className="font-semibold text-sm text-stone-900 truncate">{g.name}</span>
+                    {lm && <span className="text-[10px] text-stone-500 shrink-0">{fmtTime(lm.created_at)}</span>}
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
-                    <span className="text-xs text-muted-foreground truncate max-w-[150px]">
-                      {lm?.content ?? <em className="not-italic text-muted-foreground">Aucun message</em>}
+                    <span className="text-xs text-stone-500 truncate max-w-[150px]">
+                      {lm?.content ?? <em className="not-italic text-stone-500">Aucun message</em>}
                     </span>
                     {count > 0 && (
                       <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shrink-0">
@@ -450,12 +450,12 @@ export default function DiscussionsPage({ params }) {
       <main className="flex-1 flex flex-col overflow-hidden bg-secondary/30">
         {!activeGroup ? (
           // Empty state
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground p-10">
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-stone-500 p-10">
             <div className="w-20 h-20 rounded-3xl bg-secondary/30 flex items-center justify-center opacity-40">
               <MsgIcon />
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-bold text-foreground mb-1">Sélectionnez une discussion</h3>
+              <h3 className="text-lg font-bold text-stone-900 mb-1">Sélectionnez une discussion</h3>
               <p className="text-sm">Choisissez un groupe ou créez-en un nouveau.</p>
             </div>
             <button onClick={() => setShowCreate(true)} className="bg-primary text-white text-sm font-semibold px-5 py-2 rounded-xl hover:bg-primary/90 transition-colors">
@@ -471,9 +471,9 @@ export default function DiscussionsPage({ params }) {
                   {initials(activeGroup.name)}
                 </div>
                 <div>
-                  <div className="font-bold text-foreground text-sm leading-tight">{activeGroup.name}</div>
+                  <div className="font-bold text-stone-900 text-sm leading-tight">{activeGroup.name}</div>
                   {activeGroup.description && (
-                    <div className="text-xs text-muted-foreground mt-0.5">{activeGroup.description}</div>
+                    <div className="text-xs text-stone-500 mt-0.5">{activeGroup.description}</div>
                   )}
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default function DiscussionsPage({ params }) {
                 className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                   showMembers
                     ? 'bg-primary/10 text-primary'
-                    : 'bg-secondary/30 text-foreground hover:bg-secondary/50'
+                    : 'bg-secondary/30 text-stone-900 hover:bg-secondary/50'
                 }`}
               >
                 <UsersIcon />
@@ -502,7 +502,7 @@ export default function DiscussionsPage({ params }) {
                     ))}
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground/50 py-20">
+                  <div className="flex-1 flex flex-col items-center justify-center gap-3 text-stone-500/50 py-20">
                     <MsgIcon />
                     <p className="text-sm">Aucun message. Commencez la conversation !</p>
                   </div>
@@ -530,14 +530,14 @@ export default function DiscussionsPage({ params }) {
                           {/* Bubble */}
                           <div className={`flex flex-col max-w-[60%] ${isOwn ? 'items-end' : 'items-start'}`}>
                             {showMeta && (
-                              <span className="text-[11px] font-semibold text-muted-foreground mb-1 px-1">
+                              <span className="text-[11px] font-semibold text-stone-500 mb-1 px-1">
                                 {profile?.name ?? 'Inconnu'}
                               </span>
                             )}
                             <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
                               isOwn
                                 ? 'bg-primary text-white rounded-br-md'
-                                : 'bg-card text-foreground border border-border/50 rounded-bl-md'
+                                : 'bg-card text-stone-900 border border-border/50 rounded-bl-md'
                             }`}>
                               {msg.content && <p className="break-words">{msg.content}</p>}
                               
@@ -563,7 +563,7 @@ export default function DiscussionsPage({ params }) {
                                 />
                               ))}
 
-                              <span className={`block text-[10px] mt-1 ${isOwn ? 'text-violet-200 text-right' : 'text-muted-foreground'}`}>
+                              <span className={`block text-[10px] mt-1 ${isOwn ? 'text-violet-200 text-right' : 'text-stone-500'}`}>
                                 {fmtFull(msg.created_at)}
                               </span>
                             </div>
@@ -620,7 +620,7 @@ export default function DiscussionsPage({ params }) {
                   
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-10 h-10 rounded-xl bg-secondary/30 hover:bg-secondary/50 text-muted-foreground hover:text-foreground flex items-center justify-center shrink-0 transition-colors"
+                    className="w-10 h-10 rounded-xl bg-secondary/30 hover:bg-secondary/50 text-stone-500 hover:text-stone-900 flex items-center justify-center shrink-0 transition-colors"
                     title="Ajouter une image"
                   >
                     <ImageIcon size={18} />
@@ -628,7 +628,7 @@ export default function DiscussionsPage({ params }) {
 
                   <button
                     onClick={() => setShowLinkModal(true)}
-                    className="w-10 h-10 rounded-xl bg-secondary/30 hover:bg-secondary/50 text-muted-foreground hover:text-foreground flex items-center justify-center shrink-0 transition-colors"
+                    className="w-10 h-10 rounded-xl bg-secondary/30 hover:bg-secondary/50 text-stone-500 hover:text-stone-900 flex items-center justify-center shrink-0 transition-colors"
                     title="Lier une tâche ou un plan"
                   >
                     <LinkIcon size={18} />
@@ -641,7 +641,7 @@ export default function DiscussionsPage({ params }) {
                     onKeyDown={handleKeyDown}
                     placeholder="Écrivez un message… (Entrée pour envoyer)"
                     rows={1}
-                    className="flex-1 resize-none bg-secondary/30 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder-gray-400 outline-none focus:border-primary/50 focus:bg-card transition-colors max-h-28 overflow-y-auto"
+                    className="flex-1 resize-none bg-secondary/30 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 placeholder-gray-400 outline-none focus:border-primary/50 focus:bg-card transition-colors max-h-28 overflow-y-auto"
                   />
                   
                   <button
@@ -761,10 +761,10 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
-          <h3 className="font-bold text-foreground text-base">Lier un élément</h3>
+          <h3 className="font-bold text-stone-900 text-base">Lier un élément</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center text-muted-foreground transition-colors"
+            className="w-8 h-8 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center text-stone-500 transition-colors"
           >
             <X size={16} strokeWidth={2.5} />
           </button>
@@ -777,7 +777,7 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
             className={`flex-1 px-4 py-3 text-sm font-semibold transition-colors ${
               activeTab === 'pin'
                 ? 'text-primary border-b-2 border-primary bg-primary/5'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/30'
+                : 'text-stone-500 hover:text-stone-900 hover:bg-secondary/30'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -790,7 +790,7 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
             className={`flex-1 px-4 py-3 text-sm font-semibold transition-colors ${
               activeTab === 'plan'
                 ? 'text-primary border-b-2 border-primary bg-primary/5'
-                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/30'
+                : 'text-stone-500 hover:text-stone-900 hover:bg-secondary/30'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -803,7 +803,7 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
         {/* Search */}
         <div className="p-4 border-b border-border/50">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
             <input
               type="text"
               placeholder={`Rechercher ${activeTab === 'pin' ? 'une tâche' : 'un plan'}...`}
@@ -820,11 +820,11 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
           {loading ? (
             <div className="p-8 flex flex-col items-center gap-3">
               <div className="w-6 h-6 border-2 border-border/50 border-t-primary rounded-full animate-spin" />
-              <p className="text-sm text-muted-foreground">Chargement...</p>
+              <p className="text-sm text-stone-500">Chargement...</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-stone-500">
                 Aucun{activeTab === 'pin' ? 'e tâche' : ' plan'} trouvé{activeTab === 'pin' ? 'e' : ''}
               </p>
             </div>
@@ -841,9 +841,9 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
                   {item.type === 'pin' ? <MapPin size={16} /> : <FileText size={16} />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-foreground truncate">{item.label}</div>
+                  <div className="text-sm font-semibold text-stone-900 truncate">{item.label}</div>
                   {item.sublabel && (
-                    <div className="text-xs text-muted-foreground truncate mt-0.5">{item.sublabel}</div>
+                    <div className="text-xs text-stone-500 truncate mt-0.5">{item.sublabel}</div>
                   )}
                 </div>
               </button>
@@ -912,8 +912,8 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
   return (
     <aside className="w-64 shrink-0 bg-card border-l border-border/50 flex flex-col shadow-sm">
       <div className="flex items-center justify-between px-4 py-4 border-b border-border/50">
-        <span className="font-bold text-foreground text-sm">Membres</span>
-        <button onClick={onClose} className="w-7 h-7 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center text-muted-foreground transition-colors">
+        <span className="font-bold text-stone-900 text-sm">Membres</span>
+        <button onClick={onClose} className="w-7 h-7 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center text-stone-500 transition-colors">
           <XIcon />
         </button>
       </div>
@@ -938,8 +938,8 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
                     {initials(u.name)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-foreground truncate">{u.name}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{u.email}</div>
+                    <div className="text-xs font-semibold text-stone-900 truncate">{u.name}</div>
+                    <div className="text-[10px] text-stone-500 truncate">{u.email}</div>
                   </div>
                   <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-lg bg-primary/10 hover:bg-violet-200 text-primary flex items-center justify-center transition-colors shrink-0">
                     <UserPlusIcon />
@@ -952,7 +952,7 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
       )}
 
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+        <div className="px-4 py-2.5 text-[10px] font-bold text-stone-500 uppercase tracking-wider">
           {members.length} membre{members.length !== 1 ? 's' : ''}
         </div>
         {members.map(m => {
@@ -965,16 +965,16 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-sm font-semibold text-foreground truncate">{p.name ?? 'Inconnu'}</span>
+                  <span className="text-sm font-semibold text-stone-900 truncate">{p.name ?? 'Inconnu'}</span>
                   {m.role === 'admin' && <span title="Admin">👑</span>}
                   {isSelf && <span className="text-[9px] bg-primary/10 text-primary font-bold px-1.5 py-0.5 rounded-full">Vous</span>}
                 </div>
-                <div className="text-[11px] text-muted-foreground truncate">{p.email}</div>
+                <div className="text-[11px] text-stone-500 truncate">{p.email}</div>
               </div>
               {isAdmin && !isSelf && (
                 <button
                   onClick={() => removeMember(m.user_id)}
-                  className="w-6 h-6 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 text-muted-foreground/50 flex items-center justify-center transition-all"
+                  className="w-6 h-6 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 text-stone-500/50 flex items-center justify-center transition-all"
                 >
                   <XIcon />
                 </button>
@@ -1020,18 +1020,18 @@ function CreateGroupModal({ projectId, onClose, onCreated }) {
         <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(12px) scale(.97) } to { opacity:1; transform:none } }`}</style>
 
         <div className="flex items-center justify-between px-5 pt-5 pb-1">
-          <h2 className="font-bold text-foreground text-base">Nouveau groupe</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center text-muted-foreground transition-colors">
+          <h2 className="font-bold text-stone-900 text-base">Nouveau groupe</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary/30 hover:bg-secondary/50 flex items-center justify-center text-stone-500 transition-colors">
             <XIcon />
           </button>
         </div>
 
         <div className="px-5 py-4 flex flex-col gap-4">
           <div>
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Nom du groupe *</label>
+            <label className="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Nom du groupe *</label>
             <input
               autoFocus
-              className="w-full border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground bg-secondary/30 outline-none focus:border-primary/50 focus:bg-card transition-colors"
+              className="w-full border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 bg-secondary/30 outline-none focus:border-primary/50 focus:bg-card transition-colors"
               placeholder="Ex : Équipe technique"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -1039,9 +1039,9 @@ function CreateGroupModal({ projectId, onClose, onCreated }) {
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Description (optionnel)</label>
+            <label className="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Description (optionnel)</label>
             <textarea
-              className="w-full border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground bg-secondary/30 outline-none focus:border-primary/50 focus:bg-card transition-colors resize-none"
+              className="w-full border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-stone-900 bg-secondary/30 outline-none focus:border-primary/50 focus:bg-card transition-colors resize-none"
               placeholder="À quoi sert ce groupe ?"
               value={desc}
               onChange={e => setDesc(e.target.value)}
@@ -1052,7 +1052,7 @@ function CreateGroupModal({ projectId, onClose, onCreated }) {
         </div>
 
         <div className="flex justify-end gap-2 px-5 pb-5">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-foreground bg-secondary/30 hover:bg-secondary/50 rounded-xl transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-stone-900 bg-secondary/30 hover:bg-secondary/50 rounded-xl transition-colors">
             Annuler
           </button>
           <button

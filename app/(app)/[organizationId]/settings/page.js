@@ -10,9 +10,9 @@ import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { Upload } from 'lucide-react'
 import clsx from 'clsx'
-import { Lexend } from 'next/font/google'
+import { Outfit } from 'next/font/google'
 
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
+const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 const ORG_SIZES = [
   '1 – 5',
@@ -102,39 +102,39 @@ export default function OrganizationSettingsPage({params}) {
   // Show loading while checking access OR if user is not admin (during redirect)
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="flex h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Vérification des accès...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-500">Vérification des accès...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={clsx("flex h-screen bg-background font-sans overflow-hidden", lexend.className)}>
+    <div className={clsx("flex h-screen bg-gray-50 overflow-hidden", outfit.className)}>
       <Sidebar organizationId={organizationId} currentPage="settings" />
 
       {/* MAIN */}
-      <main className="flex-1 overflow-y-auto p-10">
-        <div className="mt-12 max-w-3xl">
-          <h1 className="text-4xl font-bold font-heading mb-8">
+      <main className="flex-1 overflow-y-auto px-8 py-8">
+        <div className="max-w-3xl">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-8 leading-8">
             Paramètres de l'organisation
           </h1>
 
-          <div className="space-y-6 bg-neutral-50 border border-border/50 rounded-xl p-6 shadow-sm ">
+          <div className="space-y-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             {/* LOGO */}
             <div>
-              <label className="block text-base font-semibold mb-2">Logo</label>
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">Logo</label>
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-xl  border border-border/50 flex items-center justify-center overflow-hidden">
+                <div className="h-16 w-16 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden bg-gray-50">
                   {logoUrl ? (
                     <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-sm text-muted-foreground">Logo</span>
+                    <span className="text-sm text-gray-400">Logo</span>
                   )}
                 </div>
-                <label className="cursor-pointer flex items-center gap-2 text-sm font-medium text-primary">
+                <label className="cursor-pointer flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors">
                   <Upload className="w-4 h-4" />
                   Changer le logo
                   <input
@@ -149,25 +149,25 @@ export default function OrganizationSettingsPage({params}) {
 
             {/* NAME */}
             <div>
-              <label className="block text-base font-semibold mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">
                 Nom de l'organisation
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-border/50  focus:ring-2 focus:ring-primary/20"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900"
               />
             </div>
 
             {/* SIZE */}
             <div>
-              <label className="block text-base font-semibold mb-2">
+              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">
                 Taille de l'organisation
               </label>
               <select
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-border/50 "
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900"
               >
                 <option value="">Sélectionner</option>
                 {ORG_SIZES.map(s => (
@@ -181,7 +181,7 @@ export default function OrganizationSettingsPage({params}) {
               <button
                 onClick={saveSettings}
                 disabled={saving}
-                className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Sauvegarde…' : 'Sauvegarder'}
               </button>

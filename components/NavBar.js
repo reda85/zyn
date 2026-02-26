@@ -83,7 +83,7 @@ export default function Navbar({ id, user, project, organizationId }) {
               />
               <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity rounded-lg" />
             </div>
-            <span className="text-xl font-bold tracking-tight font-heading text-foreground">{project?.name}</span>
+            <span className="text-xl font-semibold tracking-tight font-heading text-stone-900">{project?.name}</span>
           </button>
 
           {projectMenuOpen && (
@@ -92,7 +92,7 @@ export default function Navbar({ id, user, project, organizationId }) {
                 <li>
                   <Link
                     href={`/${organizationId}/projects`}
-                    className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                    className="block px-4 py-2.5 text-stone-900 hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                     onClick={() => setProjectMenuOpen(false)}
                   >
                     Tous les projets
@@ -105,7 +105,7 @@ export default function Navbar({ id, user, project, organizationId }) {
                     <li>
                       <Link
                         href={`/${organizationId}/projects/${id}/details`}
-                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        className="block px-4 py-2.5 text-stone-900 hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                         onClick={() => setProjectMenuOpen(false)}
                       >
                         Détails du projet
@@ -114,7 +114,7 @@ export default function Navbar({ id, user, project, organizationId }) {
                     <li>
                       <Link
                         href={`/${organizationId}/projects/${id}/sources`}
-                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        className="block px-4 py-2.5 text-stone-900 hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                         onClick={() => setProjectMenuOpen(false)}
                       >
                         Plans du projet
@@ -123,7 +123,7 @@ export default function Navbar({ id, user, project, organizationId }) {
                     <li>
                       <Link
                         href={`/${organizationId}/projects/${id}/categories`}
-                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        className="block px-4 py-2.5 text-stone-900 hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                         onClick={() => setProjectMenuOpen(false)}
                       >
                         Gestionnaire de catégories
@@ -132,7 +132,7 @@ export default function Navbar({ id, user, project, organizationId }) {
                     <li>
                       <Link
                         href={`/${organizationId}/projects/${id}/status`}
-                        className="block px-4 py-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                        className="block px-4 py-2.5 text-stone-900 hover:bg-primary/10 hover:text-primary transition-colors font-medium"
                         onClick={() => setProjectMenuOpen(false)}
                       >
                         Gestionnaire de statuts
@@ -155,10 +155,10 @@ export default function Navbar({ id, user, project, organizationId }) {
               <Link key={tab} href={path}>
                 <button
                   className={clsx(
-                    'px-4 py-2 transition-all text-sm font-medium',
+                    'px-4 py-2 transition-all text-sm ',
                     currentTab === tab
                       ? 'border-b-2 border-primary text-primary'
-                      : 'border-b-2 border-transparent text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                      : 'border-b-2 border-transparent text-stone-500 hover:border-primary/50 hover:text-stone-900'
                   )}
                 >
                   {tab}
@@ -170,9 +170,9 @@ export default function Navbar({ id, user, project, organizationId }) {
 
         {/* Right Actions (Including User Menu) */}
         <div className="flex items-center space-x-4">
-          <BellIcon className="h-6 w-6 text-muted-foreground hover:text-primary cursor-pointer transition-colors" />
-          <div className="flex items-center space-x-2 rounded-full bg-secondary/50 px-3 py-1.5 text-sm text-foreground font-medium border border-border/50 backdrop-blur-sm">
-            <UserGroupIcon className="h-4 w-4 text-muted-foreground" />
+          <BellIcon className="h-6 w-6 text-stone-500 hover:text-primary cursor-pointer transition-colors" />
+          <div className="flex items-center space-x-2 rounded-full bg-secondary/50 px-3 py-1.5 text-sm text-stone-900 font-medium border border-border/50 backdrop-blur-sm">
+            <UserGroupIcon className="h-4 w-4 text-stone-500" />
             <span>Members</span>
           </div>
 
@@ -192,17 +192,17 @@ export default function Navbar({ id, user, project, organizationId }) {
                 <div className="py-2" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
                   {/* User Info */}
                   <div className="px-4 py-3 text-sm border-b border-border/50">
-                    <p className="font-semibold font-heading text-foreground">{user?.name || 'My Account'}</p>
-                    <p className="text-muted-foreground text-xs truncate mt-0.5">{user?.email || 'user@example.com'}</p>
+                    <p className="font-semibold font-heading text-stone-900">{user?.name || 'My Account'}</p>
+                    <p className="text-stone-500 text-xs truncate mt-0.5">{user?.email || 'user@example.com'}</p>
                   </div>
 
                   {/* Profile Link */}
                   <Link
                     href="/profile"
-                    className="flex items-center px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors font-medium"
+                    className="flex items-center px-4 py-2.5 text-sm text-stone-900 hover:bg-primary/10 transition-colors font-medium"
                     onClick={() => setUserMenuOpen(false)}
                   >
-                    <UserGroupIcon className="mr-3 h-5 w-5 text-muted-foreground" />
+                    <UserGroupIcon className="mr-3 h-5 w-5 text-stone-500" />
                     Profil
                   </Link>
 

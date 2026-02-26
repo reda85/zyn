@@ -8,6 +8,9 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
 import clsx from 'clsx'
+import { Outfit } from 'next/font/google'
+
+const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const { isAdmin } = useIsAdmin()
@@ -45,31 +48,31 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   }
 
   return (
-    <aside className="w-64 h-screen bg-secondary/20 border-r border-border/40 flex flex-col">
+    <aside className={clsx(outfit.className, "w-64 h-screen bg-white border-r border-gray-200 flex flex-col")}>
 
       {/* Organization Selector */}
       <div className="px-4 my-6 relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((prev) => !prev)}
-          className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm shadow-sm hover:bg-secondary/40 transition-all"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all"
         >
-          <div className="h-7 w-7 rounded-lg bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-900 flex-shrink-0">
             {displayedOrg?.name?.[0]?.toUpperCase() || '?'}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <h2 className="text-sm font-semibold font-heading text-foreground truncate leading-tight">
+            <h2 className="text-sm font-semibold text-gray-900 truncate leading-5">
               {displayedOrg?.name}
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500 leading-4">
               {displayedOrg?.members?.[0]?.count || 0} membres
             </p>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
         </button>
 
         {dropdownOpen && (
-          <div className="absolute left-4 right-4 top-full mt-1 z-50 rounded-xl border border-border/60 bg-card shadow-lg overflow-hidden">
-            <p className="px-3 pt-2 pb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <div className="absolute left-4 right-4 top-full mt-1 z-50 rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
+            <p className="px-3 pt-3 pb-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
               Organisations
             </p>
             <ul className="py-1">
@@ -77,16 +80,16 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
                 <li key={org.id}>
                   <button
                     onClick={() => handleOrgChange(org)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-secondary/50 transition-colors"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
                   >
-                    <div className="h-6 w-6 rounded-md bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+                    <div className="h-6 w-6 rounded-md bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-900 flex-shrink-0">
                       {org.name?.[0]?.toUpperCase() || '?'}
                     </div>
-                    <span className="flex-1 text-left font-medium text-foreground truncate">
+                    <span className="flex-1 text-left font-medium text-gray-900 truncate">
                       {org.name}
                     </span>
                     {org.id === organizationId && (
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                      <Check className="w-4 h-4 text-gray-900 flex-shrink-0" />
                     )}
                   </button>
                 </li>
@@ -96,14 +99,15 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
         )}
       </div>
 
-      <nav className="flex-1 px-4 space-y-2">
+      {/* Navigation */}
+      <nav className="flex-1 px-4 space-y-1">
         <Link
           href={`/${organizationId}/projects`}
           className={clsx(
-            'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-xl transition-all',
+            'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
             currentPage === 'projects'
-              ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
-              : 'text-foreground hover:bg-secondary/50 hover:text-primary border border-transparent hover:border-border/50'
+              ? 'bg-gray-100 text-gray-900'
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
           )}
         >
           <FolderKanban className="w-5 h-5" /> Projects
@@ -114,10 +118,10 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
             <Link
               href={`/${organizationId}/members`}
               className={clsx(
-                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-xl transition-all',
+                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
                 currentPage === 'members'
-                  ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
-                  : 'text-foreground hover:bg-secondary/50 hover:text-primary border border-transparent hover:border-border/50'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
               <Users className="w-5 h-5" /> Membres
@@ -125,10 +129,10 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
             <Link
               href={`/${organizationId}/reports`}
               className={clsx(
-                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-xl transition-all',
+                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
                 currentPage === 'reports'
-                  ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
-                  : 'text-foreground hover:bg-secondary/50 hover:text-primary border border-transparent hover:border-border/50'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
               <BarChart3 className="w-5 h-5" /> Rapports
@@ -136,10 +140,10 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
             <Link
               href={`/${organizationId}/settings`}
               className={clsx(
-                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-xl transition-all',
+                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
                 currentPage === 'settings'
-                  ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
-                  : 'text-foreground hover:bg-secondary/50 hover:text-primary border border-transparent hover:border-border/50'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
               <Settings className="w-5 h-5" /> Paramètres
@@ -148,20 +152,20 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
         )}
       </nav>
 
-      {/* PROFILE (BOTTOM) */}
+      {/* Profile (Bottom) */}
       <div className="px-4 pb-6">
         <Link
           href={`/${organizationId}/profile`}
-          className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border/50 hover:bg-secondary/50 transition-all"
+          className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-all"
         >
-          <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+          <div className="h-9 w-9 rounded-full bg-gray-900 flex items-center justify-center text-sm font-semibold text-white overflow-hidden">
             {getInitials(profile?.full_name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">
+            <p className="text-sm font-semibold text-gray-900 truncate leading-5">
               {profile?.full_name || user?.email || 'Utilisateur'}
             </p>
-            <p className="text-xs text-muted-foreground truncate">Mon profil</p>
+            <p className="text-xs text-gray-500 truncate leading-4">Mon profil</p>
           </div>
         </Link>
       </div>
