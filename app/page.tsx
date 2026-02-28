@@ -2,34 +2,44 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Menu, X, ArrowUpRight, MapPin, Camera,
   CheckCircle2, TrendingUp, ShieldCheck, FileText,
-  Users, BarChart3, ChevronDown, Zap, Wifi
+  Users, BarChart3, Wifi,
 } from "lucide-react";
 
-/* ─── Intersection observer hook ─── */
+/* ── SETUP REQUIRED in layout.tsx:
+   import { Outfit, Lexend } from "next/font/google"
+   const outfit = Outfit({ subsets:["latin"], weight:["400","500","600","700"], variable:"--font-outfit" })
+   const lexend = Lexend({ subsets:["latin"], weight:["600","700"], variable:"--font-lexend" })
+   <html className={`${outfit.variable} ${lexend.variable}`}>
+
+   in tailwind.config.ts:
+   fontFamily: { outfit: ["var(--font-outfit)"], lexend: ["var(--font-lexend)"] }
+*/
+
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setInView(true); },
+      { threshold }
+    );
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, [threshold]);
   return { ref, inView };
 }
 
-function FadeIn({ children, delay = 0, style = {} }: { children: React.ReactNode; delay?: number; style?: React.CSSProperties }) {
+function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const { ref, inView } = useInView();
   return (
-    <div ref={ref} style={{
-      opacity: inView ? 1 : 0,
-      transform: inView ? "translateY(0)" : "translateY(20px)",
-      transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
-      ...style,
-    }}>{children}</div>
+    <div ref={ref} className="transition-all duration-700 ease-out"
+      style={{ opacity: inView ? 1 : 0, transform: inView ? "translateY(0)" : "translateY(20px)", transitionDelay: `${delay}ms` }}>
+      {children}
+    </div>
   );
 }
 
@@ -43,8 +53,7 @@ function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
       const t0 = performance.now();
       const run = (now: number) => {
         const p = Math.min((now - t0) / 1800, 1);
-        const e = 1 - Math.pow(1 - p, 3);
-        setCount(Math.floor(e * end));
+        setCount(Math.floor((1 - Math.pow(1 - p, 3)) * end));
         if (p < 1) requestAnimationFrame(run); else setCount(end);
       };
       requestAnimationFrame(run);
@@ -53,325 +62,164 @@ function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
   return <span ref={ref}>{count}{suffix}</span>;
 }
 
-/* ─── Animated blueprint hero ─── */
-function BlueprintHero() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const frameRef = useRef<number>(0);
-  const timeRef = useRef(0);
-
+function AppMockup() {
+  const [activeTask, setActiveTask] = useState(0);
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    // Floor plan geometry (normalized 0-1, will scale to canvas)
-    const W = () => canvas.offsetWidth;
-    const H = () => canvas.offsetHeight;
-
-    // Rooms defined as [x, y, w, h] fractions
-    const rooms = [
-      { x: 0.05, y: 0.08, w: 0.38, h: 0.42, label: "Zone A" },
-      { x: 0.45, y: 0.08, w: 0.22, h: 0.42, label: "Couloir" },
-      { x: 0.69, y: 0.08, w: 0.26, h: 0.42, label: "Zone B" },
-      { x: 0.05, y: 0.52, w: 0.55, h: 0.40, label: "Salle principale" },
-      { x: 0.62, y: 0.52, w: 0.33, h: 0.40, label: "Local technique" },
-    ];
-
-    // Task pins
-    const pins = [
-      { rx: 0.20, ry: 0.25, color: "#ffffff", label: "Inspection élec.", status: "EN COURS", user: "S.M.", progress: 0 },
-      { rx: 0.78, ry: 0.26, color: "#22c55e", label: "Charpente validée", status: "TERMINÉ",  user: "M.D.", progress: 0 },
-      { rx: 0.30, ry: 0.68, color: "#ff4444", label: "Retard livraison",  status: "BLOQUÉ",   user: "K.B.", progress: 0 },
-      { rx: 0.75, ry: 0.70, color: "#f59e0b", label: "Cloisons R+1",     status: "EN ATTENTE",user: "L.R.", progress: 0 },
-      { rx: 0.54, ry: 0.30, color: "#22c55e", label: "Plomberie OK",      status: "TERMINÉ",  user: "P.V.", progress: 0 },
-    ];
-
-    // Connections between pins
-    const connections = [
-      [0, 1], [0, 4], [2, 3], [1, 3],
-    ];
-
-    let t = 0;
-
-    const draw = () => {
-      const w = W(), h = H();
-      ctx.clearRect(0, 0, w, h);
-
-      t += 0.008;
-      timeRef.current = t;
-
-      // ── Background grid ──
-      ctx.strokeStyle = "rgba(255,255,255,0.04)";
-      ctx.lineWidth = 1;
-      const gridSize = 32;
-      for (let x = 0; x < w; x += gridSize) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (let y = 0; y < h; y += gridSize) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-      }
-
-      // ── Rooms ──
-      rooms.forEach(room => {
-        const rx = room.x * w, ry = room.y * h;
-        const rw = room.w * w, rh = room.h * h;
-
-        // Fill
-        ctx.fillStyle = "rgba(255,255,255,0.025)";
-        ctx.fillRect(rx, ry, rw, rh);
-
-        // Border
-        ctx.strokeStyle = "rgba(255,255,255,0.35)";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(rx, ry, rw, rh);
-
-        // Corner accents
-        const ca = 12;
-        ctx.strokeStyle = "rgba(255,255,255,0.8)";
-        ctx.lineWidth = 2;
-        [[rx, ry], [rx + rw, ry], [rx, ry + rh], [rx + rw, ry + rh]].forEach(([cx, cy], ci) => {
-          ctx.beginPath();
-          const dx = ci % 2 === 0 ? 1 : -1;
-          const dy = ci < 2 ? 1 : -1;
-          ctx.moveTo(cx + dx * ca, cy);
-          ctx.lineTo(cx, cy);
-          ctx.lineTo(cx, cy + dy * ca);
-          ctx.stroke();
-        });
-
-        // Room label
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
-        ctx.font = `500 10px 'Outfit', sans-serif`;
-        ctx.letterSpacing = "0.1em";
-        ctx.fillText(room.label.toUpperCase(), rx + 10, ry + 18);
-      });
-
-      // ── Dimension lines ──
-      const dimAlpha = 0.15;
-      ctx.strokeStyle = `rgba(255,255,255,${dimAlpha})`;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 6]);
-      // Horizontal dim
-      ctx.beginPath(); ctx.moveTo(w * 0.05, h * 0.03); ctx.lineTo(w * 0.95, h * 0.03); ctx.stroke();
-      // Vertical dim  
-      ctx.beginPath(); ctx.moveTo(w * 0.02, h * 0.08); ctx.lineTo(w * 0.02, h * 0.92); ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Dim arrows & text
-      ctx.fillStyle = `rgba(255,255,255,${dimAlpha + 0.1})`;
-      ctx.font = `400 9px 'Outfit', sans-serif`;
-      ctx.fillText("48.50 m", w * 0.44, h * 0.025);
-      ctx.save();
-      ctx.translate(w * 0.018, h * 0.5);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText("24.20 m", -20, 0);
-      ctx.restore();
-
-      // ── Connection lines (animated dash) ──
-      connections.forEach(([ai, bi], ci) => {
-        const a = pins[ai], b = pins[bi];
-        const ax = a.rx * w, ay = a.ry * h;
-        const bx = b.rx * w, by = b.ry * h;
-        const dash = 6, gap = 10;
-        const offset = (t * 20) % (dash + gap);
-
-        ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.2)";
-        ctx.lineWidth = 1;
-        ctx.setLineDash([dash, gap]);
-        ctx.lineDashOffset = -offset;
-        ctx.beginPath();
-        ctx.moveTo(ax, ay);
-        // Curved line
-        const mx = (ax + bx) / 2, my = (ay + by) / 2 - 20;
-        ctx.quadraticCurveTo(mx, my, bx, by);
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      // ── Pins ──
-      pins.forEach((pin, i) => {
-        const px = pin.rx * w, py = pin.ry * h;
-        const phase = t + i * 1.2;
-
-        // Radar pulse rings
-        for (let r = 0; r < 3; r++) {
-          const ringPhase = (phase + r * 0.7) % 2.1;
-          const radius = ringPhase * 36;
-          const alpha = Math.max(0, 1 - ringPhase / 2.1) * 0.5;
-          ctx.beginPath();
-          ctx.arc(px, py, radius, 0, Math.PI * 2);
-          ctx.strokeStyle = pin.color + Math.floor(alpha * 255).toString(16).padStart(2, "0");
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        }
-
-        // Outer ring
-        ctx.beginPath();
-        ctx.arc(px, py, 10, 0, Math.PI * 2);
-        ctx.fillStyle = pin.color + "22";
-        ctx.fill();
-        ctx.strokeStyle = pin.color + "cc";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Inner dot
-        ctx.beginPath();
-        ctx.arc(px, py, 4, 0, Math.PI * 2);
-        ctx.fillStyle = pin.color;
-        ctx.fill();
-
-        // Center gleam
-        ctx.beginPath();
-        ctx.arc(px - 1.5, py - 1.5, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255,255,255,0.8)";
-        ctx.fill();
-
-        // Floating task card (appears at intervals)
-        const cardPhase = (t * 0.4 + i * 0.7) % 5;
-        if (cardPhase > 1.5 && cardPhase < 4.5) {
-          const cardAlpha = Math.min(1, Math.min(cardPhase - 1.5, 4.5 - cardPhase) * 1.5);
-          const cardY = py - 60 - Math.sin(cardPhase * 0.8) * 8;
-          const cardX = px - 80;
-          const cw = 162, ch = 54;
-
-          // Card bg
-          ctx.save();
-          ctx.globalAlpha = cardAlpha;
-          ctx.fillStyle = "#0a1628";
-          roundRect(ctx, cardX, cardY, cw, ch, 4);
-          ctx.fill();
-
-          ctx.strokeStyle = pin.color + "66";
-          ctx.lineWidth = 1;
-          roundRect(ctx, cardX, cardY, cw, ch, 4);
-          ctx.stroke();
-
-          // Status dot
-          ctx.beginPath();
-          ctx.arc(cardX + 10, cardY + 12, 3, 0, Math.PI * 2);
-          ctx.fillStyle = pin.color;
-          ctx.fill();
-
-          // Status text
-          ctx.fillStyle = pin.color;
-          ctx.font = `600 8px 'Outfit', sans-serif`;
-          ctx.letterSpacing = "0.08em";
-          ctx.fillText(pin.status, cardX + 18, cardY + 14);
-
-          // Label
-          ctx.fillStyle = "rgba(224,242,254,0.85)";
-          ctx.font = `500 10px 'Outfit', sans-serif`;
-          ctx.letterSpacing = "0";
-          ctx.fillText(pin.label, cardX + 8, cardY + 30);
-
-          // User badge
-          ctx.fillStyle = "rgba(255,255,255,0.15)";
-          roundRect(ctx, cardX + 8, cardY + 36, 30, 12, 2);
-          ctx.fill();
-          ctx.fillStyle = "rgba(255,255,255,0.7)";
-          ctx.font = `500 7px 'Outfit', sans-serif`;
-          ctx.fillText(pin.user, cardX + 12, cardY + 45);
-
-          // Connector line to pin
-          ctx.strokeStyle = pin.color + "44";
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 3]);
-          ctx.beginPath();
-          ctx.moveTo(px, py - 10);
-          ctx.lineTo(px, cardY + ch);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          ctx.restore();
-        }
-      });
-
-      // ── Scanning line ──
-      const scanY = ((t * 0.3) % 1) * h;
-      const scanGrad = ctx.createLinearGradient(0, scanY - 60, 0, scanY + 60);
-      scanGrad.addColorStop(0, "rgba(255,255,255,0)");
-      scanGrad.addColorStop(0.5, "rgba(255,255,255,0.06)");
-      scanGrad.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = scanGrad;
-      ctx.fillRect(0, scanY - 60, w, 120);
-
-      // ── HUD overlays ──
-      // Top-left: coordinates
-      ctx.fillStyle = "rgba(255,255,255,0.4)";
-      ctx.font = `400 9px 'Outfit', sans-serif`;
-      ctx.letterSpacing = "0.05em";
-      const mx = ((Math.sin(t * 0.3) + 1) / 2 * 100).toFixed(1);
-      const my = ((Math.cos(t * 0.25) + 1) / 2 * 100).toFixed(1);
-      ctx.fillText(`X: ${mx}m  Y: ${my}m`, 12, h - 20);
-
-      // Top-right: task count
-      ctx.textAlign = "right";
-      ctx.fillText(`${pins.length} TÂCHES ACTIVES`, w - 12, h - 20);
-      ctx.textAlign = "left";
-
-      // Bounding box corners (full plan)
-      const margin = { x: w * 0.04, y: h * 0.04 };
-      const padW = w - margin.x * 2, padH = h - margin.y * 2;
-      ctx.strokeStyle = "rgba(255,255,255,0.12)";
-      ctx.lineWidth = 1;
-      const bcLen = 20;
-      [
-        [margin.x, margin.y],
-        [margin.x + padW, margin.y],
-        [margin.x, margin.y + padH],
-        [margin.x + padW, margin.y + padH],
-      ].forEach(([bx, by], bi) => {
-        ctx.beginPath();
-        const bdx = bi % 2 === 0 ? 1 : -1;
-        const bdy = bi < 2 ? 1 : -1;
-        ctx.moveTo(bx + bdx * bcLen, by);
-        ctx.lineTo(bx, by);
-        ctx.lineTo(bx, by + bdy * bcLen);
-        ctx.stroke();
-      });
-
-      frameRef.current = requestAnimationFrame(draw);
-    };
-
-    frameRef.current = requestAnimationFrame(draw);
-    return () => {
-      cancelAnimationFrame(frameRef.current);
-      window.removeEventListener("resize", resize);
-    };
+    const t = setInterval(() => setActiveTask(p => (p + 1) % 4), 2200);
+    return () => clearInterval(t);
   }, []);
 
+  const tasks = [
+    { label: "Inspection électrique", status: "EN COURS",   color: "#10b981", progress: 65,  zone: "Zone A" },
+    { label: "Charpente bois R+1",    status: "TERMINÉ",    color: "#16a34a", progress: 100, zone: "Zone B" },
+    { label: "Retard livraison acier",status: "BLOQUÉ",     color: "#dc2626", progress: 30,  zone: "Salle principale" },
+    { label: "Cloisons intérieures",  status: "EN ATTENTE", color: "#d97706", progress: 0,   zone: "Local tech." },
+  ];
+  const pins = [{ left:"20%",top:"26%" },{ left:"78%",top:"26%" },{ left:"28%",top:"66%" },{ left:"74%",top:"68%" }];
+  const rooms = [
+    { x:"5%",y:"8%",w:"35%",h:"38%",label:"Zone A" },
+    { x:"42%",y:"8%",w:"22%",h:"38%",label:"Couloir" },
+    { x:"66%",y:"8%",w:"28%",h:"38%",label:"Zone B" },
+    { x:"5%",y:"50%",w:"52%",h:"38%",label:"Salle principale" },
+    { x:"60%",y:"50%",w:"34%",h:"38%",label:"Local tech." },
+  ];
+  const nav = [
+    { icon: BarChart3, label:"Tableau de bord", active:false },
+    { icon: MapPin,    label:"Plan interactif", active:true  },
+    { icon: FileText,  label:"Rapports",        active:false },
+    { icon: Users,     label:"Équipe",          active:false },
+    { icon: Camera,    label:"Médias",          active:false },
+  ];
+
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ width: "100%", height: "100%", display: "block" }}
-    />
+    <div className="w-full h-full flex flex-col bg-white text-xs font-outfit">
+      {/* Topbar */}
+      <div className="h-11 bg-slate-900 flex items-center px-4 gap-2 shrink-0">
+        <div className="flex gap-1.5">
+          {["#ff5f57","#febc2e","#28c840"].map(c => (
+            <div key={c} className="w-2 h-2 rounded-full" style={{ background: c }} />
+          ))}
+        </div>
+        <div className="flex-1 mx-3 bg-white/10 rounded h-5 flex items-center px-2">
+          <span className="text-white/40" style={{ fontSize: 9 }}>app.zaynspace.com · Chantier Bellevue · R+1</span>
+        </div>
+        <Wifi size={10} className="text-white/30" />
+      </div>
+
+      {/* Layout */}
+      <div className="flex-1 grid overflow-hidden" style={{ gridTemplateColumns: "200px 1fr" }}>
+        {/* Sidebar */}
+        <div className="bg-slate-900 flex flex-col py-4 border-r border-white/5">
+          <div className="px-3.5 pb-4 mb-4 border-b border-white/5">
+            <div className="text-slate-200 font-semibold mb-0.5" style={{ fontSize: 11 }}>Chantier Bellevue</div>
+            <div className="text-white/30 tracking-widest" style={{ fontSize: 8 }}>4 INTERVENANTS ACTIFS</div>
+          </div>
+          {nav.map(({ icon: Icon, label, active }) => (
+            <div key={label} className="flex items-center gap-2.5 px-3.5 py-2 mb-0.5 cursor-pointer"
+              style={{
+                background: active ? "rgba(16,185,129,0.15)" : "transparent",
+                borderLeft: active ? "2px solid #10b981" : "2px solid transparent",
+              }}>
+              <Icon size={12} color={active ? "#60a5fa" : "rgba(255,255,255,0.3)"} />
+              <span className={active ? "text-slate-200" : "text-white/35"} style={{ fontSize: 11, fontWeight: active ? 500 : 400 }}>{label}</span>
+            </div>
+          ))}
+          <div className="mt-auto px-3.5 pt-3 border-t border-white/5">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold"
+                style={{ background: "linear-gradient(135deg,#10b981,#7c3aed)", fontSize: 8 }}>SM</div>
+              <div>
+                <div className="text-slate-200 font-medium" style={{ fontSize: 10 }}>S. Martin</div>
+                <div className="text-white/30" style={{ fontSize: 8 }}>Chef de projet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main */}
+        <div className="bg-slate-100 flex flex-col overflow-hidden">
+          <div className="h-10 bg-white border-b border-slate-200 flex items-center px-4 gap-3">
+            <span className="text-slate-900 font-semibold" style={{ fontSize: 11 }}>Plan interactif</span>
+            <div className="ml-auto flex gap-1.5">
+              <div className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded text-slate-500" style={{ fontSize: 9 }}>Niveau R+1</div>
+              <div className="px-2.5 py-1 bg-emerald-500 rounded text-white font-medium" style={{ fontSize: 9 }}>+ Tâche</div>
+            </div>
+          </div>
+
+          <div className="flex-1 relative overflow-hidden">
+            <div className="absolute inset-3 border border-slate-300 rounded bg-white"
+              style={{
+                backgroundImage: "linear-gradient(#f1f5f9 1px,transparent 1px),linear-gradient(90deg,#f1f5f9 1px,transparent 1px)",
+                backgroundSize: "20px 20px",
+              }}>
+              {rooms.map(r => (
+                <div key={r.label} className="absolute border border-slate-300 bg-slate-50/60 flex items-start p-1.5"
+                  style={{ left: r.x, top: r.y, width: r.w, height: r.h }}>
+                  <span className="text-slate-400 font-medium tracking-widest uppercase" style={{ fontSize: 7 }}>{r.label}</span>
+                </div>
+              ))}
+              {tasks.map((task, i) => {
+                const pos = pins[i];
+                const active = activeTask === i;
+                return (
+                  <div key={i} className="absolute" style={{ ...pos, transform: "translate(-50%,-50%)", zIndex: active ? 10 : 5 }}>
+                    {active && (
+                      <div className="absolute rounded-full border"
+                        style={{ inset: -12, borderColor: task.color, opacity: 0.4, animation: "mockup-pulse 1.2s ease-out infinite" }} />
+                    )}
+                    <div className="rounded-full border-2 border-white flex items-center justify-center cursor-pointer transition-all duration-300"
+                      style={{ width: active ? 20 : 14, height: active ? 20 : 14, background: task.color, boxShadow: `0 2px 8px ${task.color}55` }}>
+                      <div className="w-1 h-1 rounded-full bg-white/80" />
+                    </div>
+                    {active && (
+                      <div className="absolute bg-slate-900 rounded-md shadow-xl"
+                        style={{ bottom: "calc(100% + 10px)", left: "50%", transform: "translateX(-50%)", width: 150, padding: "10px 12px" }}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: task.color }} />
+                          <span className="font-semibold tracking-wide" style={{ fontSize: 7.5, color: task.color }}>{task.status}</span>
+                        </div>
+                        <div className="text-slate-200 font-medium mb-1" style={{ fontSize: 10 }}>{task.label}</div>
+                        <div className="text-white/40" style={{ fontSize: 8 }}>{task.zone}</div>
+                        <div className="mt-1.5 h-0.5 bg-white/10 rounded-full">
+                          <div className="h-full rounded-full" style={{ width: `${task.progress}%`, background: task.color }} />
+                        </div>
+                        <div className="text-white/30 mt-1" style={{ fontSize: 7 }}>{task.progress}% complété</div>
+                        <div className="absolute w-0 h-0 left-1/2 -translate-x-1/2"
+                          style={{ bottom: -5, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid #0f172a" }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex" style={{ height: 52 }}>
+              {tasks.map((task, i) => (
+                <div key={i} onClick={() => setActiveTask(i)}
+                  className="flex-1 flex items-center gap-2 px-3 cursor-pointer border-r border-slate-50 transition-colors"
+                  style={{
+                    background: activeTask === i ? "#f8fafc" : "#fff",
+                    borderBottom: activeTask === i ? `2px solid ${task.color}` : "2px solid transparent",
+                  }}>
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: task.color }} />
+                  <div>
+                    <div className="text-slate-900 font-medium leading-tight" style={{ fontSize: 9 }}>{task.label}</div>
+                    <div className="text-slate-400" style={{ fontSize: 8 }}>{task.zone}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes mockup-pulse { 0% { transform:scale(0.8); opacity:0.6; } 100% { transform:scale(2.2); opacity:0; } }
+      `}</style>
+    </div>
   );
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-/* ─── Main page ─── */
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -398,618 +246,410 @@ export default function HomePage() {
     { icon: Users,       title: "Collaboration fluide",    desc: "Invitez votre équipe, vos clients et sous-traitants. Les permissions sont granulaires — chacun voit exactement ce dont il a besoin." },
   ];
 
-  const C = {
-    bg:     "#060810",
-    bg2:    "#0a0d16",
-    bg3:    "#0e1220",
-    cyan:   "#ffffff",
-    cyanDim:"rgba(255,255,255,0.6)",
-    cyanFaint:"rgba(255,255,255,0.08)",
-    text:   "#e0f2fe",
-    muted:  "rgba(224,242,254,0.42)",
-    border: "rgba(255,255,255,0.1)",
-    border2:"rgba(255,255,255,0.18)",
-  };
-
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+    <div className="min-h-screen bg-[#fefefe] text-slate-900 font-outfit">
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body {
-          background: #060810; color: #e0f2fe;
-          font-family: 'Outfit', sans-serif; font-weight: 300;
-          -webkit-font-smoothing: antialiased; overflow-x: hidden;
-        }
+      {/* HEADER */}
+      <header className={`fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-12 transition-all duration-300 ${scrolled ? "bg-white/90 backdrop-blur-lg border-b border-slate-200" : "bg-transparent"}`}>
+        <Link href="/" className="flex items-center gap-2.5 no-underline">
+          <div className="w-8 h-8 bg-slate-900 rounded flex items-center justify-center">
+            <Image src="/logo_blanc.png" alt="ZaynSpace" width={18} height={18} />
+          </div>
+          <span className="font-outfit text-lg font-semibold text-slate-900 tracking-tight">zaynspace</span>
+        </Link>
 
-        /* Eyebrow */
-        .eyebrow {
-          font-family: 'Outfit', sans-serif; font-size: 10px; font-weight: 400;
-          letter-spacing: 0.2em; text-transform: uppercase; color: #ffffff;
-        }
+        <nav className="hidden md:flex gap-9 ml-14 flex-1">
+          {["Fonctionnalités","Témoignages","Tarifs"].map(l => (
+            <a key={l} href="#"
+              className="font-outfit text-[11px] tracking-widest uppercase text-slate-400 hover:text-slate-900 transition-colors no-underline relative group">
+              {l}
+              <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-slate-900 group-hover:w-full transition-all duration-300" />
+            </a>
+          ))}
+        </nav>
 
-        /* Cyan glow line */
-        .cyan-line { height: 1px; background: linear-gradient(90deg, transparent, #ffffff 30%, #ffffff 70%, transparent); }
-
-        /* Tech grid background */
-        .tech-grid {
-          background-image:
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-          background-size: 40px 40px;
-        }
-
-        /* Buttons */
-        .btn-p {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: #ffffff; color: #060810;
-          font-family: 'Outfit', sans-serif; font-weight: 500;
-          font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-          padding: 13px 28px; border: none; border-radius: 2px;
-          cursor: pointer; transition: all 0.2s ease; text-decoration: none;
-          position: relative; overflow: hidden;
-        }
-        .btn-p::after {
-          content: ''; position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-          opacity: 0; transition: opacity 0.2s;
-        }
-        .btn-p:hover { box-shadow: 0 0 24px rgba(255,255,255,0.45), 0 0 48px rgba(255,255,255,0.15); transform: translateY(-1px); }
-        .btn-p:hover::after { opacity: 1; }
-        .btn-p:active { transform: translateY(0); }
-
-        .btn-g {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: transparent; color: #e0f2fe;
-          font-family: 'Outfit', sans-serif; font-weight: 400;
-          font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-          padding: 12px 28px; border: 1px solid rgba(255,255,255,0.25); border-radius: 2px;
-          cursor: pointer; transition: all 0.2s ease;
-        }
-        .btn-g:hover { border-color: rgba(255,255,255,0.6); box-shadow: 0 0 12px rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); }
-
-        /* Feature tab */
-        .feat-tab {
-          padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
-          cursor: pointer; transition: all 0.2s ease; position: relative;
-          padding-left: 0;
-        }
-        .feat-tab::before {
-          content: ''; position: absolute; left: -20px; top: 50%;
-          transform: translateY(-50%); width: 2px; height: 0;
-          background: #ffffff; transition: height 0.3s ease;
-          box-shadow: 0 0 8px #ffffff;
-        }
-        .feat-tab.active::before { height: 60%; }
-        .feat-tab:hover { padding-left: 4px; }
-
-        /* Stat card */
-        .stat-card {
-          padding: 36px; border: 1px solid rgba(255,255,255,0.1);
-          background: #0a0d16; position: relative; overflow: hidden;
-          transition: all 0.3s ease;
-        }
-        .stat-card::after {
-          content: ''; position: absolute; bottom: 0; left: 0;
-          height: 1px; width: 24%; background: #ffffff;
-          box-shadow: 0 0 8px #ffffff;
-          transition: width 0.6s ease;
-        }
-        .stat-card:hover::after { width: 100%; }
-        .stat-card:hover { border-color: rgba(255,255,255,0.25); }
-
-        /* Nav link */
-        .nav-link {
-          position: relative; text-decoration: none;
-          font-family: 'Outfit', sans-serif; font-size: 11px;
-          letter-spacing: 0.12em; text-transform: uppercase;
-          color: rgba(224,242,254,0.45);
-          transition: color 0.2s;
-        }
-        .nav-link:hover { color: #e0f2fe; }
-        .nav-link::after {
-          content: ''; position: absolute; bottom: -3px; left: 0;
-          width: 0; height: 1px; background: #ffffff;
-          box-shadow: 0 0 4px #ffffff;
-          transition: width 0.3s ease;
-        }
-        .nav-link:hover::after { width: 100%; }
-
-        /* Ornament divider */
-        .ornament { display: flex; align-items: center; gap: 20px; }
-        .ornament::before, .ornament::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.12); }
-
-        /* Glow text */
-        .glow-white {
-          color: #ffffff;
-          text-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 60px rgba(255,255,255,0.2);
-        }
-
-        /* Animations */
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(28px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes float {
-          0%,100% { transform: translateY(0); }
-          50%      { transform: translateY(-6px); }
-        }
-        @keyframes pulse-ring {
-          0%   { transform: scale(0.8); opacity: 0.8; }
-          100% { transform: scale(2.4); opacity: 0; }
-        }
-        @keyframes scan {
-          from { transform: translateY(-100%); }
-          to   { transform: translateY(100vh); }
-        }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes spin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-track { background: #060810; }
-        ::-webkit-scrollbar-thumb { background: #ffffff; border-radius: 2px; }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-          .desktop-only { display: none !important; }
-          .mobile-only  { display: flex !important; }
-          .hp { padding: 0 20px !important; }
-        }
-        @media (min-width: 769px) {
-          .mobile-only { display: none !important; }
-        }
-      `}</style>
-
-      <div style={{ minHeight: "100vh", background: C.bg }}>
-
-        {/* ══════════ HEADER */}
-        <header style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-          height: 68, display: "flex", alignItems: "center", padding: "0 48px",
-          background: scrolled ? "rgba(6,8,16,0.92)" : "transparent",
-          backdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
-          transition: "all 0.3s ease",
-        }} className="hp">
-
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <div style={{
-              width: 30, height: 30, background: C.cyan, borderRadius: 2,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 12px rgba(255,255,255,0.5)",
-            }}>
-              <Image src="/logo_blanc.png" alt="ZaynSpace" width={18} height={18} />
-            </div>
-            <span style={{ fontSize: 18, fontWeight: 600, color: C.text, letterSpacing: "-0.01em" }}>zaynspace</span>
+        <div className="hidden md:flex items-center gap-6 ml-auto">
+          <Link href={loginUrl}
+            className="font-outfit text-[11px] tracking-widest uppercase text-slate-400 hover:text-slate-900 transition-colors no-underline">
+            Connexion
           </Link>
+          <a href="#"
+            className="font-outfit text-[11px] tracking-widest uppercase font-medium bg-slate-900 text-white px-5 py-2.5 rounded-sm hover:bg-slate-700 transition-colors no-underline">
+            Essai gratuit
+          </a>
+        </div>
 
-          <nav className="desktop-only" style={{ display: "flex", gap: 36, marginLeft: 56, flex: 1 }}>
+        <button onClick={() => setMenuOpen(true)}
+          className="md:hidden ml-auto bg-transparent border-none text-slate-900 cursor-pointer p-0">
+          <Menu size={20} />
+        </button>
+      </header>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="fixed inset-0 bg-[#fefefe] z-50 flex flex-col px-7 pb-10">
+          <div className="h-16 flex items-center justify-between">
+            <span className="font-outfit text-lg font-semibold">zaynspace</span>
+            <button onClick={() => setMenuOpen(false)}
+              className="bg-transparent border-none text-slate-400 cursor-pointer p-0"><X size={20} /></button>
+          </div>
+          <div className="h-px bg-slate-200" />
+          <nav className="flex-1 flex flex-col justify-center gap-9">
             {["Fonctionnalités","Témoignages","Tarifs"].map(l => (
-              <a key={l} href="#" className="nav-link">{l}</a>
+              <a key={l} href="#" className="font-outfit text-3xl font-medium text-slate-900 no-underline">{l}</a>
             ))}
           </nav>
+          <a href="#"
+            className="font-outfit text-[11px] tracking-widest uppercase font-medium bg-slate-900 text-white py-4 text-center rounded-sm no-underline">
+            Commencer
+          </a>
+        </div>
+      )}
 
-          <div className="desktop-only" style={{ display: "flex", alignItems: "center", gap: 24, marginLeft: "auto" }}>
-            {/* Live indicator */}
-           
-            <Link href={loginUrl} className="nav-link" style={{ color: "rgba(224,242,254,0.45)" }}>Connexion</Link>
-            <a href="#" className="btn-p" style={{ padding: "9px 20px" }}>Essai gratuit</a>
-          </div>
-
-          <button onClick={() => setMenuOpen(true)} className="mobile-only"
-            style={{ marginLeft: "auto", background: "none", border: "none", color: C.text, cursor: "pointer" }}>
-            <Menu size={20} />
-          </button>
-        </header>
-
-        {/* Mobile drawer */}
-        {menuOpen && (
-          <div style={{ position: "fixed", inset: 0, background: C.bg, zIndex: 200, display: "flex", flexDirection: "column", padding: "0 28px 40px" }}>
-            <div style={{ height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 18, fontWeight: 600, color: C.text }}>zaynspace</span>
-              <button onClick={() => setMenuOpen(false)} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer" }}><X size={20} /></button>
-            </div>
-            <div className="cyan-line" />
-            <nav style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 36 }}>
-              {["Fonctionnalités","Témoignages","Tarifs"].map(l => (
-                <a key={l} href="#" style={{ fontSize: 32, fontWeight: 500, color: C.text, textDecoration: "none", letterSpacing: "-0.01em" }}>{l}</a>
-              ))}
-            </nav>
-            <a href="#" className="btn-p" style={{ justifyContent: "center" }}>Commencer</a>
-          </div>
-        )}
-
-        {/* ══════════ HERO */}
-        <section style={{
-          minHeight: "100vh",
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          alignItems: "center",
-          paddingTop: 68,
-          position: "relative",
-          overflow: "hidden",
-          gap: 0,
-        }}>
-          {/* Tech grid bg */}
-          <div className="tech-grid" style={{ position: "absolute", inset: 0 }} />
-
-          {/* Ambient glow */}
-          <div style={{
-            position: "absolute", top: "40%", right: "35%",
-            width: 600, height: 600,
-            background: "radial-gradient(ellipse, rgba(255,255,255,0.05) 0%, transparent 65%)",
-            transform: "translate(50%,-50%)", pointerEvents: "none",
+      {/* HERO */}
+      <section className="min-h-screen grid md:grid-cols-2 items-center pt-16 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(rgba(15,23,42,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,0.04) 1px,transparent 1px)",
+            backgroundSize: "40px 40px",
           }} />
+        <div className="absolute top-1/2 right-1/3 w-96 h-96 -translate-y-1/2 translate-x-1/2 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse,rgba(16,185,129,0.06) 0%,transparent 65%)" }} />
 
-          {/* Left: text content */}
-          <div style={{ padding: "80px 48px 80px 48px", position: "relative", zIndex: 2 }} className="hp">
+        <div className="px-12 py-20 relative z-10">
+          <h1 className="font-lexend font-bold text-slate-900 leading-none mb-1"
+            style={{ fontSize: "clamp(40px,5vw,64px)", letterSpacing: "-0.02em", opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.2s forwards slideUp" }}>
+            Le chantier,
+          </h1>
+          <h1 className="font-lexend font-bold text-emerald-500 leading-none mb-7"
+            style={{ fontSize: "clamp(40px,5vw,64px)", letterSpacing: "-0.02em", opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.32s forwards slideUp" }}>
+            sous contrôle.
+          </h1>
 
-            {/* Status badge */}
-			{/* 
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border2}`,
-              borderRadius: 2, padding: "6px 14px", marginBottom: 32,
-              opacity: 0, animation: "0.7s ease 0.1s forwards slideUp",
-            }}>
-             <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.cyan, boxShadow: `0 0 5px rgba(255,255,255,0.4)`, animation: "blink 1.5s step-end infinite" }} />
-              <span className="eyebrow" style={{ fontSize: 9 }}>Nouveau · Documentation par IA</span>
-           
-			  </div>
-*/}
-            <h1 style={{
-              fontSize: "clamp(40px, 5vw, 64px)", fontWeight: 700,
-              lineHeight: 1.05, letterSpacing: "-0.03em",
-              color: C.text, marginBottom: 6,
-              opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.2s forwards slideUp",
-            }}>
-              Le chantier,
-            </h1>
-            <h1 className="glow-white" style={{
-              fontSize: "clamp(40px, 5vw, 64px)", fontWeight: 700,
-              lineHeight: 1.05, letterSpacing: "-0.03em",
-              marginBottom: 28,
-              opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.32s forwards slideUp",
-            }}>
-              sous contrôle.
-            </h1>
+          <div className="w-12 h-px mb-7"
+            style={{ background: "linear-gradient(90deg,transparent,#10b981 30%,#10b981 70%,transparent)", opacity: 0, animation: "0.5s ease 0.44s forwards fadeOnly" }} />
 
-            <div className="cyan-line" style={{
-              width: 48, marginBottom: 28,
-              opacity: 0, animation: "0.5s ease 0.44s forwards fadeOnly",
-            }} />
+          <p className="font-outfit text-base text-slate-500 leading-relaxed mb-10 max-w-md"
+            style={{ opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.5s forwards slideUp" }}>
+            Relevez les tâches sur plan, associez photos et localisations, suivez l'avancement en temps réel. La plateforme de gestion de chantier la plus précise du marché.
+          </p>
 
-            <p style={{
-              fontSize: 16, color: C.muted,
-              lineHeight: 1.8, marginBottom: 40, fontWeight: 300, maxWidth: 420,
-              opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.5s forwards slideUp",
-            }}>
-              Relevez les tâches sur plan, associez photos et localisations, suivez l'avancement en temps réel. La plateforme de gestion de chantier la plus précise du marché.
-            </p>
+          <div className="flex gap-2.5 flex-wrap mb-10"
+            style={{ opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.62s forwards slideUp" }}>
+            <a href="#"
+              className="font-outfit inline-flex items-center gap-2 text-[11px] tracking-widest uppercase font-medium bg-slate-900 text-white px-7 py-3.5 rounded-sm hover:bg-slate-700 transition-colors no-underline">
+              Commencer gratuitement <ArrowUpRight size={13} />
+            </a>
+            <a href="#"
+              className="font-outfit inline-flex items-center gap-2 text-[11px] tracking-widest uppercase text-slate-900 px-7 py-3.5 border border-slate-300 rounded-sm hover:border-slate-900 hover:bg-slate-50 transition-all no-underline">
+              Voir la démo
+            </a>
+          </div>
 
-            <div style={{
-              display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 40,
-              opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.62s forwards slideUp",
-            }}>
-              <a href="#" className="btn-p">Commencer gratuitement <ArrowUpRight size={13} /></a>
-              <a href="#" className="btn-g">Voir la démo</a>
+          <div className="flex gap-6 flex-wrap mb-12"
+            style={{ opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.74s forwards slideUp" }}>
+            {["Pas de carte bancaire","14 jours offerts","Annulation libre"].map(t => (
+              <span key={t} className="font-outfit flex items-center gap-1.5 text-[11px] text-slate-400 tracking-wide">
+                <CheckCircle2 size={11} className="text-emerald-500" /> {t}
+              </span>
+            ))}
+          </div>
+
+          <div className="flex gap-8 pt-8 border-t border-slate-200"
+            style={{ opacity: 0, animation: "0.9s ease 0.9s forwards slideUp" }}>
+            {[["2.4k+","projets actifs"],["98%","satisfaction"],["3×","plus rapide"]].map(([v,l]) => (
+              <div key={l}>
+                <div className="font-lexend text-2xl font-bold text-slate-900 leading-none">{v}</div>
+                <div className="font-outfit text-[10px] text-slate-400 mt-1 tracking-widest uppercase">{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: range.io style hero visual */}
+        <div className="hidden md:flex flex-col justify-center relative h-screen bg-slate-50 border-l border-slate-100 overflow-hidden"
+          style={{ opacity: 0, animation: "1s ease 0.4s forwards fadeOnly" }}>
+
+          {/* Gradient bg */}
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-slate-50 to-slate-100" />
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 60% 40%, rgba(16,185,129,0.08) 0%, transparent 60%)" }} />
+
+          {/* Main screenshot — tilted, overflowing bottom */}
+          <div className="absolute left-8 right-0 bottom-0 top-16"
+            style={{ perspective: "1200px" }}>
+            <div className="relative w-full h-full"
+              style={{ transform: "rotateX(4deg) rotateY(-3deg) scale(1.05)", transformOrigin: "top center" }}>
+              <div className="absolute inset-0 rounded-tl-xl rounded-tr-xl overflow-hidden shadow-[0_32px_80px_rgba(15,23,42,0.18)] border border-slate-200/80">
+                <img src="/app-screenshot.jpg" alt="ZaynSpace app" className="w-full h-full object-cover object-top" />
+                {/* Subtle overlay to blend bottom */}
+                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 to-transparent" />
+              </div>
             </div>
+          </div>
 
-            {/* Trust indicators */}
-            <div style={{
-              display: "flex", gap: 24, flexWrap: "wrap",
-              opacity: 0, animation: "0.9s cubic-bezier(0.16,1,0.3,1) 0.74s forwards slideUp",
-            }}>
-              {["Pas de carte bancaire","14 jours offerts","Annulation libre"].map(t => (
-                <span key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: C.muted, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.06em" }}>
-                  <CheckCircle2 size={11} color={C.cyan} /> {t}
-                </span>
-              ))}
+          {/* Floating card 1 — task status */}
+          <div className="absolute top-24 right-6 bg-white rounded-xl shadow-xl border border-slate-100 p-3.5 w-44 z-20"
+            style={{ animation: "float-card 4s ease-in-out infinite" }}>
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-outfit font-semibold text-[10px] text-emerald-500 tracking-wide uppercase">En cours</span>
             </div>
+            <div className="font-outfit font-semibold text-slate-900 text-[12px] mb-1">Disjoncteur H.S.</div>
+            <div className="font-outfit text-[10px] text-slate-400 mb-2.5">Marouane Reda · ID: 17-3</div>
+            <div className="h-1 bg-slate-100 rounded-full">
+              <div className="h-full w-3/5 bg-emerald-500 rounded-full" />
+            </div>
+          </div>
 
-            {/* Mini stats */}
-            <div style={{
-              display: "flex", gap: 32, marginTop: 48, paddingTop: 32,
-              borderTop: `1px solid ${C.border}`,
-              opacity: 0, animation: "0.9s ease 0.9s forwards slideUp",
-            }}>
-              {[["2.4k+","projets actifs"],["98%","satisfaction"],["3×","plus rapide"]].map(([v, l]) => (
-                <div key={l}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: C.text, letterSpacing: "-0.02em", lineHeight: 1 }}>{v}</div>
-                  <div style={{ fontSize: 10, color: C.muted, marginTop: 4, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.08em" }}>{l}</div>
+          {/* Floating card 2 — done */}
+          <div className="absolute top-52 left-4 bg-white rounded-xl shadow-xl border border-slate-100 p-3 w-40 z-20"
+            style={{ animation: "float-card 4s ease-in-out 1.4s infinite" }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-outfit font-semibold text-[10px] text-emerald-600 tracking-wide uppercase">Terminé</span>
+            </div>
+            <div className="font-outfit font-medium text-slate-900 text-[11px]">Carreaux cassés</div>
+            <div className="font-outfit text-[9px] text-slate-400 mt-0.5">il y a 24 jours</div>
+          </div>
+
+          {/* Floating card 3 — member count */}
+          <div className="absolute bottom-28 right-8 bg-slate-900 rounded-xl shadow-xl p-3 z-20 flex items-center gap-2.5"
+            style={{ animation: "float-card 4s ease-in-out 2.5s infinite" }}>
+            <div className="flex -space-x-1.5">
+              {["#10b981","#8b5cf6","#10b981"].map(c => (
+                <div key={c} className="w-6 h-6 rounded-full border-2 border-slate-900 flex items-center justify-center text-[8px] font-bold text-white font-outfit" style={{ background: c }}>
+                  {c === "#10b981" ? "M" : c === "#8b5cf6" ? "S" : "K"}
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Right: animated blueprint */}
-          <div style={{
-            position: "relative", height: "100vh",
-            background: "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%)",
-            borderLeft: `1px solid ${C.border}`,
-            opacity: 0, animation: "1s ease 0.4s forwards fadeOnly",
-          }} className="desktop-only">
-            {/* Corner decoration */}
-            <div style={{
-              position: "absolute", top: 20, right: 20,
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "6px 12px",
-              background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`,
-              borderRadius: 2,
-            }}>
-              <Wifi size={10} color={C.cyan} />
-              <span className="eyebrow" style={{ fontSize: 8 }}>PLAN EN DIRECT</span>
+            <div>
+              <div className="font-outfit font-semibold text-white text-[11px]">4 actifs</div>
+              <div className="font-outfit text-slate-400 text-[9px]">sur le chantier</div>
             </div>
+          </div>
+        </div>
 
-            <BlueprintHero />
+        {/* Mobile */}
+        <div className="md:hidden px-6 pb-16">
+          <div className="rounded-xl overflow-hidden shadow-xl border border-slate-200" style={{ aspectRatio: "9/16", maxHeight: 500 }}>
+            <img src="/app-screenshot.jpg" alt="ZaynSpace app" className="w-full h-full object-cover object-top" />
+          </div>
+        </div>
+      </section>
 
-            {/* Bottom HUD */}
-            <div style={{
-              position: "absolute", bottom: 0, left: 0, right: 0,
-              padding: "12px 20px",
-              borderTop: `1px solid ${C.border}`,
-              background: "rgba(6,8,16,0.7)", backdropFilter: "blur(8px)",
-              display: "flex", alignItems: "center", gap: 20,
-            }}>
-              <span className="eyebrow" style={{ fontSize: 8 }}>ZAYNSPACE · BÂTIMENT A · R+1</span>
-              <div style={{ marginLeft: "auto", display: "flex", gap: 14 }}>
-                {[["5","tâches"],["3","en cours"],["2","terminées"]].map(([n, l]) => (
-                  <span key={l} style={{ fontSize: 9, color: C.muted, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.06em" }}>
-                    <span style={{ color: C.cyan, fontWeight: 600 }}>{n} </span>{l}
-                  </span>
+      {/* STATS */}
+      <section className="border-t border-b border-slate-200 bg-white">
+        <div className="max-w-5xl mx-auto grid grid-cols-3">
+          {[
+            { n: 2400, s: "+", label: "Projets actifs",     sub: "sur la plateforme" },
+            { n: 98,   s: "%", label: "Satisfaction client", sub: "équipes B2B" },
+            { n: 3,    s: "×", label: "Plus rapide",         sub: "qu'une gestion papier" },
+          ].map(({ n, s, label, sub }, i) => (
+            <FadeIn key={label} delay={i * 80}>
+              <div className={`p-9 relative overflow-hidden group hover:shadow-md transition-all bg-white ${i > 0 ? "border-l border-slate-200" : ""}`}>
+                <div className="absolute bottom-0 left-0 h-0.5 w-1/4 bg-emerald-500 group-hover:w-full transition-all duration-500" />
+                <div className="font-lexend font-bold text-emerald-500 leading-none mb-2" style={{ fontSize: "clamp(36px,4vw,52px)" }}>
+                  <Counter end={n} suffix={s} />
+                </div>
+                <div className="font-outfit text-sm font-medium text-slate-900 mb-1">{label}</div>
+                <div className="font-outfit text-[10px] text-slate-400 tracking-widest uppercase">{sub}</div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="py-24 px-6 border-t border-b border-slate-100 bg-[#fefefe]">
+        <div className="max-w-5xl mx-auto">
+          <div className="hidden md:grid grid-cols-2 gap-20 items-start">
+            <FadeIn>
+              <span className="font-outfit text-[10px] font-medium tracking-[0.2em] uppercase text-emerald-500 block mb-5">Fonctionnalités</span>
+              <h2 className="font-lexend font-bold text-slate-900 leading-tight mb-12"
+                style={{ fontSize: "clamp(28px,3.5vw,42px)", letterSpacing: "-0.015em" }}>
+                Conçu pour les équipes<br />
+                <span className="text-emerald-500">qui construisent.</span>
+              </h2>
+              <div className="pl-5">
+                {features.map((f, i) => (
+                  <div key={f.title} onClick={() => setActiveFeature(i)}
+                    className="py-4 border-b border-slate-100 cursor-pointer relative transition-all"
+                    style={{ paddingLeft: activeFeature === i ? 4 : 0 }}>
+                    <div className="absolute left-[-20px] top-1/2 -translate-y-1/2 w-0.5 bg-emerald-500 transition-all duration-300"
+                      style={{ height: activeFeature === i ? "60%" : "0%" }} />
+                    <span className={`font-outfit text-sm transition-colors ${activeFeature === i ? "font-medium text-slate-900" : "text-slate-400"}`}>
+                      {f.title}
+                    </span>
+                  </div>
                 ))}
               </div>
-            </div>
-          </div>
-
-          {/* Mobile: simple grid indicator */}
-          <div className="mobile-only" style={{
-            flexDirection: "column", alignItems: "center",
-            padding: "0 24px 60px",
-          }}>
-            <div style={{
-              width: "100%", aspectRatio: "4/3",
-              border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden",
-              position: "relative",
-            }}>
-              <BlueprintHero />
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════ STATS */}
-        <section style={{ borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
-            {[
-              { n: 2400, s: "+", label: "Projets actifs",     sub: "sur la plateforme" },
-              { n: 98,   s: "%", label: "Satisfaction client", sub: "équipes B2B" },
-              { n: 3,    s: "×", label: "Plus rapide",         sub: "qu'une gestion papier" },
-            ].map(({ n, s, label, sub }, i) => (
-              <FadeIn key={label} delay={i * 80}>
-                <div className="stat-card" style={{
-                  borderRadius: 0, borderTop: "none", borderBottom: "none",
-                  borderLeft: i > 0 ? `1px solid ${C.border}` : "none", borderRight: "none",
-                }}>
-                  <div style={{ fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 700, color: C.text, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 8 }}>
-                    <Counter end={n} suffix={s} />
-                  </div>
-                  <div style={{ fontSize: 13, color: C.text, fontWeight: 500, marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 10, color: C.muted, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.06em" }}>{sub}</div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </section>
-
-        {/* ══════════ FEATURES */}
-        <section style={{ padding: "100px 24px", background: C.bg2, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-
-            <div className="desktop-only" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "start" }}>
-              <FadeIn>
-                <span className="eyebrow" style={{ display: "block", marginBottom: 20 }}>Fonctionnalités</span>
-                <h2 style={{ fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 700, letterSpacing: "-0.025em", lineHeight: 1.1, marginBottom: 52 }}>
-                  Conçu pour les équipes<br />
-                  <span className="glow-white">qui construisent.</span>
-                </h2>
-                <div style={{ paddingLeft: 20 }}>
-                  {features.map((f, i) => (
-                    <div key={f.title} className={`feat-tab ${activeFeature === i ? "active" : ""}`} onClick={() => setActiveFeature(i)}>
-                      <div style={{
-                        fontSize: 13, fontWeight: activeFeature === i ? 500 : 400,
-                        color: activeFeature === i ? C.text : C.muted,
-                        transition: "color 0.2s",
-                      }}>{f.title}</div>
-                    </div>
-                  ))}
-                </div>
-              </FadeIn>
-
-              <FadeIn delay={100}>
-                <div style={{
-                  background: C.bg3, border: `1px solid ${C.border2}`,
-                  borderRadius: 4, padding: "40px",
-                  position: "sticky", top: 88, minHeight: 260,
-                }}>
-                  {(() => { const Icon = features[activeFeature].icon; return (
-                    <div style={{
-                      width: 44, height: 44, background: C.cyanFaint, border: `1px solid ${C.border2}`,
-                      borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
-                    }}>
-                      <Icon size={20} color={C.cyan} />
-                    </div>
-                  ); })()}
-                  <h3 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 14, color: C.text }}>
-                    {features[activeFeature].title}
-                  </h3>
-                  <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.85, fontWeight: 300 }}>
-                    {features[activeFeature].desc}
-                  </p>
-                  <a href="#" className="eyebrow" style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    marginTop: 28, textDecoration: "none",
-                  }}>
-                    En savoir plus <ArrowUpRight size={10} />
-                  </a>
-                </div>
-              </FadeIn>
-            </div>
-
-            {/* Mobile cards */}
-            <div className="mobile-only" style={{ flexDirection: "column", gap: 14 }}>
-              <span className="eyebrow" style={{ display: "block", marginBottom: 14 }}>Fonctionnalités</span>
-              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 32 }}>
-                Conçu pour les équipes <span className="glow-white">qui construisent.</span>
-              </h2>
-              {features.map(f => { const Icon = f.icon; return (
-                <div key={f.title} style={{ padding: 22, background: C.bg3, border: `1px solid ${C.border}`, borderRadius: 2 }}>
-                  <Icon size={18} color={C.cyan} style={{ marginBottom: 12 }} />
-                  <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>{f.title}</div>
-                  <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.75, fontWeight: 300 }}>{f.desc}</p>
-                </div>
-              ); })}
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════ HOW IT WORKS */}
-        <section style={{ padding: "100px 24px" }}>
-          <div style={{ maxWidth: 680, margin: "0 auto" }}>
-            <FadeIn>
-              <div style={{ textAlign: "center", marginBottom: 64 }}>
-                <span className="eyebrow" style={{ display: "block", marginBottom: 16 }}>Mise en place</span>
-                <h2 style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 700, letterSpacing: "-0.025em" }}>
-                  Opérationnel en <span className="glow-white">5 minutes.</span>
-                </h2>
-              </div>
             </FadeIn>
 
-            {[
-              { n:"01", title:"Importez votre plan",   desc:"Téléchargez le plan de votre chantier en PDF ou image. Notre outil de mise à l'échelle le recale automatiquement." },
-              { n:"02", title:"Placez vos tâches",     desc:"Cliquez sur le plan pour créer une tâche. Associez photos, localisations, assignations et niveaux de priorité." },
-              { n:"03", title:"Invitez votre équipe",  desc:"Partagez le projet avec sous-traitants et clients. Les permissions sont granulaires, configurables par rôle." },
-              { n:"04", title:"Pilotez en temps réel", desc:"Tableau de bord en direct, alertes automatiques, rapports PDF générés à la demande en un clic." },
-            ].map(({ n, title, desc }, i) => (
-              <FadeIn key={n} delay={i * 70}>
-                <div style={{ display: "grid", gridTemplateColumns: "48px 1fr", gap: 24, marginBottom: 44, alignItems: "start" }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    border: `1px solid ${C.border2}`,
-                    background: C.cyanFaint,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontFamily: "'Outfit',sans-serif", color: C.cyan, fontWeight: 500,
-                  }}>{n}</div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 8, color: C.text }}>{title}</div>
-                    <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, fontWeight: 300 }}>{desc}</p>
+            <FadeIn delay={100}>
+              <div className="bg-white border border-slate-200 rounded-lg p-10 sticky top-20 shadow-sm min-h-64">
+                {(() => { const Icon = features[activeFeature].icon; return (
+                  <div className="w-11 h-11 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center justify-center mb-6">
+                    <Icon size={20} className="text-emerald-500" />
                   </div>
-                </div>
-              </FadeIn>
-            ))}
+                ); })()}
+                <h3 className="font-lexend font-semibold text-slate-900 mb-3.5"
+                  style={{ fontSize: 22, letterSpacing: "-0.01em" }}>
+                  {features[activeFeature].title}
+                </h3>
+                <p className="font-outfit text-sm text-slate-500 leading-relaxed">
+                  {features[activeFeature].desc}
+                </p>
+                <a href="#"
+                  className="font-outfit inline-flex items-center gap-1.5 mt-7 text-[10px] font-medium tracking-[0.2em] uppercase text-emerald-500 no-underline hover:gap-3 transition-all">
+                  En savoir plus <ArrowUpRight size={10} />
+                </a>
+              </div>
+            </FadeIn>
           </div>
-        </section>
 
-        {/* ══════════ TESTIMONIAL */}
-        <section style={{ padding: "100px 24px", background: C.bg2, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ maxWidth: 780, margin: "0 auto" }}>
-            <FadeIn>
-              <div style={{ background: C.bg3, border: `1px solid ${C.border2}`, borderRadius: 4, padding: "52px 48px", position: "relative", overflow: "hidden" }}>
-                {/* Glow corner */}
-                <div style={{
-                  position: "absolute", top: 0, left: 0, width: 200, height: 200,
-                  background: "radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 70%)",
-                  pointerEvents: "none",
-                }} />
-                <div style={{ display: "flex", gap: 3, marginBottom: 24 }}>
-                  {[1,2,3,4,5].map(i => <span key={i} style={{ color: C.cyan, fontSize: 14 }}>★</span>)}
+          <div className="md:hidden flex flex-col gap-3.5">
+            <span className="font-outfit text-[10px] font-medium tracking-[0.2em] uppercase text-emerald-500 block mb-3">Fonctionnalités</span>
+            <h2 className="font-lexend font-bold text-slate-900 mb-8" style={{ fontSize: 28, letterSpacing: "-0.015em" }}>
+              Conçu pour les équipes <span className="text-emerald-500">qui construisent.</span>
+            </h2>
+            {features.map(f => { const Icon = f.icon; return (
+              <div key={f.title} className="p-6 bg-white border border-slate-200 rounded-lg">
+                <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center mb-3">
+                  <Icon size={16} className="text-emerald-500" />
                 </div>
-                <blockquote style={{
-                  fontSize: "clamp(18px, 2.5vw, 24px)", fontWeight: 400, lineHeight: 1.6,
-                  letterSpacing: "-0.01em", color: C.text, marginBottom: 36, maxWidth: 620,
-                }}>
+                <div className="font-outfit text-sm font-medium text-slate-900 mb-2">{f.title}</div>
+                <p className="font-outfit text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+              </div>
+            ); })}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-xl mx-auto">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <span className="font-outfit text-[10px] font-medium tracking-[0.2em] uppercase text-emerald-500 block mb-4">Mise en place</span>
+              <h2 className="font-lexend font-bold text-slate-900"
+                style={{ fontSize: "clamp(26px,4vw,44px)", letterSpacing: "-0.015em" }}>
+                Opérationnel en <span className="text-emerald-500">5 minutes.</span>
+              </h2>
+            </div>
+          </FadeIn>
+
+          {[
+            { n:"01", title:"Importez votre plan",   desc:"Téléchargez le plan de votre chantier en PDF ou image. Notre outil de mise à l'échelle le recale automatiquement." },
+            { n:"02", title:"Placez vos tâches",     desc:"Cliquez sur le plan pour créer une tâche. Associez photos, localisations, assignations et niveaux de priorité." },
+            { n:"03", title:"Invitez votre équipe",  desc:"Partagez le projet avec sous-traitants et clients. Les permissions sont granulaires, configurables par rôle." },
+            { n:"04", title:"Pilotez en temps réel", desc:"Tableau de bord en direct, alertes automatiques, rapports PDF générés à la demande en un clic." },
+          ].map(({ n, title, desc }, i) => (
+            <FadeIn key={n} delay={i * 70}>
+              <div className="grid gap-5 mb-11 items-start" style={{ gridTemplateColumns: "56px 1fr" }}>
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center font-outfit text-[11px] font-semibold text-emerald-500">
+                  {n}
+                </div>
+                <div>
+                  <div className="font-outfit text-sm font-medium text-slate-900 mb-2">{title}</div>
+                  <p className="font-outfit text-sm text-slate-500 leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIAL */}
+      <section className="py-24 px-6 bg-slate-900">
+        <div className="max-w-2xl mx-auto">
+          <FadeIn>
+            <div className="rounded-xl overflow-hidden shadow-2xl">
+              <div className="h-1 bg-gradient-to-r from-emerald-500 to-red-500" />
+              <div className="bg-slate-800 p-12">
+                <div className="flex gap-1 mb-6">
+                  {[1,2,3,4,5].map(i => <span key={i} className="text-amber-400 text-sm">★</span>)}
+                </div>
+                <blockquote className="font-outfit font-normal text-slate-200 leading-relaxed mb-9 max-w-lg"
+                  style={{ fontSize: "clamp(18px,2.5vw,24px)", letterSpacing: "-0.01em" }}>
                   "ZaynSpace a transformé notre façon de gérer les chantiers. La documentation nous prend trois fois moins de temps, et nos équipes sont enfin parfaitement alignées."
                 </blockquote>
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: "50%",
-                    background: `linear-gradient(135deg, ${C.cyan}, rgba(255,255,255,0.5))`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontWeight: 700, color: C.bg, fontFamily: "'Outfit',sans-serif",
-                  }}>CS</div>
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-outfit text-[11px] font-bold text-white"
+                    style={{ background: "linear-gradient(135deg,#10b981,#7c3aed)" }}>CS</div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>Chris Surrey</div>
-                    <div style={{ fontSize: 10, color: C.muted, marginTop: 2, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.06em" }}>Architecte Senior · IKON Architects</div>
+                    <div className="font-outfit text-sm font-semibold text-slate-200">Ghita Alami</div>
+                    <div className="font-outfit text-[10px] text-slate-500 mt-0.5 tracking-widest">Ghita Alami Architecte</div>
                   </div>
                 </div>
               </div>
-            </FadeIn>
-          </div>
-        </section>
-
-        {/* ══════════ CTA */}
-        <section style={{ padding: "120px 24px" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
-            <FadeIn>
-              <div className="ornament" style={{ marginBottom: 48 }}>
-                <span className="eyebrow">Commencez dès aujourd'hui</span>
-              </div>
-
-              <h2 style={{
-                fontSize: "clamp(32px, 6vw, 72px)", fontWeight: 700,
-                letterSpacing: "-0.035em", lineHeight: 1.0, marginBottom: 24,
-              }}>
-                Prêt à optimiser<br />
-                <span className="glow-white">vos chantiers ?</span>
-              </h2>
-
-              <div className="cyan-line" style={{ width: 48, margin: "0 auto 28px" }} />
-
-              <p style={{ fontSize: 15, color: C.muted, marginBottom: 44, fontWeight: 300, lineHeight: 1.8, maxWidth: 400, margin: "0 auto 44px" }}>
-                Rejoignez des milliers de professionnels de la construction qui font confiance à ZaynSpace.
-              </p>
-
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
-                <a href="#" className="btn-p" style={{ padding: "15px 40px", fontSize: 12 }}>
-                  Commencer maintenant <ArrowUpRight size={14} />
-                </a>
-                <a href="#" className="btn-g" style={{ padding: "14px 40px", fontSize: 12 }}>Voir la démo</a>
-              </div>
-
-              <p style={{ fontSize: 10, color: C.muted, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.08em" }}>
-                Pas de carte bancaire · 14 jours offerts · Annulation à tout moment
-              </p>
-            </FadeIn>
-          </div>
-        </section>
-
-        {/* ══════════ FOOTER */}
-        <footer style={{ borderTop: `1px solid ${C.border}`, padding: "40px 48px", background: C.bg2 }} className="hp">
-          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-              <div style={{ width: 26, height: 26, background: C.cyan, borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 8px rgba(255,255,255,0.4)` }}>
-                <Image src="/logo_blanc.png" alt="ZaynSpace" width={15} height={15} />
-              </div>
-              <span style={{ fontSize: 16, fontWeight: 600, color: C.text }}>zaynspace</span>
-            </Link>
-
-            <div style={{ display: "flex", gap: 28 }}>
-              {[{ l:"Confidentialité",h:"/privacy"},{ l:"CGU",h:"/terms"},{ l:"Twitter",h:"#"},{ l:"GitHub",h:"#"}].map(({ l, h }) => (
-                <a key={l} href={h} className="nav-link">{l}</a>
-              ))}
             </div>
+          </FadeIn>
+        </div>
+      </section>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.cyan, animation: "blink 1.5s step-end infinite", boxShadow: `0 0 5px rgba(255,255,255,0.4)` }} />
-              <span style={{ fontSize: 10, color: C.muted, fontFamily: "'Outfit',sans-serif", letterSpacing: "0.06em" }}>© {new Date().getFullYear()} ZAYNSPACE</span>
+      {/* CTA */}
+      <section className="py-28 px-6 bg-[#fefefe]">
+        <div className="max-w-xl mx-auto text-center">
+          <FadeIn>
+            <div className="flex items-center gap-5 mb-12">
+              <div className="flex-1 h-px bg-slate-200" />
+              <span className="font-outfit text-[10px] font-medium tracking-[0.2em] uppercase text-emerald-500">Commencez dès aujourd'hui</span>
+              <div className="flex-1 h-px bg-slate-200" />
             </div>
-          </div>
-        </footer>
+            <h2 className="font-lexend font-bold text-slate-900 leading-none mb-6"
+              style={{ fontSize: "clamp(32px,6vw,72px)", letterSpacing: "-0.025em" }}>
+              Prêt à optimiser<br />
+              <span className="text-emerald-500">vos chantiers ?</span>
+            </h2>
+            <div className="w-12 h-px mx-auto mb-7"
+              style={{ background: "linear-gradient(90deg,transparent,#10b981 30%,#10b981 70%,transparent)" }} />
+            <p className="font-outfit text-sm text-slate-500 leading-relaxed max-w-xs mx-auto mb-11">
+              Rejoignez des milliers de professionnels de la construction qui font confiance à ZaynSpace.
+            </p>
+            <div className="flex gap-2.5 justify-center flex-wrap mb-6">
+              <a href="#"
+                className="font-outfit inline-flex items-center gap-2 text-[11px] tracking-widest uppercase font-medium bg-slate-900 text-white px-10 py-4 rounded-sm hover:bg-slate-700 transition-colors no-underline">
+                Commencer maintenant <ArrowUpRight size={14} />
+              </a>
+              <a href="#"
+                className="font-outfit inline-flex items-center gap-2 text-[11px] tracking-widest uppercase text-slate-900 px-10 py-4 border border-slate-300 rounded-sm hover:border-slate-900 hover:bg-slate-50 transition-all no-underline">
+                Voir la démo
+              </a>
+            </div>
+            <p className="font-outfit text-[10px] text-slate-400 tracking-widest">
+              Pas de carte bancaire · 14 jours offerts · Annulation à tout moment
+            </p>
+          </FadeIn>
+        </div>
+      </section>
 
-      </div>
-    </>
+      {/* FOOTER */}
+      <footer className="border-t border-slate-800 py-10 px-12 bg-slate-900">
+        <div className="max-w-5xl mx-auto flex flex-wrap justify-between items-center gap-5">
+          <Link href="/" className="flex items-center gap-2.5 no-underline">
+            <div className="w-7 h-7 bg-white rounded flex items-center justify-center">
+              <Image src="/logo_blanc.png" alt="ZaynSpace" width={15} height={15} style={{ filter: "invert(1)" }} />
+            </div>
+            <span className="font-outfit text-base font-semibold text-slate-200">zaynspace</span>
+          </Link>
+          <div className="flex gap-7">
+            {[{ l:"Confidentialité",h:"/privacy"},{ l:"CGU",h:"/terms"},{ l:"Twitter",h:"#"},{ l:"GitHub",h:"#"}].map(({ l, h }) => (
+              <a key={l} href={h}
+                className="font-outfit text-[11px] tracking-widest uppercase text-slate-500 hover:text-slate-200 transition-colors no-underline">{l}</a>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ animation: "page-blink 1.5s step-end infinite" }} />
+            <span className="font-outfit text-[10px] text-slate-500 tracking-widest">© {new Date().getFullYear()} ZAYNSPACE</span>
+          </div>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes slideUp  { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeOnly { from { opacity:0; } to { opacity:1; } }
+        @keyframes page-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+      `}</style>
+    </div>
   );
 }

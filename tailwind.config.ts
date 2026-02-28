@@ -18,9 +18,9 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        heading: ["var(--font-outfit)", "sans-serif"],
-      },
+  outfit: ["var(--font-outfit)"],
+  lexend: ["var(--font-lexend)"],
+},
       colors: {
         'muted-foreground': 'hsl(var(--muted-foreground))', 
         border: "hsl(var(--border))",
