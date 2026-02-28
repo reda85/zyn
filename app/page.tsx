@@ -578,7 +578,7 @@ export default function HomePage() {
                     style={{ background: "linear-gradient(135deg,#10b981,#7c3aed)" }}>CS</div>
                   <div>
                     <div className="font-outfit text-sm font-semibold text-slate-200">Ghita Alami</div>
-                    <div className="font-outfit text-[10px] text-slate-500 mt-0.5 tracking-widest">Ghita Alami Architecte</div>
+                    <div className="font-outfit text-[10px] text-slate-500 mt-0.5 tracking-widest">Ghita Alami Architectes</div>
                   </div>
                 </div>
               </div>
