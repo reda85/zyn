@@ -23,23 +23,23 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
   const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
   const router = useRouter()
-  // ✅ SAFE activePlan resolution (minimal fix)
+
   const activePlan =
     plans.find(p => p?.id === selectedPlan?.id) ??
     plans[0] ??
     null
 
   return (
-    <div className={classNames(lexend.className, 'overflow-auto bg-white')}>
+    <div className={classNames(lexend.className, 'overflow-auto bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden')}>
       {/* Header */}
       <div className="flex flex-row gap-2 p-4 items-baseline">
         {activePlan && (
           <CustomSelect
             options={plans}
             selected={activePlan}
-             onChange={(plan) => {
-    router.push(`/${organizationId}/projects/${projectId}/${plan.id}`)
-  }}
+            onChange={(plan) => {
+              router.push(`/${organizationId}/projects/${projectId}/${plan.id}`)
+            }}
           />
         )}
         <FilterPanel user={user} projectId={projectId} />

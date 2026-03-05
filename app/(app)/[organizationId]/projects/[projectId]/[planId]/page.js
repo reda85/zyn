@@ -197,7 +197,7 @@ const fetchPins = async () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {selectedPlan && (
-          <div className="w-72 overflow-y-auto border-r border-border/40 bg-secondary/20">
+          <div className="w-80 overflow-y-auto border-r border-border/40 bg-secondary/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <PinsList pins={filteredPins} plans={project.plans} user={profile} projectId={projectId} organizationId={organizationId} />
           </div>
         )}

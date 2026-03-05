@@ -100,7 +100,7 @@ export default function CategoryComboBox({ pin }) {
             }}
             disabled={isGuest}
             className={clsx(
-              "relative w-full text-sm font-medium rounded-xl py-2.5 pl-3 pr-10 text-left border transition-all focus:outline-none",
+              "relative w-full text-xs font-medium rounded-xl py-2.5 pl-3 pr-10 text-left border transition-all focus:outline-none",
               isGuest
                 ? "bg-secondary/30 border-border/30 text-muted-foreground cursor-not-allowed opacity-60"
                 : "bg-secondary/50 border-border/50 text-foreground cursor-pointer hover:bg-secondary/80 hover:border-primary/20 focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
@@ -108,7 +108,7 @@ export default function CategoryComboBox({ pin }) {
           >
             <span className="flex items-center gap-2">
               {selected?.icon && categoriesIcons[selected.icon]}
-              <span className="block truncate text-sm">{selected?.name}</span>
+              <span className="block truncate text-xs">{selected?.name}</span>
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <ChevronUpDownIcon className={clsx(
@@ -130,7 +130,7 @@ export default function CategoryComboBox({ pin }) {
                 <Portal>
                   <Listbox.Options
                     static
-                    className="absolute z-[1100] max-h-60 overflow-auto rounded-xl bg-card py-1 text-base shadow-xl border border-border/50 ring-1 ring-black/5 focus:outline-none sm:text-sm backdrop-blur-sm"
+                    className="absolute z-[1100] max-h-60 overflow-auto rounded-xl bg-card py-1 text-xs shadow-xl border border-border/50 ring-1 ring-black/5 focus:outline-none sm:text-xs backdrop-blur-sm"
                     style={{
                       top: buttonRect.bottom + window.scrollY + 4,
                       left: buttonRect.left + window.scrollX,
@@ -156,7 +156,7 @@ export default function CategoryComboBox({ pin }) {
                             )}
                           >
                             {cat.icon && categoriesIcons[cat.icon]}
-                            <span className="text-sm">{cat.name}</span>
+                            <span className="text-xs">{cat.name}</span>
                             {isSelected && (
                               <CheckIcon className="ml-auto h-4 w-4 text-primary" />
                             )}

@@ -145,8 +145,8 @@ export default function Navbar({ id, user, project, organizationId }) {
           )}
         </div>
 
-        {/* Center Tabs */}
-        <div className="absolute left-1/2 flex -translate-x-1/2 space-x-6">
+        {/* Center Tabs — pill style */}
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1 p-1">
           {tabs.map(tab => {
             const path = tab === 'Plan'
               ? `/${organizationId}/projects/${id}`
@@ -155,10 +155,10 @@ export default function Navbar({ id, user, project, organizationId }) {
               <Link key={tab} href={path}>
                 <button
                   className={clsx(
-                    'px-4 py-2 transition-all text-sm ',
+                    'px-4 py-1.5 rounded-lg text-sm font-medium transition-all',
                     currentTab === tab
-                      ? 'border-b-2 border-primary text-primary'
-                      : 'border-b-2 border-transparent text-stone-500 hover:border-primary/50 hover:text-stone-900'
+                      ? 'bg-stone-200 text-stone-900'
+                      : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100'
                   )}
                 >
                   {tab}
