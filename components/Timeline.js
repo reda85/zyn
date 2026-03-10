@@ -98,7 +98,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
   return (
     <div className="bg-secondary/20 min-h-screen">
       <div className="flex items-center justify-between p-4 bg-secondary/40 border-b border-border/50">
-        <p className="text-sm font-medium text-foreground">
+        <p className="text-sm font-medium text-gray-800">
           Afficher tous les événements
         </p>
         <button
@@ -152,7 +152,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                 <div className="flex-1">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-foreground">
+                      <span className="text-sm font-semibold text-gray-800">
                         {userName}
                       </span>
 

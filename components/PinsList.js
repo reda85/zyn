@@ -49,7 +49,7 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
       <div className="flex flex-row gap-2 px-4 py-3 justify-between items-baseline bg-neutral-100 border border-border/50 backdrop-blur-sm">
         <div className="flex flex-row gap-2 items-center">
           <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-          <p className="text-foreground text-xs font-medium">
+          <p className="text-gray-800 text-xs font-medium">
             {pins.length} Pins total
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
                   ID: {index}
                 </p>
                 <p className={classNames(
-                  "font-semibold text-sm text-foreground font-heading",
+                  "font-semibold text-sm text-gray-800 font-heading",
                   lexend.className
                 )}>
                   {(selectedPin?.id === pin.id ? selectedPin.name : pin.name) || 'Pin sans nom'}

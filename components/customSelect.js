@@ -38,7 +38,7 @@ export default function CustomSelect({ options, selected, onChange }) {
               className="relative w-full flex flex-row items-center gap-2 cursor-pointer rounded-xl bg-neutral-100 hover:bg-neutral-200 py-2.5 pl-3 pr-10 text-left border border-border/50 hover:border-primary/20 focus:outline-none transition-all hover:shadow-md backdrop-blur-sm"
             >
               <Square3Stack3DIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-              <span className="block truncate text-sm font-semibold font-heading text-foreground">{selected.name}</span>
+              <span className="block truncate text-sm font-semibold font-heading text-gray-800">{selected.name}</span>
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                 <ChevronDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               </span>
