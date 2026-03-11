@@ -12,7 +12,6 @@ import MapPin from './MapPin';
 import { ZoomIn, ZoomOut, PointerIcon, MapPinIcon } from 'lucide-react';
 import GhostPin from './GhostPin';
 import { supabase } from '@/utils/supabase/client';
-import ReactDOM from 'react-dom';
 
 const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
@@ -40,159 +39,77 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
 
   const useOSD = Boolean(plan?.tiles_path);
 
-  // ── Image / size state ────────────────────────────────────────────────────
-  const [baseImageSize, setBaseImageSize] = useState({ width: 0, height: 0 });
-  const [imageLoaded, setImageLoaded]     = useState(false);
-  const baseImageSizeRef                  = useRef({ width: 0, height: 0 });
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [baseImageSize, setBaseImageSize]   = useState({ width: 0, height: 0 });
+  const [imageLoaded, setImageLoaded]       = useState(false);
+  const [scale,  setScale]                  = useState(1);
+  const [offset, setOffset]                 = useState({ x: 0, y: 0 });
+  const [pinMode, setPinMode]               = useState(false);
+  const [dragging, setDragging]             = useState(false);
+  const [hoveredPinId, setHoveredPinId]     = useState(null);
+  const [ghostPinPos, setGhostPinPos]       = useState(null);
+  const [newComment, setNewComment]         = useState(null);
+  const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
+  const [draggingPin, setDraggingPin]       = useState(null);
+  const [pinDragStart, setPinDragStart]     = useState(null);
+  const [isDragging, setIsDragging]         = useState(false);
+  // OSD pin screen positions: { [pin.id]: { x, y } } in px relative to container
+  const [osdPinPositions, setOsdPinPositions] = useState({});
 
-  // ── Transform (plain-image mode) ──────────────────────────────────────────
-  const [scale,  setScale]  = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const scaleRef  = useRef(1);
-  const offsetRef = useRef({ x: 0, y: 0 });
-
-  const imageLayerRef = useRef(null);
-  const pinElemRefs   = useRef({});
-  const osdViewerRef  = useRef(null);
-  const osdOverlayRefs = useRef({});
-
-  // ── Misc refs / state (declared early — used by overlays + applyTransform) ─
+  // ── Refs ──────────────────────────────────────────────────────────────────
+  const baseImageSizeRef   = useRef({ width: 0, height: 0 });
+  const scaleRef           = useRef(1);
+  const offsetRef          = useRef({ x: 0, y: 0 });
+  const imageLayerRef      = useRef(null);
+  const pinElemRefs        = useRef({});
+  const osdViewerRef       = useRef(null);
+  const osdNativeSize      = useRef({ width: 1, height: 1 });
   const containerRef       = useRef(null);
   const imageRef           = useRef(null);
-  const [dragging, setDragging]                 = useState(false);
   const startDragRef       = useRef({ x: 0, y: 0 });
-  const [pinMode, setPinMode]                   = useState(false);
-  const pinModeRef                              = useRef(false);
-  const [hoveredPinId, setHoveredPinId]         = useState(null);
-  const [ghostPinPos, setGhostPinPos]           = useState(null);
-  const [newComment, setNewComment]             = useState(null);
-  const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
-  const [draggingPin, setDraggingPin]           = useState(null);
-  const [pinDragStart, setPinDragStart]         = useState(null);
-  const [isDragging, setIsDragging]             = useState(false);
+  const pinModeRef         = useRef(false);
+  const isDraggingRef      = useRef(false);
   const draggingPinRef     = useRef(null);
   const initialDistanceRef = useRef(null);
   const initialScaleRef    = useRef(1);
+  const animFrameRef       = useRef(null);
+  const wheelCommitTimer   = useRef(null);
+  const pinsRef            = useRef(pins); // always-current ref for OSD handlers
+
   const isGuest = !user || !user.id;
 
-  // ── Plain-image: apply CSS transform ─────────────────────────────────────
-  const applyTransform = useCallback((s, o) => {
-    scaleRef.current  = s;
-    offsetRef.current = o;
-    if (imageLayerRef.current)
-      imageLayerRef.current.style.transform = `translate(${o.x}px, ${o.y}px) scale(${s})`;
-    const { width, height } = baseImageSizeRef.current;
-    if (!width) return;
-    const tw = width  * RENDER_SCALE;
-    const th = height * RENDER_SCALE;
-    for (const el of Object.values(pinElemRefs.current)) {
-      if (!el) continue;
-      const px = parseFloat(el.dataset.px);
-      const py = parseFloat(el.dataset.py);
-      el.style.transform = `translate(${px * tw * s + o.x}px, ${py * th * s + o.y}px) translate(-50%,-50%)`;
-    }
-  }, []);
+  useEffect(() => { pinModeRef.current  = pinMode;   }, [pinMode]);
+  useEffect(() => { isDraggingRef.current = isDragging; }, [isDragging]);
+  useEffect(() => { pinsRef.current = pins; }, [pins]);
 
-  const commitTransform = useCallback(() => {
-    setScale(scaleRef.current);
-    setOffset({ ...offsetRef.current });
-  }, []);
-
-  // ── OSD: add / update / remove overlays ──────────────────────────────────
-  // Each pin gets a plain <div> registered as an OSD overlay at its viewport
-  // coords. OSD moves the div automatically on every pan/zoom — no manual sync.
-  // ── OSD coordinate conversion ─────────────────────────────────────────────
-  // OSD viewport space: x is 0–1 (normalized by image WIDTH only).
-  // y is 0–(height/width). Our pins use 0–1 for BOTH axes independently.
-  // Convert: osd_x = pin.x,  osd_y = pin.y * (imageHeight / imageWidth)
-  const osdNativeSize = useRef({ width: 1, height: 1 });
-
-  const pinToViewport = (px, py) => {
+  // ── OSD coordinate helpers ────────────────────────────────────────────────
+  // OSD viewport: x in [0,1], y in [0, height/width]
+  // Our pins: x,y both in [0,1] normalized independently
+  const pinToViewport = useCallback((px, py) => {
     const { width, height } = osdNativeSize.current;
     return new OpenSeadragon.Point(px, py * (height / width));
-  };
+  }, []);
 
-  const viewportToPin = (vx, vy) => {
+  const viewportToPin = useCallback((vx, vy) => {
     const { width, height } = osdNativeSize.current;
     return { x: vx, y: vy / (height / width) };
-  };
-
-  const refreshOSDOverlays = useCallback(() => {
-    const v = osdViewerRef.current;
-    if (!v || !OpenSeadragon) return;
-
-    const currentIds = new Set(pins.map(p => p.id));
-
-    // Remove overlays for deleted pins
-    for (const [id, el] of Object.entries(osdOverlayRefs.current)) {
-      if (!currentIds.has(id)) {
-        try { v.removeOverlay(el); } catch {}
-        delete osdOverlayRefs.current[id];
-      }
-    }
-
-    // Add or update overlays for current pins
-    for (const pin of pins) {
-      const location = pinToViewport(pin.x, pin.y);
-
-      if (osdOverlayRefs.current[pin.id]) {
-        v.updateOverlay(osdOverlayRefs.current[pin.id], location, OpenSeadragon.Placement.CENTER);
-      } else {
-        const el = document.createElement('div');
-        el.style.cssText = 'pointer-events: auto; cursor: move;';
-        el.dataset.pinId = pin.id;
-        osdOverlayRefs.current[pin.id] = el;
-        v.addOverlay({ element: el, location, placement: OpenSeadragon.Placement.CENTER });
-      }
-    }
-  }, [pins, pinToViewport]);
-
-  // Re-render React content into each overlay div whenever pins / selection changes
-  useEffect(() => {
-    if (!useOSD) return;
-    const v = osdViewerRef.current;
-    if (!v || !OpenSeadragon) return;
-
-    refreshOSDOverlays();
-
-    // Render MapPin React tree into each overlay element
-    for (const pin of pins) {
-      const el = osdOverlayRefs.current[pin.id];
-      if (!el) continue;
-      const idx = pins.indexOf(pin);
-      ReactDOM.render(
-        <div
-          style={{ cursor: pinMode ? 'crosshair' : 'move' }}
-          onMouseDown={e => handlePinMouseDown(e, pin)}
-          onClick={e => {
-            if (isDragging || pinDragStart?.hasMoved || draggingPin) { e.stopPropagation(); return; }
-            e.stopPropagation();
-            setSelectedPin({ ...pin, index: idx });
-          }}
-        >
-          <MapPin
-            pin={pin}
-            hovered={hoveredPinId === pin.id}
-            dragging={draggingPin === pin.id}
-            onMouseEnter={() => setHoveredPinId(pin.id)}
-            onMouseLeave={() => setHoveredPinId(id => id === pin.id ? null : id)}
-          />
-        </div>,
-        el
-      );
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pins, useOSD, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, imageLoaded]);
-
-  // Cleanup overlay portals on unmount
-  useEffect(() => {
-    return () => {
-      for (const el of Object.values(osdOverlayRefs.current)) {
-        try { ReactDOM.unmountComponentAtNode(el); } catch {}
-      }
-      osdOverlayRefs.current = {};
-    };
   }, []);
+
+  // ── OSD: recompute all pin screen positions ───────────────────────────────
+  // Called on every viewport-change. Converts each pin's normalized coords
+  // into pixel positions relative to the OSD viewer element.
+  const syncOsdPinPositions = useCallback(() => {
+    const v = osdViewerRef.current;
+    if (!v || !OpenSeadragon) return;
+    const currentPins = pinsRef.current;
+    const positions = {};
+    for (const pin of currentPins) {
+      const vp = pinToViewport(pin.x, pin.y);
+      const px = v.viewport.viewportToViewerElementCoordinates(vp);
+      positions[pin.id] = { x: px.x, y: px.y };
+    }
+    setOsdPinPositions(positions);
+  }, [pinToViewport]);
 
   // ── OSD init ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -213,20 +130,17 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
           })
           .then(xml => {
             if (destroyed) return;
-
             const doc = new DOMParser().parseFromString(xml, 'text/xml');
             const get = (name) => parseInt(
               [...doc.querySelectorAll('property')]
                 .find(p => p.querySelector('name')?.textContent === name)
                 ?.querySelector('value')?.textContent
             );
-
             const width    = get('width');
             const height   = get('height');
             const maxLevel = Math.ceil(Math.log2(Math.max(width, height)));
             console.log('[OSD] init', { width, height, maxLevel });
 
-            // Store native size for coordinate conversion
             osdNativeSize.current = { width, height };
             baseImageSizeRef.current = { width: width / RENDER_SCALE, height: height / RENDER_SCALE };
             setBaseImageSize({ width: width / RENDER_SCALE, height: height / RENDER_SCALE });
@@ -253,15 +167,18 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
             viewer.addHandler('open', () => {
               setImageLoaded(true);
               setScale(viewer.viewport.getZoom(true));
+              syncOsdPinPositions();
             });
 
-            viewer.addHandler('zoom', ({ zoom }) => setScale(zoom));
+            viewer.addHandler('zoom',             ({ zoom }) => setScale(zoom));
+            viewer.addHandler('viewport-change',  () => syncOsdPinPositions());
 
-            // Pin placement on canvas click
+            // Pin placement
             viewer.addHandler('canvas-click', (e) => {
               if (!pinModeRef.current || !e.quick) return;
-              const pt = viewer.viewport.pointFromPixel(e.position);
-              handlePinAdd({ x: pt.x, y: pt.y });
+              const vp  = viewer.viewport.pointFromPixel(e.position);
+              const pin = viewportToPin(vp.x, vp.y);
+              handlePinAdd({ x: pin.x, y: pin.y });
             });
           });
       })
@@ -269,41 +186,56 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
 
     return () => {
       destroyed = true;
-      // Unmount all overlay React trees
-      for (const el of Object.values(osdOverlayRefs.current)) {
-        try { ReactDOM.unmountComponentAtNode(el); } catch {}
-      }
-      osdOverlayRefs.current = {};
       osdViewerRef.current?.destroy();
       osdViewerRef.current = null;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan?.tiles_path]);
 
-  // ── Animated zoom (plain-image mode) ─────────────────────────────────────
-  const animFrameRef = useRef(null);
+  // Re-sync pin positions when pin list changes (new pin added, etc.)
+  useEffect(() => {
+    if (useOSD) syncOsdPinPositions();
+  }, [pins, useOSD, syncOsdPinPositions]);
+
+  // ── Plain-image transform ─────────────────────────────────────────────────
+  const applyTransform = useCallback((s, o) => {
+    scaleRef.current  = s;
+    offsetRef.current = o;
+    if (imageLayerRef.current)
+      imageLayerRef.current.style.transform = `translate(${o.x}px, ${o.y}px) scale(${s})`;
+    const { width, height } = baseImageSizeRef.current;
+    if (!width) return;
+    const tw = width * RENDER_SCALE, th = height * RENDER_SCALE;
+    for (const el of Object.values(pinElemRefs.current)) {
+      if (!el) continue;
+      const px = parseFloat(el.dataset.px), py = parseFloat(el.dataset.py);
+      el.style.transform = `translate(${px * tw * s + o.x}px, ${py * th * s + o.y}px) translate(-50%,-50%)`;
+    }
+  }, []);
+
+  const commitTransform = useCallback(() => {
+    setScale(scaleRef.current);
+    setOffset({ ...offsetRef.current });
+  }, []);
 
   const animateTo = useCallback((targetS, targetO, duration = 300) => {
     cancelAnimationFrame(animFrameRef.current);
-    const startS = scaleRef.current;
-    const startO = { ...offsetRef.current };
+    const startS = scaleRef.current, startO = { ...offsetRef.current };
     let startTime = null;
-    function easeInOut(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+    function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
     function step(now) {
       if (!startTime) startTime = now;
       const t = Math.min(1, (now - startTime) / duration);
-      const e = easeInOut(t);
-      applyTransform(
-        startS + (targetS - startS) * e,
-        { x: startO.x + (targetO.x - startO.x) * e, y: startO.y + (targetO.y - startO.y) * e }
-      );
+      const e = ease(t);
+      applyTransform(startS + (targetS - startS) * e, {
+        x: startO.x + (targetO.x - startO.x) * e,
+        y: startO.y + (targetO.y - startO.y) * e,
+      });
       if (t < 1) animFrameRef.current = requestAnimationFrame(step);
       else commitTransform();
     }
     animFrameRef.current = requestAnimationFrame(step);
   }, [applyTransform, commitTransform]);
-
-  useEffect(() => { pinModeRef.current = pinMode; }, [pinMode]);
 
   // ── Zoom buttons ──────────────────────────────────────────────────────────
   function zoomButton(factor) {
@@ -326,7 +258,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
   const zoomOut = () => zoomButton(0.5);
 
   // ── Wheel (plain-image only) ──────────────────────────────────────────────
-  const wheelCommitTimer = useRef(null);
   const handleWheel = (e) => {
     if (useOSD) return;
     e.preventDefault();
@@ -397,28 +328,36 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     if (pinMode) return;
     draggingPinRef.current = pin.id;
     setIsDragging(false);
+    isDraggingRef.current = false;
     setPinDragStart({ mouseX: e.clientX, mouseY: e.clientY, pinX: pin.x, pinY: pin.y, hasMoved: false });
   };
 
   const handlePinMouseMove = useCallback((e) => {
     if (!pinDragStart) return;
     if (Math.abs(e.clientX - pinDragStart.mouseX) <= 5 && Math.abs(e.clientY - pinDragStart.mouseY) <= 5) return;
-    if (!pinDragStart.hasMoved) { setPinDragStart(p => ({ ...p, hasMoved: true })); setDraggingPin(pinDragStart.pinId); setIsDragging(true); }
+    if (!pinDragStart.hasMoved) {
+      setPinDragStart(p => ({ ...p, hasMoved: true }));
+      setDraggingPin(draggingPinRef.current);
+      setIsDragging(true);
+      isDraggingRef.current = true;
+    }
     const id = draggingPinRef.current;
     if (!id) return;
 
     if (useOSD) {
       const v = osdViewerRef.current;
       if (!v || !OpenSeadragon) return;
-      // Convert screen delta to viewport delta
-      const startViewport = v.viewport.viewerElementToViewportCoordinates(new OpenSeadragon.Point(pinDragStart.mouseX, pinDragStart.mouseY));
-      const currViewport  = v.viewport.viewerElementToViewportCoordinates(new OpenSeadragon.Point(e.clientX, e.clientY));
-      const startPin = viewportToPin(startViewport.x, startViewport.y);
-      const currPin  = viewportToPin(currViewport.x,  currViewport.y);
+      const rect  = v.element.getBoundingClientRect();
+      const startVP = v.viewport.viewerElementToViewportCoordinates(
+        new OpenSeadragon.Point(pinDragStart.mouseX - rect.left, pinDragStart.mouseY - rect.top)
+      );
+      const currVP = v.viewport.viewerElementToViewportCoordinates(
+        new OpenSeadragon.Point(e.clientX - rect.left, e.clientY - rect.top)
+      );
+      const startPin = viewportToPin(startVP.x, startVP.y);
+      const currPin  = viewportToPin(currVP.x,  currVP.y);
       const newX = Math.max(0, Math.min(1, pinDragStart.pinX + (currPin.x - startPin.x)));
       const newY = Math.max(0, Math.min(1, pinDragStart.pinY + (currPin.y - startPin.y)));
-      const el = osdOverlayRefs.current[id];
-      if (el) v.updateOverlay(el, pinToViewport(newX, newY), OpenSeadragon.Placement.CENTER);
       setAllPins(prev => prev.map(p => p.id === id ? { ...p, x: newX, y: newY } : p));
       setSelectedPin(prev => prev?.id === id ? { ...prev, x: newX, y: newY } : prev);
     } else {
@@ -434,23 +373,33 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
       setAllPins(prev => prev.map(p => p.id === id ? { ...p, x: newX, y: newY } : p));
       setSelectedPin(prev => prev?.id === id ? { ...prev, x: newX, y: newY } : prev);
     }
-  }, [pinDragStart, useOSD]);
+  }, [pinDragStart, useOSD, viewportToPin]);
 
   const handlePinMouseUp = useCallback(async () => {
-    if (pinDragStart && !pinDragStart.hasMoved) { setPinDragStart(null); setDraggingPin(null); setIsDragging(false); draggingPinRef.current = null; return; }
+    if (pinDragStart && !pinDragStart.hasMoved) {
+      setPinDragStart(null); setDraggingPin(null);
+      setIsDragging(false); isDraggingRef.current = false;
+      draggingPinRef.current = null;
+      return;
+    }
     const id = draggingPinRef.current;
     if (!id) return;
-    const pin = pins.find(p => p.id === id);
-    if (pin && isDragging) await supabase.from('pdf_pins').update({ x: pin.x, y: pin.y }).eq('id', pin.id);
-    setDraggingPin(null); setPinDragStart(null); draggingPinRef.current = null;
-    setTimeout(() => setIsDragging(false), 50);
-  }, [pinDragStart, pins, isDragging]);
+    const pin = pinsRef.current.find(p => p.id === id);
+    if (pin && isDraggingRef.current)
+      await supabase.from('pdf_pins').update({ x: pin.x, y: pin.y }).eq('id', pin.id);
+    setDraggingPin(null); setPinDragStart(null);
+    draggingPinRef.current = null;
+    setTimeout(() => { setIsDragging(false); isDraggingRef.current = false; }, 50);
+  }, [pinDragStart]);
 
   useEffect(() => {
     if (!pinDragStart) return;
     window.addEventListener('mousemove', handlePinMouseMove);
-    window.addEventListener('mouseup',  handlePinMouseUp);
-    return () => { window.removeEventListener('mousemove', handlePinMouseMove); window.removeEventListener('mouseup', handlePinMouseUp); };
+    window.addEventListener('mouseup',   handlePinMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handlePinMouseMove);
+      window.removeEventListener('mouseup',   handlePinMouseUp);
+    };
   }, [pinDragStart, handlePinMouseMove, handlePinMouseUp]);
 
   // ── Focus on pin ──────────────────────────────────────────────────────────
@@ -476,7 +425,10 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
   }, [focusOnPinOnce, pins]);
 
   useEffect(() => {
-    if (selectedPin && !isDragging) { const p = pins.find(p => p.id === selectedPin.id); if (p) focusOnPin(p); }
+    if (selectedPin && !isDragging) {
+      const p = pins.find(p => p.id === selectedPin.id);
+      if (p) focusOnPin(p);
+    }
   }, [selectedPin?.id, isDragging]);
 
   // ── Image load (plain-image mode) ─────────────────────────────────────────
@@ -519,7 +471,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     if (error) console.error('handlePinAdd', error);
   };
 
-  // ── Plain-image pins (memoized) ───────────────────────────────────────────
+  // ── Plain-image pins ──────────────────────────────────────────────────────
   const totalW = baseImageSize.width  * RENDER_SCALE;
   const totalH = baseImageSize.height * RENDER_SCALE;
 
@@ -536,7 +488,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     }
   }, [pins, useOSD]);
 
-  const memoizedPins = useMemo(() => {
+  const plainImagePins = useMemo(() => {
     if (useOSD || !baseImageSize.width) return null;
     return pins.map((pin, idx) => {
       const sx = pin.x * totalW * scaleRef.current + offsetRef.current.x;
@@ -545,16 +497,9 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
       return (
         <div
           key={pin.id}
-          data-px={pin.x}
-          data-py={pin.y}
+          data-px={pin.x} data-py={pin.y}
           ref={el => { if (el) pinElemRefs.current[pin.id] = el; else delete pinElemRefs.current[pin.id]; }}
-          style={{
-            position: 'absolute', left: 0, top: 0,
-            transform: `translate(${sx}px, ${sy}px) translate(-50%,-50%)`,
-            pointerEvents: 'auto', zIndex: z,
-            cursor: pinMode ? 'crosshair' : 'move',
-            opacity: draggingPin === pin.id ? 0.7 : 1,
-          }}
+          style={{ position: 'absolute', left: 0, top: 0, transform: `translate(${sx}px, ${sy}px) translate(-50%,-50%)`, pointerEvents: 'auto', zIndex: z, cursor: pinMode ? 'crosshair' : 'move', opacity: draggingPin === pin.id ? 0.7 : 1 }}
           onMouseEnter={() => setHoveredPinId(pin.id)}
           onMouseLeave={() => setHoveredPinId(id => id === pin.id ? null : id)}
           onMouseDown={e => handlePinMouseDown(e, pin)}
@@ -563,13 +508,46 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
             e.stopPropagation();
             setSelectedPin({ ...pins.find(p => p.id === pin.id), index: idx });
           }}
-          title={`Pin #${idx + 1}`}
         >
           <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id} />
         </div>
       );
     });
   }, [pins, baseImageSize, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, pinDragStart?.hasMoved, useOSD]);
+
+  // ── OSD pins — rendered in screen-space div, positioned via osdPinPositions ─
+  const osdPins = useMemo(() => {
+    if (!useOSD || !imageLoaded) return null;
+    return pins.map((pin, idx) => {
+      const pos = osdPinPositions[pin.id];
+      if (!pos) return null;
+      const z = selectedPin?.id === pin.id ? 3000 : hoveredPinId === pin.id ? 2000 : 10;
+      return (
+        <div
+          key={pin.id}
+          style={{
+            position: 'absolute',
+            left: 0, top: 0,
+            transform: `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)`,
+            zIndex: z,
+            cursor: pinMode ? 'crosshair' : 'move',
+            opacity: draggingPin === pin.id ? 0.7 : 1,
+            pointerEvents: 'auto',
+          }}
+          onMouseEnter={() => setHoveredPinId(pin.id)}
+          onMouseLeave={() => setHoveredPinId(id => id === pin.id ? null : id)}
+          onMouseDown={e => handlePinMouseDown(e, pin)}
+          onClick={e => {
+            e.stopPropagation();
+            if (isDraggingRef.current) return;
+            setSelectedPin({ ...pins.find(p => p.id === pin.id), index: idx });
+          }}
+        >
+          <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id} />
+        </div>
+      );
+    });
+  }, [pins, osdPinPositions, selectedPin?.id, hoveredPinId, pinMode, draggingPin, imageLoaded, useOSD]);
 
   const closeDrawer = () => setSelectedPin(null);
 
@@ -601,31 +579,22 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
         {/* Controls */}
         <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
           <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-            <button onClick={zoomOut} className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors border-r border-gray-200" title="Zoom Out">
+            <button onClick={zoomOut} className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors border-r border-gray-200">
               <ZoomOut className="h-5 w-5 text-gray-700" />
             </button>
             <div className="px-3 text-sm font-medium text-gray-600 border-r border-gray-200 min-w-[60px] text-center">
               {Math.round(scale * 100)}%
             </div>
-            <button onClick={zoomIn} className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors" title="Zoom In">
+            <button onClick={zoomIn} className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors">
               <ZoomIn className="h-5 w-5 text-gray-700" />
             </button>
           </div>
-
           {!isGuest && (
             <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-              <button
-                onClick={() => setPinMode(false)}
-                className={`p-3 transition-all border-r border-gray-200 ${!pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'}`}
-                title="Select Mode"
-              >
+              <button onClick={() => setPinMode(false)} className={`p-3 transition-all border-r border-gray-200 ${!pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}>
                 <PointerIcon className="h-5 w-5" />
               </button>
-              <button
-                onClick={() => setPinMode(true)}
-                className={`p-3 transition-all ${pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 active:bg-gray-100 text-gray-700'}`}
-                title="Pin Mode"
-              >
+              <button onClick={() => setPinMode(true)} className={`p-3 transition-all ${pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}>
                 <MapPinIcon className="h-5 w-5" />
               </button>
             </div>
@@ -643,8 +612,11 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
                 </div>
               </div>
             )}
-            {/* OSD mounts its canvas + overlay divs inside this element */}
             <div id={`osd-viewer-${plan.id}`} style={{ position: 'absolute', inset: 0 }} />
+            {/* Pins sit in a screen-space div on top of OSD — no OSD overlay system */}
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
+              {osdPins}
+            </div>
           </>
         )}
 
@@ -676,10 +648,10 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
           </div>
         )}
 
-        {/* Plain-image pins layer */}
+        {/* Plain-image pins */}
         {!useOSD && (
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', zIndex: 10 }}>
-            {memoizedPins}
+            {plainImagePins}
           </div>
         )}
       </div>
