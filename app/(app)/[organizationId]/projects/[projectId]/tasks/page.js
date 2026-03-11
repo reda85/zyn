@@ -340,7 +340,7 @@ export default function Tasks({ params }) {
   return (
     <>
       {categories && statuses && (
-        <div className={clsx(outfit.className, "min-h-screen bg-[#f9fafb]")}>
+        <div className={clsx(outfit.className, "min-h-screen bg-gray-50")}>
           <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
 
           <div className="px-6 pt-5 pb-10 max-w-[1400px] mx-auto">
@@ -348,10 +348,10 @@ export default function Tasks({ params }) {
             {/* ── Page header ── */}
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h1 className="text-[15px] font-semibold text-[#111827] tracking-tight">
+                <h1 className="text-medium font-semibold text-gray-800 tracking-tight">
                   Liste des tâches
                 </h1>
-                <p className="text-[12px] text-[#6b7280] mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5">
                   {pins.length} tâche{pins.length > 1 ? 's' : ''} au total
                 </p>
               </div>
@@ -444,10 +444,10 @@ export default function Tasks({ params }) {
               )}
 
               {/* ── Table ── */}
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="border-b border-gray-200">
+                    <tr className="border-b border-gray-200 bg-gray-50">
                       <th className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
@@ -496,14 +496,14 @@ export default function Tasks({ params }) {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
                             <Pin pin={pin} />
-                            <span className="text-[13px] font-medium text-[#111827]">
+                            <span className="text-sm font-medium text-gray-800">
                               {pin.name || "Pin sans nom"}
                             </span>
                           </div>
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className="text-[12px] text-[#6b7280] font-mono">
+                          <span className="text-sm text-gray-600 font-mono">
                             {pin.projects?.project_number}-{pin.pin_number}
                           </span>
                         </td>
@@ -514,10 +514,10 @@ export default function Tasks({ params }) {
                               <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold text-[#6b7280] flex-shrink-0">
                                 {pin.assigned_to.name.charAt(0).toUpperCase()}
                               </div>
-                              <span className="text-[12px] text-[#374151]">{pin.assigned_to.name}</span>
+                              <span className="text-sm text-gray-600">{pin.assigned_to.name}</span>
                             </div>
                           ) : (
-                            <span className="text-[12px] text-[#d1d5db]">—</span>
+                            <span className="text-sm text-gray-600">—</span>
                           )}
                         </td>
 
@@ -532,16 +532,16 @@ export default function Tasks({ params }) {
                         <td className="px-4 py-3">
                           {pin.pdf_name ? (
                             <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded-md w-fit">
-                              <Square3Stack3DIcon className="w-3.5 h-3.5 text-[#9ca3af]" />
-                              <span className="text-[11px] text-[#374151]">{pin.pdf_name}</span>
+                              <Square3Stack3DIcon className="w-3.5 h-3.5 text-sm text-gray-600" />
+                              <span className="text-sm text-gray-600">{pin.pdf_name}</span>
                             </div>
                           ) : (
-                            <span className="text-[12px] text-[#d1d5db]">—</span>
+                            <span className="text-sm text-gray-600">—</span>
                           )}
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className="text-[12px] text-[#9ca3af]">
+                          <span className="text-sm text-gray-600">
                             {pin.tags?.length > 0 ? pin.tags.join(', ') : '—'}
                           </span>
                         </td>

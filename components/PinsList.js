@@ -30,7 +30,7 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
     null
 
   return (
-    <div className={classNames(lexend.className, 'overflow-auto bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden')}>
+    <div className={classNames(lexend.className, 'overflow-auto bg-gray-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden')}>
       {/* Header */}
       <div className="flex flex-row gap-2 p-4 items-baseline">
         {activePlan && (
@@ -62,10 +62,10 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
             key={pin.id}
             onClick={() => setSelectedPin(pin)}
             className={classNames(
-              "hover:cursor-pointer border rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-lg hover:-translate-y-0.5",
+              "hover:cursor-pointer border bg-gray-100 rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-lg hover:-translate-y-0.5",
               selectedPin?.id === pin.id
-                ? 'bg-neutral-200 border-primary/50 shadow-md shadow-primary/10'
-                : 'bg-neutral-100 border-border/50 hover:border-primary/20 hover:bg-secondary/50'
+                ? ' border-primary/50 shadow-md shadow-primary/10 bg-white'
+                : ' border-border/50 hover:border-primary/20 hover:bg-secondary/50'
             )}
           >
             {/* Header */}

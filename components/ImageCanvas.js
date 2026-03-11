@@ -53,8 +53,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
   const [draggingPin, setDraggingPin]       = useState(null);
   const [pinDragStart, setPinDragStart]     = useState(null);
   const [isDragging, setIsDragging]         = useState(false);
-  // OSD pin screen positions: { [pin.id]: { x, y } } in px relative to container
-  const [osdPinPositions, setOsdPinPositions] = useState({});
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const baseImageSizeRef   = useRef({ width: 0, height: 0 });
@@ -62,6 +60,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
   const offsetRef          = useRef({ x: 0, y: 0 });
   const imageLayerRef      = useRef(null);
   const pinElemRefs        = useRef({});
+  const osdPinElemRefs     = useRef({});  // { [pin.id]: HTMLElement } for OSD pins
   const osdViewerRef       = useRef(null);
   const osdNativeSize      = useRef({ width: 1, height: 1 });
   const containerRef       = useRef(null);
@@ -95,20 +94,17 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     return { x: vx, y: vy / (height / width) };
   }, []);
 
-  // ── OSD: recompute all pin screen positions ───────────────────────────────
-  // Called on every viewport-change. Converts each pin's normalized coords
-  // into pixel positions relative to the OSD viewer element.
+  // ── OSD: write pin positions directly to DOM (no React state = no lag) ────
   const syncOsdPinPositions = useCallback(() => {
     const v = osdViewerRef.current;
     if (!v || !OpenSeadragon) return;
-    const currentPins = pinsRef.current;
-    const positions = {};
-    for (const pin of currentPins) {
+    for (const pin of pinsRef.current) {
+      const el = osdPinElemRefs.current[pin.id];
+      if (!el) continue;
       const vp = pinToViewport(pin.x, pin.y);
       const px = v.viewport.viewportToViewerElementCoordinates(vp);
-      positions[pin.id] = { x: px.x, y: px.y };
+      el.style.transform = `translate(${px.x}px, ${px.y}px) translate(-50%, -50%)`;
     }
-    setOsdPinPositions(positions);
   }, [pinToViewport]);
 
   // ── OSD init ──────────────────────────────────────────────────────────────
@@ -358,6 +354,13 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
       const currPin  = viewportToPin(currVP.x,  currVP.y);
       const newX = Math.max(0, Math.min(1, pinDragStart.pinX + (currPin.x - startPin.x)));
       const newY = Math.max(0, Math.min(1, pinDragStart.pinY + (currPin.y - startPin.y)));
+      // Write drag position directly to DOM
+      const dragEl = osdPinElemRefs.current[id];
+      if (dragEl) {
+        const vp2 = pinToViewport(newX, newY);
+        const px2 = v.viewport.viewportToViewerElementCoordinates(vp2);
+        dragEl.style.transform = `translate(${px2.x}px, ${px2.y}px) translate(-50%, -50%)`;
+      }
       setAllPins(prev => prev.map(p => p.id === id ? { ...p, x: newX, y: newY } : p));
       setSelectedPin(prev => prev?.id === id ? { ...prev, x: newX, y: newY } : prev);
     } else {
@@ -515,20 +518,22 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
     });
   }, [pins, baseImageSize, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, pinDragStart?.hasMoved, useOSD]);
 
-  // ── OSD pins — rendered in screen-space div, positioned via osdPinPositions ─
+  // ── OSD pins — screen-space divs, positions written directly to DOM via ref ─
   const osdPins = useMemo(() => {
     if (!useOSD || !imageLoaded) return null;
     return pins.map((pin, idx) => {
-      const pos = osdPinPositions[pin.id];
-      if (!pos) return null;
       const z = selectedPin?.id === pin.id ? 3000 : hoveredPinId === pin.id ? 2000 : 10;
       return (
         <div
           key={pin.id}
+          ref={el => {
+            if (el) { osdPinElemRefs.current[pin.id] = el; syncOsdPinPositions(); }
+            else    delete osdPinElemRefs.current[pin.id];
+          }}
           style={{
             position: 'absolute',
             left: 0, top: 0,
-            transform: `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)`,
+            transform: 'translate(0px, 0px) translate(-50%, -50%)', // overwritten by syncOsdPinPositions
             zIndex: z,
             cursor: pinMode ? 'crosshair' : 'move',
             opacity: draggingPin === pin.id ? 0.7 : 1,
@@ -547,7 +552,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
         </div>
       );
     });
-  }, [pins, osdPinPositions, selectedPin?.id, hoveredPinId, pinMode, draggingPin, imageLoaded, useOSD]);
+  }, [pins, selectedPin?.id, hoveredPinId, pinMode, draggingPin, imageLoaded, useOSD]);
 
   const closeDrawer = () => setSelectedPin(null);
 

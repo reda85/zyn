@@ -157,8 +157,8 @@ export default function Navbar({ id, user, project, organizationId }) {
                   className={clsx(
                     'px-4 py-1.5 rounded-lg text-sm font-medium transition-all',
                     currentTab === tab
-                      ? 'bg-stone-200 text-stone-900'
-                      : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100'
+                      ? 'bg-gray-200 text-gray-800'
+                      : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
                   )}
                 >
                   {tab}
