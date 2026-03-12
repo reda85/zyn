@@ -67,7 +67,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
 
   if (item.item_type === 'plan') {
     return (
-      <div onClick={handleClick} className={`flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${isOwn ? 'bg-white/10' : 'bg-gray-100 text-[#374151]'}`}>
+      <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-neutral-100 text-neutral-600')}>
         <span>🗺</span>
         <span>{item.label ?? item.item_id}</span>
       </div>
@@ -80,7 +80,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
   const CategoryIcon = categoriesPinIcons[catIconKey];
 
   return (
-    <div onClick={handleClick} className={`flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${isOwn ? 'bg-white/10' : 'bg-gray-100 text-[#374151]'}`}>
+    <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-neutral-100 text-neutral-600')}>
       <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: statusColor }}>
         {CategoryIcon && <div className="w-2.5 h-2.5 text-white">{CategoryIcon}</div>}
       </div>
@@ -231,46 +231,43 @@ export default function DiscussionsPage({ params }) {
   const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
 
   return (
-    <div className={clsx(outfit.className, "flex flex-col h-screen bg-[#f9fafb] overflow-hidden")}>
+    <div className={clsx(outfit.className, "flex flex-col h-screen bg-neutral-50 overflow-hidden")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
 
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── SIDEBAR ── */}
-        <aside className="w-64 shrink-0 bg-white border-r border-gray-200 flex flex-col">
+        <aside className="w-64 shrink-0 bg-white border-r border-neutral-200 flex flex-col">
 
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
             <div className="flex items-center gap-2">
-              <MessageSquare size={15} className="text-[#6b7280]" />
-              <span className="text-[13px] font-semibold text-[#111827]">Discussions</span>
+              <MessageSquare size={15} className="text-neutral-400" />
+              <span className="text-[13px] font-semibold text-neutral-900">Discussions</span>
               {totalUnread > 0 && (
-                <span className="bg-[#111827] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                <span className="bg-neutral-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                   {totalUnread}
                 </span>
               )}
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1 px-2 py-1.5 bg-[#111827] text-white rounded-lg text-[12px] font-medium hover:bg-[#1f2937] transition-colors"
-              title="Nouveau groupe"
+              className="flex items-center gap-1 px-2 py-1.5 bg-neutral-900 text-white rounded-lg text-[12px] font-medium hover:bg-neutral-800 transition-colors"
             >
               <Plus size={13} strokeWidth={2.5} />
               Nouveau
             </button>
           </div>
 
-          {/* Group list */}
           <div className="flex-1 overflow-y-auto">
             {loadingGroups ? (
               <div className="flex flex-col gap-1 p-3">
-                {[1,2,3].map(i => <div key={i} className="h-14 rounded-lg bg-gray-100 animate-pulse" />)}
+                {[1,2,3].map(i => <div key={i} className="h-14 rounded-lg bg-neutral-100 animate-pulse" />)}
               </div>
             ) : groups.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-12 px-4 text-center">
-                <MessageSquare size={28} className="text-gray-300" />
-                <p className="text-[12px] text-[#9ca3af]">Aucune discussion</p>
-                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-[#111827] text-white px-3 py-1.5 rounded-lg font-medium hover:bg-[#1f2937] transition-colors">
+                <MessageSquare size={28} className="text-neutral-200" />
+                <p className="text-[12px] text-neutral-400">Aucune discussion</p>
+                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-neutral-900 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-neutral-800 transition-colors">
                   Créer un groupe
                 </button>
               </div>
@@ -284,7 +281,7 @@ export default function DiscussionsPage({ params }) {
                   onClick={() => selectGroup(g)}
                   className={clsx(
                     "w-full flex items-center gap-2.5 px-3 py-3 text-left transition-all border-l-2",
-                    isActive ? 'bg-[#f9fafb] border-[#111827]' : 'border-transparent hover:bg-[#f9fafb]'
+                    isActive ? 'bg-neutral-50 border-neutral-900' : 'border-transparent hover:bg-neutral-50'
                   )}
                 >
                   <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white font-bold text-[11px] ${avatarColor(g.id)}`}>
@@ -292,15 +289,15 @@ export default function DiscussionsPage({ params }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[13px] font-medium text-[#111827] truncate">{g.name}</span>
-                      {lm && <span className="text-[10px] text-[#9ca3af] shrink-0">{fmtTime(lm.created_at)}</span>}
+                      <span className="text-[13px] font-medium text-neutral-900 truncate">{g.name}</span>
+                      {lm && <span className="text-[10px] text-neutral-400 shrink-0">{fmtTime(lm.created_at)}</span>}
                     </div>
                     <div className="flex items-center justify-between mt-0.5">
-                      <span className="text-[11px] text-[#9ca3af] truncate max-w-[130px]">
+                      <span className="text-[11px] text-neutral-400 truncate max-w-[130px]">
                         {lm?.content ?? <em className="not-italic">Aucun message</em>}
                       </span>
                       {count > 0 && (
-                        <span className="bg-[#111827] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center shrink-0">
+                        <span className="bg-neutral-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center shrink-0">
                           {count > 99 ? '99+' : count}
                         </span>
                       )}
@@ -313,15 +310,15 @@ export default function DiscussionsPage({ params }) {
         </aside>
 
         {/* ── CHAT AREA ── */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-[#f9fafb]">
+        <main className="flex-1 flex flex-col overflow-hidden bg-neutral-50">
           {!activeGroup ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-10">
-              <MessageSquare size={32} className="text-gray-300" />
+              <MessageSquare size={32} className="text-neutral-200" />
               <div className="text-center">
-                <p className="text-[13px] font-medium text-[#374151] mb-1">Sélectionnez une discussion</p>
-                <p className="text-[12px] text-[#9ca3af]">Choisissez un groupe ou créez-en un nouveau.</p>
+                <p className="text-[13px] font-medium text-neutral-600 mb-1">Sélectionnez une discussion</p>
+                <p className="text-[12px] text-neutral-400">Choisissez un groupe ou créez-en un nouveau.</p>
               </div>
-              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-[#111827] text-white rounded-lg text-[13px] font-medium hover:bg-[#1f2937] transition-colors">
+              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors">
                 <Plus size={13} />
                 Nouveau groupe
               </button>
@@ -329,21 +326,21 @@ export default function DiscussionsPage({ params }) {
           ) : (
             <>
               {/* Chat header */}
-              <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200">
+              <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-neutral-200">
                 <div className="flex items-center gap-2.5">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-[11px] ${avatarColor(activeGroup.id)}`}>
                     {initials(activeGroup.name)}
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-[#111827]">{activeGroup.name}</p>
-                    {activeGroup.description && <p className="text-[11px] text-[#9ca3af]">{activeGroup.description}</p>}
+                    <p className="text-[13px] font-semibold text-neutral-900">{activeGroup.name}</p>
+                    {activeGroup.description && <p className="text-[11px] text-neutral-400">{activeGroup.description}</p>}
                   </div>
                 </div>
                 <button
                   onClick={() => setShowMembers(v => !v)}
                   className={clsx(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
-                    showMembers ? 'bg-[#111827] text-white' : 'bg-white border border-gray-200 text-[#374151] hover:bg-gray-50'
+                    showMembers ? 'bg-neutral-900 text-white' : 'bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50'
                   )}
                 >
                   <Users size={13} />
@@ -358,14 +355,14 @@ export default function DiscussionsPage({ params }) {
                     <div className="flex flex-col gap-3">
                       {[1,2,3,4].map(i => (
                         <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-                          <div className="h-10 w-44 rounded-xl bg-gray-200 animate-pulse" />
+                          <div className="h-10 w-44 rounded-xl bg-neutral-200 animate-pulse" />
                         </div>
                       ))}
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
-                      <MessageSquare size={24} className="text-gray-300" />
-                      <p className="text-[12px] text-[#9ca3af]">Aucun message. Commencez la conversation !</p>
+                      <MessageSquare size={24} className="text-neutral-200" />
+                      <p className="text-[12px] text-neutral-400">Aucun message. Commencez la conversation !</p>
                     </div>
                   ) : (
                     <>
@@ -388,24 +385,24 @@ export default function DiscussionsPage({ params }) {
                             )}
                             <div className={`flex flex-col max-w-[60%] ${isOwn ? 'items-end' : 'items-start'}`}>
                               {showMeta && (
-                                <span className="text-[11px] font-medium text-[#9ca3af] mb-1 px-1">{msgProfile?.name ?? 'Inconnu'}</span>
+                                <span className="text-[11px] font-medium text-neutral-400 mb-1 px-1">{msgProfile?.name ?? 'Inconnu'}</span>
                               )}
                               <div className={clsx(
                                 "px-3 py-2 rounded-xl text-[13px] leading-relaxed",
                                 isOwn
-                                  ? 'bg-[#111827] text-white rounded-br-sm'
-                                  : 'bg-white text-[#111827] border border-gray-200 rounded-bl-sm shadow-sm'
+                                  ? 'bg-neutral-900 text-white rounded-br-sm'
+                                  : 'bg-white text-neutral-900 border border-neutral-200 rounded-bl-sm'
                               )}>
                                 {msg.content && <p className="break-words">{msg.content}</p>}
                                 {images.map((att, i) => (
                                   <img key={i} src={att.public_url} alt={att.file_name}
-                                    className="mt-2 rounded-lg max-w-xs border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
+                                    className="mt-2 rounded-lg max-w-xs border border-neutral-200 cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => window.open(att.public_url, '_blank')} />
                                 ))}
                                 {linked.map((l, i) => (
                                   <LinkedItem key={i} item={l} isOwn={isOwn} organizationId={organizationId} projectId={projectId} />
                                 ))}
-                                <span className={`block text-[10px] mt-1 ${isOwn ? 'text-gray-400 text-right' : 'text-[#9ca3af]'}`}>
+                                <span className={`block text-[10px] mt-1 ${isOwn ? 'text-neutral-500 text-right' : 'text-neutral-400'}`}>
                                   {fmtFull(msg.created_at)}
                                 </span>
                               </div>
@@ -419,12 +416,12 @@ export default function DiscussionsPage({ params }) {
                 </div>
 
                 {/* Input bar */}
-                <div className="flex flex-col bg-white border-t border-gray-200">
+                <div className="flex flex-col bg-white border-t border-neutral-200">
                   {(pendingImages.length > 0 || pendingLinked.length > 0) && (
-                    <div className="px-4 py-2.5 border-b border-gray-200 flex flex-wrap gap-2">
+                    <div className="px-4 py-2.5 border-b border-neutral-100 flex flex-wrap gap-2">
                       {pendingImages.map((img, i) => (
                         <div key={i} className="relative group">
-                          <img src={img.preview} alt="preview" className="w-14 h-14 rounded-lg object-cover border border-gray-200" />
+                          <img src={img.preview} alt="preview" className="w-14 h-14 rounded-lg object-cover border border-neutral-200" />
                           <button onClick={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))}
                             className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <X size={10} />
@@ -432,7 +429,7 @@ export default function DiscussionsPage({ params }) {
                         </div>
                       ))}
                       {pendingLinked.map((l, i) => (
-                        <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 border border-gray-200 text-[#374151] rounded-lg text-[11px] font-medium group relative">
+                        <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 bg-neutral-100 border border-neutral-200 text-neutral-600 rounded-lg text-[11px] font-medium group relative">
                           <span>{l.item_type === 'pin' ? '📌' : '🗺'}</span>
                           <span className="max-w-[100px] truncate">{l.label}</span>
                           <button onClick={() => setPendingLinked(prev => prev.filter((_, idx) => idx !== i))}
@@ -447,11 +444,11 @@ export default function DiscussionsPage({ params }) {
                   <div className="flex items-end gap-2 px-4 py-3">
                     <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
                     <button onClick={() => fileInputRef.current?.click()}
-                      className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-[#9ca3af] hover:text-[#374151] flex items-center justify-center shrink-0 transition-colors">
+                      className="w-8 h-8 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-400 hover:text-neutral-900 flex items-center justify-center shrink-0 transition-colors">
                       <ImageIcon size={15} />
                     </button>
                     <button onClick={() => setShowLinkModal(true)}
-                      className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-[#9ca3af] hover:text-[#374151] flex items-center justify-center shrink-0 transition-colors">
+                      className="w-8 h-8 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-400 hover:text-neutral-900 flex items-center justify-center shrink-0 transition-colors">
                       <LinkIcon size={15} />
                     </button>
                     <textarea
@@ -459,14 +456,14 @@ export default function DiscussionsPage({ params }) {
                       value={input}
                       onChange={e => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Écrivez un message… (Entrée pour envoyer)"
+                      placeholder="Écrivez un message…"
                       rows={1}
-                      className="flex-1 resize-none bg-[#f9fafb] border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-[#111827] placeholder:text-[#9ca3af] outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-colors max-h-28 overflow-y-auto"
+                      className="flex-1 resize-none bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2 text-[13px] text-neutral-900 placeholder:text-neutral-300 outline-none focus:border-neutral-400 transition-colors max-h-28 overflow-y-auto"
                     />
                     <button
                       onClick={handleSend}
                       disabled={(!input.trim() && pendingImages.length === 0 && pendingLinked.length === 0) || sending}
-                      className="w-8 h-8 rounded-lg bg-[#111827] hover:bg-[#1f2937] disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
+                      className="w-8 h-8 rounded-lg bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
                     >
                       <Send size={14} />
                     </button>
@@ -477,17 +474,14 @@ export default function DiscussionsPage({ params }) {
           )}
         </main>
 
-        {/* ── MEMBERS PANEL ── */}
         {showMembers && activeGroup && (
           <MembersPanel group={activeGroup} projectId={projectId} currentUserId={user?.id} onClose={() => setShowMembers(false)} />
         )}
 
-        {/* ── CREATE MODAL ── */}
         {showCreate && (
           <CreateGroupModal projectId={projectId} onClose={() => setShowCreate(false)} onCreated={(g) => { setShowCreate(false); loadGroups().then(() => selectGroup(g)); }} />
         )}
 
-        {/* ── LINK ITEM MODAL ── */}
         {showLinkModal && (
           <LinkItemModal projectId={projectId} organizationId={organizationId}
             onLink={(item) => { setPendingLinked(prev => [...prev, item]); setShowLinkModal(false); }}
@@ -527,24 +521,23 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
   const filtered = items.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white w-full max-w-md rounded-xl border border-gray-200 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h3 className="text-[14px] font-semibold text-[#111827]">Lier un élément</h3>
-          <button onClick={onClose} className="text-[#9ca3af] hover:text-[#374151] transition-colors"><X size={16} /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-xl border border-neutral-200 shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+          <h3 className="text-base font-semibold text-neutral-900">Lier un élément</h3>
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-neutral-100 transition-colors"><X size={16} className="text-neutral-400" /></button>
         </div>
 
-        {/* Tabs — pill style */}
         <div className="px-5 pt-4 pb-3">
-          <div className="flex items-center gap-1 rounded-xl bg-white border border-gray-200 shadow-sm p-1 w-fit">
+          <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-0.5 w-fit">
             {[
               { id: 'pin', label: 'Tâches / Pins', icon: <MapPin size={13} /> },
               { id: 'plan', label: 'Plans', icon: <FileText size={13} /> },
             ].map(t => (
               <button key={t.id} onClick={() => setActiveTab(t.id)}
                 className={clsx(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all',
-                  activeTab === t.id ? 'bg-stone-200 text-[#111827]' : 'text-[#6b7280] hover:text-[#374151] hover:bg-stone-100'
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all',
+                  activeTab === t.id ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
                 )}>
                 {t.icon}{t.label}
               </button>
@@ -554,28 +547,28 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
 
         <div className="px-5 pb-3">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9ca3af]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input type="text" placeholder={`Rechercher ${activeTab === 'pin' ? 'une tâche' : 'un plan'}…`} value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-[13px] bg-[#f9fafb] border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all"
+              className="w-full pl-8 pr-3 py-[7px] text-[13px] bg-white border border-neutral-200 rounded-lg outline-none focus:border-neutral-400 transition-colors placeholder:text-neutral-300"
               autoFocus />
           </div>
         </div>
 
-        <div className="max-h-72 overflow-y-auto border-t border-gray-200">
+        <div className="max-h-72 overflow-y-auto border-t border-neutral-100">
           {loading ? (
-            <div className="p-8 flex justify-center"><div className="w-5 h-5 border-2 border-gray-200 border-t-[#111827] rounded-full animate-spin" /></div>
+            <div className="p-8 flex justify-center"><div className="w-5 h-5 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" /></div>
           ) : filtered.length === 0 ? (
-            <div className="p-8 text-center"><p className="text-[12px] text-[#9ca3af]">Aucun élément trouvé</p></div>
+            <div className="p-8 text-center"><p className="text-[12px] text-neutral-400">Aucun élément trouvé</p></div>
           ) : filtered.map(item => (
             <button key={item.id} onClick={() => { onLink({ item_type: item.type, item_id: item.id, label: item.label }); onClose(); }}
-              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[#f9fafb] transition-colors text-left border-b border-gray-100 last:border-0">
-              <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center bg-gray-100 border border-gray-200 text-[#6b7280]">
+              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-100 last:border-0">
+              <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center bg-neutral-100 border border-neutral-200 text-neutral-500">
                 {item.type === 'pin' ? <MapPin size={13} /> : <FileText size={13} />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-[#111827] truncate">{item.label}</p>
-                {item.sublabel && <p className="text-[11px] text-[#9ca3af] truncate">{item.sublabel}</p>}
+                <p className="text-[13px] font-medium text-neutral-900 truncate">{item.label}</p>
+                {item.sublabel && <p className="text-[11px] text-neutral-400 truncate">{item.sublabel}</p>}
               </div>
             </button>
           ))}
@@ -633,32 +626,32 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
   };
 
   return (
-    <aside className="w-56 shrink-0 bg-white border-l border-gray-200 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-200">
-        <span className="text-[13px] font-semibold text-[#111827]">Membres</span>
-        <button onClick={onClose} className="text-[#9ca3af] hover:text-[#374151] transition-colors"><X size={15} /></button>
+    <aside className="w-56 shrink-0 bg-white border-l border-neutral-200 flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
+        <span className="text-[13px] font-semibold text-neutral-900">Membres</span>
+        <button onClick={onClose} className="p-1 rounded-md hover:bg-neutral-100 transition-colors"><X size={15} className="text-neutral-400" /></button>
       </div>
 
       {isAdmin && (
-        <div className="px-3 py-3 border-b border-gray-200">
-          <div className="flex items-center gap-2 bg-[#f9fafb] border border-gray-200 rounded-lg px-2.5 py-1.5">
-            <Search size={13} className="text-[#9ca3af]" />
-            <input className="flex-1 bg-transparent text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af]" placeholder="Inviter…"
+        <div className="px-3 py-3 border-b border-neutral-100">
+          <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5">
+            <Search size={13} className="text-neutral-400" />
+            <input className="flex-1 bg-transparent text-[12px] text-neutral-900 outline-none placeholder:text-neutral-300" placeholder="Inviter…"
               value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-            {searching && <div className="w-3 h-3 border-2 border-gray-200 border-t-[#111827] rounded-full animate-spin" />}
+            {searching && <div className="w-3 h-3 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />}
           </div>
           {searchResults.length > 0 && (
             <div className="mt-2 flex flex-col gap-1 max-h-36 overflow-y-auto">
               {searchResults.map(u => (
-                <div key={u.auth_id} className="flex items-center gap-2 p-2 rounded-lg bg-[#f9fafb] border border-gray-200">
+                <div key={u.auth_id} className="flex items-center gap-2 p-2 rounded-lg bg-neutral-50 border border-neutral-200">
                   <div className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center text-white font-bold text-[9px] ${avatarColor(u.auth_id)}`}>
                     {initials(u.name)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-medium text-[#111827] truncate">{u.name}</p>
-                    <p className="text-[10px] text-[#9ca3af] truncate">{u.email}</p>
+                    <p className="text-[11px] font-medium text-neutral-900 truncate">{u.name}</p>
+                    <p className="text-[10px] text-neutral-400 truncate">{u.email}</p>
                   </div>
-                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-lg bg-[#111827] hover:bg-[#1f2937] text-white flex items-center justify-center transition-colors shrink-0">
+                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white flex items-center justify-center transition-colors shrink-0">
                     <UserPlus size={11} />
                   </button>
                 </div>
@@ -669,28 +662,28 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
       )}
 
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-2 text-[11px] font-medium text-[#6b7280] uppercase tracking-wider">
+        <div className="px-4 py-2 text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
           {members.length} membre{members.length !== 1 ? 's' : ''}
         </div>
         {members.map(m => {
           const p = m.members ?? {};
           const isSelf = m.user_id === currentUserId;
           return (
-            <div key={m.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-[#f9fafb] group">
+            <div key={m.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-neutral-50 group">
               <div className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-white font-bold text-[10px] ${avatarColor(m.user_id)}`}>
                 {initials(p.name)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[12px] font-medium text-[#111827] truncate">{p.name ?? 'Inconnu'}</span>
+                  <span className="text-[12px] font-medium text-neutral-900 truncate">{p.name ?? 'Inconnu'}</span>
                   {m.role === 'admin' && <span title="Admin" className="text-[10px]">👑</span>}
-                  {isSelf && <span className="text-[9px] bg-gray-100 text-[#6b7280] font-medium px-1.5 py-0.5 rounded-full border border-gray-200">Vous</span>}
+                  {isSelf && <span className="text-[9px] bg-neutral-100 text-neutral-500 font-medium px-1.5 py-0.5 rounded-full border border-neutral-200">Vous</span>}
                 </div>
-                <p className="text-[10px] text-[#9ca3af] truncate">{p.email}</p>
+                <p className="text-[10px] text-neutral-400 truncate">{p.email}</p>
               </div>
               {isAdmin && !isSelf && (
                 <button onClick={() => removeMember(m.user_id)}
-                  className="w-5 h-5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 text-[#9ca3af] flex items-center justify-center transition-all">
+                  className="w-5 h-5 rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 text-neutral-400 flex items-center justify-center transition-all">
                   <X size={11} />
                 </button>
               )}
@@ -722,33 +715,33 @@ function CreateGroupModal({ projectId, onClose, onCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-xl w-[400px] max-w-[95vw] border border-gray-200 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-[14px] font-semibold text-[#111827]">Nouveau groupe</h2>
-          <button onClick={onClose} className="text-[#9ca3af] hover:text-[#374151] transition-colors"><X size={16} /></button>
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-xl w-[400px] max-w-[95vw] border border-neutral-200 shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
+          <h2 className="text-base font-semibold text-neutral-900">Nouveau groupe</h2>
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-neutral-100 transition-colors"><X size={16} className="text-neutral-400" /></button>
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="block text-[11px] font-medium text-[#6b7280] uppercase tracking-wider mb-1.5">Nom du groupe *</label>
+            <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Nom du groupe *</label>
             <input autoFocus
-              className="w-full rounded-lg border border-gray-200 bg-[#f9fafb] px-3 py-2 text-[13px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all"
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors"
               placeholder="Ex : Équipe technique"
               value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreate()} />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-[#6b7280] uppercase tracking-wider mb-1.5">Description <span className="normal-case font-normal text-[#9ca3af]">(optionnel)</span></label>
+            <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Description <span className="normal-case font-normal text-neutral-300">(optionnel)</span></label>
             <textarea
-              className="w-full rounded-lg border border-gray-200 bg-[#f9fafb] px-3 py-2 text-[13px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all resize-none"
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors resize-none"
               placeholder="À quoi sert ce groupe ?"
               value={desc} onChange={e => setDesc(e.target.value)} rows={3} />
           </div>
-          {error && <p className="text-[12px] text-red-500 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">{error}</p>}
+          {error && <p className="text-[12px] text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-lg">{error}</p>}
         </div>
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-200">
-          <button onClick={onClose} className="px-3 py-2 text-[13px] text-[#374151] rounded-lg hover:bg-gray-100 transition-colors font-medium">Annuler</button>
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-neutral-100">
+          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors">Annuler</button>
           <button onClick={handleCreate} disabled={creating || !name.trim()}
-            className="px-4 py-2 text-[13px] font-medium text-white bg-[#111827] hover:bg-[#1f2937] disabled:opacity-40 rounded-lg transition-colors">
+            className="px-4 py-2 text-[13px] font-medium text-white bg-neutral-900 hover:bg-neutral-800 disabled:opacity-40 rounded-lg transition-colors">
             {creating ? 'Création…' : 'Créer le groupe'}
           </button>
         </div>

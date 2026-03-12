@@ -1,4 +1,3 @@
-// app/members/page.js
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
@@ -20,36 +19,55 @@ const roles = [
   { id: 1, name: 'Membres', value: 'membres' },
   { id: 2, name: 'guest', value: 'guest' },
   { id: 3, name: 'Admins', value: 'admins' },
-];
+]
 
 function Avatar({ name, src }) {
-  const [imageError, setImageError] = useState(false);
+  const [imageError, setImageError] = useState(false)
 
   const getInitials = (fullName) => {
-    if (!fullName) return "?";
-    const parts = fullName.trim().split(" ");
+    if (!fullName) return '?'
+    const parts = fullName.trim().split(' ')
     return parts.length === 1
       ? parts[0][0].toUpperCase()
-      : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
+      : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
 
   if (!src || imageError) {
     return (
-      <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-900">
+      <div className="h-8 w-8 rounded-full bg-neutral-200 flex items-center justify-center text-[11px] font-semibold text-neutral-600 flex-shrink-0">
         {getInitials(name)}
       </div>
-    );
+    )
   }
 }
 
-export default function MembersPage({params}) {
-  const {organizationId} = params;
+function RoleBadge({ role }) {
+  const styles = {
+    Admins: 'bg-red-50 text-red-600 border-red-100',
+    Membres: 'bg-neutral-50 text-neutral-600 border-neutral-200',
+    guest: 'bg-amber-50 text-amber-600 border-amber-100',
+  }
+
+  return (
+    <span
+      className={clsx(
+        'px-2.5 py-0.5 inline-flex text-[11px] font-medium rounded-md border',
+        styles[role] || styles.Membres
+      )}
+    >
+      {role}
+    </span>
+  )
+}
+
+export default function MembersPage({ params }) {
+  const { organizationId } = params
   const router = useRouter()
   const [selectedRoles, setSelectedRoles] = useState([])
   const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom)
   const [selectedOrganization, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const [members, setMembers] = useState([])
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('')
   const [refresh, setRefresh] = useState(false)
 
   const [manageOpen, setManageOpen] = useState(false)
@@ -57,7 +75,6 @@ export default function MembersPage({params}) {
   const [memberProjects, setMemberProjects] = useState([])
   const [projects, setProjects] = useState([])
 
-  // Invite modal states
   const [inviteOpen, setInviteOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteName, setInviteName] = useState('')
@@ -66,32 +83,27 @@ export default function MembersPage({params}) {
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const [inviteSuccess, setInviteSuccess] = useState(false)
-  const { user, profile, organization } = useUserData();
-  const { isAdmin, isLoading: isCheckingAccess } = useIsAdmin();
+  const { user, profile, organization } = useUserData()
+  const { isAdmin, isLoading: isCheckingAccess } = useIsAdmin()
 
-  // Redirect non-admins
   useEffect(() => {
     if (!isCheckingAccess && !isAdmin) {
-      router.push(`/${organizationId}/projects`);
+      router.push(`/${organizationId}/projects`)
     }
-  }, [isAdmin, isCheckingAccess, router, organizationId]);
+  }, [isAdmin, isCheckingAccess, router, organizationId])
 
   useEffect(() => {
     const fetchMembers = async () => {
       const { data: rawMembers } = await supabase
         .from('members')
-        .select(`
-          *,
-          members_projects(count)
-        `)
+        .select('*, members_projects(count)')
         .eq('organization_id', organization?.id)
         .order('created_at', { ascending: false })
 
-      const formatted = rawMembers.map((m) => ({
+      const formatted = (rawMembers || []).map((m) => ({
         ...m,
-        project_count: m.members_projects?.[0]?.count || 0
+        project_count: m.members_projects?.[0]?.count || 0,
       }))
-
       setMembers(formatted)
     }
 
@@ -111,13 +123,11 @@ export default function MembersPage({params}) {
 
   const openManageModal = async (member) => {
     setCurrentMember(member)
-
     const { data } = await supabase
       .from('members_projects')
       .select('project_id')
       .eq('member_id', member.id)
-
-    setMemberProjects(data.map((p) => p.project_id))
+    setMemberProjects((data || []).map((p) => p.project_id))
     setManageOpen(true)
   }
 
@@ -125,7 +135,7 @@ export default function MembersPage({params}) {
     if (active) {
       await supabase.from('members_projects').insert({
         member_id: currentMember.id,
-        project_id: projectId
+        project_id: projectId,
       })
     } else {
       await supabase
@@ -134,13 +144,9 @@ export default function MembersPage({params}) {
         .eq('member_id', currentMember.id)
         .eq('project_id', projectId)
     }
-
     setMemberProjects((prev) =>
-      active
-        ? [...prev, projectId]
-        : prev.filter((id) => id !== projectId)
+      active ? [...prev, projectId] : prev.filter((id) => id !== projectId)
     )
-
     setRefresh((x) => !x)
   }
 
@@ -155,89 +161,51 @@ export default function MembersPage({params}) {
   }
 
   const toggleInviteProject = (projectId) => {
-    setInviteProjects(prev =>
-      prev.includes(projectId)
-        ? prev.filter(id => id !== projectId)
-        : [...prev, projectId]
+    setInviteProjects((prev) =>
+      prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
     )
   }
 
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
   const sendInvitation = async () => {
     setInviteError('')
     setInviteSuccess(false)
 
-    if (!inviteName.trim()) {
-      setInviteError('Le nom est requis')
-      return
-    }
+    if (!inviteName.trim()) { setInviteError('Le nom est requis'); return }
+    if (!inviteEmail.trim()) { setInviteError("L'email est requis"); return }
+    if (!validateEmail(inviteEmail)) { setInviteError('Veuillez entrer une adresse email valide'); return }
 
-    if (!inviteEmail.trim()) {
-      setInviteError('L\'email est requis')
-      return
-    }
-
-    if (!validateEmail(inviteEmail)) {
-      setInviteError('Veuillez entrer une adresse email valide')
-      return
-    }
-
-    // Check for existing member - use maybeSingle() to avoid 406 error
     const { data: existingMember, error: checkError } = await supabase
       .from('members')
       .select('email')
       .eq('email', inviteEmail.toLowerCase())
       .maybeSingle()
 
-    if (checkError) {
-      console.error('Error checking existing member:', checkError)
-      setInviteError('Erreur lors de la vérification de l\'email')
-      return
-    }
-
-    if (existingMember) {
-      setInviteError('Un membre avec cet email existe déjà')
-      return
-    }
+    if (checkError) { setInviteError("Erreur lors de la vérification de l'email"); return }
+    if (existingMember) { setInviteError('Un membre avec cet email existe déjà'); return }
 
     setInviteLoading(true)
-
     try {
-      // Call API route to send invitation
       const response = await fetch('/api/invite', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: inviteEmail.toLowerCase().trim(),
           name: inviteName.trim(),
           role: inviteRole.name,
           organizationId: selectedOrganization?.id,
-          projects: inviteProjects
-        })
+          projects: inviteProjects,
+        }),
       })
-
       const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erreur lors de l\'envoi de l\'invitation')
-      }
+      if (!response.ok) throw new Error(result.error || "Erreur lors de l'envoi de l'invitation")
 
       setInviteSuccess(true)
-      setRefresh(x => !x)
-
-      setTimeout(() => {
-        setInviteOpen(false)
-      }, 2000)
-
+      setRefresh((x) => !x)
+      setTimeout(() => setInviteOpen(false), 2000)
     } catch (error) {
-      console.error('Invitation error:', error)
-      setInviteError(error.message || 'Une erreur est survenue lors de l\'invitation')
+      setInviteError(error.message || "Une erreur est survenue lors de l'invitation")
     } finally {
       setInviteLoading(false)
     }
@@ -246,182 +214,177 @@ export default function MembersPage({params}) {
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
       const matchesSearch =
-        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase())
-
+        member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email?.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesRole =
-        selectedRoles.length === 0 ||
-        selectedRoles.some((role) => role.name === member.role)
-
+        selectedRoles.length === 0 || selectedRoles.some((role) => role.name === member.role)
       return matchesSearch && matchesRole
     })
   }, [members, searchQuery, selectedRoles])
 
-  // Show loading while checking access OR if user is not admin (during redirect)
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
+      <div className="flex h-screen items-center justify-center bg-neutral-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-500">Vérification des accès...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-200 border-t-neutral-900 mx-auto mb-3" />
+          <p className="text-[13px] text-neutral-400">Vérification des accès...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={clsx("flex h-screen bg-gray-50 overflow-hidden", outfit.className)}>
+    <div className={clsx('flex h-screen bg-neutral-50 overflow-hidden', outfit.className)}>
       <Sidebar organizationId={organizationId} currentPage="members" />
 
-      <main className="flex-1 overflow-y-auto px-8 py-8">
-        <div className="flex flex-col mb-8 gap-2">
-          <h1 className="text-2xl font-semibold text-gray-900 leading-8">Membres de l'organisation</h1>
-
-          <div className='rounded-lg bg-white border border-gray-200 p-6 flex flex-col gap-4 my-6'>
-            <div className='flex flex-row gap-3 items-center'>
-              <p className='text-base font-semibold text-gray-900 leading-6'>Zynspace Free Plan</p>
-              <button className='bg-gray-900 text-white text-sm px-5 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors'>
-                Upgrade to team
-              </button>
-            </div>
-            
-            <div className='grid grid-cols-3 gap-4'>
-              <div className='bg-gray-50 border border-gray-200 rounded-lg px-5 py-4'>
-                <p className='text-gray-500 mb-2 text-sm leading-5'>Total seats</p>
-                <p className='text-3xl font-semibold text-gray-900'>Unlimited</p>
-              </div>
-              <div className='bg-gray-50 border border-gray-200 rounded-lg px-5 py-4'>
-                <p className='text-gray-500 mb-2 text-sm leading-5'>Assigned seats</p>
-                <p className='text-3xl font-semibold text-gray-900'>{members.length}</p>
-              </div>
-              <div className='bg-gray-50 border border-gray-200 rounded-lg px-5 py-4'>
-                <p className='text-gray-500 mb-2 text-sm leading-5'>Available seats</p>
-                <p className='text-3xl font-semibold text-gray-900'>Unlimited</p>
-              </div>
-            </div>
+      <main className="flex-1 overflow-y-auto px-8 py-7">
+        {/* ── Header ── */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-semibold text-neutral-900">Membres</h1>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              {members.length} membre{members.length !== 1 ? 's' : ''} dans l'organisation
+            </p>
           </div>
-
-          <div className="flex flex-row justify-between items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                className="border border-gray-200 bg-white pl-10 pr-4 py-2.5 w-full rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900 placeholder:text-gray-400"
-                placeholder="Rechercher par nom..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-row gap-3 items-center">
-              <p className="text-sm font-medium text-gray-700">Rôles</p>
-              <div className="w-56">
-                <Listbox value={selectedRoles} onChange={setSelectedRoles} multiple>
-                  <div className="relative">
-                    <ListboxButton className="relative w-full cursor-pointer rounded-lg bg-white border border-gray-200 py-2.5 pl-3 pr-10 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 transition-all focus:outline-none focus:ring-1 focus:ring-gray-900">
-                      <span className="block truncate">
-                        {selectedRoles.length === 0
-                          ? 'Filtrer par rôle'
-                          : selectedRoles.map(role => role.name).join(', ')}
-                      </span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <ChevronDown className="h-5 w-5 text-gray-400" />
-                      </span>
-                    </ListboxButton>
-
-                    <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white border border-gray-200 shadow-lg focus:outline-none text-sm z-10 py-1">
-                      {roles.map((role) => (
-                        <ListboxOption
-                          key={role.id}
-                          value={role}
-                          className={({ active }) =>
-                            `relative cursor-pointer select-none py-2.5 pl-10 pr-4 transition-colors ${
-                              active ? 'bg-gray-50 text-gray-900' : 'text-gray-900'
-                            }`
-                          }
-                        >
-                          {({ selected }) => (
-                            <>
-                              <span className={`block truncate font-medium ${selected ? 'font-semibold' : 'font-normal'}`}>
-                                {role.name}
-                              </span>
-                              {selected ? (
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-900">
-                                  <Check className="h-5 w-5" />
-                                </span>
-                              ) : null}
-                            </>
-                          )}
-                        </ListboxOption>
-                      ))}
-                    </ListboxOptions>
-                  </div>
-                </Listbox>
-              </div>
-            </div>
-
-            <button 
-              onClick={openInviteModal}
-              className="bg-gray-900 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center gap-2"
-            >
-              <UserPlus className="w-5 h-5" />
-              Inviter des membres
-            </button>
-          </div>
+          <button
+            onClick={openInviteModal}
+            className="bg-neutral-900 text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors flex items-center gap-1.5"
+          >
+            <UserPlus className="w-4 h-4" />
+            Inviter un membre
+          </button>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-white">
-          <table className="min-w-full divide-y divide-gray-100">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Membres
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Projets
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rôle
-                </th>
+        {/* ── Stats ── */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[
+            { label: 'Total seats', value: 'Unlimited' },
+            { label: 'Assigned seats', value: members.length },
+            { label: 'Available seats', value: 'Unlimited' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white border border-neutral-200 rounded-lg px-4 py-3.5"
+            >
+              <p className="text-[11px] text-neutral-400 font-medium mb-1">{stat.label}</p>
+              <p className="text-2xl font-semibold text-neutral-900">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Search + Filters ── */}
+        <div className="flex items-center gap-2 mb-5">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <input
+              type="text"
+              className="border border-neutral-200 bg-white pl-8 pr-3 py-[7px] w-full rounded-lg text-[13px] focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 placeholder:text-neutral-300"
+              placeholder="Rechercher par nom ou email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <Listbox value={selectedRoles} onChange={setSelectedRoles} multiple>
+            <div className="relative">
+              <ListboxButton className="flex items-center gap-1.5 px-3 py-[7px] rounded-lg bg-white border border-neutral-200 text-[13px] font-medium text-neutral-600 hover:bg-neutral-50 transition-colors cursor-pointer">
+                <span>
+                  {selectedRoles.length === 0
+                    ? 'Tous les rôles'
+                    : selectedRoles.map((r) => r.name).join(', ')}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+              </ListboxButton>
+
+              <ListboxOptions className="absolute mt-1 w-48 overflow-auto rounded-lg bg-white border border-neutral-200 shadow-lg z-10 py-1">
+                {roles.map((role) => (
+                  <ListboxOption
+                    key={role.id}
+                    value={role}
+                    className={({ active }) =>
+                      clsx(
+                        'relative cursor-pointer select-none py-2 pl-8 pr-3 text-[13px] transition-colors',
+                        active ? 'bg-neutral-50' : ''
+                      )
+                    }
+                  >
+                    {({ selected }) => (
+                      <>
+                        <span
+                          className={clsx(
+                            'block truncate',
+                            selected ? 'font-medium text-neutral-900' : 'text-neutral-600'
+                          )}
+                        >
+                          {role.name}
+                        </span>
+                        {selected && (
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                            <Check className="w-3.5 h-3.5 text-neutral-900" />
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </ListboxOption>
+                ))}
+              </ListboxOptions>
+            </div>
+          </Listbox>
+        </div>
+
+        {/* ── Members Table ── */}
+        <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+          <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '40%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '25%' }} />
+            </colgroup>
+            <thead>
+              <tr className="bg-neutral-50">
+                {['Membre', 'Projets', 'Rôle', ''].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-2 text-[10px] font-medium text-neutral-400 uppercase tracking-wider text-left border-b border-neutral-200"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {filteredMembers.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <div className="flex items-center">
+                <tr
+                  key={member.id}
+                  className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors group"
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
                       <Avatar name={member.name} src={member.avatar_url} />
-                      <div className="ml-4">
-                        <div className="text-sm font-semibold text-gray-900 leading-5">
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-medium text-neutral-900 truncate">
                           {member.name}
-                        </div>
-                        <div className="text-sm text-gray-500 leading-5">{member.email}</div>
+                        </p>
+                        <p className="text-[11px] text-neutral-400 truncate">{member.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5 whitespace-nowrap flex items-center gap-4">
-                    <span className="text-sm text-gray-500">
-                      {member.project_count} projets
+                  <td className="px-4 py-3">
+                    <span className="text-[13px] text-neutral-500">
+                      {member.project_count} projet{member.project_count !== 1 ? 's' : ''}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <RoleBadge role={member.role} />
+                  </td>
+                  <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => openManageModal(member)}
-                      className="px-3 py-1.5 text-xs bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium"
+                      className="text-[12px] font-medium text-neutral-400 hover:text-neutral-900 px-3 py-1.5 rounded-md hover:bg-neutral-100 transition-colors opacity-0 group-hover:opacity-100"
                     >
-                      Manage
+                      Gérer les projets
                     </button>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span
-                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        member.role === "Admins"
-                          ? "bg-red-100 text-red-700 border border-red-200"
-                          : member.role === "Membres"
-                          ? "bg-green-100 text-green-700 border border-green-200"
-                          : "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                      }`}
-                    >
-                      {member.role}
-                    </span>
                   </td>
                 </tr>
               ))}
@@ -429,37 +392,60 @@ export default function MembersPage({params}) {
           </table>
 
           {filteredMembers.length === 0 && (
-            <div className="p-8 text-center text-gray-500 text-sm">
-              Aucun membre trouvé
+            <div className="py-12 text-center">
+              <p className="text-[13px] text-neutral-400">Aucun membre trouvé</p>
             </div>
           )}
         </div>
 
+        {/* ── Manage Projects Modal ── */}
         <Dialog open={manageOpen} onClose={() => setManageOpen(false)} className="relative z-50">
-          <div className="fixed inset-0 bg-black/30" />
+          <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6">
-            <DialogPanel className="bg-white border border-gray-200 rounded-lg shadow-xl w-full max-w-lg p-6">
-              <DialogTitle className="text-lg font-semibold text-gray-900 mb-4 leading-6">
-                Manage projects for {currentMember?.name}
-              </DialogTitle>
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+            <DialogPanel className="bg-white border border-neutral-200 rounded-xl shadow-xl w-full max-w-md p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <DialogTitle className="text-base font-semibold text-neutral-900">
+                    Gérer les projets
+                  </DialogTitle>
+                  <p className="text-[13px] text-neutral-400 mt-0.5">{currentMember?.name}</p>
+                </div>
+                <button
+                  onClick={() => setManageOpen(false)}
+                  className="p-1 rounded-md hover:bg-neutral-100 transition-colors"
+                >
+                  <X className="w-4 h-4 text-neutral-400" />
+                </button>
+              </div>
+
+              <div className="space-y-1 max-h-[300px] overflow-y-auto">
                 {projects.map((project) => {
                   const active = memberProjects.includes(project.id)
                   return (
-                    <div key={project.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                      <span className="font-medium text-sm text-gray-900">{project.name}</span>
+                    <div
+                      key={project.id}
+                      className="flex justify-between items-center px-3 py-2.5 rounded-lg hover:bg-neutral-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-900">
+                          {project.name?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        <span className="text-[13px] font-medium text-neutral-900">
+                          {project.name}
+                        </span>
+                      </div>
                       <Switch
                         checked={active}
                         onChange={(val) => toggleProject(project.id, val)}
                         className={clsx(
-                          "relative inline-flex h-6 w-11 items-center rounded-full transition-all",
-                          active ? "bg-gray-900" : "bg-gray-300"
+                          'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
+                          active ? 'bg-neutral-900' : 'bg-neutral-200'
                         )}
                       >
                         <span
                           className={clsx(
-                            "inline-block h-4 w-4 transform rounded-full bg-white transition",
-                            active ? "translate-x-6" : "translate-x-1"
+                            'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
+                            active ? 'translate-x-[18px]' : 'translate-x-[3px]'
                           )}
                         />
                       </Switch>
@@ -467,47 +453,56 @@ export default function MembersPage({params}) {
                   )
                 })}
               </div>
-              <button
-                className="mt-6 w-full py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
-                onClick={() => setManageOpen(false)}
-              >
-                Close
-              </button>
+
+              <div className="mt-5 pt-4 border-t border-neutral-100">
+                <button
+                  onClick={() => setManageOpen(false)}
+                  className="w-full py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
             </DialogPanel>
           </div>
         </Dialog>
 
+        {/* ── Invite Modal ── */}
         <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} className="relative z-50">
-          <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6 overflow-y-auto">
-            <DialogPanel className="bg-white border border-gray-200 rounded-lg shadow-xl w-full max-w-lg p-6 relative">
-              <div className="flex justify-between items-center mb-6">
-                <DialogTitle className="text-lg font-semibold text-gray-900 leading-6">
+            <DialogPanel className="bg-white border border-neutral-200 rounded-xl shadow-xl w-full max-w-md p-6 relative">
+              <div className="flex items-center justify-between mb-5">
+                <DialogTitle className="text-base font-semibold text-neutral-900">
                   Inviter un nouveau membre
                 </DialogTitle>
                 <button
                   onClick={() => setInviteOpen(false)}
-                  className="text-gray-400 hover:text-gray-900 transition-colors"
-                  type="button"
+                  className="p-1 rounded-md hover:bg-neutral-100 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 text-neutral-400" />
                 </button>
               </div>
 
               {inviteSuccess ? (
                 <div className="py-8 text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Check className="w-8 h-8 text-green-600" />
+                  <div className="w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Check className="w-5 h-5 text-neutral-900" />
                   </div>
-                  <p className="text-lg font-semibold text-gray-900 mb-2 leading-6">Invitation envoyée!</p>
-                  <p className="text-sm text-gray-500 leading-5">
-                    Un email d'invitation a été envoyé à {inviteEmail}
+                  <p className="text-[14px] font-semibold text-neutral-900 mb-1">
+                    Invitation envoyée
+                  </p>
+                  <p className="text-[13px] text-neutral-400">
+                    Un email a été envoyé à {inviteEmail}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2 leading-5" htmlFor="invite-name">
+                    <label
+                      htmlFor="invite-name"
+                      className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5"
+                    >
                       Nom complet
                     </label>
                     <input
@@ -515,59 +510,73 @@ export default function MembersPage({params}) {
                       type="text"
                       value={inviteName}
                       onChange={(e) => setInviteName(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900 placeholder:text-gray-400"
+                      className="w-full px-3 py-2.5 border border-neutral-200 rounded-lg text-[13px] bg-white focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 placeholder:text-neutral-300"
                       placeholder="Jean Dupont"
+                      autoFocus
                     />
                   </div>
 
+                  {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2 leading-5" htmlFor="invite-email">
+                    <label
+                      htmlFor="invite-email"
+                      className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5"
+                    >
                       Adresse email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                      <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300 pointer-events-none" />
                       <input
                         id="invite-email"
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900 placeholder:text-gray-400"
+                        className="w-full pl-8 pr-3 py-2.5 border border-neutral-200 rounded-lg text-[13px] bg-white focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 placeholder:text-neutral-300"
                         placeholder="jean.dupont@example.com"
                       />
                     </div>
                   </div>
 
+                  {/* Role */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">
+                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                       Rôle
                     </label>
                     <Listbox value={inviteRole} onChange={setInviteRole}>
                       <div className="relative">
-                        <ListboxButton className="relative w-full cursor-pointer rounded-lg bg-white border border-gray-200 py-2.5 pl-3 pr-10 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 transition-all">
+                        <ListboxButton className="relative w-full cursor-pointer rounded-lg bg-white border border-neutral-200 py-2.5 pl-3 pr-8 text-left text-[13px] font-medium text-neutral-900 hover:bg-neutral-50 transition-colors focus:outline-none focus:border-neutral-400">
                           <span className="block truncate">{inviteRole.name}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                            <ChevronDown className="h-5 w-5 text-gray-400" />
+                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
+                            <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
                           </span>
                         </ListboxButton>
-                        <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-lg bg-white border border-gray-200 shadow-lg z-[60] py-1">
+                        <ListboxOptions className="absolute mt-1 w-full overflow-auto rounded-lg bg-white border border-neutral-200 shadow-lg z-[60] py-1">
                           {roles.map((role) => (
                             <ListboxOption
                               key={role.id}
                               value={role}
                               className={({ active }) =>
-                                `relative cursor-pointer select-none py-2.5 pl-10 pr-4 transition-colors ${
-                                  active ? 'bg-gray-50 text-gray-900' : 'text-gray-900'
-                                }`
+                                clsx(
+                                  'relative cursor-pointer select-none py-2 pl-8 pr-3 text-[13px] transition-colors',
+                                  active ? 'bg-neutral-50' : ''
+                                )
                               }
                             >
                               {({ selected }) => (
                                 <>
-                                  <span className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
+                                  <span
+                                    className={clsx(
+                                      'block truncate',
+                                      selected
+                                        ? 'font-medium text-neutral-900'
+                                        : 'text-neutral-600'
+                                    )}
+                                  >
                                     {role.name}
                                   </span>
                                   {selected && (
-                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-900">
-                                      <Check className="h-5 w-5" />
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                                      <Check className="w-3.5 h-3.5 text-neutral-900" />
                                     </span>
                                   )}
                                 </>
@@ -579,55 +588,73 @@ export default function MembersPage({params}) {
                     </Listbox>
                   </div>
 
+                  {/* Projects */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">
-                      Assigner aux projets (optionnel)
+                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+                      Assigner aux projets
+                      <span className="text-neutral-300 font-normal normal-case ml-1">
+                        (optionnel)
+                      </span>
                     </label>
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <div className="space-y-0.5 max-h-[180px] overflow-y-auto border border-neutral-200 rounded-lg p-2">
                       {projects.length === 0 ? (
-                        <p className="text-sm text-gray-500 text-center py-4">
+                        <p className="text-[13px] text-neutral-300 text-center py-4">
                           Aucun projet disponible
                         </p>
                       ) : (
-                        projects.map((project) => (
-                          <div
-                            key={project.id}
-                            className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <span className="text-sm font-medium text-gray-900">{project.name}</span>
-                            <Switch
-                              checked={inviteProjects.includes(project.id)}
-                              onChange={() => toggleInviteProject(project.id)}
-                              className={clsx(
-                                "relative inline-flex h-6 w-11 items-center rounded-full transition-all",
-                                inviteProjects.includes(project.id) ? "bg-gray-900" : "bg-gray-300"
-                              )}
+                        projects.map((project) => {
+                          const selected = inviteProjects.includes(project.id)
+                          return (
+                            <div
+                              key={project.id}
+                              className="flex items-center justify-between px-2.5 py-2 hover:bg-neutral-50 rounded-md transition-colors"
                             >
-                              <span
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-[10px] font-bold text-neutral-900">
+                                  {project.name?.[0]?.toUpperCase() || '?'}
+                                </div>
+                                <span className="text-[13px] font-medium text-neutral-900">
+                                  {project.name}
+                                </span>
+                              </div>
+                              <Switch
+                                checked={selected}
+                                onChange={() => toggleInviteProject(project.id)}
                                 className={clsx(
-                                  "inline-block h-4 w-4 transform rounded-full bg-white transition",
-                                  inviteProjects.includes(project.id) ? "translate-x-6" : "translate-x-1"
+                                  'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
+                                  selected ? 'bg-neutral-900' : 'bg-neutral-200'
                                 )}
-                              />
-                            </Switch>
-                          </div>
-                        ))
+                              >
+                                <span
+                                  className={clsx(
+                                    'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
+                                    selected
+                                      ? 'translate-x-[18px]'
+                                      : 'translate-x-[3px]'
+                                  )}
+                                />
+                              </Switch>
+                            </div>
+                          )
+                        })
                       )}
                     </div>
                   </div>
 
+                  {/* Error */}
                   {inviteError && (
-                    <div className="p-3 bg-red-100 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-700">{inviteError}</p>
+                    <div className="px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+                      <p className="text-[12px] text-red-600">{inviteError}</p>
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-2">
+                  {/* Actions */}
+                  <div className="flex justify-end gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => setInviteOpen(false)}
-                      className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
                       disabled={inviteLoading}
+                      className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
                     >
                       Annuler
                     </button>
@@ -635,17 +662,17 @@ export default function MembersPage({params}) {
                       type="button"
                       onClick={sendInvitation}
                       disabled={inviteLoading}
-                      className="flex-1 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="px-4 py-2 text-[13px] font-medium text-white bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
                     >
                       {inviteLoading ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                           Envoi...
                         </>
                       ) : (
                         <>
-                          <Mail className="w-4 h-4" />
-                          Envoyer l'invitation
+                          <Mail className="w-3.5 h-3.5" />
+                          Envoyer
                         </>
                       )}
                     </button>

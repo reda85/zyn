@@ -20,11 +20,11 @@ const ORG_SIZES = [
   '11 – 25',
   '26 – 50',
   '51 – 100',
-  '100+'
+  '100+',
 ]
 
-export default function OrganizationSettingsPage({params}) {
-  const {organizationId} = params;
+export default function OrganizationSettingsPage({ params }) {
+  const { organizationId } = params
   const router = useRouter()
   const [selectedOrganization, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const { user, profile, organization } = useUserData()
@@ -35,7 +35,6 @@ export default function OrganizationSettingsPage({params}) {
   const [logoUrl, setLogoUrl] = useState('')
   const [saving, setSaving] = useState(false)
 
-  // Redirect non-admins
   useEffect(() => {
     if (!isCheckingAccess && !isAdmin) {
       router.push(`/${organizationId}/projects`)
@@ -58,16 +57,16 @@ export default function OrganizationSettingsPage({params}) {
       .update({
         name,
         size,
-        logo_url: logoUrl
+        logo_url: logoUrl,
       })
       .eq('id', organization.id)
 
     if (!error) {
-      setSelectedOrganization(prev => ({
+      setSelectedOrganization((prev) => ({
         ...prev,
         name,
         size,
-        logo_url: logoUrl
+        logo_url: logoUrl,
       }))
       alert('Paramètres sauvegardés avec succès!')
     } else {
@@ -78,7 +77,6 @@ export default function OrganizationSettingsPage({params}) {
   }
 
   const handleLogoUpload = async (file) => {
-    console.log('handleLogoUpload', organization, file)
     if (!file || !organization) return
 
     const fileExt = file.name.split('.').pop()
@@ -88,54 +86,56 @@ export default function OrganizationSettingsPage({params}) {
       .from('logos')
       .upload(filePath, file, { upsert: true })
 
-    if(error) console.error('Logo upload error:', error)
+    if (error) console.error('Logo upload error:', error)
 
     if (!error) {
-      const { data } = supabase.storage
-        .from('logos')
-        .getPublicUrl(filePath)
-
+      const { data } = supabase.storage.from('logos').getPublicUrl(filePath)
       setLogoUrl(data.publicUrl)
     }
   }
 
-  // Show loading while checking access OR if user is not admin (during redirect)
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
+      <div className="flex h-screen items-center justify-center bg-neutral-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-500">Vérification des accès...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-200 border-t-neutral-900 mx-auto mb-3" />
+          <p className="text-[13px] text-neutral-400">Vérification des accès...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={clsx("flex h-screen bg-gray-50 overflow-hidden", outfit.className)}>
+    <div className={clsx('flex h-screen bg-neutral-50 overflow-hidden', outfit.className)}>
       <Sidebar organizationId={organizationId} currentPage="settings" />
 
-      {/* MAIN */}
-      <main className="flex-1 overflow-y-auto px-8 py-8">
-        <div className="max-w-3xl">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-8 leading-8">
-            Paramètres de l'organisation
-          </h1>
+      <main className="flex-1 overflow-y-auto px-8 py-7">
+        <div className="max-w-xl">
+          {/* ── Header ── */}
+          <div className="mb-6">
+            <h1 className="text-xl font-semibold text-neutral-900">Paramètres</h1>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Gérez les informations de votre organisation
+            </p>
+          </div>
 
-          <div className="space-y-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            {/* LOGO */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">Logo</label>
-              <div className="flex items-center gap-4">
-                <div className="h-16 w-16 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden bg-gray-50">
+          {/* ── Settings Card ── */}
+          <div className="bg-white border border-neutral-200 rounded-lg">
+            {/* Logo */}
+            <div className="px-5 py-4 border-b border-neutral-100">
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-3">
+                Logo
+              </label>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg border border-neutral-200 flex items-center justify-center overflow-hidden bg-neutral-50 flex-shrink-0">
                   {logoUrl ? (
                     <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-sm text-gray-400">Logo</span>
+                    <span className="text-[10px] text-neutral-300 font-medium">Logo</span>
                   )}
                 </div>
-                <label className="cursor-pointer flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors">
-                  <Upload className="w-4 h-4" />
+                <label className="cursor-pointer flex items-center gap-1.5 text-[13px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
+                  <Upload className="w-3.5 h-3.5" />
                   Changer le logo
                   <input
                     type="file"
@@ -147,41 +147,45 @@ export default function OrganizationSettingsPage({params}) {
               </div>
             </div>
 
-            {/* NAME */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">
+            {/* Name */}
+            <div className="px-5 py-4 border-b border-neutral-100">
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                 Nom de l'organisation
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900"
+                className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 bg-white text-[13px] focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 placeholder:text-neutral-300"
               />
             </div>
 
-            {/* SIZE */}
-            <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2 leading-5">
+            {/* Size */}
+            <div className="px-5 py-4 border-b border-neutral-100">
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                 Taille de l'organisation
               </label>
               <select
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900 transition-all text-gray-900"
+                className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 bg-white text-[13px] focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900"
               >
-                <option value="">Sélectionner</option>
-                {ORG_SIZES.map(s => (
-                  <option key={s} value={s}>{s}</option>
+                <option value="" className="text-neutral-300">
+                  Sélectionner
+                </option>
+                {ORG_SIZES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
             </div>
 
-            {/* ACTION */}
-            <div className="pt-4 flex justify-end">
+            {/* Action */}
+            <div className="px-5 py-4 flex justify-end">
               <button
                 onClick={saveSettings}
                 disabled={saving}
-                className="px-6 py-2.5 rounded-lg bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-neutral-900 text-white text-[13px] font-medium hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {saving ? 'Sauvegarde…' : 'Sauvegarder'}
               </button>

@@ -169,7 +169,7 @@ function FileIcon({ mimeType, size = 'md' }) {
     pdf:     { label: 'PDF', cls: 'text-red-500 bg-red-50 border border-red-100' },
     image:   { label: 'IMG', cls: 'text-violet-500 bg-violet-50 border border-violet-100' },
     office:  { label: 'DOC', cls: 'text-blue-500 bg-blue-50 border border-blue-100' },
-    unknown: { label: 'FIC', cls: 'text-gray-500 bg-gray-100 border border-gray-200' },
+    unknown: { label: 'FIC', cls: 'text-neutral-500 bg-neutral-100 border border-neutral-200' },
   }[type];
   const sz = {
     sm: 'w-8 h-8 text-[9px] rounded-lg',
@@ -194,7 +194,7 @@ function Dialog({ open, onClose, title, children, size = 'md' }) {
           enter="ease-out duration-150" enterFrom="opacity-0" enterTo="opacity-100"
           leave="ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/20" />
         </TransitionChild>
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <TransitionChild
@@ -202,11 +202,11 @@ function Dialog({ open, onClose, title, children, size = 'md' }) {
             enter="ease-out duration-150" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
             leave="ease-in duration-100" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className={`w-full ${maxW} bg-white rounded-xl border border-gray-200 shadow-2xl flex flex-col max-h-[90vh]`}>
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 flex-shrink-0">
-                <DialogTitle className="text-[14px] font-semibold text-[#111827]">{title}</DialogTitle>
-                <button onClick={onClose} className="text-[#9ca3af] hover:text-[#374151] transition-colors">
-                  <X size={16} />
+            <DialogPanel className={`w-full ${maxW} bg-white rounded-xl border border-neutral-200 shadow-xl flex flex-col max-h-[90vh]`}>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 flex-shrink-0">
+                <DialogTitle className="text-base font-semibold text-neutral-900">{title}</DialogTitle>
+                <button onClick={onClose} className="p-1 rounded-md hover:bg-neutral-100 transition-colors">
+                  <X size={16} className="text-neutral-400" />
                 </button>
               </div>
               <div className="overflow-y-auto flex-1 px-5 py-4">{children}</div>
@@ -241,7 +241,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
   return (
     <Dialog open={open} onClose={handleClose} title={mode === 'new' ? 'Ajouter un document' : 'Nouvelle version'}>
       {mode === 'version' && documentName && (
-        <p className="text-[12px] text-[#6b7280] -mt-1 mb-3">{documentName}</p>
+        <p className="text-[12px] text-neutral-400 -mt-1 mb-3">{documentName}</p>
       )}
       <div
         onClick={() => inputRef.current?.click()}
@@ -250,7 +250,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
         onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) { setFile(f); setError(null); } }}
         className={clsx(
           "border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all mb-4",
-          file ? 'border-gray-400 bg-gray-50' : dragging ? 'border-[#111827] bg-gray-50' : 'border-gray-200 bg-[#f9fafb] hover:border-gray-300'
+          file ? 'border-neutral-400 bg-neutral-50' : dragging ? 'border-neutral-900 bg-neutral-50' : 'border-neutral-200 bg-neutral-50 hover:border-neutral-300'
         )}
       >
         <input ref={inputRef} type="file" className="hidden"
@@ -258,65 +258,65 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
           onChange={e => { const f = e.target.files?.[0]; if (f) { setFile(f); setError(null); } }} />
         {file ? (
           <div>
-            <div className="mb-2 flex justify-center"><FileText size={28} className="text-[#374151]" /></div>
-            <p className="text-[13px] font-semibold text-[#111827]">{file.name}</p>
-            <p className="text-[11px] text-[#6b7280] mt-1">{formatBytes(file.size)}</p>
+            <div className="mb-2 flex justify-center"><FileText size={28} className="text-neutral-600" /></div>
+            <p className="text-[13px] font-semibold text-neutral-900">{file.name}</p>
+            <p className="text-[11px] text-neutral-400 mt-1">{formatBytes(file.size)}</p>
             <button onClick={e => { e.stopPropagation(); setFile(null); }}
-              className="mt-2 text-[12px] text-[#6b7280] hover:text-[#111827] transition-colors">Changer de fichier</button>
+              className="mt-2 text-[12px] text-neutral-400 hover:text-neutral-900 transition-colors">Changer de fichier</button>
           </div>
         ) : (
           <div>
-            <div className="mb-3 flex justify-center"><UploadCloud size={32} className="text-[#9ca3af]" /></div>
-            <p className="text-[13px] font-semibold text-[#111827]">Glissez un fichier ou cliquez</p>
-            <p className="text-[11px] text-[#6b7280] mt-1">PDF, Word, Excel, PowerPoint, Images</p>
+            <div className="mb-3 flex justify-center"><UploadCloud size={32} className="text-neutral-300" /></div>
+            <p className="text-[13px] font-semibold text-neutral-900">Glissez un fichier ou cliquez</p>
+            <p className="text-[11px] text-neutral-400 mt-1">PDF, Word, Excel, PowerPoint, Images</p>
           </div>
         )}
       </div>
 
       {mode === 'new' && (
         <div className="mb-3">
-          <label className="block text-[12px] font-medium text-[#374151] mb-1.5">
-            Description <span className="font-normal text-[#9ca3af]">(optionnel)</span>
+          <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+            Description <span className="font-normal normal-case text-neutral-300">(optionnel)</span>
           </label>
           <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Décrivez brièvement ce document…"
-            className="w-full rounded-lg border border-gray-200 bg-[#f9fafb] px-3 py-2 text-[13px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all" />
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors" />
         </div>
       )}
 
       <div className="mb-4">
-        <label className="block text-[12px] font-medium text-[#374151] mb-1.5">
-          Notes {mode === 'new' && <span className="font-normal text-[#9ca3af]">(optionnel)</span>}
+        <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
+          Notes {mode === 'new' && <span className="font-normal normal-case text-neutral-300">(optionnel)</span>}
         </label>
         <textarea value={changeNotes} onChange={e => setChangeNotes(e.target.value)}
           placeholder={mode === 'new' ? 'ex. Première version' : 'ex. Mise à jour section 3…'} rows={3}
-          className="w-full rounded-lg border border-gray-200 bg-[#f9fafb] px-3 py-2 text-[13px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all resize-none" />
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors resize-none" />
       </div>
 
       {loading && (
         <div className="mb-4">
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-[#111827] rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+            <div className="h-full bg-neutral-900 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
-          <p className="text-[11px] text-[#9ca3af] mt-1">Upload… {progress}%</p>
+          <p className="text-[11px] text-neutral-400 mt-1">Upload… {progress}%</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 mb-4">
-          <p className="text-[13px] text-red-600 flex-1">{error}</p>
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 mb-4">
+          <p className="text-[12px] text-red-600 flex-1">{error}</p>
           <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 transition-colors">
             <X size={14} />
           </button>
         </div>
       )}
 
-      <div className="flex gap-2 pt-4 border-t border-gray-200">
+      <div className="flex justify-end gap-2 pt-4 border-t border-neutral-100">
         <button onClick={handleClose}
-          className="flex-1 py-2 rounded-lg text-[13px] text-[#374151] hover:bg-gray-100 transition-colors font-medium">
+          className="px-4 py-2 rounded-lg text-[13px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 transition-colors">
           Annuler
         </button>
         <button onClick={handleSubmit} disabled={!file || loading}
-          className="flex-1 py-2 rounded-lg bg-[#111827] text-white text-[13px] font-medium hover:bg-[#1f2937] disabled:opacity-40 transition-colors">
+          className="px-4 py-2 rounded-lg bg-neutral-900 text-white text-[13px] font-medium hover:bg-neutral-800 disabled:opacity-40 transition-colors">
           {loading ? 'Upload…' : mode === 'new' ? 'Uploader' : 'Enregistrer'}
         </button>
       </div>
@@ -366,31 +366,31 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
 
   return (
     <Dialog open={open} onClose={onClose} title={doc?.name ?? ''} size="lg">
-      <div className="flex items-center gap-3 pb-4 mb-4 border-b border-gray-200">
+      <div className="flex items-center gap-3 pb-4 mb-4 border-b border-neutral-100">
         <FileIcon mimeType={doc?.mime_type} size="lg" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold text-[#111827] truncate">{doc?.name}</p>
-          <p className="text-[11px] text-[#6b7280] mt-0.5">
+          <p className="text-[13px] font-semibold text-neutral-900 truncate">{doc?.name}</p>
+          <p className="text-[11px] text-neutral-400 mt-0.5">
             v{d?.current_version?.version_number ?? 1} · {formatBytes(d?.current_version?.file_size)} · {formatDate(d?.updated_at)}
           </p>
         </div>
         <button onClick={() => { onClose(); onUploadVersion(doc); }}
-          className="flex items-center gap-1.5 bg-white border border-gray-200 text-[#374151] text-[12px] font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
+          className="flex items-center gap-1.5 bg-white border border-neutral-200 text-neutral-600 text-[12px] font-medium px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors flex-shrink-0">
           <UploadCloud size={13} />
           <span>Nouvelle version</span>
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-xl bg-white border border-gray-200 shadow-sm p-1 mb-4 w-fit">
+      <div className="flex items-center gap-1 rounded-lg bg-neutral-100 p-0.5 mb-4 w-fit">
         {[
           { id: 'preview',  label: previewVersion ? `Aperçu v${previewVersion.version_number}` : 'Aperçu' },
           { id: 'versions', label: `Versions (${versions.length || 1})` },
         ].map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={clsx(
-              'px-4 py-1.5 rounded-lg text-[13px] font-medium transition-all',
-              tab === t.id ? 'bg-stone-200 text-[#111827]' : 'text-[#6b7280] hover:text-[#374151] hover:bg-stone-100'
+              'px-3 py-1.5 rounded-md text-[13px] font-medium transition-all',
+              tab === t.id ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-900'
             )}>
             {t.label}
           </button>
@@ -398,18 +398,18 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
       </div>
 
       {tab === 'preview' && (
-        <div className="bg-[#f9fafb] border border-gray-200 rounded-xl flex items-center justify-center min-h-96">
-          {loadingUrl ? <p className="text-[13px] text-[#9ca3af]">Chargement…</p>
-          : !previewUrl ? <p className="text-[13px] text-[#9ca3af]">Aperçu non disponible</p>
+        <div className="bg-neutral-50 border border-neutral-200 rounded-lg flex items-center justify-center min-h-96">
+          {loadingUrl ? <p className="text-[13px] text-neutral-400">Chargement…</p>
+          : !previewUrl ? <p className="text-[13px] text-neutral-400">Aperçu non disponible</p>
           : isImage ? <img src={previewUrl} alt={doc?.name} className="max-w-full max-h-[540px] rounded-lg object-contain" />
           : isPDF ? <iframe src={previewUrl} title={doc?.name} className="w-full h-[540px] border-0 rounded-lg" />
           : (
             <div className="text-center p-10">
               <FileIcon mimeType={doc?.mime_type} size="lg" />
-              <p className="mt-4 text-[13px] font-semibold text-[#111827]">{doc?.name}</p>
-              <p className="mt-1 text-[11px] text-[#9ca3af]">Aperçu non disponible pour ce type de fichier.</p>
+              <p className="mt-4 text-[13px] font-semibold text-neutral-900">{doc?.name}</p>
+              <p className="mt-1 text-[11px] text-neutral-400">Aperçu non disponible pour ce type de fichier.</p>
               <a href={previewUrl} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 mt-4 bg-[#111827] text-white px-4 py-2 rounded-lg text-[13px] font-medium no-underline hover:bg-[#1f2937] transition-colors">
+                className="inline-flex items-center gap-2 mt-4 bg-neutral-900 text-white px-4 py-2 rounded-lg text-[13px] font-medium no-underline hover:bg-neutral-800 transition-colors">
                 <ExternalLink size={13} />
                 <span>Ouvrir</span>
               </a>
@@ -424,27 +424,27 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
             const isCurrent = v.id === currentVersionId;
             return (
               <div key={v.id} className={clsx(
-                "rounded-xl border p-4",
-                isCurrent ? 'bg-[#f9fafb] border-gray-300' : 'bg-white border-gray-200'
+                "rounded-lg border p-4",
+                isCurrent ? 'bg-neutral-50 border-neutral-300' : 'bg-white border-neutral-200'
               )}>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[13px] font-semibold text-[#111827]">v{v.version_number}</span>
+                  <span className="text-[13px] font-semibold text-neutral-900">v{v.version_number}</span>
                   {isCurrent && (
-                    <span className="bg-[#111827] text-white text-[10px] font-bold px-2 py-0.5 rounded-md">Actuelle</span>
+                    <span className="bg-neutral-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">Actuelle</span>
                   )}
-                  <span className="ml-auto text-[11px] text-[#9ca3af]">{formatDate(v.created_at)}</span>
+                  <span className="ml-auto text-[11px] text-neutral-400">{formatDate(v.created_at)}</span>
                 </div>
-                {v.change_notes && <p className="text-[12px] text-[#374151] mb-1.5 leading-relaxed">{v.change_notes}</p>}
-                <p className="text-[11px] text-[#9ca3af] mb-3">{formatBytes(v.file_size)}</p>
-                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                {v.change_notes && <p className="text-[12px] text-neutral-600 mb-1.5 leading-relaxed">{v.change_notes}</p>}
+                <p className="text-[11px] text-neutral-400 mb-3">{formatBytes(v.file_size)}</p>
+                <div className="flex gap-2 pt-3 border-t border-neutral-100">
                   <button onClick={() => { setPreviewVersion(v); setTab('preview'); loadPreview(v); }}
-                    className="flex items-center gap-1.5 bg-white border border-gray-200 text-[#374151] text-[12px] font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+                    className="flex items-center gap-1.5 bg-white border border-neutral-200 text-neutral-600 text-[12px] font-medium px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors">
                     <Eye size={12} />
                     <span>Aperçu</span>
                   </button>
                   {!isCurrent && (
                     <button onClick={() => handleRestore(v)} disabled={!!restoringId}
-                      className="flex items-center gap-1.5 bg-white border border-gray-200 text-[#374151] text-[12px] font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50">
+                      className="flex items-center gap-1.5 bg-white border border-neutral-200 text-neutral-600 text-[12px] font-medium px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors disabled:opacity-50">
                       {restoringId === v.id
                         ? <><RotateCcw size={12} className="animate-spin" /><span>Restauration…</span></>
                         : <><RotateCcw size={12} /><span>Restaurer</span></>}
@@ -473,7 +473,7 @@ function SortDialog({ open, onClose, sortField, sortDir, onSelect }) {
       <div className="flex flex-col gap-0.5">
         {SORT_FIELDS.map(field => (
           <div key={field.key}>
-            <p className="text-[11px] font-medium text-[#6b7280] uppercase tracking-wider mt-4 mb-2">{field.label}</p>
+            <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mt-4 mb-2">{field.label}</p>
             {[
               { dir: 'asc',  label: field.isDate ? 'Du plus ancien au plus récent' : 'A → Z' },
               { dir: 'desc', label: field.isDate ? 'Du plus récent au plus ancien' : 'Z → A' },
@@ -484,8 +484,8 @@ function SortDialog({ open, onClose, sortField, sortDir, onSelect }) {
                   className={clsx(
                     "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-[13px] mb-1 border transition-colors text-left",
                     active
-                      ? 'bg-[#111827] text-white border-[#111827] font-medium'
-                      : 'bg-white text-[#374151] border-gray-200 hover:bg-gray-50'
+                      ? 'bg-neutral-900 text-white border-neutral-900 font-medium'
+                      : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'
                   )}>
                   <span>{opt.label}</span>
                   {active && <Check size={14} />}
@@ -508,14 +508,14 @@ function RenameFolderDialog({ folder, onClose, onRename }) {
     <Dialog open={!!folder} onClose={onClose} title="Renommer le dossier" size="sm">
       <input autoFocus value={name} onChange={e => setName(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') submit(); }}
-        className="w-full rounded-lg border border-gray-200 bg-[#f9fafb] px-3 py-2 text-[13px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all mb-4" />
-      <div className="flex gap-2 pt-2 border-t border-gray-200">
+        className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 focus:outline-none focus:border-neutral-400 transition-colors mb-4" />
+      <div className="flex justify-end gap-2 pt-2 border-t border-neutral-100">
         <button onClick={onClose}
-          className="flex-1 py-2 rounded-lg text-[13px] text-[#374151] hover:bg-gray-100 transition-colors font-medium">
+          className="px-4 py-2 rounded-lg text-[13px] font-medium text-neutral-600 bg-neutral-100 hover:bg-neutral-200 transition-colors">
           Annuler
         </button>
         <button onClick={submit}
-          className="flex-1 py-2 rounded-lg bg-[#111827] text-white text-[13px] font-medium hover:bg-[#1f2937] transition-colors">
+          className="px-4 py-2 rounded-lg bg-neutral-900 text-white text-[13px] font-medium hover:bg-neutral-800 transition-colors">
           Renommer
         </button>
       </div>
@@ -645,16 +645,16 @@ export default function DocumentsPage({ params }) {
   };
 
   return (
-    <div className={clsx(outfit.className, "min-h-screen bg-[#f9fafb]")}>
+    <div className={clsx(outfit.className, "min-h-screen bg-neutral-50")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
 
-      <div className="px-6 pt-5 pb-10 max-w-[1400px] mx-auto">
+      <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
 
-        {/* ── Page header ── */}
-        <div className="flex items-center justify-between mb-5">
+        {/* ── Header ── */}
+        <div className="flex items-start justify-between mb-5">
           <div>
-            <h1 className="text-[15px] font-semibold text-[#111827] tracking-tight">Documents</h1>
-            <p className="text-[12px] text-[#6b7280] mt-0.5">
+            <h1 className="text-xl font-semibold text-neutral-900">Documents</h1>
+            <p className="text-xs text-neutral-400 mt-0.5">
               {search
                 ? `${filteredDocs.length} résultat${filteredDocs.length > 1 ? 's' : ''} pour "${search}"`
                 : `${subfolders.length + filteredDocs.length} élément${(subfolders.length + filteredDocs.length) > 1 ? 's' : ''} au total`}
@@ -663,16 +663,16 @@ export default function DocumentsPage({ params }) {
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9ca3af]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input
                 type="text"
                 placeholder="Rechercher…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-52 rounded-lg border border-gray-200 bg-white pl-8 pr-8 py-2 text-[13px] text-[#111827] placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-300 transition-all"
+                className="w-48 rounded-lg border border-neutral-200 bg-white pl-8 pr-8 py-[7px] text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#374151] transition-colors">
+                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-300 hover:text-neutral-900 transition-colors">
                   <X size={13} />
                 </button>
               )}
@@ -680,7 +680,7 @@ export default function DocumentsPage({ params }) {
 
             <button
               onClick={() => setSortOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-[#374151] rounded-lg text-[13px] font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-neutral-200 text-neutral-600 rounded-lg text-[13px] font-medium hover:bg-neutral-50 transition-colors"
             >
               <ArrowUpDown size={14} />
               Trier
@@ -689,7 +689,7 @@ export default function DocumentsPage({ params }) {
             {!search && (
               <button
                 onClick={() => setNewFolderOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-[#374151] rounded-lg text-[13px] font-medium hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-neutral-200 text-neutral-600 rounded-lg text-[13px] font-medium hover:bg-neutral-50 transition-colors"
               >
                 <Folder size={14} />
                 Nouveau dossier
@@ -698,7 +698,7 @@ export default function DocumentsPage({ params }) {
 
             <button
               onClick={() => { setUploadMode('new'); setUploadOpen(true); }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#111827] text-white rounded-lg text-[13px] font-medium hover:bg-[#1f2937] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-[7px] bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
             >
               <Plus size={14} />
               Ajouter
@@ -707,22 +707,22 @@ export default function DocumentsPage({ params }) {
         </div>
 
         {/* ── Main card ── */}
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
 
-          {/* Upload progress bar */}
+          {/* Upload progress */}
           {uploads.length > 0 && (
-            <div className="px-5 py-3 bg-[#f9fafb] border-b border-gray-200 space-y-2">
+            <div className="px-4 py-2.5 bg-neutral-50 border-b border-neutral-200 space-y-2">
               {uploads.map(u => (
                 <div key={u.name} className="flex items-center gap-3">
-                  <FileText size={13} className="text-[#9ca3af] flex-shrink-0" />
-                  <span className="text-[12px] font-medium text-[#374151] flex-1 truncate">{u.name}</span>
+                  <FileText size={13} className="text-neutral-400 flex-shrink-0" />
+                  <span className="text-[12px] font-medium text-neutral-600 flex-1 truncate">{u.name}</span>
                   {u.error
                     ? <span className="text-[11px] text-red-500">Erreur</span>
                     : u.done
-                      ? <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium"><Check size={11} />Terminé</span>
+                      ? <span className="flex items-center gap-1 text-[11px] text-neutral-900 font-medium"><Check size={11} />Terminé</span>
                       : (
-                        <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#111827] rounded-full transition-all duration-300" style={{ width: `${u.progress}%` }} />
+                        <div className="w-24 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-neutral-900 rounded-full transition-all duration-300" style={{ width: `${u.progress}%` }} />
                         </div>
                       )}
                 </div>
@@ -732,13 +732,13 @@ export default function DocumentsPage({ params }) {
 
           {/* Breadcrumbs */}
           {breadcrumbs.length > 0 && (
-            <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-1 text-[12px]">
-              <button onClick={() => goToBreadcrumb(null)} className="text-[#6b7280] hover:text-[#111827] font-medium transition-colors">Documents</button>
+            <div className="px-4 py-2.5 border-b border-neutral-200 flex items-center gap-1 text-[12px]">
+              <button onClick={() => goToBreadcrumb(null)} className="text-neutral-400 hover:text-neutral-900 font-medium transition-colors">Documents</button>
               {breadcrumbs.map((b, i) => (
                 <span key={b.id} className="flex items-center gap-1">
-                  <ChevronRight size={13} className="text-[#d1d5db]" />
+                  <ChevronRight size={13} className="text-neutral-300" />
                   <button onClick={() => goToBreadcrumb(b.id)}
-                    className={clsx("font-medium transition-colors hover:text-[#111827]", i === breadcrumbs.length - 1 ? "text-[#111827]" : "text-[#6b7280]")}>
+                    className={clsx("font-medium transition-colors hover:text-neutral-900", i === breadcrumbs.length - 1 ? "text-neutral-900" : "text-neutral-400")}>
                     {b.name}
                   </button>
                 </span>
@@ -748,24 +748,24 @@ export default function DocumentsPage({ params }) {
 
           {loading ? (
             <div className="flex justify-center py-16">
-              <p className="text-[13px] text-[#9ca3af]">Chargement…</p>
+              <p className="text-[13px] text-neutral-400">Chargement…</p>
             </div>
           ) : (
-            <div className="p-5">
+            <div className="p-4">
 
-              {/* New folder inline input */}
+              {/* New folder inline */}
               {!search && newFolderOpen && (
-                <div className="flex gap-2 items-center bg-[#f9fafb] border border-gray-200 rounded-lg px-3 py-2.5 mb-3">
+                <div className="flex gap-2 items-center bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-2.5 mb-3">
                   <input autoFocus value={newFolderName} onChange={e => setNewFolderName(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') setNewFolderOpen(false); }}
                     placeholder="Nom du dossier…"
-                    className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-[13px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-black/10 transition-all" />
+                    className="flex-1 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors" />
                   <button onClick={handleCreateFolder}
-                    className="px-3 py-1.5 bg-[#111827] text-white text-[12px] font-medium rounded-lg hover:bg-[#1f2937] transition-colors">
+                    className="px-3 py-1.5 bg-neutral-900 text-white text-[12px] font-medium rounded-lg hover:bg-neutral-800 transition-colors">
                     Créer
                   </button>
                   <button onClick={() => setNewFolderOpen(false)}
-                    className="text-[12px] text-[#9ca3af] hover:text-[#374151] transition-colors px-1">
+                    className="text-[12px] text-neutral-400 hover:text-neutral-900 transition-colors px-1">
                     Annuler
                   </button>
                 </div>
@@ -774,22 +774,22 @@ export default function DocumentsPage({ params }) {
               {/* Empty state */}
               {subfolders.length === 0 && filteredDocs.length === 0 && !newFolderOpen ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <FileText size={32} className="text-gray-300 mb-3" />
-                  <p className="text-[13px] font-medium text-[#374151] mb-1">
+                  <FileText size={32} className="text-neutral-200 mb-3" />
+                  <p className="text-[13px] font-medium text-neutral-900 mb-1">
                     {search ? 'Aucun résultat' : 'Aucun élément'}
                   </p>
-                  <p className="text-[12px] text-[#9ca3af] mb-5 max-w-xs">
+                  <p className="text-[12px] text-neutral-400 mb-5 max-w-xs">
                     {search ? `Aucun fichier ne correspond à "${search}"` : 'Créez un dossier ou uploadez un document'}
                   </p>
                   {!search && (
                     <div className="flex gap-2">
                       <button onClick={() => setNewFolderOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-[#374151] rounded-lg text-[13px] font-medium hover:bg-gray-50 transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-neutral-200 text-neutral-600 rounded-lg text-[13px] font-medium hover:bg-neutral-50 transition-colors">
                         <Folder size={13} />
                         Nouveau dossier
                       </button>
                       <button onClick={() => { setUploadMode('new'); setUploadOpen(true); }}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-[#111827] text-white rounded-lg text-[13px] font-medium hover:bg-[#1f2937] transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors">
                         <Plus size={13} />
                         Ajouter un document
                       </button>
@@ -797,7 +797,7 @@ export default function DocumentsPage({ params }) {
                   )}
                 </div>
               ) : (
-                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="border border-neutral-200 rounded-lg overflow-hidden">
 
                   {/* Folders */}
                   {!search && subfolders.map((folder, i) => (
@@ -805,28 +805,28 @@ export default function DocumentsPage({ params }) {
                       key={`folder-${folder.id}`}
                       onClick={() => openFolder(folder)}
                       className={clsx(
-                        "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#f9fafb] transition-colors group",
-                        (i < subfolders.length - 1 || filteredDocs.length > 0) && "border-b border-gray-200"
+                        "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-neutral-50 transition-colors group",
+                        (i < subfolders.length - 1 || filteredDocs.length > 0) && "border-b border-neutral-200"
                       )}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
-                        <Folder size={15} className="text-[#6b7280]" />
+                      <div className="w-8 h-8 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0">
+                        <Folder size={15} className="text-neutral-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-[#111827] truncate">{folder.name}</p>
-                        <p className="text-[11px] text-[#9ca3af]">Dossier</p>
+                        <p className="text-[13px] font-medium text-neutral-900 truncate">{folder.name}</p>
+                        <p className="text-[11px] text-neutral-400">Dossier</p>
                       </div>
                       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setRenameTarget(folder)}
-                          className="w-7 h-7 rounded-lg hover:bg-gray-200 flex items-center justify-center text-[#9ca3af] hover:text-[#374151] transition-colors">
+                          className="w-7 h-7 rounded-md hover:bg-neutral-100 flex items-center justify-center text-neutral-400 hover:text-neutral-900 transition-colors">
                           <Pencil size={12} />
                         </button>
                         <button onClick={() => handleDeleteFolder(folder.id)}
-                          className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-[#9ca3af] hover:text-red-500 transition-colors">
+                          className="w-7 h-7 rounded-md hover:bg-red-50 flex items-center justify-center text-neutral-400 hover:text-red-500 transition-colors">
                           <Trash2 size={12} />
                         </button>
                       </div>
-                      <ChevronRight size={15} className="text-[#d1d5db] flex-shrink-0" />
+                      <ChevronRight size={15} className="text-neutral-300 flex-shrink-0" />
                     </div>
                   ))}
 
@@ -839,28 +839,28 @@ export default function DocumentsPage({ params }) {
                         key={`doc-${doc.id}`}
                         onClick={() => setViewerDoc(doc)}
                         className={clsx(
-                          "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#f9fafb] transition-colors group",
-                          !isLast && "border-b border-gray-200"
+                          "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-neutral-50 transition-colors group",
+                          !isLast && "border-b border-neutral-200"
                         )}
                       >
                         <FileIcon mimeType={doc.mime_type} size="sm" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-medium text-[#111827] truncate">{doc.name}</p>
+                          <p className="text-[13px] font-medium text-neutral-900 truncate">{doc.name}</p>
                           {doc.description && (
-                            <p className="text-[11px] text-[#9ca3af] truncate">{doc.description}</p>
+                            <p className="text-[11px] text-neutral-400 truncate">{doc.description}</p>
                           )}
-                          <p className="text-[11px] text-[#d1d5db] mt-0.5">
+                          <p className="text-[11px] text-neutral-300 mt-0.5">
                             {formatBytes(version?.file_size)} · {formatDate(doc.updated_at)}
                           </p>
                         </div>
 
-                        <span className="text-[10px] font-bold text-[#6b7280] bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md flex-shrink-0">
+                        <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-md flex-shrink-0">
                           v{version?.version_number ?? 1}
                         </span>
 
                         <button
                           onClick={e => { e.stopPropagation(); e.preventDefault(); setContextMenu({ doc, x: e.clientX, y: e.clientY }); }}
-                          className="w-7 h-7 rounded-lg hover:bg-gray-200 flex items-center justify-center text-[#9ca3af] opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
+                          className="w-7 h-7 rounded-md hover:bg-neutral-100 flex items-center justify-center text-neutral-400 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
@@ -880,20 +880,20 @@ export default function DocumentsPage({ params }) {
       {contextMenu && (
         <div
           id="context-menu"
-          className="fixed bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden min-w-[180px]"
+          className="fixed bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden min-w-[180px]"
           style={{ left: Math.min(contextMenu.x, window.innerWidth - 196), top: Math.min(contextMenu.y, window.innerHeight - 90), zIndex: 9999 }}
         >
           <button
             onClick={e => { e.stopPropagation(); setContextMenu(null); openVersionUpload(contextMenu.doc); }}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-[#374151] hover:bg-[#f9fafb] transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-neutral-600 hover:bg-neutral-50 transition-colors text-left"
           >
-            <UploadCloud size={13} className="text-[#6b7280]" />
+            <UploadCloud size={13} className="text-neutral-400" />
             Nouvelle version
           </button>
-          <div className="h-px bg-gray-100" />
+          <div className="h-px bg-neutral-100" />
           <button
             onClick={e => { e.stopPropagation(); const d = contextMenu.doc; setContextMenu(null); handleDeleteDocument(d.id); }}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] text-red-500 hover:bg-red-50 transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-red-500 hover:bg-red-50 transition-colors text-left"
           >
             <Trash2 size={13} />
             Supprimer

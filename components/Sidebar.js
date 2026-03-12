@@ -19,7 +19,6 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  // Derive the displayed org directly from the URL param — never from the atom
   const displayedOrg = organizations?.find((o) => o.id === organizationId) ?? organization
 
   useEffect(() => {
@@ -47,49 +46,56 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
       : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
 
-  return (
-    <aside className={clsx(outfit.className, "w-64 h-screen bg-white border-r border-gray-200 flex flex-col")}>
+  const navLinks = [
+    { key: 'projects', href: `/${organizationId}/projects`, icon: FolderKanban, label: 'Projects', show: true },
+    { key: 'members', href: `/${organizationId}/members`, icon: Users, label: 'Membres', show: isAdmin },
+    { key: 'reports', href: `/${organizationId}/reports`, icon: BarChart3, label: 'Rapports', show: isAdmin },
+    { key: 'settings', href: `/${organizationId}/settings`, icon: Settings, label: 'Paramètres', show: isAdmin },
+  ]
 
-      {/* Organization Selector */}
-      <div className="px-4 my-6 relative" ref={dropdownRef}>
+  return (
+    <aside className={clsx(outfit.className, 'w-60 h-screen bg-white border-r border-neutral-200 flex flex-col')}>
+
+      {/* ── Organization Selector ── */}
+      <div className="px-3 pt-4 pb-3 relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((prev) => !prev)}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all"
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-neutral-50 transition-colors"
         >
-          <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-900 flex-shrink-0">
+          <div className="h-[30px] w-[30px] rounded-lg bg-neutral-900 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
             {displayedOrg?.name?.[0]?.toUpperCase() || '?'}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <h2 className="text-sm font-semibold text-gray-900 truncate leading-5">
+            <p className="text-[13px] font-semibold text-neutral-900 truncate leading-tight">
               {displayedOrg?.name}
-            </h2>
-            <p className="text-xs text-gray-500 leading-4">
+            </p>
+            <p className="text-[11px] text-neutral-400 leading-tight">
               {displayedOrg?.members?.[0]?.count || 0} membres
             </p>
           </div>
-          <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <ChevronsUpDown className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
         </button>
 
         {dropdownOpen && (
-          <div className="absolute left-4 right-4 top-full mt-1 z-50 rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
-            <p className="px-3 pt-3 pb-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden">
+            <p className="px-3 pt-3 pb-2 text-[10px] font-medium text-neutral-400 uppercase tracking-wider">
               Organisations
             </p>
-            <ul className="py-1">
+            <ul className="pb-1">
               {(organizations?.length ? organizations : [displayedOrg]).filter(Boolean).map((org) => (
                 <li key={org.id}>
                   <button
                     onClick={() => handleOrgChange(org)}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] hover:bg-neutral-50 transition-colors"
                   >
-                    <div className="h-6 w-6 rounded-md bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-900 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-[10px] font-bold text-neutral-900 flex-shrink-0">
                       {org.name?.[0]?.toUpperCase() || '?'}
                     </div>
-                    <span className="flex-1 text-left font-medium text-gray-900 truncate">
+                    <span className="flex-1 text-left font-medium text-neutral-900 truncate">
                       {org.name}
                     </span>
                     {org.id === organizationId && (
-                      <Check className="w-4 h-4 text-gray-900 flex-shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-neutral-900 flex-shrink-0" />
                     )}
                   </button>
                 </li>
@@ -99,73 +105,47 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1">
-        <Link
-          href={`/${organizationId}/projects`}
-          className={clsx(
-            'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
-            currentPage === 'projects'
-              ? 'bg-gray-100 text-gray-900'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-          )}
-        >
-          <FolderKanban className="w-5 h-5" /> Projects
-        </Link>
+      {/* Divider */}
+      <div className="h-px bg-neutral-100 mx-3" />
 
-        {isAdmin && (
-          <>
+      {/* ── Navigation ── */}
+      <nav className="flex-1 px-3 pt-2 space-y-0.5">
+        {navLinks.filter(l => l.show).map((link) => {
+          const Icon = link.icon
+          const isActive = currentPage === link.key
+          return (
             <Link
-              href={`/${organizationId}/members`}
+              key={link.key}
+              href={link.href}
               className={clsx(
-                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
-                currentPage === 'members'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                'flex text-[13px] items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors',
+                isActive
+                  ? 'bg-neutral-100 text-neutral-900 font-medium'
+                  : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900 font-normal'
               )}
             >
-              <Users className="w-5 h-5" /> Membres
+              <Icon className={clsx('w-4 h-4', isActive ? 'text-neutral-900' : 'text-neutral-400')} />
+              {link.label}
             </Link>
-            <Link
-              href={`/${organizationId}/reports`}
-              className={clsx(
-                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
-                currentPage === 'reports'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              )}
-            >
-              <BarChart3 className="w-5 h-5" /> Rapports
-            </Link>
-            <Link
-              href={`/${organizationId}/settings`}
-              className={clsx(
-                'flex text-sm font-medium items-center gap-3 px-4 py-2.5 rounded-lg transition-all',
-                currentPage === 'settings'
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              )}
-            >
-              <Settings className="w-5 h-5" /> Paramètres
-            </Link>
-          </>
-        )}
+          )
+        })}
       </nav>
 
-      {/* Profile (Bottom) */}
-      <div className="px-4 pb-6">
+      {/* ── Profile ── */}
+      <div className="px-3 pb-4">
+        <div className="h-px bg-neutral-100 mb-3" />
         <Link
           href={`/${organizationId}/profile`}
-          className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-all"
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-neutral-50 transition-colors group"
         >
-          <div className="h-9 w-9 rounded-full bg-gray-900 flex items-center justify-center text-sm font-semibold text-white overflow-hidden">
+          <div className="h-7 w-7 rounded-full bg-neutral-900 flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0">
             {getInitials(profile?.full_name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate leading-5">
+            <p className="text-[13px] font-medium text-neutral-900 truncate leading-tight">
               {profile?.full_name || user?.email || 'Utilisateur'}
             </p>
-            <p className="text-xs text-gray-500 truncate leading-4">Mon profil</p>
+            <p className="text-[11px] text-neutral-400 leading-tight">Mon profil</p>
           </div>
         </Link>
       </div>

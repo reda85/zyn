@@ -11,68 +11,60 @@ import isToday from 'dayjs/plugin/isToday';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 
 import CategoryFilter from './CategoryFilter';
-import CreatedByMeFilter from './CreatedByMeFilter';  
+import CreatedByMeFilter from './CreatedByMeFilter';
 import DateFilter from './DateFilter';
 import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
 import AssignedToMemberFilter from './AssigneeFilter';
-import { a } from '@react-spring/web';
 import { Outfit } from 'next/font/google';
 import clsx from 'clsx';
 import { supabase } from '@/utils/supabase/client';
 
-
 const outfit = Outfit({ subsets: ['latin'], display: 'swap' });
-
 
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
 
-export default function FilterPanel({user, projectId}) {
+export default function FilterPanel({ user, projectId }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [members, setMembers] = useState([]);
   const [selectedMemberId, setSelectedMemberId] = useState(null);
-  //const [project] = useAtom(selectedProjectAtom);
 
   const [pins, setPins] = useAtom(pinsAtom);
   const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom);
   const [allPins, setAllPins] = useState([]);
-  console.log('filtered 0', pins)
 
   const [statusTags, setStatusTags] = useState([]);
 
   useEffect(() => {
     if (pins && allPins.length === 0) {
-      console.log('filtered 1', pins)
       setAllPins(pins);
       setFilteredPins(pins);
     }
   }, [pins]);
 
-useEffect(() => {
-  if (allPins && allPins.length > 0) {
-    const uniqueMembersMap = {};
+  useEffect(() => {
+    if (allPins && allPins.length > 0) {
+      const uniqueMembersMap = {};
 
-    allPins.forEach(pin => {
-      if (pin.assigned_to?.id && pin.assigned_to?.name) {
-        uniqueMembersMap[pin.assigned_to.id] = {
-          id: pin.assigned_to.id,
-          name: pin.assigned_to.name,
-        };
-      }
-    });
+      allPins.forEach((pin) => {
+        if (pin.assigned_to?.id && pin.assigned_to?.name) {
+          uniqueMembersMap[pin.assigned_to.id] = {
+            id: pin.assigned_to.id,
+            name: pin.assigned_to.name,
+          };
+        }
+      });
 
-    const uniqueMembers = Object.values(uniqueMembersMap);
-    uniqueMembers.unshift({ id: 'unassigned', name: 'Non assigné' });
-    setMembers(uniqueMembers);
-  }
-}, [allPins]);
+      const uniqueMembers = Object.values(uniqueMembersMap);
+      uniqueMembers.unshift({ id: 'unassigned', name: 'Non assigné' });
+      setMembers(uniqueMembers);
+    }
+  }, [allPins]);
 
-  
-  
   const [filters, setFilters] = useState({
     me: false,
     category: false,
@@ -86,10 +78,9 @@ useEffect(() => {
 
   const applyFilters = () => {
     let filtered = [...pins];
-    console.log('filtered1', filtered);
 
     if (filters.me) {
-      filtered = filtered.filter((pin) => pin.created_by === user.id ); // Replace 'me' with actual user logic
+      filtered = filtered.filter((pin) => pin.created_by === user.id);
     }
 
     if (filters.category && categoryTags.length > 0) {
@@ -100,52 +91,44 @@ useEffect(() => {
       filtered = filtered.filter((pin) => {
         const date = dayjs(pin.created_at);
         return dateTags.some((tag) => {
-          if (tag === 'Aujourd\'hui') return date.isToday();
+          if (tag === "Aujourd'hui") return date.isToday();
           if (tag === 'Cette semaine') return date.isSameOrAfter(dayjs().startOf('week'));
           if (tag === 'Ce mois-ci') return date.isSameOrAfter(dayjs().startOf('month'));
           return false;
         });
       });
     }
-    
+
     if (statusTags.length > 0) {
-      console.log('statusTags', statusTags);
-      console.log('filtered', filtered);
       filtered = filtered.filter((pin) => statusTags.includes(pin.status_id));
     }
 
-   if (filters.assignee) {
-  if (selectedMemberId === 'unassigned') {
-    filtered = filtered.filter(pin => !pin.assigned_to);
-  } else if (selectedMemberId) {
-    filtered = filtered.filter(pin => pin.assigned_to?.id === selectedMemberId);
-  }
-  // else selectedMemberId is null → do not filter yet
-}
-
-
-
+    if (filters.assignee) {
+      if (selectedMemberId === 'unassigned') {
+        filtered = filtered.filter((pin) => !pin.assigned_to);
+      } else if (selectedMemberId) {
+        filtered = filtered.filter((pin) => pin.assigned_to?.id === selectedMemberId);
+      }
+    }
 
     if (filters.overdue) {
       filtered = filtered.filter((pin) => {
         return pin.due_date && dayjs(pin.due_date).isBefore(dayjs(), 'day');
       });
     }
-    
-    console.log('filtered2', filtered);
-    console.log('setPins9')
+
     setFilteredPins(filtered);
   };
 
   useEffect(() => {
     applyFilters();
-  }, [pins,filters, categoryTags, dateTags, statusTags,selectedMemberId]);
+  }, [pins, filters, categoryTags, dateTags, statusTags, selectedMemberId]);
 
   useEffect(() => {
     if (open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setPosition({
-        top: rect.bottom + window.scrollY + 8,
+        top: rect.bottom + window.scrollY + 6,
         left: rect.left + window.scrollX,
       });
     }
@@ -166,14 +149,27 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
+  const hasActiveFilters =
+    filters.me ||
+    filters.category ||
+    filters.date ||
+    filters.overdue ||
+    filters.assignee ||
+    statusTags.length > 0;
+
   return (
     <>
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-2.5 bg-neutral-100 rounded-xl hover:bg-neutral-200 border border-border/50 hover:border-primary/20 transition-all hover:shadow-md backdrop-blur-sm"
+        className={clsx(
+          'flex items-center gap-1.5 px-2.5 py-[7px] rounded-lg border transition-colors',
+          hasActiveFilters
+            ? 'bg-neutral-900 text-white border-neutral-900'
+            : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'
+        )}
       >
-        <ListFilterIcon className="h-5 w-5 text-muted-foreground" />
+        <ListFilterIcon className="h-4 w-4" />
       </button>
 
       {open &&
@@ -181,65 +177,60 @@ useEffect(() => {
           <div
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
-            className={clsx("absolute z-50 w-96 bg-card border border-border/50 shadow-2xl py-4 rounded-xl backdrop-blur-sm", "max-h-[75vh] overflow-y-auto", outfit.className)}
+            className={clsx(
+              'absolute z-50 w-80 bg-white border border-neutral-200 shadow-lg rounded-lg',
+              'max-h-[75vh] overflow-y-auto',
+              outfit.className
+            )}
           >
-            <div className="flex justify-between items-center mb-4 px-4">
-              <h3 className="text-sm font-semibold font-heading text-foreground">Filtres</h3>
+            <div className="flex justify-between items-center px-4 py-3 border-b border-neutral-100">
+              <h3 className="text-[13px] font-semibold text-neutral-900">Filtres</h3>
               <button
                 onClick={() => setOpen(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1 rounded-md hover:bg-neutral-100 transition-colors"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-4 w-4 text-neutral-400" />
               </button>
             </div>
 
-            <CreatedByMeFilter
-              active={filters.me}
-              onToggle={(value) =>
-                setFilters((prev) => ({ ...prev, me: value }))
-              }
-            />
+            <div className="py-1">
+              <CreatedByMeFilter
+                active={filters.me}
+                onToggle={(value) => setFilters((prev) => ({ ...prev, me: value }))}
+              />
 
-            <CategoryFilter
-              active={filters.category}
-              onToggle={(value) =>
-                setFilters((prev) => ({ ...prev, category: value }))
-              }
-              tags={categoryTags}
-              setTags={setCategoryTags}
-            />
+              <CategoryFilter
+                active={filters.category}
+                onToggle={(value) => setFilters((prev) => ({ ...prev, category: value }))}
+                tags={categoryTags}
+                setTags={setCategoryTags}
+              />
 
-            <DateFilter
-              active={filters.date}
-              onToggle={(value) =>
-                setFilters((prev) => ({ ...prev, date: value }))
-              }
-              tags={dateTags}
-              setTags={setDateTags}
-            />
-            
-            <StatusFilter
-              activeStatuses={statusTags}
-              setActiveStatuses={setStatusTags}
-            />
+              <DateFilter
+                active={filters.date}
+                onToggle={(value) => setFilters((prev) => ({ ...prev, date: value }))}
+                tags={dateTags}
+                setTags={setDateTags}
+              />
 
-            <AssignedToMemberFilter
-              active={filters.assignee}
-              onToggle={(value) =>
-                setFilters((prev) => ({ ...prev, assignee: value }))
-              }
-              members={members}
-              selectedMemberId={selectedMemberId}
-              onSelectMember={setSelectedMemberId}
-            />
-            
-            <OverdueFilter
-              active={filters.overdue}
-              onToggle={(value) =>
-                setFilters((prev) => ({ ...prev, overdue: value }))
-              }
-            />
+              <StatusFilter
+                activeStatuses={statusTags}
+                setActiveStatuses={setStatusTags}
+              />
 
+              <AssignedToMemberFilter
+                active={filters.assignee}
+                onToggle={(value) => setFilters((prev) => ({ ...prev, assignee: value }))}
+                members={members}
+                selectedMemberId={selectedMemberId}
+                onSelectMember={setSelectedMemberId}
+              />
+
+              <OverdueFilter
+                active={filters.overdue}
+                onToggle={(value) => setFilters((prev) => ({ ...prev, overdue: value }))}
+              />
+            </div>
           </div>,
           document.body
         )}

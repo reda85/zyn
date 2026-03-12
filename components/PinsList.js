@@ -1,23 +1,20 @@
-import { Outfit } from "next/font/google"
+import { Outfit } from 'next/font/google'
 import CustomSelect from './customSelect'
 import FilterPanel from './FilterPanel'
-import { MapPinIcon } from "@heroicons/react/24/outline"
-import { useAtom } from "jotai"
-import { selectedPinAtom, selectedPlanAtom } from "@/store/atoms"
-import Pin from "./Pin"
+import { MapPinIcon } from '@heroicons/react/24/outline'
+import { useAtom } from 'jotai'
+import { selectedPinAtom, selectedPlanAtom } from '@/store/atoms'
+import Pin from './Pin'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/fr'
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
+import clsx from 'clsx'
 
 dayjs.extend(relativeTime)
 dayjs.locale('fr')
 
-const lexend = Outfit({ subsets: ['latin'], display: 'swap' })
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 export default function PinsList({ pins = [], plans = [], user, projectId, organizationId }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
@@ -25,14 +22,17 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
   const router = useRouter()
 
   const activePlan =
-    plans.find(p => p?.id === selectedPlan?.id) ??
-    plans[0] ??
-    null
+    plans.find((p) => p?.id === selectedPlan?.id) ?? plans[0] ?? null
 
   return (
-    <div className={classNames(lexend.className, 'overflow-auto bg-gray-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden')}>
+    <div
+      className={clsx(
+        outfit.className,
+        'overflow-auto bg-neutral-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+      )}
+    >
       {/* Header */}
-      <div className="flex flex-row gap-2 p-4 items-baseline">
+      <div className="flex flex-row gap-2 p-3 items-baseline">
         {activePlan && (
           <CustomSelect
             options={plans}
@@ -46,61 +46,56 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
       </div>
 
       {/* Counter bar */}
-      <div className="flex flex-row gap-2 px-4 py-3 justify-between items-baseline bg-neutral-100 border border-border/50 backdrop-blur-sm">
-        <div className="flex flex-row gap-2 items-center">
-          <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-          <p className="text-gray-800 text-xs font-medium">
-            {pins.length} Pins total
-          </p>
-        </div>
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-neutral-100 border-y border-neutral-200">
+        <MapPinIcon className="h-3.5 w-3.5 text-neutral-400" />
+        <p className="text-neutral-600 text-[11px] font-medium">
+          {pins.length} pins
+        </p>
       </div>
 
       {/* Pins list */}
-      <div className="flex flex-col gap-3 p-4 min-h-[800px]">
-        {pins.map((pin, index) => (
-          <div
-            key={pin.id}
-            onClick={() => setSelectedPin(pin)}
-            className={classNames(
-              "hover:cursor-pointer border bg-gray-100 rounded-xl p-4 flex flex-col gap-3 transition-all hover:shadow-lg hover:-translate-y-0.5",
-              selectedPin?.id === pin.id
-                ? ' border-primary/50 shadow-md shadow-primary/10 bg-white'
-                : ' border-border/50 hover:border-primary/20 hover:bg-secondary/50'
-            )}
-          >
-            {/* Header */}
-            <div className="flex flex-row gap-3 items-center">
-              <Pin pin={pin} />
-              <div className="flex flex-col">
-                <p className="text-xs text-muted-foreground font-medium">
-                  ID: {index}
-                </p>
-                <p className={classNames(
-                  "font-semibold text-sm text-gray-800 font-heading",
-                  lexend.className
-                )}>
-                  {(selectedPin?.id === pin.id ? selectedPin.name : pin.name) || 'Pin sans nom'}
-                </p>
+      <div className="flex flex-col gap-2 p-3 min-h-[800px]">
+        {pins.map((pin) => {
+          const isSelected = selectedPin?.id === pin.id
+          return (
+            <div
+              key={pin.id}
+              onClick={() => setSelectedPin(pin)}
+              className={clsx(
+                'cursor-pointer rounded-lg p-3 flex flex-col gap-2 transition-all',
+                isSelected
+                  ? 'bg-white border border-neutral-300 shadow-sm'
+                  : 'bg-gray-100 border border-neutral-200 hover:border-neutral-300 hover:shadow-sm'
+              )}
+            >
+              {/* Header: status + name */}
+              <div className="flex items-center gap-2">
+                <Pin pin={pin} />
+                <span className="text-[13px] font-medium text-neutral-900 truncate flex-1">
+                  {(isSelected ? selectedPin.name : pin.name) || 'Pin sans nom'}
+                </span>
               </div>
-            </div>
 
-            {/* Photos */}
-            <div className="flex flex-row gap-2 items-center flex-wrap">
-              {pin.pins_photos?.map((photo, i) => (
-                <img
-                  key={i}
-                  src={photo.public_url}
-                  className="w-16 h-16 rounded-lg border border-border/50 object-cover shadow-sm"
-                />
-              ))}
-            </div>
+              {/* Photos */}
+              {pin.pins_photos?.length > 0 && (
+                <div className="flex flex-row gap-1.5 items-center flex-wrap ml-7">
+                  {pin.pins_photos.map((photo, i) => (
+                    <img
+                      key={i}
+                      src={photo.public_url}
+                      className="w-12 h-12 rounded-md border border-neutral-200 object-cover"
+                    />
+                  ))}
+                </div>
+              )}
 
-            {/* Date */}
-            <p className="text-xs text-muted-foreground">
-              {dayjs(pin.created_at).fromNow()}
-            </p>
-          </div>
-        ))}
+              {/* Date */}
+              <p className="text-[11px] text-neutral-300 ml-7">
+                {dayjs(pin.created_at).fromNow()}
+              </p>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

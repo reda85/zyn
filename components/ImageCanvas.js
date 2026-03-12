@@ -582,29 +582,26 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
         }}
       >
         {/* Controls */}
-        <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
-          <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-            <button onClick={zoomOut} className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors border-r border-gray-200">
-              <ZoomOut className="h-5 w-5 text-gray-700" />
-            </button>
-            <div className="px-3 text-sm font-medium text-gray-600 border-r border-gray-200 min-w-[60px] text-center">
-              {Math.round(scale * 100)}%
-            </div>
-            <button onClick={zoomIn} className="p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors">
-              <ZoomIn className="h-5 w-5 text-gray-700" />
-            </button>
-          </div>
-          {!isGuest && (
-            <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-              <button onClick={() => setPinMode(false)} className={`p-3 transition-all border-r border-gray-200 ${!pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}>
-                <PointerIcon className="h-5 w-5" />
-              </button>
-              <button onClick={() => setPinMode(true)} className={`p-3 transition-all ${pinMode ? 'bg-pink-50 text-pink-600' : 'hover:bg-gray-50 text-gray-700'}`}>
-                <MapPinIcon className="h-5 w-5" />
-              </button>
-            </div>
-          )}
-        </div>
+      <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5">
+  <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-lg shadow-sm overflow-hidden border border-neutral-200">
+    <button onClick={zoomOut} className="p-2.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors border-r border-neutral-200">
+      <ZoomOut className="h-4 w-4 text-neutral-600" />
+    </button>
+    <button onClick={zoomIn} className="p-2.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
+      <ZoomIn className="h-4 w-4 text-neutral-600" />
+    </button>
+  </div>
+  {!isGuest && (
+    <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-lg shadow-sm overflow-hidden border border-neutral-200">
+      <button onClick={() => setPinMode(false)} className={`p-2.5 transition-colors border-r border-neutral-200 ${!pinMode ? 'bg-neutral-400 text-white' : 'hover:bg-neutral-50 text-neutral-600'}`}>
+        <PointerIcon className="h-4 w-4" />
+      </button>
+      <button onClick={() => setPinMode(true)} className={`p-2.5 transition-colors ${pinMode ? 'bg-neutral-400 text-white' : 'hover:bg-neutral-50 text-neutral-600'}`}>
+        <MapPinIcon className="h-4 w-4" />
+      </button>
+    </div>
+  )}
+</div>
 
         {/* OSD tiled viewer */}
         {useOSD && (
