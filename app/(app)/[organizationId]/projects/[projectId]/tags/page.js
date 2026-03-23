@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Trash2, Plus, Tag, GripVertical, ArrowLeft } from 'lucide-react'
+import { Trash2, Plus, Tag, ArrowLeft, Search, X } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { Lexend } from 'next/font/google'
@@ -12,25 +11,10 @@ import clsx from 'clsx'
 
 const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
-// StrictMode wrapper for Droppable
-const StrictModeDroppable = ({ children, ...props }) => {
-  const [enabled, setEnabled] = useState(false)
-
-  useEffect(() => {
-    const animation = requestAnimationFrame(() => setEnabled(true))
-    return () => {
-      cancelAnimationFrame(animation)
-      setEnabled(false)
-    }
-  }, [])
-
-  if (!enabled) return null
-  return <Droppable {...props}>{children}</Droppable>
-}
-
 export default function ProjectTags() {
   const [tags, setTags] = useState([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const { projectId } = useParams()
   const router = useRouter()
 
@@ -49,32 +33,16 @@ export default function ProjectTags() {
     fetchTags()
   }, [projectId])
 
-  const handleDragEnd = async (result) => {
-    if (!result.destination) return
-    if (result.destination.index === result.source.index) return
-
-    const reordered = Array.from(tags)
-    const [removed] = reordered.splice(result.source.index, 1)
-    reordered.splice(result.destination.index, 0, removed)
-
-    const updated = reordered.map((tag, index) => ({ ...tag, order: index }))
-    setTags(updated)
-
-    try {
-      await Promise.all(
-        updated.map((tag) =>
-          supabase.from('tags').update({ order: tag.order }).eq('id', tag.id)
-        )
-      )
-    } catch (error) {
-      console.error('Error updating order:', error)
-    }
-  }
+  const filteredTags = tags.filter((tag) =>
+    tag.name.toLowerCase().includes(search.toLowerCase())
+  )
 
   const handleNameChange = (index, name) => {
-    const updated = [...tags]
-    updated[index].name = name
-    setTags(updated)
+    // Work on the original tags array using the tag's id
+    const tagId = filteredTags[index].id
+    setTags((prev) =>
+      prev.map((t) => (t.id === tagId ? { ...t, name } : t))
+    )
   }
 
   const handleSaveTag = async (tag) => {
@@ -160,10 +128,30 @@ export default function ProjectTags() {
             Gestionnaire de tags
           </h1>
           <p className="text-muted-foreground leading-relaxed max-w-2xl">
-            Les tags vous permettent de labelliser vos tâches librement. 
-            Organisez-les par glisser-déposer pour définir leur ordre d'apparition dans l'application.
+            Les tags vous permettent de labelliser vos tâches librement.
           </p>
         </div>
+
+        {/* Search bar */}
+        {tags.length > 0 && (
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher un tag..."
+              className="pl-9 pr-9 border-border/50 bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Tags list */}
         {tags.length === 0 ? (
@@ -179,83 +167,59 @@ export default function ProjectTags() {
             </button>
           </div>
         ) : (
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <StrictModeDroppable droppableId="tags">
-              {(provided, snapshot) => (
+          <div className="border border-border/50 p-6 rounded-xl bg-card shadow-sm space-y-3">
+            {filteredTags.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <Tag className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Aucun tag ne correspond à votre recherche.</p>
+              </div>
+            ) : (
+              filteredTags.map((tag, index) => (
                 <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className={clsx(
-                    'space-y-3 border border-border/50 p-6 rounded-xl bg-card shadow-sm transition-colors',
-                    snapshot.isDraggingOver && 'bg-secondary/30'
-                  )}
+                  key={tag.id}
+                  className="bg-secondary/30 p-4 border border-border/50 rounded-xl transition-all"
                 >
-                  {tags.map((tag, index) => (
-                    <Draggable key={tag.id} draggableId={String(tag.id)} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          style={provided.draggableProps.style}
-                          className={clsx(
-                            'bg-secondary/30 p-4 border border-border/50 rounded-xl transition-all',
-                            snapshot.isDragging && 'shadow-lg shadow-primary/20 rotate-2 scale-105'
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            {/* Drag handle */}
-                            <div
-                              {...provided.dragHandleProps}
-                              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                              <GripVertical className="w-5 h-5" />
-                            </div>
+                  <div className="flex items-center gap-3">
+                    {/* Tag badge preview */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-background border border-border rounded-full shrink-0">
+                      <Tag className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground truncate max-w-[80px]">
+                        {tag.name || 'Tag'}
+                      </span>
+                    </div>
 
-                            {/* Tag badge preview */}
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-background border border-border rounded-full shrink-0">
-                              <Tag className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs font-medium text-muted-foreground truncate max-w-[80px]">
-                                {tag.name || 'Tag'}
-                              </span>
-                            </div>
+                    {/* Name input */}
+                    <Input
+                      value={tag.name}
+                      onChange={(e) => handleNameChange(index, e.target.value)}
+                      onBlur={() => handleSaveTag(tag)}
+                      className="flex-1 border-border/50 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50 font-medium"
+                      placeholder="Nom du tag"
+                    />
 
-                            {/* Name input */}
-                            <Input
-                              value={tag.name}
-                              onChange={(e) => handleNameChange(index, e.target.value)}
-                              onBlur={() => handleSaveTag(tag)}
-                              className="flex-1 border-border/50 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50 font-medium"
-                              placeholder="Nom du tag"
-                            />
-
-                            {/* Delete */}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteTag(tag.id)}
-                              className="hover:bg-destructive/10 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-
-                  {/* Add button */}
-                  <button
-                    onClick={handleAddTag}
-                    className="flex bg-secondary/50 border border-border/50 items-center text-foreground w-full gap-2 p-4 rounded-xl hover:bg-secondary/80 hover:border-primary/20 transition-all font-medium justify-center"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Ajouter un tag
-                  </button>
+                    {/* Delete */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteTag(tag.id)}
+                      className="hover:bg-destructive/10 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </StrictModeDroppable>
-          </DragDropContext>
+              ))
+            )}
+
+            {/* Add button — always visible */}
+            <button
+              onClick={handleAddTag}
+              className="flex bg-secondary/50 border border-border/50 items-center text-foreground w-full gap-2 p-4 rounded-xl hover:bg-secondary/80 hover:border-primary/20 transition-all font-medium justify-center"
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter un tag
+            </button>
+          </div>
         )}
       </div>
     </div>
