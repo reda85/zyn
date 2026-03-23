@@ -62,7 +62,7 @@ export default function SnippetPage({ params }) {
       
       const { data: pinData } = await supabase
         .from('pdf_pins')
-        .select('*')
+        .select('*,pin_tags(tag_id, tags(*))')
         .eq('id', pinId)
         .is('deleted_at', null)
         .single();

@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const icons = ["zap", "droplets", "paint-roller", "fire-extinguisher", "grid", "calendar-days", "check", "user", "user-circle", "check-check", "map-pin", "map"];
+const icons = ["zap", "droplets", "paint-roller", "fire-extinguisher", "grid", "calendar-days", "check", "user", "user-circle", "check-check", "map-pin", "map","wifi","flame","trending-up","trending-down","construction","door-open","droplet-off","brush-cleaning","brick-wall","package","check-circle","alarm-smoke","air-vent","folder"];
 
 const colors = {
   white: "#FFFFFF",

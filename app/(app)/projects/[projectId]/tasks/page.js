@@ -213,12 +213,13 @@ const handleDownload = async () => {
         console.log('fetchPins', isGuest)
         const { data,error } = await supabase
             .from('pdf_pins')
-            .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
+            .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url),pin_tags(tag_id,tags(*))')
             .eq('project_id', projectId)
             .is('deleted_at', null)
             .eq('assigned_to', profile.id)
         if (data) {
             setOriginalPins(data)
+             console.log('pins', data)
         }
         if (error) {
             console.log('pins', error)
@@ -227,12 +228,13 @@ const handleDownload = async () => {
   else {
     const { data,error } = await supabase
             .from('pdf_pins')
-            .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url)')
+            .select('id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number),project_id,pins_photos(id,public_url),plans(id,name,file_url),pin_tags(tag_id,tags(*))')
             .is('deleted_at', null)
             .eq('project_id', projectId)
             
         if (data) {
             setOriginalPins(data)
+            console.log('pins', data)
         }
         if (error) {
             console.log('pins', error)

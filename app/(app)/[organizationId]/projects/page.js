@@ -109,7 +109,7 @@ export default function ProjectsPage({ params }) {
   const createProject = async () => {
     if (!newProjectName.trim()) return
     setLoading(true)
-    const { data, error } = await supabase.rpc('create_project_with_defaults_new', {
+    const { data, error } = await supabase.rpc('create_project_with_defaults', {
       p_name: newProjectName,
       p_organization_id: organizationId,
     })

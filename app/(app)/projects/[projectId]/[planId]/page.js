@@ -79,6 +79,7 @@ const fetchPins = async () => {
           projects(id,name,project_number),
           pins_photos(*),
           categories(name),
+          pin_tags(tag_id,tags(*)),
           ${assignedToSelect} // Use the conditional select string
         `)
         .eq('plan_id', selectedPlan.id)

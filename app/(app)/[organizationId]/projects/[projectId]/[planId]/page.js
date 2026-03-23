@@ -100,6 +100,7 @@ const fetchPins = async () => {
           *,
           projects(id,name,project_number,organization_id),
           pins_photos(*),
+         pin_tags(tag_id,tags(*)),
           categories(name),
           ${assignedToSelect} // Use the conditional select string
         `)
