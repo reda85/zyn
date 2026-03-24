@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Send, Plus, Users, X, Search, UserPlus, MessageSquare, Image as ImageIcon, Link as LinkIcon, MapPin, FileText } from 'lucide-react';
+import { Send, Plus, Users, X, Search, UserPlus, MessageSquare, Image as ImageIcon, Link as LinkIcon, MapPin, FileText, MapPinIcon } from 'lucide-react';
 import { Outfit } from 'next/font/google';
 import NavBar from '@/components/NavBar';
 import { useAtom } from 'jotai';
@@ -68,7 +68,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
   if (item.item_type === 'plan') {
     return (
       <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-neutral-100 text-neutral-600')}>
-        <span>🗺</span>
+        <MapPinIcon className="w-4 h-4 shrink-0" />
         <span>{item.label ?? item.item_id}</span>
       </div>
     );
@@ -81,8 +81,10 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
 
   return (
     <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-lg cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-neutral-100 text-neutral-600')}>
-      <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: statusColor }}>
-        {CategoryIcon && <div className="w-2.5 h-2.5 text-white">{CategoryIcon}</div>}
+      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: statusColor }}>
+        <div className="w-4 h-4 flex items-center justify-center text-white [&>svg]:w-3 [&>svg]:h-3">
+  {CategoryIcon}
+</div>
       </div>
       <span>{item.label ?? item.item_id}</span>
     </div>

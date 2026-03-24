@@ -407,6 +407,7 @@ export default function Tasks({ params }) {
                   originalPins={originalPinspins}
                   setOriginalPins={setOriginalPins}
                   user={profile}
+                  projectId={projectId}
                 />
 
                 <button
