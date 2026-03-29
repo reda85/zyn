@@ -1,20 +1,16 @@
 'use client'
 import { useAtom } from 'jotai'
-import { categoriesAtom, pinsAtom, projectPlansAtom, selectedPinAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms'
+import { categoriesAtom, projectPlansAtom, selectedPinAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms'
 import NavBar from '@/components/NavBar'
 import { selectedProjectAtom } from '@/store/atoms'
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { Outfit } from 'next/font/google'
 import Pin from '@/components/Pin'
-import { Square3Stack3DIcon } from '@heroicons/react/24/outline'
 import CategoryComboBox from '@/components/CategoryComboBox'
-import { Calendar1Icon, Download, FileText, Search, Settings, X, XIcon } from 'lucide-react'
+import { Calendar1Icon, Download, FileText, Search, XIcon } from 'lucide-react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { Document, Page, PDFDownloadLink, Text } from '@react-pdf/renderer'
-import PdfReport from '@/components/PdfReport'
-import FilterPanel from '@/components/FilterPanel'
 import ListFilterPanel from '@/components/ListFilterPanel'
 import LoadingScreen from '@/components/LoadingScreen'
 import clsx from 'clsx'
@@ -26,6 +22,7 @@ import ExcelJS from 'exceljs'
 
 const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
+// ── Due Date Picker ────────────────────────────────────────────────────────────
 const DueDatePicker = ({ pin, onUpdate }) => {
   const [selectedDate, setSelectedDate] = useState(
     pin?.due_date ? new Date(pin.due_date) : null
@@ -41,6 +38,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
       .update({ due_date: date })
       .eq('id', pin.id)
     if (error) console.error('update due_date failed', error)
+    onUpdate?.(pin.id, date)
   }
 
   return (
@@ -57,11 +55,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
               : 'border-neutral-200 text-neutral-300'
         )}
       >
-        {selectedDate ? (
-          selectedDate.toLocaleDateString('fr-FR')
-        ) : (
-          'Ajouter échéance'
-        )}
+        {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
         <Calendar1Icon
           size={12}
           className={clsx(
@@ -85,24 +79,11 @@ const DueDatePicker = ({ pin, onUpdate }) => {
   )
 }
 
-const updateDueDate = async (date) => {
-  const { data, error } = await supabase
-    .from('pdf_pins')
-    .update({ due_date: date })
-    .eq('id', selectedPin.id)
-    .select('*')
-    .single()
-  if (data) {
-    setSelectedDate(date)
-    setPins(pins.map((p) => (p.id === selectedPin.id ? { ...p, due_date: date } : p)))
-  }
-  if (error) console.log('updateDueDate', error)
-}
-
+// ── Main Page ──────────────────────────────────────────────────────────────────
 export default function Tasks({ params }) {
   const [pins, setPins] = useState([])
-  const [originalPinspins, setOriginalPins] = useState([])
-  const [plan, setPlan] = useAtom(selectedPlanAtom)
+  const [originalPins, setOriginalPins] = useState([])
+  const [, setPlan] = useAtom(selectedPlanAtom)
   const [project, setProject] = useAtom(selectedProjectAtom)
   const [categories, setCategories] = useAtom(categoriesAtom)
   const [statuses, setStatuses] = useAtom(statusesAtom)
@@ -112,11 +93,10 @@ export default function Tasks({ params }) {
   const [newTaskName, setNewTaskName] = useState('')
   const [newTaskDescription, setNewTaskDescription] = useState('')
   const [isCreating, setIsCreating] = useState(false)
-  const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
+  const [, setProjectPlans] = useAtom(projectPlansAtom)
   const [selectedIds, setSelectedIds] = useState(new Set())
-  const [pinsWithSnapshots, setPinsWithSnapshots] = useState(null)
   const { projectId, organizationId } = params
-  const { user, profile, organization } = useUserData()
+  const { user, profile } = useUserData()
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportFields, setReportFields] = useState({
     description: true,
@@ -129,7 +109,9 @@ export default function Tasks({ params }) {
   })
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [availableTemplates, setAvailableTemplates] = useState([])
+  const [projectMembers, setProjectMembers] = useState([])
 
+  // ── Fetch templates ──
   useEffect(() => {
     const fetchTemplates = async () => {
       const { data } = await supabase
@@ -139,13 +121,47 @@ export default function Tasks({ params }) {
         .order('created_at', { ascending: false })
       if (data) {
         setAvailableTemplates(data)
-        const defaultTemplate = data.find((t) => t.is_default) || data[0]
+        const defaultTemplate = data.find((t) => t.is_default) || data[0] || null
         setSelectedTemplate(defaultTemplate)
       }
     }
     if (organizationId) fetchTemplates()
   }, [organizationId])
 
+  // ── Sync reportFields when template changes ──
+  useEffect(() => {
+    if (selectedTemplate?.config?.fields) {
+      const f = selectedTemplate.config.fields
+      setReportFields({
+        description: f.description ?? true,
+        photos: f.photos ?? true,
+        snapshot: f.snapshot ?? true,
+        assignedTo: f.assignedTo ?? true,
+        dueDate: f.dueDate ?? true,
+        category: f.category ?? true,
+        status: f.status ?? true,
+      })
+    }
+  }, [selectedTemplate])
+
+  // ── Fetch project members ──
+  useEffect(() => {
+    const fetchMembers = async () => {
+      const { data, error } = await supabase
+        .from('members_projects')
+        .select('id, role, members(id, name, email)')
+        .eq('project_id', projectId)
+      if (data) {
+        setProjectMembers(
+          data.map((m) => ({ ...m.members, role: m.role, memberId: m.id }))
+        )
+      }
+      if (error) console.error('fetchMembers', error)
+    }
+    if (projectId) fetchMembers()
+  }, [projectId])
+
+  // ── Deep-link via hash ──
   useEffect(() => {
     const hash = window.location.hash
     if (hash.startsWith('#pin-')) {
@@ -158,40 +174,7 @@ export default function Tasks({ params }) {
     }
   }, [pins])
 
-  const handleGenerateReport = async (displayMode) => {
-    setIsReportModalOpen(false)
-    const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
-    try {
-      const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId,
-          selectedIds: selectedPinsArr.map((p) => p.id),
-          fields: reportFields,
-          displayMode,
-          templateConfig: selectedTemplate?.config || null,
-        }),
-      })
-      if (!response.ok) throw new Error('Erreur lors de la génération PDF')
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'rapport-taches.pdf'
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error(err)
-      alert('Impossible de générer le rapport')
-    }
-  }
-
-  const handleDueDateUpdate = (pinId, date) => {
-    setPins((prev) => prev.map((p) => (p.id === pinId ? { ...p, due_date: date } : p)))
-    setOriginalPins((prev) => prev.map((p) => (p.id === pinId ? { ...p, due_date: date } : p)))
-  }
-
+  // ── Fetch project ──
   useEffect(() => {
     const fetchProject = async () => {
       const { data } = await supabase
@@ -208,6 +191,7 @@ export default function Tasks({ params }) {
     fetchProject()
   }, [projectId])
 
+  // ── Fetch pins ──
   useEffect(() => {
     if (projectId && user && profile) {
       const isGuest = profile?.role === 'guest'
@@ -228,17 +212,19 @@ export default function Tasks({ params }) {
     }
   }, [projectId, user, profile])
 
+  // ── Search filter ──
   useEffect(() => {
-    const filtered = originalPinspins.filter((pin) =>
+    const filtered = originalPins.filter((pin) =>
       (pin.name || 'Pin sans nom').toLowerCase().includes(searchQuery.toLowerCase())
     )
     setPins(filtered)
-  }, [searchQuery, originalPinspins])
+  }, [searchQuery, originalPins])
 
   useEffect(() => {
-    setPins(originalPinspins)
-  }, [originalPinspins])
+    setPins(originalPins)
+  }, [originalPins])
 
+  // ── Selection helpers ──
   const toggleSelect = (id) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -248,9 +234,50 @@ export default function Tasks({ params }) {
   }
 
   const toggleSelectAll = () => {
-    setSelectedIds(selectedIds.size === pins.length ? new Set() : new Set(pins.map((p) => p.id)))
+    setSelectedIds(
+      selectedIds.size === pins.length ? new Set() : new Set(pins.map((p) => p.id))
+    )
   }
 
+  const handleDueDateUpdate = (pinId, date) => {
+    setPins((prev) => prev.map((p) => (p.id === pinId ? { ...p, due_date: date } : p)))
+    setOriginalPins((prev) => prev.map((p) => (p.id === pinId ? { ...p, due_date: date } : p)))
+  }
+
+  // ── Generate PDF report ──
+  const handleGenerateReport = async (displayMode, participants, customSectionContents) => {
+    setIsReportModalOpen(false)
+    const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
+    try {
+      const response = await fetch('http://localhost:3001/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          selectedIds: selectedPinsArr.map((p) => p.id),
+          fields: reportFields,
+          displayMode,
+          templateConfig: selectedTemplate?.config || null,
+          participants,
+  
+          customSections: customSectionContents,
+        }),
+      })
+      if (!response.ok) throw new Error('Erreur lors de la génération PDF')
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'rapport-taches.pdf'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      alert('Impossible de générer le rapport')
+    }
+  }
+
+  // ── Export Excel (simple) ──
   const handleExportExcel = () => {
     const selectedPins = pins.filter((pin) => selectedIds.has(pin.id))
     if (!selectedPins.length) return
@@ -272,6 +299,7 @@ export default function Tasks({ params }) {
     XLSX.writeFile(wb, 'liste-des-taches.xlsx')
   }
 
+  // ── Export Excel with embedded images ──
   const handleExportExcelWithEmbeddedMedia = async () => {
     const selectedPins = pins.filter((pin) => selectedIds.has(pin.id))
     if (!selectedPins.length) return
@@ -302,8 +330,8 @@ export default function Tasks({ params }) {
         row.height = 90
         if (media?.public_url) {
           try {
-            const response = await fetch(media.public_url)
-            const blob = await response.blob()
+            const res = await fetch(media.public_url)
+            const blob = await res.blob()
             const buffer = await blob.arrayBuffer()
             const imageId = workbook.addImage({ buffer, extension: 'jpeg' })
             sheet.addImage(imageId, {
@@ -328,6 +356,7 @@ export default function Tasks({ params }) {
     window.URL.revokeObjectURL(url)
   }
 
+  // ── Create task ──
   const handleCreateTask = async () => {
     if (!newTaskName.trim()) return
     try {
@@ -346,7 +375,6 @@ export default function Tasks({ params }) {
         .single()
       if (error) throw error
       setOriginalPins((prev) => [data, ...prev])
-      setPins((prev) => [data, ...prev])
       setNewTaskName('')
       setNewTaskDescription('')
       setIsAddTaskOpen(false)
@@ -358,15 +386,7 @@ export default function Tasks({ params }) {
     }
   }
 
-  const TABLE_HEADERS = [
-    'Nom',
-    'ID',
-    'Assigné à',
-    'Catégorie',
-    'Échéance',
-    'Localisation',
-    'Tags',
-  ]
+  const TABLE_HEADERS = ['Nom', 'ID', 'Assigné à', 'Catégorie', 'Échéance', 'Localisation', 'Tags']
 
   return (
     <>
@@ -404,7 +424,7 @@ export default function Tasks({ params }) {
                 <ListFilterPanel
                   pins={pins}
                   setPins={setPins}
-                  originalPins={originalPinspins}
+                  originalPins={originalPins}
                   setOriginalPins={setOriginalPins}
                   user={profile}
                   projectId={projectId}
@@ -422,6 +442,7 @@ export default function Tasks({ params }) {
 
             {/* ── Main card ── */}
             <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+
               {/* Selection bar */}
               {selectedIds.size > 0 && (
                 <div className="flex items-center justify-between px-4 py-2.5 bg-neutral-50 border-b border-neutral-200">
@@ -432,11 +453,10 @@ export default function Tasks({ params }) {
                   <div className="flex items-center gap-1.5">
                     <select
                       value={selectedTemplate?.id || ''}
-                      onChange={(e) =>
-                        setSelectedTemplate(
-                          availableTemplates.find((t) => t.id === e.target.value)
-                        )
-                      }
+                      onChange={(e) => {
+                        const tpl = availableTemplates.find((t) => t.id === e.target.value) || null
+                        setSelectedTemplate(tpl)
+                      }}
                       className="px-2.5 py-1.5 bg-white text-neutral-600 rounded-lg text-[12px] font-medium border border-neutral-200 focus:outline-none focus:border-neutral-400 transition-colors"
                     >
                       <option value="">Template par défaut</option>
@@ -474,12 +494,15 @@ export default function Tasks({ params }) {
                 </div>
               )}
 
+              {/* Report modal */}
               {isReportModalOpen && (
                 <ReportFieldsModal
                   fields={reportFields}
                   setFields={setReportFields}
                   onClose={() => setIsReportModalOpen(false)}
                   onConfirm={handleGenerateReport}
+                  templateConfig={selectedTemplate?.config || null}
+                  projectMembers={projectMembers}
                 />
               )}
 
@@ -512,9 +535,7 @@ export default function Tasks({ params }) {
                       <tr>
                         <td colSpan={8} className="py-16 text-center">
                           <FileText className="w-10 h-10 text-neutral-200 mx-auto mb-3" />
-                          <p className="text-[13px] text-neutral-400">
-                            Aucune tâche à afficher
-                          </p>
+                          <p className="text-[13px] text-neutral-400">Aucune tâche à afficher</p>
                         </td>
                       </tr>
                     )}
@@ -524,7 +545,7 @@ export default function Tasks({ params }) {
                         key={pin.id}
                         onClick={() => setSelectedPin({ ...pin })}
                         className={clsx(
-                          'border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer group',
+                          'border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer',
                           selectedIds.has(pin.id) && 'bg-neutral-50'
                         )}
                       >
@@ -587,9 +608,22 @@ export default function Tasks({ params }) {
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className="text-[13px] text-neutral-500">
-                            {pin.tags?.length > 0 ? pin.tags.join(', ') : '—'}
-                          </span>
+                          {pin.pin_tags?.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {pin.pin_tags.map((pt) =>
+                                pt.tags ? (
+                                  <span
+                                    key={pt.tag_id}
+                                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-600"
+                                  >
+                                    {pt.tags.name}
+                                  </span>
+                                ) : null
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-[13px] text-neutral-300">—</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -604,12 +638,7 @@ export default function Tasks({ params }) {
           {/* ── Create Task Modal ── */}
           {isAddTaskOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-              <div
-                className={clsx(
-                  outfit.className,
-                  'bg-white w-full max-w-md rounded-xl border border-neutral-200 shadow-xl'
-                )}
-              >
+              <div className={clsx(outfit.className, 'bg-white w-full max-w-md rounded-xl border border-neutral-200 shadow-xl')}>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
                   <h3 className="text-base font-semibold text-neutral-900">Nouvelle tâche</h3>
                   <button
@@ -636,9 +665,7 @@ export default function Tasks({ params }) {
                   <div>
                     <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
                       Description
-                      <span className="text-neutral-300 font-normal normal-case ml-1">
-                        (optionnel)
-                      </span>
+                      <span className="text-neutral-300 font-normal normal-case ml-1">(optionnel)</span>
                     </label>
                     <textarea
                       placeholder="Ajouter une description..."
@@ -675,9 +702,41 @@ export default function Tasks({ params }) {
   )
 }
 
-function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
-  const [displayMode, setDisplayMode] = useState('list')
+// ── Report Fields Modal ────────────────────────────────────────────────────────
+function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConfig, projectMembers }) {
+  const [displayMode, setDisplayMode] = useState(
+    templateConfig?.tasks?.displayMode || 'list'
+  )
+
+  const showParticipants =
+    templateConfig?.participants?.enabled === true ||
+    templateConfig?.coverPage?.showParticipants === true
+
+  const participantsConfig = templateConfig?.participants || {}
+
+  const [participants, setParticipants] = useState(() =>
+    projectMembers.map((m) => ({ ...m, present: true }))
+  )
+
+  const enabledSections = (templateConfig?.customSections || []).filter((s) => s.enabled)
+
+  const [customSectionContents, setCustomSectionContents] = useState(() =>
+    enabledSections.map((s) => ({ id: s.id, title: s.title, type: s.type, content: '' }))
+  )
+
   const toggle = (key) => setFields((f) => ({ ...f, [key]: !f[key] }))
+
+  const toggleParticipant = (id) => {
+    setParticipants((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, present: !p.present } : p))
+    )
+  }
+
+  const updateSectionContent = (id, content) => {
+    setCustomSectionContents((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, content } : s))
+    )
+  }
 
   const FIELD_LABELS = {
     description: 'Description',
@@ -691,13 +750,16 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div
-        className={clsx(
-          'bg-white w-full max-w-md rounded-xl border border-neutral-200 shadow-xl'
-        )}
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
-          <h3 className="text-base font-semibold text-neutral-900">Options du rapport</h3>
+      <div className={clsx(outfit.className, 'bg-white w-full max-w-lg rounded-xl border border-neutral-200 shadow-xl max-h-[90vh] flex flex-col')}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 flex-shrink-0">
+          <div>
+            <h3 className="text-base font-semibold text-neutral-900">Options du rapport</h3>
+            {templateConfig?.reportTitle && (
+              <p className="text-[11px] text-neutral-400 mt-0.5">{templateConfig.reportTitle}</p>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-1 rounded-md hover:bg-neutral-100 transition-colors"
@@ -706,34 +768,24 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
+        {/* Scrollable body */}
+        <div className="p-5 space-y-6 overflow-y-auto flex-1">
+
+          {/* Display mode */}
           <div>
             <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">
               Mode d'affichage
             </p>
             <div className="grid grid-cols-2 gap-2">
               {[
-                {
-                  key: 'list',
-                  label: 'Liste détaillée',
-                  icon: <FileText className="w-4 h-4" />,
-                },
+                { key: 'list', label: 'Liste détaillée', icon: <FileText className="w-4 h-4" /> },
                 {
                   key: 'table',
                   label: 'Tableau compact',
                   icon: (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
                   ),
                 },
@@ -760,11 +812,12 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
             </p>
           </div>
 
+          {/* Fields */}
           <div>
             <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">
               Champs à inclure
             </p>
-            <div className="space-y-0.5 max-h-52 overflow-y-auto">
+            <div className="space-y-0.5">
               {Object.entries(fields).map(([key, value]) => (
                 <label
                   key={key}
@@ -781,9 +834,111 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
               ))}
             </div>
           </div>
+
+          {/* Participants */}
+          {showParticipants && (
+            <div>
+              <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">
+                {participantsConfig.title || 'Participants'}
+              </p>
+              {participants.length === 0 ? (
+                <p className="text-[12px] text-neutral-300 px-1">
+                  Aucun membre trouvé sur ce projet.
+                </p>
+              ) : (
+                <div className="border border-neutral-200 rounded-lg overflow-hidden divide-y divide-neutral-100">
+                  {participants.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between px-3 py-2.5 hover:bg-neutral-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center text-[10px] font-semibold text-neutral-600 flex-shrink-0">
+                          {member.name?.charAt(0).toUpperCase() || '?'}
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-medium text-neutral-800">
+                            {member.name || '—'}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            {participantsConfig.showRoles && member.role && (
+                              <p className="text-[11px] text-neutral-400">{member.role}</p>
+                            )}
+                            {participantsConfig.showContact && member.email && (
+                              <p className="text-[11px] text-neutral-300">{member.email}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <span className={clsx(
+                          'text-[11px] font-medium',
+                          member.present ? 'text-emerald-600' : 'text-neutral-300'
+                        )}>
+                          {member.present ? 'Présent' : 'Absent'}
+                        </span>
+                        <button
+                          onClick={() => toggleParticipant(member.id)}
+                          className={clsx(
+                            'w-8 h-4 rounded-full transition-colors relative flex-shrink-0',
+                            member.present ? 'bg-neutral-900' : 'bg-neutral-200'
+                          )}
+                        >
+                          <span className={clsx(
+                            'absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform',
+                            member.present ? 'translate-x-4' : 'translate-x-0.5'
+                          )} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Custom sections */}
+          {enabledSections.length > 0 && (
+            <div className="space-y-4">
+              <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
+                Sections additionnelles
+              </p>
+              {customSectionContents.map((section) => (
+                <div key={section.id}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <label className="text-[12px] font-medium text-neutral-700">
+                      {section.title}
+                    </label>
+                    {section.type && (
+                      <span className="text-[10px] text-neutral-300 uppercase tracking-wide">
+                        — {section.type === 'list' ? 'liste' : section.type}
+                      </span>
+                    )}
+                  </div>
+                  <textarea
+                    value={section.content}
+                    onChange={(e) => updateSectionContent(section.id, e.target.value)}
+                    placeholder={
+                      section.type === 'list'
+                        ? 'Un élément par ligne…'
+                        : `Contenu de la section "${section.title}"…`
+                    }
+                    rows={section.type === 'list' ? 4 : 3}
+                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 resize-none transition-colors"
+                  />
+                  {section.type === 'list' && (
+                    <p className="text-[10px] text-neutral-300 mt-1">
+                      Chaque ligne sera un élément de liste dans le rapport.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-neutral-100">
+        {/* Footer */}
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-neutral-100 flex-shrink-0">
           <button
             onClick={onClose}
             className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
@@ -791,7 +946,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm }) {
             Annuler
           </button>
           <button
-            onClick={() => onConfirm(displayMode)}
+            onClick={() => onConfirm(displayMode, participants, customSectionContents)}
             className="flex items-center gap-1.5 px-4 py-2 bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />

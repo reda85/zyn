@@ -76,23 +76,33 @@ export default function OrganizationSettingsPage({ params }) {
     setSaving(false)
   }
 
-  const handleLogoUpload = async (file) => {
-    if (!file || !organization) return
+ const handleLogoUpload = async (file) => {
+  if (!file || !organization) return
 
-    const fileExt = file.name.split('.').pop()
-    const filePath = `${organization.id}/logo.${fileExt}`
-
-    const { error } = await supabase.storage
-      .from('logos')
-      .upload(filePath, file, { upsert: true })
-
-    if (error) console.error('Logo upload error:', error)
-
-    if (!error) {
-      const { data } = supabase.storage.from('logos').getPublicUrl(filePath)
-      setLogoUrl(data.publicUrl)
-    }
+  if (!file.type.startsWith('image/')) {
+    alert('Only image files are allowed')
+    return
   }
+
+  const fileExt = file.name.split('.').pop()
+  const filePath = `${organization.id}/logo-${Date.now()}.${fileExt}`
+
+  const { error } = await supabase.storage
+    .from('logos')
+    .upload(filePath, file)
+
+  if (error) {
+    console.error('Upload failed:', error.message, error)
+    alert(error.message)
+    return
+  }
+
+  const { data } = supabase.storage
+    .from('logos')
+    .getPublicUrl(filePath)
+
+  setLogoUrl(data.publicUrl)
+}
 
   if (isCheckingAccess || !isAdmin) {
     return (
