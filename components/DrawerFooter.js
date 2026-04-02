@@ -26,7 +26,8 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
           { 
             comment: comment, 
             pin_id: pin.id, 
-            sender_id: profile.id 
+            sender_id: profile.id,
+            username: profile.name,
           },
         ])
         .select();

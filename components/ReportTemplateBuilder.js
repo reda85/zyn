@@ -9,42 +9,51 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 
-// ── Google Fonts for web preview ──────────────────────────────────────────────
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
 const webFontMap = {
-  helvetica:     'Arial, sans-serif',
-  times:         '"Times New Roman", serif',
-  courier:       '"Courier New", monospace',
-  inter:         '"Inter", sans-serif',
-  outfit:        '"Outfit", sans-serif',
-  roboto:        '"Roboto", sans-serif',
-  lato:          '"Lato", sans-serif',
-  montserrat:    '"Montserrat", sans-serif',
-  poppins:       '"Poppins", sans-serif',
-  raleway:       '"Raleway", sans-serif',
-  opensans:      '"Open Sans", sans-serif',
-  playfair:      '"Playfair Display", serif',
-  dmsans:        '"DM Sans", sans-serif',
+  helvetica: 'Arial, sans-serif',
+  times:     '"Times New Roman", serif',
+  courier:   '"Courier New", monospace',
+  inter:     '"Inter", sans-serif',
+  outfit:    '"Outfit", sans-serif',
+  roboto:    '"Roboto", sans-serif',
+  lato:      '"Lato", sans-serif',
+  montserrat:'"Montserrat", sans-serif',
+  poppins:   '"Poppins", sans-serif',
+  raleway:   '"Raleway", sans-serif',
+  opensans:  '"Open Sans", sans-serif',
+  playfair:  '"Playfair Display", serif',
+  dmsans:    '"DM Sans", sans-serif',
 }
 
 const fontOptions = [
-  { value: "inter",       label: "Inter" },
-  { value: "outfit",      label: "Outfit" },
-  { value: "roboto",      label: "Roboto" },
-  { value: "lato",        label: "Lato" },
-  { value: "montserrat",  label: "Montserrat" },
-  { value: "poppins",     label: "Poppins" },
-  { value: "raleway",     label: "Raleway" },
-  { value: "opensans",    label: "Open Sans" },
-  { value: "dmsans",      label: "DM Sans" },
-  { value: "playfair",    label: "Playfair Display" },
-  { value: "helvetica",   label: "Helvetica" },
-  { value: "times",       label: "Times New Roman" },
-  { value: "courier",     label: "Courier" },
+  { value: "inter",      label: "Inter" },
+  { value: "outfit",     label: "Outfit" },
+  { value: "roboto",     label: "Roboto" },
+  { value: "lato",       label: "Lato" },
+  { value: "montserrat", label: "Montserrat" },
+  { value: "poppins",    label: "Poppins" },
+  { value: "raleway",    label: "Raleway" },
+  { value: "opensans",   label: "Open Sans" },
+  { value: "dmsans",     label: "DM Sans" },
+  { value: "playfair",   label: "Playfair Display" },
+  { value: "helvetica",  label: "Helvetica" },
+  { value: "times",      label: "Times New Roman" },
+  { value: "courier",    label: "Courier" },
 ]
 
-// ── Sub-components at module level to prevent remount on re-render ────────────
+const DEFAULT_SECTION_ORDER = ['summary', 'participants', 'signatures', 'tasks', 'customSections']
+
+const SECTION_LABELS = {
+  summary:        { label: 'Résumé', icon: '📊' },
+  participants:   { label: 'Participants', icon: '👥' },
+  signatures:     { label: 'Signatures', icon: '✍️' },
+  tasks:          { label: 'Tâches', icon: '📋' },
+  customSections: { label: 'Sections personnalisées', icon: '📝' },
+}
+
+// ── Sub-components at module level ────────────────────────────────────────────
 
 const Section = ({ title, icon: Icon, section, expandedSections, toggleSection, children }) => (
   <div className="border-b border-border/30">
@@ -93,6 +102,17 @@ const SelectField = ({ label, value, onChange, options }) => (
   </div>
 )
 
+const SectionOrderItem = ({ id, label, icon, index, total, onMoveUp, onMoveDown }) => (
+  <div className="flex items-center gap-3 bg-white border border-border/50 rounded-lg px-3 py-2.5 group">
+    <span className="text-base">{icon}</span>
+    <span className="text-sm font-medium text-foreground flex-1">{label}</span>
+    <div className="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded hover:bg-secondary/50 disabled:opacity-20 disabled:cursor-not-allowed transition-all text-xs font-bold">▲</button>
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded hover:bg-secondary/50 disabled:opacity-20 disabled:cursor-not-allowed transition-all text-xs font-bold">▼</button>
+    </div>
+  </div>
+)
+
 const CoverTitlePreview = ({ config }) => {
   const cp           = config.coverPage || {}
   const titleStyle   = cp.titleStyle ?? 'bold'
@@ -100,61 +120,38 @@ const CoverTitlePreview = ({ config }) => {
   const titleAlign   = cp.titleAlign ?? 'left'
   const titleSpacing = cp.titleLetterSpacing ?? 'normal'
   const showBar      = cp.titleAccentBar ?? true
-  const titleColor   = (cp.titleColor ?? 'primary') === 'custom'
-    ? (cp.titleCustomColor ?? '#000000')
-    : config.primaryColor
+  const titleColor   = (cp.titleColor ?? 'primary') === 'custom' ? (cp.titleCustomColor ?? '#000000') : config.primaryColor
   const fontFamily   = webFontMap[config.fontFamily] || 'Arial, sans-serif'
-
-  const fontSizeMap = { small: '1.75rem', medium: '2.75rem', large: '3.75rem' }
-  const subSizeMap  = { small: '0.875rem', medium: '1.125rem', large: '1.375rem' }
-  const spacingMap  = { tight: '-0.04em', normal: '0', wide: '0.1em' }
-
-  const fontSize  = fontSizeMap[titleSize]
-  const subSize   = subSizeMap[titleSize]
-  const spacing   = spacingMap[titleSpacing]
-  const justify   = titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start'
-
-  const barStyle = showBar
-    ? titleAlign === 'center'
-      ? { borderTop: `4px solid ${titleColor}`, paddingTop: '1rem' }
-      : titleAlign === 'right'
-        ? { borderRight: `8px solid ${titleColor}`, paddingRight: '2rem' }
-        : { borderLeft: `8px solid ${titleColor}`, paddingLeft: '2rem' }
+  const fontSizeMap  = { small: '1.75rem', medium: '2.75rem', large: '3.75rem' }
+  const subSizeMap   = { small: '0.875rem', medium: '1.125rem', large: '1.375rem' }
+  const spacingMap   = { tight: '-0.04em', normal: '0', wide: '0.1em' }
+  const fontSize     = fontSizeMap[titleSize]
+  const subSize      = subSizeMap[titleSize]
+  const spacing      = spacingMap[titleSpacing]
+  const justify      = titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start'
+  const barStyle     = showBar
+    ? titleAlign === 'center' ? { borderTop: `4px solid ${titleColor}`, paddingTop: '1rem' }
+    : titleAlign === 'right'  ? { borderRight: `8px solid ${titleColor}`, paddingRight: '2rem' }
+    :                           { borderLeft: `8px solid ${titleColor}`, paddingLeft: '2rem' }
     : {}
-
   const words     = (config.reportTitle || 'RAPPORT DE TÂCHES').split(' ')
   const boldPart  = words.slice(0, 2).join(' ')
   const lightPart = words.slice(2).join(' ') || 'DE VISITE'
-
   return (
     <div style={{ ...barStyle, marginBottom: '2rem', display: 'flex', flexDirection: 'column', alignItems: justify, textAlign: titleAlign, fontFamily }}>
-      {titleStyle === 'bold' && (
-        <>
-          <div style={{ fontSize, fontWeight: 900, color: titleColor, letterSpacing: spacing, textTransform: 'uppercase', lineHeight: 1.1, marginBottom: '0.5rem' }}>
-            {config.reportTitle}
-          </div>
-          <div style={{ fontSize: subSize, color: '#78716c', fontWeight: 300 }}>Projet Example — Casablanca</div>
-        </>
-      )}
-      {titleStyle === 'light' && (
-        <>
-          <div style={{ fontSize, fontWeight: 200, color: titleColor, letterSpacing: spacing, lineHeight: 1.1, marginBottom: '0.5rem' }}>
-            {config.reportTitle}
-          </div>
-          <div style={{ fontSize: subSize, color: '#78716c', fontWeight: 300 }}>Projet Example — Casablanca</div>
-        </>
-      )}
-      {titleStyle === 'boldlight' && (
-        <>
-          <div style={{ fontSize, fontWeight: 900, color: titleColor, letterSpacing: spacing, textTransform: 'uppercase', lineHeight: 1.1, marginBottom: '0.15rem' }}>
-            {boldPart}
-          </div>
-          <div style={{ fontSize: `calc(${fontSize} * 0.6)`, fontWeight: 200, color: titleColor, letterSpacing: spacing, opacity: 0.75, marginBottom: '0.5rem' }}>
-            {lightPart}
-          </div>
-          <div style={{ fontSize: subSize, color: '#78716c', fontWeight: 300 }}>Projet Example — Casablanca</div>
-        </>
-      )}
+      {titleStyle === 'bold' && (<>
+        <div style={{ fontSize, fontWeight: 900, color: titleColor, letterSpacing: spacing, textTransform: 'uppercase', lineHeight: 1.1, marginBottom: '0.5rem' }}>{config.reportTitle}</div>
+        <div style={{ fontSize: subSize, color: '#78716c', fontWeight: 300 }}>Projet Example — Casablanca</div>
+      </>)}
+      {titleStyle === 'light' && (<>
+        <div style={{ fontSize, fontWeight: 200, color: titleColor, letterSpacing: spacing, lineHeight: 1.1, marginBottom: '0.5rem' }}>{config.reportTitle}</div>
+        <div style={{ fontSize: subSize, color: '#78716c', fontWeight: 300 }}>Projet Example — Casablanca</div>
+      </>)}
+      {titleStyle === 'boldlight' && (<>
+        <div style={{ fontSize, fontWeight: 900, color: titleColor, letterSpacing: spacing, textTransform: 'uppercase', lineHeight: 1.1, marginBottom: '0.15rem' }}>{boldPart}</div>
+        <div style={{ fontSize: `calc(${fontSize} * 0.6)`, fontWeight: 200, color: titleColor, letterSpacing: spacing, opacity: 0.75, marginBottom: '0.5rem' }}>{lightPart}</div>
+        <div style={{ fontSize: subSize, color: '#78716c', fontWeight: 300 }}>Projet Example — Casablanca</div>
+      </>)}
     </div>
   )
 }
@@ -162,125 +159,136 @@ const CoverTitlePreview = ({ config }) => {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 export default function ReportTemplateBuilder({ onSave, initialTemplate = null }) {
-  const [isSaving, setIsSaving] = useState(false)
+  const [isSaving, setIsSaving]     = useState(false)
   const [saveStatus, setSaveStatus] = useState(null)
 
   const defaultConfig = {
-    primaryColor: "#44403c",
-    fontFamily: "inter",
-    reportTitle: "RAPPORT DE TÂCHES",
+    primaryColor:  "#44403c",
+    fontFamily:    "inter",
+    reportTitle:   "RAPPORT DE TÂCHES",
+    sectionOrder:  [...DEFAULT_SECTION_ORDER],
+    sectionTitles: {
+      titleSize:      "medium",
+      titleAccentBar: true,
+      titleUnderline: false,
+    },
     header: {
       showOrganizationName: true,
-      showProjectName: true,
-      showDate: true,
-      showLogo: false,
-      logoSize: 'medium',
-      showClientLogo: false,
-      clientLogoSize: 'medium',
-      layout: "horizontal",
+      showProjectName:      true,
+      showDate:             true,
+      showLogo:             false,
+      logoSize:             'medium',
+      showClientLogo:       false,
+      clientLogoSize:       'medium',
+      layout:               "horizontal",
     },
     summary: {
-      enabled: true,
-      showPeriod: true,
-      showTotalCount: true,
-      showOverdueCount: true,
-      showPlanCount: true,
+      enabled:             true,
+      showPeriod:          true,
+      showTotalCount:      true,
+      showOverdueCount:    true,
+      showPlanCount:       true,
       showStatusBreakdown: true,
-      backgroundColor: "#f5f5f4",
+      backgroundColor:     "#f5f5f4",
     },
     tasks: {
-      displayMode: "list",
-      groupBy: "none",
-      sortBy: "created_at",
+      displayMode:            "list",
+      groupBy:                "none",
+      sortBy:                 "created_at",
+      title:                  "Tâches",
+      photosPerRow:           3,
+      galleryShowName:        true,
+      galleryShowDescription: false,
+      galleryShowStatus:      true,
     },
     fields: {
       description: true,
-      photos: true,
-      snapshot: true,
-      assignedTo: true,
-      dueDate: true,
-      category: true,
-      status: true,
-      createdBy: true,
-      plan: true,
+      photos:      true,
+      snapshot:    true,
+      assignedTo:  true,
+      dueDate:     true,
+      category:    true,
+      status:      true,
+      createdBy:   true,
+      plan:        true,
     },
     listView: {
-      showIndex: true,
-      showCategoryIcon: true,
-      showStatusPill: true,
-      photoLayout: "grid",
-      snapshotSize: "large",
-      showDividers: true,
-      snapshotBorder: true,
+      showIndex:           true,
+      showCategoryIcon:    true,
+      showStatusPill:      true,
+      photoLayout:         "grid",
+      snapshotSize:        "large",
+      showDividers:        true,
+      snapshotBorder:      true,
       snapshotBorderWidth: 4,
     },
     tableView: {
-      showIndex: true,
-      showPhotosInline: true,
-      photoSize: "medium",
-      compactMode: false,
-      alternateRowColors: true,
+      showIndex:             true,
+      showPhotosInline:      true,
+      photoSize:             "medium",
+      compactMode:           false,
+      alternateRowColors:    true,
       headerBackgroundColor: "#f5f5f4",
     },
     coverPage: {
-      enabled: false,
-      showCompanyLogo: true,
-      companyLogoSize: "medium",
-      showClientLogo: true,
-      clientLogoSize: "medium",
-      showProjectPhoto: true,
-      projectPhotoSize: "medium",
-      showSummary: true,
+      enabled:            false,
+      showCompanyLogo:    true,
+      companyLogoSize:    "medium",
+      showClientLogo:     true,
+      clientLogoSize:     "medium",
+      showProjectPhoto:   true,
+      projectPhotoSize:   "medium",
+      showSummary:        true,
       participantsLayout: "grid",
-      backgroundStyle: "none",
-      titleStyle: "bold",
-      titleSize: "large",
-      titleAlign: "left",
+      backgroundStyle:    "none",
+      titleStyle:         "bold",
+      titleSize:          "large",
+      titleAlign:         "left",
       titleLetterSpacing: "normal",
-      titleColor: "primary",
-      titleCustomColor: "#000000",
-      titleAccentBar: true,
+      titleColor:         "primary",
+      titleCustomColor:   "#000000",
+      titleAccentBar:     true,
     },
     projectInfo: {
-      showLocation: true,
-      showClientName: true,
+      showLocation:      true,
+      showClientName:    true,
       showProjectNumber: true,
-      showContractor: false,
-      showArchitect: false,
-      showPhase: false,
+      showContractor:    false,
+      showArchitect:     false,
+      showPhase:         false,
     },
     photoGallery: {
-      enabled: false,
-      title: "Galerie de photos",
-      layout: "grid",
+      enabled:      false,
+      title:        "Galerie de photos",
+      layout:       "grid",
       photosPerRow: 4,
       showCaptions: true,
       showMetadata: false,
     },
     participants: {
-      enabled: false,
-      title: "Équipe projet",
-      layout: "grid",
-      showRoles: true,
+      enabled:     false,
+      title:       "Équipe projet",
+      layout:      "grid",
+      showRoles:   true,
       showContact: false,
       showCompany: false,
     },
     signatures: {
       enabled: false,
-      title: "Signatures",
-      layout: "horizontal",
+      title:   "Signatures",
+      layout:  "horizontal",
       fields: [
         { label: "Chef de projet", enabled: true },
-        { label: "Client", enabled: true },
-        { label: "Entrepreneur", enabled: false },
+        { label: "Client",         enabled: true },
+        { label: "Entrepreneur",   enabled: false },
       ],
     },
     footer: {
-      enabled: false,
+      enabled:         false,
       showPageNumbers: true,
       showProjectInfo: true,
       showCompanyInfo: false,
-      customText: "",
+      customText:      "",
     },
     customSections: [],
   }
@@ -291,16 +299,18 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     return {
       ...defaultConfig,
       ...saved,
-      header:       { ...defaultConfig.header,       ...saved.header },
-      summary:      { ...defaultConfig.summary,      ...saved.summary },
-      tasks:        { ...defaultConfig.tasks,        ...saved.tasks },
-      fields:       { ...defaultConfig.fields,       ...saved.fields },
-      listView:     { ...defaultConfig.listView,     ...saved.listView },
-      tableView:    { ...defaultConfig.tableView,    ...saved.tableView },
-      coverPage:    { ...defaultConfig.coverPage,    ...saved.coverPage },
-      projectInfo:  { ...defaultConfig.projectInfo,  ...saved.projectInfo },
-      photoGallery: { ...defaultConfig.photoGallery, ...saved.photoGallery },
-      participants: { ...defaultConfig.participants, ...saved.participants },
+      sectionOrder:  saved.sectionOrder  || defaultConfig.sectionOrder,
+      sectionTitles: { ...defaultConfig.sectionTitles, ...(saved.sectionTitles || {}) },
+      header:        { ...defaultConfig.header,        ...saved.header },
+      summary:       { ...defaultConfig.summary,       ...saved.summary },
+      tasks:         { ...defaultConfig.tasks,         ...saved.tasks },
+      fields:        { ...defaultConfig.fields,        ...saved.fields },
+      listView:      { ...defaultConfig.listView,      ...saved.listView },
+      tableView:     { ...defaultConfig.tableView,     ...saved.tableView },
+      coverPage:     { ...defaultConfig.coverPage,     ...saved.coverPage },
+      projectInfo:   { ...defaultConfig.projectInfo,   ...saved.projectInfo },
+      photoGallery:  { ...defaultConfig.photoGallery,  ...saved.photoGallery },
+      participants:  { ...defaultConfig.participants,  ...saved.participants },
       signatures: {
         ...defaultConfig.signatures,
         ...saved.signatures,
@@ -313,18 +323,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
   const [expandedSections, setExpandedSections] = useState(() => {
     const base = {
-      header: true,
-      summary: false,
-      tasks: false,
-      fields: false,
-      listView: false,
-      tableView: false,
-      coverPage: false,
-      projectInfo: false,
-      photoGallery: false,
-      participants: false,
-      signatures: false,
-      footer: false,
+      header:        true,
+      summary:       false,
+      tasks:         false,
+      fields:        false,
+      listView:      false,
+      tableView:     false,
+      sectionTitles: false,
+      sectionOrder:  false,
+      coverPage:     false,
+      projectInfo:   false,
+      photoGallery:  false,
+      participants:  false,
+      signatures:    false,
+      footer:        false,
     }
     const saved = initialTemplate?.config?.customSections || []
     saved.forEach(s => { base[`custom-${s.id}`] = false })
@@ -342,19 +354,11 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
   }
 
   const addCustomSection = () => {
-    const id = Date.now()
+    const id  = Date.now()
     const key = `custom-${id}`
     setConfig(prev => ({
       ...prev,
-      customSections: [...prev.customSections, {
-        id,
-        title: "Nouvelle section",
-        type: "text",
-        enabled: true,
-        titleAccentBar: true,
-        titleSize: "medium",
-        titleUnderline: false,
-      }],
+      customSections: [...prev.customSections, { id, title: "Nouvelle section", type: "text", enabled: true }],
     }))
     setExpandedSections(prev => {
       const next = {}
@@ -362,6 +366,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       next[key] = true
       return next
     })
+  }
+
+  const moveSection = (index, direction) => {
+    const arr  = [...(config.sectionOrder || DEFAULT_SECTION_ORDER)]
+    const swap = index + direction
+    ;[arr[index], arr[swap]] = [arr[swap], arr[index]]
+    setConfig(p => ({ ...p, sectionOrder: arr }))
   }
 
   const saveTemplate = async () => {
@@ -387,11 +398,195 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
   const previewFont = webFontMap[config.fontFamily] || 'Arial, sans-serif'
 
+  const sectionTitlePreviewStyle = () => ({
+    fontSize:            (config.sectionTitles?.titleSize ?? 'medium') === 'small' ? '12px' : (config.sectionTitles?.titleSize ?? 'medium') === 'large' ? '18px' : '14px',
+    fontWeight:          'bold',
+    color:               config.primaryColor,
+    borderLeft:          (config.sectionTitles?.titleAccentBar ?? true) ? `3px solid ${config.primaryColor}` : 'none',
+    paddingLeft:         (config.sectionTitles?.titleAccentBar ?? true) ? '8px' : '0',
+    textDecoration:      (config.sectionTitles?.titleUnderline ?? false) ? 'underline' : 'none',
+    textDecorationColor: config.primaryColor,
+    marginBottom:        '12px',
+    fontFamily:          previewFont,
+  })
+
+  const sectionOrder = config.sectionOrder || DEFAULT_SECTION_ORDER
+
   const S = (props) => <Section {...props} expandedSections={expandedSections} toggleSection={toggleSection} />
+
+  // ── Preview renderers per section ─────────────────────────────────────────
+  const renderPreviewSection = (sectionId) => {
+    switch (sectionId) {
+      case 'summary':
+        if (!config.summary.enabled) return null
+        return (
+          <div key="summary" className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
+            <div className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {config.summary.showPeriod && <div><div className="text-xs font-bold text-slate-600 mb-1">Période</div><div>01/01/2026 — 01/02/2026</div></div>}
+              <div className="flex gap-4">
+                {config.summary.showTotalCount   && <div><div className="text-xs font-bold text-slate-600">Total</div><div className="text-lg font-bold mt-1">15</div></div>}
+                {config.summary.showOverdueCount && <div><div className="text-xs font-bold text-slate-600">En retard</div><div className="text-lg font-bold mt-1 text-red-600">3</div></div>}
+                {config.summary.showPlanCount    && <div><div className="text-xs font-bold text-slate-600">Plans</div><div className="text-lg font-bold mt-1">5</div></div>}
+              </div>
+            </div>
+            {config.summary.showStatusBreakdown && (
+              <div className="mt-3 pt-3 border-t border-slate-200 flex gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full text-xs text-white bg-green-500">Terminé (5)</span>
+                <span className="px-3 py-1 rounded-full text-xs text-white bg-yellow-500">En cours (7)</span>
+                <span className="px-3 py-1 rounded-full text-xs text-white bg-red-500">Bloqué (3)</span>
+              </div>
+            )}
+          </div>
+        )
+
+      case 'participants':
+        if (!config.participants.enabled) return null
+        return (
+          <div key="participants">
+            <div style={sectionTitlePreviewStyle()}>{config.participants.title || 'Équipe projet'}</div>
+            <div className={clsx(config.participants.layout === 'grid' ? 'grid grid-cols-2 gap-4' : 'space-y-3')}>
+              {["Jean Dupont", "Marie Martin", "Ahmed Alami", "Sara Client"].map((name, i) => (
+                <div key={name} className="border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-sm font-medium">{name}</span></div>
+                  {config.participants.showRoles && <p className="text-xs text-slate-400 ml-4">{["Chef de projet", "Architecte", "Ingénieur", "MOA"][i]}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'signatures':
+        if (!config.signatures.enabled) return null
+        return (
+          <div key="signatures">
+            <div style={sectionTitlePreviewStyle()}>{config.signatures.title || 'Signatures'}</div>
+            <div className={config.signatures.layout === 'horizontal' ? 'grid grid-cols-3 gap-6' : 'space-y-6'}>
+              {config.signatures.fields.filter(f => f.enabled).map((field) => (
+                <div key={field.label}>
+                  <div className="text-sm font-bold text-slate-600 mb-2">{field.label}</div>
+                  <div className="border-b-2 border-slate-300 h-12 mb-1" />
+                  <div className="text-xs text-slate-400">Date & Signature</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'tasks':
+        return (
+          <div key="tasks">
+            {config.tasks.title && <div style={sectionTitlePreviewStyle()}>{config.tasks.title}</div>}
+
+            {config.tasks.displayMode === 'photoGallery' ? (
+              <div className="space-y-5">
+                {[1, 2].map((n) => (
+                  <div key={n}>
+                    {config.tasks.galleryShowName !== false && (
+                      <div className="text-xs font-bold text-slate-600 mb-2">Tâche d'exemple {n}</div>
+                    )}
+                    <div
+                      className="grid gap-2"
+                      style={{ gridTemplateColumns: `repeat(${config.tasks.photosPerRow ?? 3}, 1fr)` }}
+                    >
+                      {[1, 2, 3].slice(0, config.tasks.photosPerRow ?? 3).map((p) => (
+                        <div key={p} className="relative">
+                          <div className="bg-slate-200 rounded aspect-square flex items-center justify-center text-slate-400 text-[10px]">Photo {p}</div>
+                          {config.tasks.galleryShowStatus !== false && (
+                            <span className="absolute top-1 right-1 px-1 py-0.5 rounded text-[9px] text-white bg-green-500">OK</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {config.tasks.galleryShowDescription && (
+                      <p className="text-xs text-slate-500 italic mt-1">Description de la tâche {n}…</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : config.tasks.displayMode === 'list' ? (
+              [1, 2].map((n) => (
+                <div key={n} className="border-l-4 pl-4 mb-4" style={{ borderColor: config.primaryColor }}>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {config.listView.showIndex && <span className="font-bold" style={{ color: config.primaryColor }}>{n}.</span>}
+                        <span className="font-bold text-slate-800">Tâche d'exemple {n}</span>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Catégorie:</span><span>Structure</span></div>}
+                        {config.fields.assignedTo  && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Assigné à:</span><span>Marie Martin</span></div>}
+                        {config.fields.dueDate     && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Échéance:</span><span>15/02/2026</span></div>}
+                        {config.fields.description && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Description:</span><span>Vérifier la conformité</span></div>}
+                      </div>
+                    </div>
+                    {config.fields.snapshot && (
+                      <div className="flex-shrink-0 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs" style={{
+                        width:  config.listView.snapshotSize === 'small' ? '100px' : config.listView.snapshotSize === 'medium' ? '120px' : '140px',
+                        height: config.listView.snapshotSize === 'small' ? '100px' : config.listView.snapshotSize === 'medium' ? '120px' : '140px',
+                        border: config.listView.snapshotBorder ? `${config.listView.snapshotBorderWidth}px solid ${config.primaryColor}` : 'none',
+                      }}>Snapshot</div>
+                    )}
+                  </div>
+                  {config.listView.showDividers && n === 1 && <div className="h-px bg-slate-200 mt-4" />}
+                </div>
+              ))
+            ) : (
+              <div className="border border-slate-200 rounded-lg overflow-hidden text-sm">
+                <div className="grid grid-cols-12 gap-2 p-2 text-xs font-bold" style={{ backgroundColor: config.tableView.headerBackgroundColor }}>
+                  {config.tableView.showIndex && <div className="col-span-1">#</div>}
+                  <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche</div>
+                  <div className="col-span-2">ID</div>
+                  {config.fields.category   && <div className="col-span-2">Catégorie</div>}
+                  {config.fields.status     && <div className="col-span-2">Statut</div>}
+                  {config.fields.assignedTo && <div className="col-span-2">Assigné</div>}
+                </div>
+                {[1, 2].map((n, idx) => (
+                  <div key={n} className={clsx("grid grid-cols-12 gap-2 p-2 text-xs border-t border-slate-100", config.tableView.alternateRowColors && idx % 2 === 1 ? 'bg-slate-50' : 'bg-white')}>
+                    {config.tableView.showIndex && <div className="col-span-1 font-bold">{n}</div>}
+                    <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche {n}</div>
+                    <div className="col-span-2">PR-{n}</div>
+                    {config.fields.category   && <div className="col-span-2">Structure</div>}
+                    {config.fields.status     && <div className="col-span-2"><span className="px-2 py-0.5 rounded-full text-xs text-white bg-green-500">OK</span></div>}
+                    {config.fields.assignedTo && <div className="col-span-2">J. Dupont</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+
+      case 'customSections':
+        if (config.customSections.filter(s => s.enabled).length === 0) return null
+        return (
+          <div key="customSections" className="space-y-6">
+            {config.customSections.filter(s => s.enabled).map((section) => (
+              <div key={section.id}>
+                <div style={sectionTitlePreviewStyle()}>{section.title}</div>
+                {section.type === 'list' ? (
+                  <div className="space-y-1.5">
+                    {['Élément 1', 'Élément 2', 'Élément 3'].map((item) => (
+                      <div key={item} className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: config.primaryColor }} />
+                        <span className="text-sm text-slate-600 italic">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 rounded p-3"><p className="text-sm text-slate-500 italic">Contenu texte libre…</p></div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground font-sans">
-      {/* Load Google Fonts for preview */}
       <style>{`@import url('${GOOGLE_FONTS_URL}');`}</style>
 
       {/* ── CONTROL PANEL ─────────────────────────────────────────────────── */}
@@ -405,46 +600,22 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <div className="space-y-3">
             <div>
               <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">Titre du rapport</label>
-              <input
-                type="text"
-                value={config.reportTitle}
-                onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                placeholder="RAPPORT DE TÂCHES"
-                className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold"
-              />
+              <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">Couleur</label>
                 <div className="flex items-center gap-2 bg-secondary/30 rounded-lg border border-border/50 px-3 py-2.5">
-                  <input
-                    type="color"
-                    value={config.primaryColor}
-                    onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, primaryColor: e.target.value })) }}
-                    className="w-7 h-7 rounded cursor-pointer border-0"
-                  />
+                  <input type="color" value={config.primaryColor} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, primaryColor: e.target.value })) }} className="w-7 h-7 rounded cursor-pointer border-0" />
                   <span className="text-xs text-foreground font-mono">{config.primaryColor}</span>
                 </div>
               </div>
               <div>
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 block">Police</label>
-                <select
-                  value={config.fontFamily}
-                  onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, fontFamily: e.target.value })) }}
-                  className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                >
-                  {fontOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
+                <select value={config.fontFamily} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, fontFamily: e.target.value })) }} className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all">
+                  {fontOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
-                {/* Live font preview */}
-                <p
-                  className="mt-1 text-[11px] text-muted-foreground px-1 truncate"
-                  style={{ fontFamily: previewFont }}
-                >
-                  AaBbCcDd 0123
-                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground px-1 truncate" style={{ fontFamily: previewFont }}>AaBbCcDd 0123</p>
               </div>
             </div>
           </div>
@@ -457,21 +628,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <Toggle label="Nom de l'organisation" checked={config.header.showOrganizationName} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showOrganizationName: e.target.checked } }))} />
             <Toggle label="Nom du projet"         checked={config.header.showProjectName}       onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showProjectName:       e.target.checked } }))} />
             <Toggle label="Date"                  checked={config.header.showDate}              onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showDate:              e.target.checked } }))} />
-            <Toggle
-              label="Logo entreprise"
-              checked={config.header.showLogo ?? false}
-              onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showLogo: e.target.checked } }))}
-            />
+            <Toggle label="Logo entreprise"       checked={config.header.showLogo ?? false}     onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showLogo:              e.target.checked } }))} />
             {config.header.showLogo && (
               <div className="pl-5 border-l-2 border-border/30">
                 <SelectField label="Taille" value={config.header.logoSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, logoSize: e.target.value } }))} options={[{ value: 'small', label: 'Petit' }, { value: 'medium', label: 'Moyen' }, { value: 'large', label: 'Grand' }]} />
               </div>
             )}
-            <Toggle
-              label="Logo client"
-              checked={config.header.showClientLogo ?? false}
-              onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showClientLogo: e.target.checked } }))}
-            />
+            <Toggle label="Logo client" checked={config.header.showClientLogo ?? false} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showClientLogo: e.target.checked } }))} />
             {config.header.showClientLogo && (
               <div className="pl-5 border-l-2 border-border/30">
                 <SelectField label="Taille" value={config.header.clientLogoSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, clientLogoSize: e.target.value } }))} options={[{ value: 'small', label: 'Petit' }, { value: 'medium', label: 'Moyen' }, { value: 'large', label: 'Grand' }]} />
@@ -485,10 +648,10 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <Toggle label="Activer le résumé" checked={config.summary.enabled} onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, enabled: e.target.checked } }))} />
             {config.summary.enabled && (
               <div className="space-y-3 pl-5 border-l-2 border-border/30">
-                <Toggle label="Période"               checked={config.summary.showPeriod}          onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPeriod:          e.target.checked } }))} />
-                <Toggle label="Total des tâches"      checked={config.summary.showTotalCount}      onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showTotalCount:      e.target.checked } }))} />
-                <Toggle label="Tâches en retard"      checked={config.summary.showOverdueCount}    onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showOverdueCount:    e.target.checked } }))} />
-                <Toggle label="Nombre de plans"       checked={config.summary.showPlanCount}       onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPlanCount:       e.target.checked } }))} />
+                <Toggle label="Période"                checked={config.summary.showPeriod}          onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPeriod:          e.target.checked } }))} />
+                <Toggle label="Total des tâches"       checked={config.summary.showTotalCount}      onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showTotalCount:      e.target.checked } }))} />
+                <Toggle label="Tâches en retard"       checked={config.summary.showOverdueCount}    onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showOverdueCount:    e.target.checked } }))} />
+                <Toggle label="Nombre de plans"        checked={config.summary.showPlanCount}       onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPlanCount:       e.target.checked } }))} />
                 <Toggle label="Répartition par statut" checked={config.summary.showStatusBreakdown} onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showStatusBreakdown: e.target.checked } }))} />
               </div>
             )}
@@ -496,9 +659,36 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Tâches ── */}
           <S title="Affichage des tâches" icon={Layout} section="tasks">
-            <SelectField label="Mode d'affichage" value={config.tasks.displayMode} onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, displayMode: e.target.value } }))} options={[{ value: "list", label: "Liste détaillée" }, { value: "table", label: "Tableau compact" }]} />
-            <SelectField label="Grouper par"      value={config.tasks.groupBy}     onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, groupBy:     e.target.value } }))} options={[{ value: "none", label: "Aucun" }, { value: "status", label: "Par statut" }, { value: "category", label: "Par catégorie" }, { value: "plan", label: "Par plan" }]} />
-            <SelectField label="Trier par"        value={config.tasks.sortBy}      onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, sortBy:      e.target.value } }))} options={[{ value: "created_at", label: "Date de création" }, { value: "due_date", label: "Échéance" }, { value: "status", label: "Statut" }, { value: "category", label: "Catégorie" }]} />
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre de la section</label>
+              <input type="text" value={config.tasks.title ?? 'Tâches'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, tasks: { ...p.tasks, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
+            </div>
+            <SelectField
+              label="Mode d'affichage"
+              value={config.tasks.displayMode}
+              onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, displayMode: e.target.value } }))}
+              options={[
+                { value: "list",         label: "Liste détaillée" },
+                { value: "table",        label: "Tableau compact" },
+                { value: "photoGallery", label: "Galerie photo" },
+              ]}
+            />
+            {config.tasks.displayMode === 'photoGallery' && (
+              <div className="space-y-3 pl-4 border-l-2 border-border/30">
+                <p className="text-xs font-bold text-foreground uppercase tracking-wider">Options galerie</p>
+                <SelectField
+                  label="Photos par ligne"
+                  value={String(config.tasks.photosPerRow ?? 3)}
+                  onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, photosPerRow: parseInt(e.target.value) } }))}
+                  options={[{ value: "2", label: "2" }, { value: "3", label: "3" }, { value: "4", label: "4" }]}
+                />
+                <Toggle label="Afficher le nom de la tâche"  checked={config.tasks.galleryShowName ?? true}        onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, galleryShowName:        e.target.checked } }))} />
+                <Toggle label="Afficher la description"      checked={config.tasks.galleryShowDescription ?? false} onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, galleryShowDescription: e.target.checked } }))} />
+                <Toggle label="Afficher le statut"           checked={config.tasks.galleryShowStatus ?? true}      onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, galleryShowStatus:      e.target.checked } }))} />
+              </div>
+            )}
+            <SelectField label="Grouper par" value={config.tasks.groupBy} onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, groupBy: e.target.value } }))} options={[{ value: "none", label: "Aucun" }, { value: "status", label: "Par statut" }, { value: "category", label: "Par catégorie" }, { value: "plan", label: "Par plan" }]} />
+            <SelectField label="Trier par"   value={config.tasks.sortBy}  onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, sortBy:  e.target.value } }))} options={[{ value: "created_at", label: "Date de création" }, { value: "due_date", label: "Échéance" }, { value: "status", label: "Statut" }, { value: "category", label: "Catégorie" }]} />
           </S>
 
           {/* ── Champs ── */}
@@ -538,6 +728,30 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <SelectField label="Taille des photos" value={config.tableView.photoSize} onChange={(e) => setConfig(p => ({ ...p, tableView: { ...p.tableView, photoSize: e.target.value } }))} options={[{ value: "small", label: "Petit (80×80)" }, { value: "medium", label: "Moyen (120×120)" }, { value: "large", label: "Grand (160×160)" }]} />
           </S>
 
+          {/* ── Style titres de section (global) ── */}
+          <S title="Style des titres de section" icon={FileText} section="sectionTitles">
+            <p className="text-xs text-muted-foreground px-1">S'applique aux tâches, participants, signatures et sections personnalisées.</p>
+            <SelectField label="Taille" value={config.sectionTitles?.titleSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
+            <Toggle label="Barre d'accent (bordure gauche)" checked={config.sectionTitles?.titleAccentBar ?? true}  onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleAccentBar: e.target.checked } }))} />
+            <Toggle label="Souligné"                        checked={config.sectionTitles?.titleUnderline ?? false} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleUnderline: e.target.checked } }))} />
+            <div className="rounded-lg bg-slate-50 p-4 space-y-2 mt-1">
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Aperçu</p>
+              {[config.tasks.title || 'Tâches', config.participants.title || 'Équipe projet', config.signatures.title || 'Signatures', 'Section personnalisée'].map((title) => (
+                <div key={title} style={sectionTitlePreviewStyle()}>{title}</div>
+              ))}
+            </div>
+          </S>
+
+          {/* ── Ordre des sections ── */}
+          <S title="Ordre des sections" icon={List} section="sectionOrder">
+            <p className="text-xs text-muted-foreground px-1">Définissez l'ordre d'apparition des sections dans le PDF.</p>
+            <div className="space-y-2 mt-1">
+              {sectionOrder.map((id, index) => (
+                <SectionOrderItem key={id} id={id} label={SECTION_LABELS[id]?.label || id} icon={SECTION_LABELS[id]?.icon || '•'} index={index} total={sectionOrder.length} onMoveUp={(i) => moveSection(i, -1)} onMoveDown={(i) => moveSection(i, 1)} />
+              ))}
+            </div>
+          </S>
+
           {/* ── Page de garde ── */}
           <S title="Page de garde (optionnelle)" icon={FileText} section="coverPage">
             <Toggle label="Activer la page de garde" checked={config.coverPage.enabled} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, enabled: e.target.checked } }))} />
@@ -546,34 +760,26 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <div className="space-y-3">
                   <p className="text-xs font-bold text-foreground uppercase tracking-wider">Logo entreprise</p>
                   <Toggle label="Afficher" checked={config.coverPage.showCompanyLogo} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showCompanyLogo: e.target.checked } }))} />
-                  {config.coverPage.showCompanyLogo && (
-                    <SelectField label="Taille" value={config.coverPage.companyLogoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, companyLogoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
-                  )}
+                  {config.coverPage.showCompanyLogo && <SelectField label="Taille" value={config.coverPage.companyLogoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, companyLogoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />}
                 </div>
                 <div className="space-y-3 pt-4 border-t border-border/30">
                   <p className="text-xs font-bold text-foreground uppercase tracking-wider">Logo client</p>
                   <Toggle label="Afficher" checked={config.coverPage.showClientLogo} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showClientLogo: e.target.checked } }))} />
-                  {config.coverPage.showClientLogo && (
-                    <SelectField label="Taille" value={config.coverPage.clientLogoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, clientLogoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
-                  )}
+                  {config.coverPage.showClientLogo && <SelectField label="Taille" value={config.coverPage.clientLogoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, clientLogoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />}
                   <p className="text-[10px] text-muted-foreground">Chargés automatiquement depuis votre organisation et votre projet.</p>
                 </div>
                 <div className="space-y-4 pt-4 border-t border-border/30">
                   <p className="text-xs font-bold text-foreground uppercase tracking-wider">Style du titre</p>
-                  <SelectField label="Style"                value={config.coverPage.titleStyle ?? 'bold'}          onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleStyle:          e.target.value } }))} options={[{ value: "bold", label: "Gras majuscule" }, { value: "light", label: "Léger / thin" }, { value: "boldlight", label: "Gras + léger" }]} />
-                  <SelectField label="Taille"               value={config.coverPage.titleSize ?? 'large'}          onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleSize:           e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
-                  <SelectField label="Alignement"           value={config.coverPage.titleAlign ?? 'left'}          onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleAlign:          e.target.value } }))} options={[{ value: "left", label: "Gauche" }, { value: "center", label: "Centré" }, { value: "right", label: "Droite" }]} />
-                  <SelectField label="Espacement lettres"   value={config.coverPage.titleLetterSpacing ?? 'normal'} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleLetterSpacing:  e.target.value } }))} options={[{ value: "tight", label: "Serré" }, { value: "normal", label: "Normal" }, { value: "wide", label: "Large" }]} />
-                  <Toggle label="Barre d'accent"            checked={config.coverPage.titleAccentBar ?? true}      onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleAccentBar:       e.target.checked } }))} />
+                  <SelectField label="Style"              value={config.coverPage.titleStyle ?? 'bold'}           onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleStyle:         e.target.value } }))} options={[{ value: "bold", label: "Gras majuscule" }, { value: "light", label: "Léger / thin" }, { value: "boldlight", label: "Gras + léger" }]} />
+                  <SelectField label="Taille"             value={config.coverPage.titleSize ?? 'large'}           onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleSize:          e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
+                  <SelectField label="Alignement"         value={config.coverPage.titleAlign ?? 'left'}           onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleAlign:         e.target.value } }))} options={[{ value: "left", label: "Gauche" }, { value: "center", label: "Centré" }, { value: "right", label: "Droite" }]} />
+                  <SelectField label="Espacement lettres" value={config.coverPage.titleLetterSpacing ?? 'normal'}  onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleLetterSpacing: e.target.value } }))} options={[{ value: "tight", label: "Serré" }, { value: "normal", label: "Normal" }, { value: "wide", label: "Large" }]} />
+                  <Toggle label="Barre d'accent" checked={config.coverPage.titleAccentBar ?? true} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleAccentBar: e.target.checked } }))} />
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Couleur du titre</label>
                     <div className="flex gap-2">
                       {['primary', 'custom'].map((opt) => (
-                        <button key={opt} onClick={() => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleColor: opt } }))}
-                          className={clsx("flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all",
-                            (config.coverPage.titleColor ?? 'primary') === opt ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/30 text-foreground border-border/50 hover:bg-secondary/50"
-                          )}
-                        >
+                        <button key={opt} onClick={() => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleColor: opt } }))} className={clsx("flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all", (config.coverPage.titleColor ?? 'primary') === opt ? "bg-primary text-primary-foreground border-primary" : "bg-secondary/30 text-foreground border-border/50 hover:bg-secondary/50")}>
                           {opt === 'primary' ? 'Principale' : 'Personnalisée'}
                         </button>
                       ))}
@@ -587,11 +793,9 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 </div>
                 <div className="space-y-3 pt-4 border-t border-border/30">
-                  <Toggle label="Photo de projet"   checked={config.coverPage.showProjectPhoto} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showProjectPhoto: e.target.checked } }))} />
-                  {config.coverPage.showProjectPhoto && (
-                    <SelectField label="Taille photo" value={config.coverPage.projectPhotoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, projectPhotoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }, { value: "full", label: "Pleine largeur" }]} />
-                  )}
-                  <Toggle label="Résumé exécutif"   checked={config.coverPage.showSummary}      onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showSummary:      e.target.checked } }))} />
+                  <Toggle label="Photo de projet"  checked={config.coverPage.showProjectPhoto} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showProjectPhoto: e.target.checked } }))} />
+                  {config.coverPage.showProjectPhoto && <SelectField label="Taille photo" value={config.coverPage.projectPhotoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, projectPhotoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }, { value: "full", label: "Pleine largeur" }]} />}
+                  <Toggle label="Résumé exécutif"  checked={config.coverPage.showSummary}      onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showSummary:      e.target.checked } }))} />
                 </div>
               </div>
             )}
@@ -616,8 +820,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <Toggle label="Activer la galerie" checked={config.photoGallery.enabled} onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, enabled: e.target.checked } }))} />
             {config.photoGallery.enabled && (
               <div className="space-y-4 pl-5 border-l-2 border-border/30">
-                <SelectField label="Disposition"      value={config.photoGallery.layout}                  onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, layout:       e.target.value } }))}            options={[{ value: "grid", label: "Grille" }, { value: "masonry", label: "Mosaïque" }, { value: "list", label: "Liste" }]} />
-                <SelectField label="Photos par ligne" value={String(config.photoGallery.photosPerRow)}    onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, photosPerRow: parseInt(e.target.value) } }))} options={[{ value: "2", label: "2" }, { value: "3", label: "3" }, { value: "4", label: "4" }, { value: "6", label: "6" }]} />
+                <SelectField label="Disposition"      value={config.photoGallery.layout}               onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, layout:       e.target.value } }))}            options={[{ value: "grid", label: "Grille" }, { value: "masonry", label: "Mosaïque" }, { value: "list", label: "Liste" }]} />
+                <SelectField label="Photos par ligne" value={String(config.photoGallery.photosPerRow)} onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, photosPerRow: parseInt(e.target.value) } }))} options={[{ value: "2", label: "2" }, { value: "3", label: "3" }, { value: "4", label: "4" }, { value: "6", label: "6" }]} />
                 <Toggle label="Légendes" checked={config.photoGallery.showCaptions} onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, showCaptions: e.target.checked } }))} />
               </div>
             )}
@@ -653,12 +857,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <div className="space-y-2">
                   <p className="text-xs font-bold text-foreground uppercase tracking-wider">Champs</p>
                   {config.signatures.fields.map((field, index) => (
-                    <Toggle key={index} label={field.label} checked={field.enabled}
-                      onChange={(e) => {
-                        const newFields = config.signatures.fields.map((f, i) => i === index ? { ...f, enabled: e.target.checked } : f)
-                        setConfig(p => ({ ...p, signatures: { ...p.signatures, fields: newFields } }))
-                      }}
-                    />
+                    <Toggle key={index} label={field.label} checked={field.enabled} onChange={(e) => { const nf = config.signatures.fields.map((f, i) => i === index ? { ...f, enabled: e.target.checked } : f); setConfig(p => ({ ...p, signatures: { ...p.signatures, fields: nf } })) }} />
                   ))}
                 </div>
               </div>
@@ -670,8 +869,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <Toggle label="Activer le pied de page" checked={config.footer.enabled} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, enabled: e.target.checked } }))} />
             {config.footer.enabled && (
               <div className="space-y-4 pl-5 border-l-2 border-border/30">
-                <Toggle label="Numéros de page"        checked={config.footer.showPageNumbers} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showPageNumbers: e.target.checked } }))} />
-                <Toggle label="Informations projet"    checked={config.footer.showProjectInfo} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showProjectInfo: e.target.checked } }))} />
+                <Toggle label="Numéros de page"         checked={config.footer.showPageNumbers} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showPageNumbers: e.target.checked } }))} />
+                <Toggle label="Informations projet"     checked={config.footer.showProjectInfo} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showProjectInfo: e.target.checked } }))} />
                 <Toggle label="Informations entreprise" checked={config.footer.showCompanyInfo} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showCompanyInfo: e.target.checked } }))} />
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Texte personnalisé</label>
@@ -687,84 +886,11 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre</label>
-                  <input
-                    type="text"
-                    value={customSection.title}
-                    onChange={(e) => {
-                      e.preventDefault(); e.stopPropagation()
-                      const next = config.customSections.map((s, i) => i === index ? { ...s, title: e.target.value } : s)
-                      setConfig(p => ({ ...p, customSections: next }))
-                    }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
+                  <input type="text" value={customSection.title} onChange={(e) => { e.preventDefault(); e.stopPropagation(); const next = config.customSections.map((s, i) => i === index ? { ...s, title: e.target.value } : s); setConfig(p => ({ ...p, customSections: next })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
                 </div>
-                <div className="space-y-3 pl-4 border-l-2 border-border/30">
-                  <p className="text-xs font-bold text-foreground uppercase tracking-wider">Style du titre</p>
-                  <SelectField
-                    label="Taille"
-                    value={customSection.titleSize ?? 'medium'}
-                    onChange={(e) => {
-                      e.preventDefault(); e.stopPropagation()
-                      const next = config.customSections.map((s, i) => i === index ? { ...s, titleSize: e.target.value } : s)
-                      setConfig(p => ({ ...p, customSections: next }))
-                    }}
-                    options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]}
-                  />
-                  <Toggle
-                    label="Barre d'accent (bordure gauche)"
-                    checked={customSection.titleAccentBar ?? true}
-                    onChange={(e) => {
-                      const next = config.customSections.map((s, i) => i === index ? { ...s, titleAccentBar: e.target.checked } : s)
-                      setConfig(p => ({ ...p, customSections: next }))
-                    }}
-                  />
-                  <Toggle
-                    label="Souligné"
-                    checked={customSection.titleUnderline ?? false}
-                    onChange={(e) => {
-                      const next = config.customSections.map((s, i) => i === index ? { ...s, titleUnderline: e.target.checked } : s)
-                      setConfig(p => ({ ...p, customSections: next }))
-                    }}
-                  />
-                  {/* Live title preview */}
-                  <div className="rounded-lg bg-slate-50 p-3">
-                    <div style={{
-                      fontSize:           customSection.titleSize === 'small' ? '12px' : customSection.titleSize === 'large' ? '18px' : '14px',
-                      fontWeight:         'bold',
-                      color:              config.primaryColor,
-                      borderLeft:         (customSection.titleAccentBar ?? true) ? `3px solid ${config.primaryColor}` : 'none',
-                      paddingLeft:        (customSection.titleAccentBar ?? true) ? '8px' : '0',
-                      textDecoration:     (customSection.titleUnderline ?? false) ? 'underline' : 'none',
-                      textDecorationColor: config.primaryColor,
-                      fontFamily:         previewFont,
-                    }}>
-                      {customSection.title || "Titre de la section"}
-                    </div>
-                  </div>
-                </div>
-                <SelectField
-                  label="Type de contenu"
-                  value={customSection.type}
-                  onChange={(e) => {
-                    e.preventDefault(); e.stopPropagation()
-                    const next = config.customSections.map((s, i) => i === index ? { ...s, type: e.target.value } : s)
-                    setConfig(p => ({ ...p, customSections: next }))
-                  }}
-                  options={[{ value: "text", label: "Texte libre" }, { value: "list", label: "Liste à puces" }, { value: "table", label: "Tableau" }, { value: "photos", label: "Galerie photos" }]}
-                />
-                <Toggle
-                  label="Activer"
-                  checked={customSection.enabled}
-                  onChange={(e) => {
-                    const next = config.customSections.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s)
-                    setConfig(p => ({ ...p, customSections: next }))
-                  }}
-                />
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfig(p => ({ ...p, customSections: p.customSections.filter((_, i) => i !== index) })) }}
-                  className="w-full px-4 py-2.5 border border-red-200 bg-red-50 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 transition-all flex items-center justify-center gap-2"
-                >
+                <SelectField label="Type de contenu" value={customSection.type} onChange={(e) => { e.preventDefault(); e.stopPropagation(); const next = config.customSections.map((s, i) => i === index ? { ...s, type: e.target.value } : s); setConfig(p => ({ ...p, customSections: next })) }} options={[{ value: "text", label: "Texte libre" }, { value: "list", label: "Liste à puces" }]} />
+                <Toggle label="Activer" checked={customSection.enabled} onChange={(e) => { const next = config.customSections.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s); setConfig(p => ({ ...p, customSections: next })) }} />
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfig(p => ({ ...p, customSections: p.customSections.filter((_, i) => i !== index) })) }} className="w-full px-4 py-2.5 border border-red-200 bg-red-50 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 transition-all flex items-center justify-center gap-2">
                   <Trash2 className="w-4 h-4" />Supprimer
                 </button>
               </div>
@@ -796,9 +922,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               <h2 className="text-lg font-bold">Aperçu du PDF</h2>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs px-2 py-1 rounded-md bg-secondary/30 font-medium" style={{ fontFamily: previewFont }}>
-                {fontOptions.find(f => f.value === config.fontFamily)?.label}
-              </span>
+              <span className="text-xs px-2 py-1 rounded-md bg-secondary/30 font-medium" style={{ fontFamily: previewFont }}>{fontOptions.find(f => f.value === config.fontFamily)?.label}</span>
               <span className="text-xs text-muted-foreground">Modifications en temps réel</span>
             </div>
           </div>
@@ -808,21 +932,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <div className="bg-white rounded-lg shadow-2xl overflow-hidden border-4 border-slate-300">
               <div className="w-full aspect-[210/297] p-12 bg-white flex flex-col" style={{ fontFamily: previewFont }}>
                 <div className="flex justify-between items-start mb-12">
-                  {config.coverPage.showCompanyLogo && (
-                    <div className="bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400 font-medium" style={logoPlaceholderStyle(config.coverPage.companyLogoSize)}>Logo</div>
-                  )}
-                  {config.coverPage.showClientLogo && (
-                    <div className="bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400 font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>
-                  )}
+                  {config.coverPage.showCompanyLogo && <div className="bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400 font-medium" style={logoPlaceholderStyle(config.coverPage.companyLogoSize)}>Logo</div>}
+                  {config.coverPage.showClientLogo  && <div className="bg-slate-100 rounded flex items-center justify-center text-xs text-slate-400 font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>}
                 </div>
                 <CoverTitlePreview config={config} />
                 {config.coverPage.showProjectPhoto && (
                   <div className="flex justify-center mb-8">
-                    <div className={clsx("bg-slate-100 rounded-2xl flex items-center justify-center",
-                      config.coverPage.projectPhotoSize === 'small' ? 'w-64 h-48' :
-                      config.coverPage.projectPhotoSize === 'large' ? 'w-4/5 h-72' :
-                      config.coverPage.projectPhotoSize === 'full'  ? 'w-full h-80' : 'w-2/3 h-60'
-                    )}>
+                    <div className={clsx("bg-slate-100 rounded-2xl flex items-center justify-center", config.coverPage.projectPhotoSize === 'small' ? 'w-64 h-48' : config.coverPage.projectPhotoSize === 'large' ? 'w-4/5 h-72' : config.coverPage.projectPhotoSize === 'full' ? 'w-full h-80' : 'w-2/3 h-60')}>
                       <div className="text-center"><ImageIcon className="w-10 h-10 text-slate-300 mx-auto mb-2" /><p className="text-xs text-slate-400">Photo de couverture</p></div>
                     </div>
                   </div>
@@ -834,8 +950,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 )}
                 <div className="mt-auto pt-4 border-t border-slate-100 flex justify-between text-xs text-slate-400">
-                  <span>Client Example</span>
-                  <span>{new Date().toLocaleDateString('fr-FR')}</span>
+                  <span>Client Example</span><span>{new Date().toLocaleDateString('fr-FR')}</span>
                 </div>
               </div>
             </div>
@@ -844,7 +959,6 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           {/* ── MAIN PAGE preview ── */}
           <div className="bg-white rounded-lg shadow-2xl overflow-hidden border-4 border-slate-300">
             <div className="w-full aspect-[210/297] bg-white overflow-auto" style={{ fontFamily: previewFont }}>
-
               {(config.header.showOrganizationName || config.header.showProjectName || config.header.showDate || config.header.showLogo || config.header.showClientLogo) && (
                 <div className="flex justify-between items-center px-12 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
                   <div className="flex items-center gap-3">
@@ -860,139 +974,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 </div>
               )}
-
               <div className="p-12 pt-6 space-y-6">
-                {config.summary.enabled && (
-                  <div className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
-                    <div className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      {config.summary.showPeriod && <div><div className="text-xs font-bold text-slate-600 mb-1">Période</div><div>01/01/2026 — 01/02/2026</div></div>}
-                      <div className="flex gap-4">
-                        {config.summary.showTotalCount   && <div><div className="text-xs font-bold text-slate-600">Total</div><div className="text-lg font-bold mt-1">15</div></div>}
-                        {config.summary.showOverdueCount && <div><div className="text-xs font-bold text-slate-600">En retard</div><div className="text-lg font-bold mt-1 text-red-600">3</div></div>}
-                        {config.summary.showPlanCount    && <div><div className="text-xs font-bold text-slate-600">Plans</div><div className="text-lg font-bold mt-1">5</div></div>}
-                      </div>
-                    </div>
-                    {config.summary.showStatusBreakdown && (
-                      <div className="mt-3 pt-3 border-t border-slate-200 flex gap-2 flex-wrap">
-                        <span className="px-3 py-1 rounded-full text-xs text-white bg-green-500">Terminé (5)</span>
-                        <span className="px-3 py-1 rounded-full text-xs text-white bg-yellow-500">En cours (7)</span>
-                        <span className="px-3 py-1 rounded-full text-xs text-white bg-red-500">Bloqué (3)</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {config.tasks.displayMode === 'list' ? (
-                  [1, 2].map((n) => (
-                    <div key={n} className="border-l-4 pl-4" style={{ borderColor: config.primaryColor }}>
-                      <div className="flex gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            {config.listView.showIndex && <span className="font-bold" style={{ color: config.primaryColor }}>{n}.</span>}
-                            <span className="font-bold text-slate-800">Tâche d'exemple {n}</span>
-                          </div>
-                          <div className="space-y-1 text-sm">
-                            {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Catégorie:</span><span>Structure</span></div>}
-                            {config.fields.assignedTo  && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Assigné à:</span><span>Marie Martin</span></div>}
-                            {config.fields.dueDate     && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Échéance:</span><span>15/02/2026</span></div>}
-                            {config.fields.description && <div className="flex gap-2"><span className="font-bold text-slate-500 w-28">Description:</span><span>Vérifier la conformité</span></div>}
-                          </div>
-                        </div>
-                        {config.fields.snapshot && (
-                          <div className="flex-shrink-0 bg-slate-200 rounded flex items-center justify-center text-slate-400 text-xs"
-                            style={{
-                              width:  config.listView.snapshotSize === 'small' ? '100px' : config.listView.snapshotSize === 'medium' ? '120px' : '140px',
-                              height: config.listView.snapshotSize === 'small' ? '100px' : config.listView.snapshotSize === 'medium' ? '120px' : '140px',
-                              border: config.listView.snapshotBorder ? `${config.listView.snapshotBorderWidth}px solid ${config.primaryColor}` : 'none',
-                            }}
-                          >Snapshot</div>
-                        )}
-                      </div>
-                      {config.listView.showDividers && n === 1 && <div className="h-px bg-slate-200 mt-4" />}
-                    </div>
-                  ))
-                ) : (
-                  <div className="border border-slate-200 rounded-lg overflow-hidden text-sm">
-                    <div className="grid grid-cols-12 gap-2 p-2 text-xs font-bold" style={{ backgroundColor: config.tableView.headerBackgroundColor }}>
-                      {config.tableView.showIndex && <div className="col-span-1">#</div>}
-                      <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche</div>
-                      <div className="col-span-2">ID</div>
-                      {config.fields.category   && <div className="col-span-2">Catégorie</div>}
-                      {config.fields.status     && <div className="col-span-2">Statut</div>}
-                      {config.fields.assignedTo && <div className="col-span-2">Assigné</div>}
-                    </div>
-                    {[1, 2].map((n, idx) => (
-                      <div key={n} className={clsx("grid grid-cols-12 gap-2 p-2 text-xs border-t border-slate-100", config.tableView.alternateRowColors && idx % 2 === 1 ? 'bg-slate-50' : 'bg-white')}>
-                        {config.tableView.showIndex && <div className="col-span-1 font-bold">{n}</div>}
-                        <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche {n}</div>
-                        <div className="col-span-2">PR-{n}</div>
-                        {config.fields.category   && <div className="col-span-2">Structure</div>}
-                        {config.fields.status     && <div className="col-span-2"><span className="px-2 py-0.5 rounded-full text-xs text-white bg-green-500">OK</span></div>}
-                        {config.fields.assignedTo && <div className="col-span-2">J. Dupont</div>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {config.participants.enabled && (
-                  <div className="pt-6 border-t border-slate-100">
-                    <h3 className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.participants.title}</h3>
-                    <div className={clsx(config.participants.layout === 'grid' ? 'grid grid-cols-2 gap-4' : 'space-y-3')}>
-                      {["Jean Dupont", "Marie Martin", "Ahmed Alami", "Sara Client"].map((name, i) => (
-                        <div key={name} className="border-b border-slate-100 pb-2">
-                          <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-sm font-medium">{name}</span></div>
-                          {config.participants.showRoles && <p className="text-xs text-slate-400 ml-4">{["Chef de projet", "Architecte", "Ingénieur", "MOA"][i]}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {config.signatures.enabled && (
-                  <div className="pt-6 border-t border-slate-100">
-                    <h3 className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.signatures.title}</h3>
-                    <div className={config.signatures.layout === 'horizontal' ? 'grid grid-cols-3 gap-6' : 'space-y-6'}>
-                      {config.signatures.fields.filter(f => f.enabled).map((field) => (
-                        <div key={field.label}>
-                          <div className="text-sm font-bold text-slate-600 mb-2">{field.label}</div>
-                          <div className="border-b-2 border-slate-300 h-12 mb-1" />
-                          <div className="text-xs text-slate-400">Date & Signature</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {config.customSections.filter(s => s.enabled).map((section) => (
-                  <div key={section.id} className="pt-6 border-t border-slate-100">
-                    <div style={{
-                      fontSize:           section.titleSize === 'small' ? '12px' : section.titleSize === 'large' ? '18px' : '14px',
-                      fontWeight:         'bold',
-                      color:              config.primaryColor,
-                      borderLeft:         (section.titleAccentBar ?? true) ? `3px solid ${config.primaryColor}` : 'none',
-                      paddingLeft:        (section.titleAccentBar ?? true) ? '8px' : '0',
-                      textDecoration:     (section.titleUnderline ?? false) ? 'underline' : 'none',
-                      textDecorationColor: config.primaryColor,
-                      marginBottom:       '12px',
-                    }}>
-                      {section.title}
-                    </div>
-                    {section.type === 'list' ? (
-                      <div className="space-y-1.5">
-                        {['Élément 1', 'Élément 2', 'Élément 3'].map((item) => (
-                          <div key={item} className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: config.primaryColor }} />
-                            <span className="text-sm text-slate-600 italic">{item}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="bg-slate-50 rounded p-3"><p className="text-sm text-slate-500 italic">Contenu texte libre…</p></div>
-                    )}
-                  </div>
-                ))}
-
+                {sectionOrder.map((id) => renderPreviewSection(id))}
                 {config.footer.enabled && (
                   <div className="pt-4 border-t border-slate-200 flex justify-between text-xs text-slate-400">
                     <div className="flex gap-4">

@@ -6,28 +6,31 @@ import { useUserData } from './useUserData';
 export function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { user, organization } = useUserData();
+  const { profile, organization } = useUserData();
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      if (!user || !organization) {
-        setIsLoading(false);
-        return;
-      }
+    if (!profile || !organization) {
+      setIsLoading(false);
+      return;
+    }
 
-      const { data: member } = await supabase
-        .from('members')
+    setIsAdmin(false);
+    setIsLoading(true);
+
+    const checkAdmin = async () => {
+      const { data: memberOrg } = await supabase
+        .from('members_organizations')
         .select('role')
-        .eq('email', user.email)
+        .eq('member_id', profile.id)  // profile.id et non user.id
         .eq('organization_id', organization.id)
         .maybeSingle();
 
-      setIsAdmin(member?.role === 'admin');
+      setIsAdmin(memberOrg?.role === 'admin');
       setIsLoading(false);
     };
 
     checkAdmin();
-  }, [user, organization]);
+  }, [profile, organization]);
 
   return { isAdmin, isLoading };
 }

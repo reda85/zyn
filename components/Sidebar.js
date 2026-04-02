@@ -1,4 +1,3 @@
-// components/Sidebar.js
 'use client'
 
 import Link from 'next/link'
@@ -7,6 +6,8 @@ import { FolderKanban, Users, BarChart3, Settings, ChevronsUpDown, Check } from 
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
+import { useAtom } from 'jotai'
+import { selectedOrganizationAtom } from '@/store/atoms'
 import clsx from 'clsx'
 import { Outfit } from 'next/font/google'
 
@@ -15,11 +16,13 @@ const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const { isAdmin } = useIsAdmin()
   const { user, profile, organization, organizations } = useUserData()
+  const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  const displayedOrg = organizations?.find((o) => o.id === organizationId) ?? organization
+  // Fix 2: prioritize the prop-matched org, no fallback to atom until orgs are loaded
+  const displayedOrg = organizations?.find((o) => o.id === organizationId) ?? null
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -34,6 +37,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const handleOrgChange = (org) => {
     setDropdownOpen(false)
     if (org.id !== organizationId) {
+      setSelectedOrganization(org)
       router.push(`/${org.id}/projects`)
     }
   }
@@ -45,6 +49,9 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
       ? parts[0][0].toUpperCase()
       : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
+
+  // Fix 1: read count from members_organizations instead of members
+  const getMemberCount = (org) => org?.members_organizations?.[0]?.count ?? 0
 
   const navLinks = [
     { key: 'projects', href: `/${organizationId}/projects`, icon: FolderKanban, label: 'Projects', show: true },
@@ -70,7 +77,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
               {displayedOrg?.name}
             </p>
             <p className="text-[11px] text-neutral-400 leading-tight">
-              {displayedOrg?.members?.[0]?.count || 0} membres
+              {getMemberCount(displayedOrg)} membres
             </p>
           </div>
           <ChevronsUpDown className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />

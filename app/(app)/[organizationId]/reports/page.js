@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { useUserData } from '@/hooks/useUserData'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useRouter } from 'next/navigation'
 import ReportTemplateBuilder from '@/components/ReportTemplateBuilder'
 import Sidebar from '@/components/Sidebar'
@@ -19,8 +18,7 @@ const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 export default function ReportsPage({ params }) {
   const { organizationId } = params
   const router = useRouter()
-  const { user, profile, organization } = useUserData()
-  const { isAdmin, isLoading: isCheckingAccess } = useIsAdmin()
+  const { user, profile, organization, organizations, isAdmin } = useUserData()
 
   const [templates, setTemplates] = useState([])
   const [filteredTemplates, setFilteredTemplates] = useState([])
@@ -30,11 +28,12 @@ export default function ReportsPage({ params }) {
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
 
+  const isCheckingAccess = organizations.length === 0
+
   useEffect(() => {
-    if (!isCheckingAccess && !isAdmin) {
-      router.push(`/${organizationId}/projects`)
-    }
-  }, [isAdmin, isCheckingAccess, router, organizationId])
+    if (isCheckingAccess) return
+    if (!isAdmin) router.push(`/${organizationId}/projects`)
+  }, [isCheckingAccess, isAdmin, organizationId])
 
   useEffect(() => {
     if (!isCheckingAccess && isAdmin) {
@@ -46,10 +45,9 @@ export default function ReportsPage({ params }) {
     if (searchQuery.trim() === '') {
       setFilteredTemplates(templates)
     } else {
-      const filtered = templates.filter((t) =>
-        t.name.toLowerCase().includes(searchQuery.toLowerCase())
+      setFilteredTemplates(
+        templates.filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
       )
-      setFilteredTemplates(filtered)
     }
   }, [searchQuery, templates])
 
@@ -117,13 +115,8 @@ export default function ReportsPage({ params }) {
 
   const handleDeleteTemplate = async (templateId) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) return
-
     try {
-      const { error } = await supabase
-        .from('report_templates')
-        .delete()
-        .eq('id', templateId)
-
+      const { error } = await supabase.from('report_templates').delete().eq('id', templateId)
       if (error) throw error
       setTemplates((prev) => prev.filter((t) => t.id !== templateId))
     } catch (error) {
@@ -195,8 +188,7 @@ export default function ReportsPage({ params }) {
     if (!dateStr) return ''
     const now = new Date()
     const date = new Date(dateStr)
-    const diffMs = now - date
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
     if (diffDays === 0) return "Aujourd'hui"
     if (diffDays === 1) return 'Hier'
     if (diffDays < 7) return `il y a ${diffDays} jours`
@@ -226,11 +218,7 @@ export default function ReportsPage({ params }) {
           <ArrowLeft className="w-3.5 h-3.5" />
           Retour
         </button>
-
-        <ReportTemplateBuilder
-          initialTemplate={selectedTemplate}
-          onSave={handleSaveTemplate}
-        />
+        <ReportTemplateBuilder initialTemplate={selectedTemplate} onSave={handleSaveTemplate} />
       </div>
     )
   }
@@ -240,7 +228,6 @@ export default function ReportsPage({ params }) {
       <Sidebar organizationId={organizationId} currentPage="reports" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
-        {/* ── Header ── */}
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-semibold text-neutral-900">Templates de rapports</h1>
@@ -258,7 +245,6 @@ export default function ReportsPage({ params }) {
           </button>
         </div>
 
-        {/* ── Search ── */}
         <div className="flex items-center gap-2 mb-5">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
@@ -272,7 +258,6 @@ export default function ReportsPage({ params }) {
           </div>
         </div>
 
-        {/* ── Content ── */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -338,15 +323,11 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onSetDefault, g
       onMouseLeave={() => setShowActions(false)}
       onClick={() => onEdit(template)}
     >
-      {/* Preview area */}
       <div className="relative h-36 bg-neutral-50 p-5 overflow-hidden">
         <div className="space-y-2.5">
           <div
             className="h-6 rounded"
-            style={{
-              backgroundColor: config.primaryColor || '#171717',
-              opacity: 0.15,
-            }}
+            style={{ backgroundColor: config.primaryColor || '#171717', opacity: 0.15 }}
           />
           <div className="space-y-1.5">
             <div className="h-1.5 bg-neutral-200 rounded w-3/4" />
@@ -362,49 +343,24 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onSetDefault, g
           </div>
         )}
 
-        {/* Hover overlay */}
         <div
           className={clsx(
             'absolute inset-0 bg-black/50 flex items-center justify-center gap-1.5 transition-opacity',
             showActions ? 'opacity-100' : 'opacity-0'
           )}
         >
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onEdit(template)
-            }}
-            className="p-2 bg-white hover:bg-neutral-50 rounded-lg transition-colors"
-            title="Modifier"
-          >
+          <button onClick={(e) => { e.stopPropagation(); onEdit(template) }} className="p-2 bg-white hover:bg-neutral-50 rounded-lg transition-colors" title="Modifier">
             <Edit className="w-4 h-4 text-neutral-900" />
           </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onDuplicate(template)
-            }}
-            className="p-2 bg-white hover:bg-neutral-50 rounded-lg transition-colors"
-            title="Dupliquer"
-          >
+          <button onClick={(e) => { e.stopPropagation(); onDuplicate(template) }} className="p-2 bg-white hover:bg-neutral-50 rounded-lg transition-colors" title="Dupliquer">
             <Copy className="w-4 h-4 text-neutral-900" />
           </button>
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete(template.id)
-            }}
-            className="p-2 bg-white hover:bg-red-50 rounded-lg transition-colors"
-            title="Supprimer"
-          >
+          <button onClick={(e) => { e.stopPropagation(); onDelete(template.id) }} className="p-2 bg-white hover:bg-red-50 rounded-lg transition-colors" title="Supprimer">
             <Trash2 className="w-4 h-4 text-red-500" />
           </button>
         </div>
       </div>
 
-      {/* Card body */}
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[13px] font-medium text-neutral-900 truncate flex-1 pr-2">
@@ -412,10 +368,7 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onSetDefault, g
           </h3>
           {!isDefault && (
             <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onSetDefault(template.id)
-              }}
+              onClick={(e) => { e.stopPropagation(); onSetDefault(template.id) }}
               className="p-1 rounded-md hover:bg-neutral-100 transition-colors opacity-0 group-hover:opacity-100"
               title="Définir par défaut"
             >
@@ -424,40 +377,20 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onSetDefault, g
           )}
         </div>
 
-        {/* Meta */}
         <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 mb-2.5">
-          <div
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: config.primaryColor || '#171717' }}
-          />
+          <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: config.primaryColor || '#171717' }} />
           <span>{config.fontFamily || 'helvetica'}</span>
           <span className="text-neutral-200">·</span>
           <span>{config.tasks?.displayMode === 'table' ? 'Tableau' : 'Liste'}</span>
         </div>
 
-        {/* Feature tags */}
         <div className="flex flex-wrap gap-1 mb-2.5">
-          {config.coverPage?.enabled && (
-            <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded text-[10px] font-medium">
-              Page de garde
-            </span>
-          )}
-          {config.summary?.enabled && (
-            <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded text-[10px] font-medium">
-              Résumé
-            </span>
-          )}
-          {config.footer?.enabled && (
-            <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded text-[10px] font-medium">
-              Pied de page
-            </span>
-          )}
+          {config.coverPage?.enabled && <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded text-[10px] font-medium">Page de garde</span>}
+          {config.summary?.enabled && <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded text-[10px] font-medium">Résumé</span>}
+          {config.footer?.enabled && <span className="px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded text-[10px] font-medium">Pied de page</span>}
         </div>
 
-        {/* Timestamp */}
-        <p className="text-[11px] text-neutral-300">
-          Modifié {getRelativeTime(template.updated_at)}
-        </p>
+        <p className="text-[11px] text-neutral-300">Modifié {getRelativeTime(template.updated_at)}</p>
       </div>
     </div>
   )

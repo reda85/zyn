@@ -469,7 +469,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
       setSelectedPin(data);
       setAllPins(prev => [...prev, data]);
       setPinMode(false);
-      await supabase.from('events').insert({ user_id: data.created_by, pin_id: data.id, event: ' a créé ce pin', category: 'creation' });
+    //  await supabase.from('events').insert({ user_id: data.created_by, pin_id: data.id, event: ' a créé ce pin', category: 'creation' });
     }
     if (error) console.error('handlePinAdd', error);
   };

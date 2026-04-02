@@ -5,7 +5,6 @@ import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
 import { useUserData } from '@/hooks/useUserData'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { Upload } from 'lucide-react'
@@ -14,21 +13,14 @@ import { Outfit } from 'next/font/google'
 
 const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
-const ORG_SIZES = [
-  '1 – 5',
-  '6 – 10',
-  '11 – 25',
-  '26 – 50',
-  '51 – 100',
-  '100+',
-]
+const ORG_SIZES = ['1 – 5', '6 – 10', '11 – 25', '26 – 50', '51 – 100', '100+']
 
 export default function OrganizationSettingsPage({ params }) {
   const { organizationId } = params
   const router = useRouter()
   const [selectedOrganization, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
-  const { user, profile, organization } = useUserData()
-  const { isAdmin, isLoading: isCheckingAccess } = useIsAdmin()
+  const { user, profile, organization, organizations, isAdmin } = useUserData()
+  const isCheckingAccess = organizations.length === 0
 
   const [name, setName] = useState('')
   const [size, setSize] = useState('')
@@ -36,10 +28,9 @@ export default function OrganizationSettingsPage({ params }) {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!isCheckingAccess && !isAdmin) {
-      router.push(`/${organizationId}/projects`)
-    }
-  }, [isAdmin, isCheckingAccess, router, organizationId])
+    if (isCheckingAccess) return
+    if (!isAdmin) router.push(`/${organizationId}/projects`)
+  }, [isCheckingAccess, isAdmin, organizationId])
 
   useEffect(() => {
     if (!selectedOrganization) return
@@ -54,20 +45,11 @@ export default function OrganizationSettingsPage({ params }) {
 
     const { error } = await supabase
       .from('organizations')
-      .update({
-        name,
-        size,
-        logo_url: logoUrl,
-      })
+      .update({ name, size, logo_url: logoUrl })
       .eq('id', organization.id)
 
     if (!error) {
-      setSelectedOrganization((prev) => ({
-        ...prev,
-        name,
-        size,
-        logo_url: logoUrl,
-      }))
+      setSelectedOrganization((prev) => ({ ...prev, name, size, logo_url: logoUrl }))
       alert('Paramètres sauvegardés avec succès!')
     } else {
       alert('Erreur lors de la sauvegarde')
@@ -76,33 +58,19 @@ export default function OrganizationSettingsPage({ params }) {
     setSaving(false)
   }
 
- const handleLogoUpload = async (file) => {
-  if (!file || !organization) return
+  const handleLogoUpload = async (file) => {
+    if (!file || !organization) return
+    if (!file.type.startsWith('image/')) { alert('Only image files are allowed'); return }
 
-  if (!file.type.startsWith('image/')) {
-    alert('Only image files are allowed')
-    return
+    const fileExt = file.name.split('.').pop()
+    const filePath = `${organization.id}/logo-${Date.now()}.${fileExt}`
+
+    const { error } = await supabase.storage.from('logos').upload(filePath, file)
+    if (error) { console.error('Upload failed:', error.message); alert(error.message); return }
+
+    const { data } = supabase.storage.from('logos').getPublicUrl(filePath)
+    setLogoUrl(data.publicUrl)
   }
-
-  const fileExt = file.name.split('.').pop()
-  const filePath = `${organization.id}/logo-${Date.now()}.${fileExt}`
-
-  const { error } = await supabase.storage
-    .from('logos')
-    .upload(filePath, file)
-
-  if (error) {
-    console.error('Upload failed:', error.message, error)
-    alert(error.message)
-    return
-  }
-
-  const { data } = supabase.storage
-    .from('logos')
-    .getPublicUrl(filePath)
-
-  setLogoUrl(data.publicUrl)
-}
 
   if (isCheckingAccess || !isAdmin) {
     return (
@@ -121,21 +89,15 @@ export default function OrganizationSettingsPage({ params }) {
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
         <div className="max-w-xl">
-          {/* ── Header ── */}
           <div className="mb-6">
             <h1 className="text-xl font-semibold text-neutral-900">Paramètres</h1>
-            <p className="text-xs text-neutral-400 mt-0.5">
-              Gérez les informations de votre organisation
-            </p>
+            <p className="text-xs text-neutral-400 mt-0.5">Gérez les informations de votre organisation</p>
           </div>
 
-          {/* ── Settings Card ── */}
           <div className="bg-white border border-neutral-200 rounded-lg">
             {/* Logo */}
             <div className="px-5 py-4 border-b border-neutral-100">
-              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-3">
-                Logo
-              </label>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-3">Logo</label>
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-lg border border-neutral-200 flex items-center justify-center overflow-hidden bg-neutral-50 flex-shrink-0">
                   {logoUrl ? (
@@ -147,21 +109,14 @@ export default function OrganizationSettingsPage({ params }) {
                 <label className="cursor-pointer flex items-center gap-1.5 text-[13px] font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
                   <Upload className="w-3.5 h-3.5" />
                   Changer le logo
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => handleLogoUpload(e.target.files[0])}
-                  />
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e.target.files[0])} />
                 </label>
               </div>
             </div>
 
             {/* Name */}
             <div className="px-5 py-4 border-b border-neutral-100">
-              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                Nom de l'organisation
-              </label>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Nom de l'organisation</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -171,22 +126,14 @@ export default function OrganizationSettingsPage({ params }) {
 
             {/* Size */}
             <div className="px-5 py-4 border-b border-neutral-100">
-              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                Taille de l'organisation
-              </label>
+              <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Taille de l'organisation</label>
               <select
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 bg-white text-[13px] focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900"
               >
-                <option value="" className="text-neutral-300">
-                  Sélectionner
-                </option>
-                {ORG_SIZES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
+                <option value="">Sélectionner</option>
+                {ORG_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 

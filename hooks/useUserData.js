@@ -15,13 +15,13 @@ export function useUserData() {
   const user = useUser();
   const [profile, setProfile] = useState(null);
   const [organizations, setOrganizations] = useState([]);
+  const [memberships, setMemberships] = useState([]);
   const [organization, setSelectedOrganization] = useAtom(selectedOrganizationAtom);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchUserData = async () => {
-      // Fetch member profile
       const { data: profile, error: profileError } = await supabase
         .from('members')
         .select('*')
@@ -35,40 +35,34 @@ export function useUserData() {
 
       setProfile(profile);
 
-      // Fetch current/selected organization (with member count)
-      // In useUserData, change the org-fetch block:
-const { data: organization, error: orgError } = await supabase
-  .from('organizations')
-  .select(`*, members(count)`)
-  .eq('id', profile.organization_id)
-  .single();
+      const { data: organization, error: orgError } = await supabase
+        .from('organizations')
+        .select(`*, members_organizations(count)`)
+        .eq('id', profile.organization_id)
+        .single();
 
-if (orgError) {
-  console.error('Organization error:', orgError);
-  return;
-}
+      if (orgError) {
+        console.error('Organization error:', orgError);
+        return;
+      }
 
-// Only set the default org if none is selected yet
-setSelectedOrganization((current) => current ?? organization);
+      setSelectedOrganization((current) => current ?? organization);
 
-      // Fetch all organizations the user belongs to via members_organizations
-      const { data: memberships, error: membershipsError } = await supabase
+      // Inclure role dans le select
+      const { data: membershipsData, error: membershipsError } = await supabase
         .from('members_organizations')
-        .select(`organization:organizations(*, members(count))`)
+        .select(`role, organization:organizations(*, members_organizations(count))`)
         .eq('member_id', profile.id);
 
       if (membershipsError) {
         console.error('Memberships error:', membershipsError);
-        // Fallback: at minimum expose the current org
         setOrganizations([organization]);
         return;
       }
 
-      const allOrgs = memberships
-        .map((m) => m.organization)
-        .filter(Boolean);
+      setMemberships(membershipsData);
 
-      // Ensure current org is always in the list even if the join returns nothing
+      const allOrgs = membershipsData.map((m) => m.organization).filter(Boolean);
       const hasCurrentOrg = allOrgs.some((o) => o.id === organization.id);
       setOrganizations(hasCurrentOrg ? allOrgs : [organization, ...allOrgs]);
     };
@@ -76,5 +70,12 @@ setSelectedOrganization((current) => current ?? organization);
     fetchUserData();
   }, [user]);
 
-  return { user, profile, organization, organizations };
+  // Rôle dans l'org courante — pas de re-fetch, pas de loading
+  const currentRole = organization
+    ? memberships.find((m) => m.organization?.id === organization.id)?.role ?? null
+    : null;
+
+  const isAdmin = currentRole === 'admin';
+
+  return { user, profile, organization, organizations, isAdmin };
 }

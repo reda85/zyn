@@ -85,8 +85,8 @@ export default function ProjectsPage({ params }) {
   }, [])
 
   useEffect(() => {
-    if (!organizationId || !organization) return
-    if (organization.id === organizationId) return
+    if (!organizationId) return
+    if (organization?.id === organizationId) return
 
     const fetchOrg = async () => {
       const { data, error } = await supabase
@@ -104,7 +104,7 @@ export default function ProjectsPage({ params }) {
     }
 
     fetchOrg()
-  }, [organizationId])
+  }, [organizationId, organization?.id])
 
   const createProject = async () => {
     if (!newProjectName.trim()) return

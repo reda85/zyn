@@ -139,12 +139,12 @@ export default function Timeline({ pin, newComment, refreshKey }) {
     const [eventsRes, commentsRes] = await Promise.all([
       supabase
         .from('events')
-        .select('id,created_at,members(*),event,pins_photos(*),category,metadata')
+        .select('id,created_at,members(*),username,event,pins_photos(*),category,metadata')
         .eq('pin_id', pinId)
         .order('created_at', { ascending: true }),
       supabase
         .from('comments')
-        .select('id,created_at,comment,user:members(*)')
+        .select('id,created_at,comment,username,user:members(*)')
         .eq('pin_id', pinId)
         .order('created_at', { ascending: true }),
     ])
@@ -242,7 +242,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                 const isComment = item.timelineType === 'comment'
                 const isModification = item.category === 'modification'
                 const isPhoto = item.category === 'photo_upload'
-                const userName = isComment ? item.user?.name : item.members?.name
+                const userName = isComment ? (item.username || item.user?.name) : (item.username || item.members?.name)
                 const timestamp = dayjs(item.created_at).format('D MMM YYYY à HH:mm')
 
                 const eventLabel = isComment

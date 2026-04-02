@@ -249,7 +249,7 @@ export default function Tasks({ params }) {
     setIsReportModalOpen(false)
     const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
     try {
-      const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
+      const response = await fetch('http://localhost:3001/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
