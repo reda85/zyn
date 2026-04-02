@@ -86,25 +86,33 @@ export default function MembersPage({ params }) {
   }, [isCheckingAccess, isAdmin, organizationId])
 
   useEffect(() => {
-    const fetchMembers = async () => {
-      const { data: rawMembers } = await supabase
-        .from('members')
-        .select('*, members_projects(count)')
-        .eq('organization_id', organization?.id)
-        .order('created_at', { ascending: false })
+const fetchMembers = async () => {
+  const { data: rawMembers } = await supabase
+    .from('members_organizations')
+    .select('*, members(*, members_projects(project_id, project:projects!inner(id, organization_id)))')
+    .eq('organization_id', organizationId)
+    .order('created_at', { ascending: false })
 
-      const formatted = (rawMembers || []).map((m) => ({
-        ...m,
-        project_count: m.members_projects?.[0]?.count || 0,
-      }))
-      setMembers(formatted)
-    }
+  const formatted = (rawMembers || []).map((m) => {
+  const allMemberProjects = m.members?.members_projects || []
+  const orgProjectCount = allMemberProjects.filter(
+    (mp) => mp.project?.organization_id === organizationId
+  ).length
 
+  return {
+    ...m.members,
+    role: m.role, // rôle de members_organizations, pas de members
+    project_count: orgProjectCount,
+  }
+})
+
+  setMembers(formatted)
+}
     const fetchProjects = async () => {
       const { data } = await supabase
         .from('projects')
         .select('*')
-        .eq('organization_id', selectedOrganization?.id)
+        .eq('organization_id', organizationId)
       setProjects(data || [])
     }
 
@@ -112,7 +120,7 @@ export default function MembersPage({ params }) {
       fetchMembers()
       fetchProjects()
     }
-  }, [refresh, selectedOrganization, organization, isCheckingAccess, isAdmin])
+  }, [refresh, isCheckingAccess, isAdmin, organizationId])
 
   const openManageModal = async (member) => {
     setCurrentMember(member)

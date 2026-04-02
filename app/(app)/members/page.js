@@ -74,8 +74,10 @@ export default function MembersPage({params}) {
           *,
           members_projects(count)
         `)
-        .eq('organization_id', organization?.id)
+        .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
+
+        console.log('🚩 rawMembers:', JSON.stringify(rawMembers))
 
       const formatted = rawMembers.map((m) => ({
         ...m,
@@ -89,7 +91,7 @@ export default function MembersPage({params}) {
       const { data } = await supabase
         .from('projects')
         .select('*')
-        .eq('organization_id', selectedOrganization?.id)
+        .eq('organization_id', organizationId)
       setProjects(data || [])
     }
 
