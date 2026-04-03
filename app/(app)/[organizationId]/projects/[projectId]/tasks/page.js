@@ -98,6 +98,7 @@ export default function Tasks({ params }) {
   const { projectId, organizationId } = params
   const { user, profile } = useUserData()
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
   const [reportFields, setReportFields] = useState({
     description: true,
     photos: true,
@@ -134,12 +135,12 @@ export default function Tasks({ params }) {
       const f = selectedTemplate.config.fields
       setReportFields({
         description: f.description ?? true,
-        photos: f.photos ?? true,
-        snapshot: f.snapshot ?? true,
-        assignedTo: f.assignedTo ?? true,
-        dueDate: f.dueDate ?? true,
-        category: f.category ?? true,
-        status: f.status ?? true,
+        photos:      f.photos      ?? true,
+        snapshot:    f.snapshot    ?? true,
+        assignedTo:  f.assignedTo  ?? true,
+        dueDate:     f.dueDate     ?? true,
+        category:    f.category    ?? true,
+        status:      f.status      ?? true,
       })
     }
   }, [selectedTemplate])
@@ -247,6 +248,7 @@ export default function Tasks({ params }) {
   // ── Generate PDF report ──
   const handleGenerateReport = async (displayMode, participants, customSectionContents) => {
     setIsReportModalOpen(false)
+    setIsGeneratingReport(true)
     const selectedPinsArr = pins.filter((p) => selectedIds.has(p.id))
     try {
       const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
@@ -254,26 +256,27 @@ export default function Tasks({ params }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
-          selectedIds: selectedPinsArr.map((p) => p.id),
-          fields: reportFields,
+          selectedIds:    selectedPinsArr.map((p) => p.id),
+          fields:         reportFields,
           displayMode,
           templateConfig: selectedTemplate?.config || null,
           participants,
-  
           customSections: customSectionContents,
         }),
       })
       if (!response.ok) throw new Error('Erreur lors de la génération PDF')
       const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
+      const url  = window.URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
       a.download = 'rapport-taches.pdf'
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (err) {
       console.error(err)
       alert('Impossible de générer le rapport')
+    } finally {
+      setIsGeneratingReport(false)
     }
   }
 
@@ -282,16 +285,14 @@ export default function Tasks({ params }) {
     const selectedPins = pins.filter((pin) => selectedIds.has(pin.id))
     if (!selectedPins.length) return
     const data = selectedPins.map((pin) => ({
-      Nom: pin.name || 'Pin sans nom',
-      ID: `${pin.projects?.project_number}-${pin.pin_number}`,
-      'Assigné à': pin.assigned_to?.name || '',
-      Catégorie: pin.categories?.name || '',
-      Échéance: pin.due_date ? new Date(pin.due_date).toLocaleDateString('fr-FR') : '',
-      Localisation: pin.pdf_name || '',
-      Description: pin.note || '',
-      'Date de création': pin.created_at
-        ? new Date(pin.created_at).toLocaleDateString('fr-FR')
-        : '',
+      Nom:              pin.name || 'Pin sans nom',
+      ID:               `${pin.projects?.project_number}-${pin.pin_number}`,
+      'Assigné à':      pin.assigned_to?.name || '',
+      Catégorie:        pin.categories?.name  || '',
+      Échéance:         pin.due_date ? new Date(pin.due_date).toLocaleDateString('fr-FR') : '',
+      Localisation:     pin.pdf_name || '',
+      Description:      pin.note    || '',
+      'Date de création': pin.created_at ? new Date(pin.created_at).toLocaleDateString('fr-FR') : '',
     }))
     const ws = XLSX.utils.json_to_sheet(data)
     const wb = XLSX.utils.book_new()
@@ -304,38 +305,38 @@ export default function Tasks({ params }) {
     const selectedPins = pins.filter((pin) => selectedIds.has(pin.id))
     if (!selectedPins.length) return
     const workbook = new ExcelJS.Workbook()
-    const sheet = workbook.addWorksheet('Pins & Médias')
-    sheet.columns = [
-      { header: 'Nom pin', key: 'name', width: 25 },
-      { header: 'ID pin', key: 'id', width: 15 },
-      { header: 'Assigné à', key: 'assignee', width: 20 },
-      { header: 'Catégorie', key: 'category', width: 20 },
-      { header: 'Échéance', key: 'due', width: 15 },
-      { header: 'Description', key: 'note', width: 40 },
-      { header: 'Plan', key: 'plan', width: 20 },
-      { header: 'Média', key: 'media', width: 25 },
+    const sheet    = workbook.addWorksheet('Pins & Médias')
+    sheet.columns  = [
+      { header: 'Nom pin',    key: 'name',     width: 25 },
+      { header: 'ID pin',     key: 'id',       width: 15 },
+      { header: 'Assigné à',  key: 'assignee', width: 20 },
+      { header: 'Catégorie',  key: 'category', width: 20 },
+      { header: 'Échéance',   key: 'due',      width: 15 },
+      { header: 'Description',key: 'note',     width: 40 },
+      { header: 'Plan',       key: 'plan',     width: 20 },
+      { header: 'Média',      key: 'media',    width: 25 },
     ]
     for (const pin of selectedPins) {
       const medias = pin.pins_photos?.length ? pin.pins_photos : [null]
       for (const media of medias) {
         const row = sheet.addRow({
-          name: pin.name || 'Pin sans nom',
-          id: `${pin.projects?.project_number}-${pin.pin_number}`,
+          name:     pin.name || 'Pin sans nom',
+          id:       `${pin.projects?.project_number}-${pin.pin_number}`,
           assignee: pin.assigned_to?.name || '',
-          category: pin.categories?.name || '',
-          due: pin.due_date ? new Date(pin.due_date).toLocaleDateString('fr-FR') : '',
-          note: pin.note || '',
-          plan: pin.pdf_name || '',
+          category: pin.categories?.name  || '',
+          due:      pin.due_date ? new Date(pin.due_date).toLocaleDateString('fr-FR') : '',
+          note:     pin.note    || '',
+          plan:     pin.pdf_name || '',
         })
         row.height = 90
         if (media?.public_url) {
           try {
-            const res = await fetch(media.public_url)
-            const blob = await res.blob()
-            const buffer = await blob.arrayBuffer()
+            const res     = await fetch(media.public_url)
+            const blob    = await res.blob()
+            const buffer  = await blob.arrayBuffer()
             const imageId = workbook.addImage({ buffer, extension: 'jpeg' })
             sheet.addImage(imageId, {
-              tl: { col: 7, row: row.number - 1 },
+              tl:  { col: 7, row: row.number - 1 },
               ext: { width: 120, height: 80 },
             })
           } catch (err) {
@@ -345,12 +346,12 @@ export default function Tasks({ params }) {
       }
     }
     const buffer = await workbook.xlsx.writeBuffer()
-    const blob = new Blob([buffer], {
+    const blob   = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     })
     const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
+    const a   = document.createElement('a')
+    a.href    = url
     a.download = 'pins-medias-avec-images.xlsx'
     a.click()
     window.URL.revokeObjectURL(url)
@@ -364,12 +365,12 @@ export default function Tasks({ params }) {
       const { data, error } = await supabase
         .from('pdf_pins')
         .insert({
-          name: newTaskName,
-          note: newTaskDescription,
-          project_id: projectId,
-          created_by: profile.id,
+          name:        newTaskName,
+          note:        newTaskDescription,
+          project_id:  projectId,
+          created_by:  profile.id,
           category_id: categories.find((c) => c.order === 0)?.id,
-          status_id: statuses.find((s) => s.order === 0)?.id,
+          status_id:   statuses.find((s)   => s.order === 0)?.id,
         })
         .select('*')
         .single()
@@ -386,6 +387,7 @@ export default function Tasks({ params }) {
     }
   }
 
+  const selectedPinsCount = pins.filter((p) => selectedIds.has(p.id)).length
   const TABLE_HEADERS = ['Nom', 'ID', 'Assigné à', 'Catégorie', 'Échéance', 'Localisation', 'Tags']
 
   return (
@@ -461,18 +463,26 @@ export default function Tasks({ params }) {
                     >
                       <option value="">Template par défaut</option>
                       {availableTemplates.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
+                        <option key={t.id} value={t.id}>{t.name}</option>
                       ))}
                     </select>
 
+                    {/* PDF button — disabled + spinner while generating */}
                     <button
                       onClick={() => setIsReportModalOpen(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 text-white rounded-lg text-[12px] font-medium hover:bg-neutral-800 transition-colors"
+                      disabled={isGeneratingReport}
+                      className={clsx(
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors',
+                        isGeneratingReport
+                          ? 'bg-neutral-400 text-white cursor-not-allowed'
+                          : 'bg-neutral-900 text-white hover:bg-neutral-800'
+                      )}
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      PDF
+                      {isGeneratingReport
+                        ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        : <Download className="w-3.5 h-3.5" />
+                      }
+                      {isGeneratingReport ? 'Génération…' : 'PDF'}
                     </button>
 
                     <button
@@ -580,9 +590,7 @@ export default function Tasks({ params }) {
                               <div className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-[9px] font-semibold text-neutral-600 flex-shrink-0">
                                 {pin.assigned_to.name.charAt(0).toUpperCase()}
                               </div>
-                              <span className="text-[13px] text-neutral-600">
-                                {pin.assigned_to.name}
-                              </span>
+                              <span className="text-[13px] text-neutral-600">{pin.assigned_to.name}</span>
                             </div>
                           ) : (
                             <span className="text-[13px] text-neutral-300">—</span>
@@ -694,6 +702,19 @@ export default function Tasks({ params }) {
               </div>
             </div>
           )}
+
+          {/* ── Generating report toast ── */}
+          {isGeneratingReport && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 bg-neutral-900 text-white rounded-xl shadow-2xl border border-neutral-700">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
+              <div>
+                <p className="text-[13px] font-semibold">Génération du rapport en cours…</p>
+                <p className="text-[11px] text-neutral-400 mt-0.5">
+                  Traitement de {selectedPinsCount} tâche{selectedPinsCount > 1 ? 's' : ''}, veuillez patienter.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -740,12 +761,12 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
 
   const FIELD_LABELS = {
     description: 'Description',
-    photos: 'Photos',
-    snapshot: 'Snapshot du plan',
-    assignedTo: 'Assigné à',
-    dueDate: 'Échéance',
-    category: 'Catégorie',
-    status: 'Statut',
+    photos:      'Photos',
+    snapshot:    'Snapshot du plan',
+    assignedTo:  'Assigné à',
+    dueDate:     'Échéance',
+    category:    'Catégorie',
+    status:      'Statut',
   }
 
   return (
@@ -760,10 +781,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
               <p className="text-[11px] text-neutral-400 mt-0.5">{templateConfig.reportTitle}</p>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-md hover:bg-neutral-100 transition-colors"
-          >
+          <button onClick={onClose} className="p-1 rounded-md hover:bg-neutral-100 transition-colors">
             <XIcon className="w-4 h-4 text-neutral-400" />
           </button>
         </div>
@@ -778,17 +796,13 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
             </p>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { key: 'list', label: 'Liste détaillée', icon: <FileText className="w-4 h-4" /> },
-                {
-                  key: 'table',
-                  label: 'Tableau compact',
-                  icon: (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  ),
-                },
+                { key: 'list',  label: 'Liste détaillée', icon: <FileText className="w-4 h-4" /> },
+                { key: 'table', label: 'Tableau compact',  icon: (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )},
               ].map(({ key, label, icon }) => (
                 <button
                   key={key}
@@ -800,8 +814,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
                       : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'
                   )}
                 >
-                  {icon}
-                  {label}
+                  {icon}{label}
                 </button>
               ))}
             </div>
@@ -842,9 +855,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
                 {participantsConfig.title || 'Participants'}
               </p>
               {participants.length === 0 ? (
-                <p className="text-[12px] text-neutral-300 px-1">
-                  Aucun membre trouvé sur ce projet.
-                </p>
+                <p className="text-[12px] text-neutral-300 px-1">Aucun membre trouvé sur ce projet.</p>
               ) : (
                 <div className="border border-neutral-200 rounded-lg overflow-hidden divide-y divide-neutral-100">
                   {participants.map((member) => (
@@ -857,37 +868,22 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
                           {member.name?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
-                          <p className="text-[13px] font-medium text-neutral-800">
-                            {member.name || '—'}
-                          </p>
+                          <p className="text-[13px] font-medium text-neutral-800">{member.name || '—'}</p>
                           <div className="flex items-center gap-2">
-                            {participantsConfig.showRoles && member.role && (
-                              <p className="text-[11px] text-neutral-400">{member.role}</p>
-                            )}
-                            {participantsConfig.showContact && member.email && (
-                              <p className="text-[11px] text-neutral-300">{member.email}</p>
-                            )}
+                            {participantsConfig.showRoles   && member.role  && <p className="text-[11px] text-neutral-400">{member.role}</p>}
+                            {participantsConfig.showContact && member.email && <p className="text-[11px] text-neutral-300">{member.email}</p>}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2.5">
-                        <span className={clsx(
-                          'text-[11px] font-medium',
-                          member.present ? 'text-emerald-600' : 'text-neutral-300'
-                        )}>
+                        <span className={clsx('text-[11px] font-medium', member.present ? 'text-emerald-600' : 'text-neutral-300')}>
                           {member.present ? 'Présent' : 'Absent'}
                         </span>
                         <button
                           onClick={() => toggleParticipant(member.id)}
-                          className={clsx(
-                            'w-8 h-4 rounded-full transition-colors relative flex-shrink-0',
-                            member.present ? 'bg-neutral-900' : 'bg-neutral-200'
-                          )}
+                          className={clsx('w-8 h-4 rounded-full transition-colors relative flex-shrink-0', member.present ? 'bg-neutral-900' : 'bg-neutral-200')}
                         >
-                          <span className={clsx(
-                            'absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform',
-                            member.present ? 'translate-x-4' : 'translate-x-0.5'
-                          )} />
+                          <span className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform', member.present ? 'translate-x-4' : 'translate-x-0.5')} />
                         </button>
                       </div>
                     </div>
@@ -906,9 +902,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
               {customSectionContents.map((section) => (
                 <div key={section.id}>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-[12px] font-medium text-neutral-700">
-                      {section.title}
-                    </label>
+                    <label className="text-[12px] font-medium text-neutral-700">{section.title}</label>
                     {section.type && (
                       <span className="text-[10px] text-neutral-300 uppercase tracking-wide">
                         — {section.type === 'list' ? 'liste' : section.type}
