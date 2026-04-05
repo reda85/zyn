@@ -26,7 +26,7 @@ function getDistance(touches) {
   return Math.sqrt((t2.clientX - t1.clientX) ** 2 + (t2.clientY - t1.clientY) ** 2);
 }
 
-export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user }) {
+export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, organizationId }) {
   // ── Atoms ────────────────────────────────────────────────────────────────
   const [, setSelectedPlan]                 = useAtom(selectedPlanAtom);
   const [, setSelectedProject]              = useAtom(selectedProjectAtom);
@@ -669,13 +669,13 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user })
       {selectedPin && (
         <div className={`${inter.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}>
           <div className="px-5 py-4 border-b border-gray-200 shrink-0">
-            <DrawerHeader pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={() => setPhotoUploadTrigger(p => p + 1)} />
+            <DrawerHeader organization_id={organizationId} pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={() => setPhotoUploadTrigger(p => p + 1)} />
           </div>
           <div className="flex-1 overflow-y-auto">
-            <DrawerBody pin={selectedPin} onClose={closeDrawer} newComment={newComment} photoUploadTrigger={photoUploadTrigger} />
+            <DrawerBody organization_id={organizationId} pin={selectedPin} onClose={closeDrawer} newComment={newComment} photoUploadTrigger={photoUploadTrigger} />
           </div>
           <div className="px-5 py-4 border-t border-gray-200 shrink-0">
-            <DrawerFooter pin={selectedPin} submit={closeDrawer} onCommentAdded={setNewComment} />
+            <DrawerFooter organization_id={organizationId} pin={selectedPin} submit={closeDrawer} onCommentAdded={setNewComment} />
           </div>
         </div>
       )}

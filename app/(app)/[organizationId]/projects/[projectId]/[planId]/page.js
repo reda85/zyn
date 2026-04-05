@@ -22,7 +22,7 @@ export default function ProjectDetail({ params }) {
   const [categories, setCategories] = useAtom(categoriesAtom)
   const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom)
 const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
-  const { user, profile, organization } = useUserData();
+  const { user, profile, organization } = useUserData(organizationId);
 
   console.log('uuuser', user, profile, organization)
 
@@ -82,12 +82,12 @@ const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
 
 
  useEffect(() => {
-    if ( !planId || !user || !profile) return;
+    if ( !planId || !user || !profile || !organization) return;
 
 const fetchPins = async () => {
-      
+      console.log('Fetching pins for plan:', planId, 'and user:', user.id)
       const isGuest = profile?.role === 'guest';
-
+console.log('Is user a guest?', isGuest)
       // 1. Conditionally set the JOIN type
       const assignedToSelect = isGuest 
           ? 'assigned_to!inner(id,name,auth_id)' // INNER JOIN required for guest filter
@@ -136,7 +136,7 @@ const fetchPins = async () => {
     }
 
     fetchPins()
-  }, [ selectedPlan?.id,profile?.id,planId]) // Dependencies remain correct
+  }, [ selectedPlan?.id,profile,planId]) // Dependencies remain correct
 
   useEffect(() => {
     console.log('pins', pins)
@@ -221,6 +221,7 @@ const fetchPins = async () => {
               project={project}
               plan={selectedPlan}
               user={profile}
+              organizationId={organizationId}
             />
           )} 
         </div>

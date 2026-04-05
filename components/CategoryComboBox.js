@@ -9,12 +9,12 @@ import clsx from 'clsx'
 import { useUserData } from '@/hooks/useUserData'
 import { CheckIcon } from 'lucide-react'
 
-export default function CategoryComboBox({ pin }) {
+export default function CategoryComboBox({ pin, organization_id }) {
   const [categories] = useAtom(categoriesAtom)
   const [selected, setSelected] = useState(null)
   const [pins, setPins] = useAtom(pinsAtom)
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
-  const { profile } = useUserData()
+  const { profile } = useUserData(organization_id)
 
   const isGuest = profile?.role === 'guest'
 

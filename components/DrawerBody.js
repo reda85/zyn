@@ -11,13 +11,15 @@ import Timeline from './Timeline';
 import TagEditor from './TagEditor';
 import { useUserData } from '@/hooks/useUserData';
 
-export default function DrawerBody({ pin, newComment, photoUploadTrigger }) {
+export default function DrawerBody({ pin, newComment, photoUploadTrigger, organization_id }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
   const [pins, setPins] = useAtom(pinsAtom);
   const [name, setName] = useState(pin.name);
   const [note, setNote] = useState(pin.note);
   const [refreshKey, setRefreshKey] = useState(0);
-  const { user, profile, organization } = useUserData();
+  const { user, profile, organization } = useUserData(organization_id);
+
+  console.log('uuuser DrawerBody', user, profile, organization, organization_id)
 
   const isGuest = profile?.role === 'guest';
 

@@ -8,16 +8,22 @@ import { supabase } from '@/utils/supabase/client'
 import { useUserData } from "@/hooks/useUserData";
  
 export default function Workspaces({params}) {
-    const { user, profile, organization } = useUserData();
+    const { user, profile, organizations } = useUserData();
+    const [, setSelectedProject] = useAtom(selectedProjectAtom);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    console.log('🚩 params:', params);
+    console.log('🚩 user:', user);
+    console.log('🚩 profile:', profile);
+    console.log('🚩 organization:', organizations[0]);
+    setSelectedProject(null); // Clear selected project on workspace load
     
     useEffect(() => {
         
-             if(user?.id && organization?.id)   {router.push(`${organization?.id}/projects/`);}
-           
-       
-    }, [organization?.id, router])
+             if(user?.id && organizations[0]?.id)   {router.push(`${organizations[0]?.id}/projects/`);}
+
+
+    }, [organizations[0]?.id, router])
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center font-sans">

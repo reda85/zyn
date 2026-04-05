@@ -7,7 +7,7 @@ import { Lexend } from 'next/font/google'
 
 const inter = Lexend({ subsets: ['latin'] })
 
-export default function PinDrawer() {
+export default function PinDrawer({ organization_id }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
 
   if (!selectedPin) return null
@@ -20,11 +20,11 @@ export default function PinDrawer() {
       bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}
     >
       <div className="px-5 py-4 border-b border-gray-200 shrink-0">
-        <DrawerHeader pin={selectedPin} onClose={closeDrawer} />
+        <DrawerHeader organization_id={organization_id} pin={selectedPin} onClose={closeDrawer} />
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <DrawerBody pin={selectedPin} onClose={closeDrawer} />
+        <DrawerBody organization_id={organization_id} pin={selectedPin} onClose={closeDrawer} />
       </div>
 
       <div className="px-5 py-4 border-t border-gray-200 shrink-0">

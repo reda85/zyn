@@ -14,8 +14,10 @@ import { Outfit } from 'next/font/google'
 const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
-  const { isAdmin } = useIsAdmin()
-  const { user, profile, organization, organizations } = useUserData()
+  
+  
+  
+  const { user, profile, organization, organizations, isAdmin } = useUserData(organizationId)
   const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)

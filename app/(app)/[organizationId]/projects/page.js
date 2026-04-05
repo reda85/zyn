@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
@@ -15,6 +15,7 @@ import Sidebar from '@/components/Sidebar'
 const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 export default function ProjectsPage({ params }) {
+   const { organizationId } = params
   const [projects, setProjects] = useState([])
   const [newProjectName, setNewProjectName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -29,22 +30,25 @@ export default function ProjectsPage({ params }) {
   const [viewMode, setViewMode] = useState('grid')
   const router = useRouter()
   const [refresh, setRefresh] = useState(false)
-  const { user, profile, organization } = useUserData()
+
   const menuRef = useRef(null)
-  const { organizationId } = params
+ 
+const { user, profile, organization, isAdmin } = useUserData(organizationId)
+
+  console.log('userUserData', { user, profile, organization })
 
   useEffect(() => {
     const fetchProjects = async () => {
       if (!organization?.id || !user?.id || !profile?.id) return
+console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
+     // const isAdmin = profile?.role === 'admin'
 
-      const isAdmin = profile?.role === 'admin'
-
-      let query = supabase
-        .from('projects')
-        .select('*,plans(*),organizations(*,members(*))')
-        .eq('organization_id', organization?.id)
-        .is('plans.deleted_at', null)
-        .order('created_at', { ascending: false })
+     let query = supabase
+  .from('projects')
+  .select('*,organization_id,plans!inner(*),members_projects(*,members(*))')
+  .eq('organization_id', organization?.id)
+  .is('plans.deleted_at', null)
+  .order('created_at', { ascending: false })
 
       if (!isAdmin) {
         const { data: memberProjects, error } = await supabase
@@ -67,11 +71,15 @@ export default function ProjectsPage({ params }) {
         query = query.in('id', projectIds)
       }
 
-      const { data } = await query
+      const { data,error } = await query
+      if (error) console.error('Error fetching projects:', error)
+      console.log('🚩 data:', JSON.stringify(data))
       setProjects(data || [])
     }
 
+   if(user && profile && organization) {
     fetchProjects()
+  }
   }, [refresh, organization, user, profile])
 
   useEffect(() => {

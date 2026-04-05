@@ -1,22 +1,16 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import { useUser } from '@/components/UserContext';
-import { createBrowserClient } from '@supabase/ssr';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/utils/supabase/client';
 import { useAtom } from 'jotai';
 import { selectedOrganizationAtom } from '@/store/atoms';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
-export function useUserData() {
+export function useUserData(organizationId = null) {
   const user = useUser();
   const [profile, setProfile] = useState(null);
   const [organizations, setOrganizations] = useState([]);
   const [memberships, setMemberships] = useState([]);
-  const [organization, setSelectedOrganization] = useAtom(selectedOrganizationAtom);
+  const [organization, setOrganization] = useState(null);
+  const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom);
 
   useEffect(() => {
     if (!user) return;
@@ -28,49 +22,51 @@ export function useUserData() {
         .eq('auth_id', user.id)
         .single();
 
-      if (profileError) {
-        console.error('Profile error:', profileError);
-        return;
-      }
+      if (profileError) { console.error(profileError); return; }
+      
 
-      setProfile(profile);
-
-      const { data: organization, error: orgError } = await supabase
-        .from('organizations')
-        .select(`*, members_organizations(count)`)
-        .eq('id', profile.organization_id)
-        .single();
-
-      if (orgError) {
-        console.error('Organization error:', orgError);
-        return;
-      }
-
-      setSelectedOrganization((current) => current ?? organization);
-
-      // Inclure role dans le select
+      // Fetch memberships first to get all orgs
       const { data: membershipsData, error: membershipsError } = await supabase
         .from('members_organizations')
         .select(`role, organization:organizations(*, members_organizations(count))`)
         .eq('member_id', profile.id);
 
-      if (membershipsError) {
-        console.error('Memberships error:', membershipsError);
-        setOrganizations([organization]);
-        return;
-      }
+      if (membershipsError) { console.error(membershipsError); return; }
 
       setMemberships(membershipsData);
-
       const allOrgs = membershipsData.map((m) => m.organization).filter(Boolean);
-      const hasCurrentOrg = allOrgs.some((o) => o.id === organization.id);
-      setOrganizations(hasCurrentOrg ? allOrgs : [organization, ...allOrgs]);
+      setOrganizations(allOrgs);
+
+      // Use organizationId from param, fallback to first membership org
+      const targetId = organizationId ?? allOrgs[0]?.id;
+      if (!targetId) return;
+
+      const membership = membershipsData.find((m) => m.organization?.id === targetId);
+const org = allOrgs.find((o) => o.id === targetId) ?? null;
+
+// Enrichir le profil avec le rôle de members_organizations
+setProfile({ ...profile, role: membership?.role ?? null });
+
+      if (org) {
+        setOrganization(org);
+        setSelectedOrganization(org);
+      } else {
+        // Not in allOrgs (e.g. admin accessing another org), fetch it
+        const { data: fetchedOrg, error: orgError } = await supabase
+          .from('organizations')
+          .select(`*, members_organizations(count)`)
+          .eq('id', targetId)
+          .single();
+
+        if (orgError) { console.error(orgError); return; }
+        setOrganization(fetchedOrg);
+        setSelectedOrganization(fetchedOrg);
+      }
     };
 
     fetchUserData();
-  }, [user]);
+  }, [user, organizationId]);
 
-  // Rôle dans l'org courante — pas de re-fetch, pas de loading
   const currentRole = organization
     ? memberships.find((m) => m.organization?.id === organization.id)?.role ?? null
     : null;

@@ -11,49 +11,44 @@ import clsx from 'clsx';
 import { useUserData } from '@/hooks/useUserData';
 
 export default function IntervenantDatePicker({ pin }) {
-  const [selectedIntervenant, setSelectedIntervenant] = useState(null);
-  const [query, setQuery] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
+  const [selectedIntervenant, setSelectedIntervenant] = useState(
+    pin?.assigned_to || null
+  );
+  const [query, setQuery]               = useState('');
+  const [isEditing, setIsEditing]       = useState(false);
   const [isPickingDate, setIsPickingDate] = useState(false);
-  const [allOptions, setAllOptions] = useState([{ id: 0, name: 'Aucun intervenant', email: '' }]);
-  const [pins, setPins] = useAtom(pinsAtom);
-  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
-  const { user, profile } = useUserData();
+  const [allOptions, setAllOptions]     = useState([{ id: 0, name: 'Aucun intervenant', email: '' }]);
+  const [, setPins]                     = useAtom(pinsAtom);
+  const [selectedPin, setSelectedPin]   = useAtom(selectedPinAtom);
+  const { user, profile }               = useUserData();
 
   const [selectedDate, setSelectedDate] = useState(
-    pin?.due_date ? new Date(pin?.due_date) : null
+    pin?.due_date ? new Date(pin.due_date) : null
   );
 
-  // Track the previously assigned ID to detect real user-driven changes
-  const previousIntervenantIdRef = useRef(pin?.assigned_to?.id ?? pin?.assigned_to ?? null);
-  // Skip the very first effect run on mount
-  const isFirstMountRef = useRef(true);
-  // Skip effect runs caused by programmatic initialization (drawer open / pin switch)
-  const isInitializingRef = useRef(false);
+  // Track previous pin id to detect actual pin switches (not field updates)
+  const prevPinIdRef             = useRef(pin?.id);
+  const previousIntervenantIdRef = useRef(pin?.assigned_to?.id ?? null);
+  const isFirstMountRef          = useRef(true);
+  const isInitializingRef        = useRef(false);
 
   const isOverDue = selectedDate ? selectedDate < new Date() : false;
-  const isGuest = profile?.role === 'guest';
+  const isGuest   = profile?.role === 'guest';
 
   useEffect(() => {
-    if (pin?.project_id) {
-      getAllIntervenants();
-    }
+    if (pin?.project_id) getAllIntervenants();
   }, [pin?.project_id]);
 
-  // Runs only when the opened pin changes — silently sync state, no notification
+  // Only reset local state when the pin ID actually changes (drawer switches to another pin)
+  // NOT when fields like assigned_to or due_date update — those are handled optimistically below
   useEffect(() => {
-    setSelectedPin(pin);
+    if (pin?.id === prevPinIdRef.current) return;  // same pin, skip
+    prevPinIdRef.current = pin?.id;
 
-    const assignedId = pin?.assigned_to?.id ?? pin?.assigned_to ?? null;
-
-    // Raise the flag BEFORE calling setSelectedIntervenant so the watcher
-    // effect below knows to treat the next change as an initialization, not a
-    // user action.
     isInitializingRef.current = true;
-
-    previousIntervenantIdRef.current = assignedId;
-    setSelectedIntervenant(pin.assigned_to || null);
-    setSelectedDate(pin.due_date ? new Date(pin.due_date) : null);
+    previousIntervenantIdRef.current = pin?.assigned_to?.id ?? null;
+    setSelectedIntervenant(pin?.assigned_to || null);
+    setSelectedDate(pin?.due_date ? new Date(pin.due_date) : null);
   }, [pin?.id]);
 
   const getAllIntervenants = async () => {
@@ -61,23 +56,20 @@ export default function IntervenantDatePicker({ pin }) {
       .from('members_projects')
       .select('members(*)')
       .eq('project_id', pin?.project_id);
-
     if (data) {
-      const projectMembers = data.map(item => item.members).filter(Boolean);
-      setAllOptions([{ id: 0, name: 'Aucun intervenant', email: '' }, ...projectMembers]);
+      const members = data.map(item => item.members).filter(Boolean);
+      setAllOptions([{ id: 0, name: 'Aucun intervenant', email: '' }, ...members]);
     }
-    if (error) {
-      console.error('Error fetching project members:', error);
-    }
+    if (error) console.error('Error fetching project members:', error);
   };
 
   const filteredIntervenants =
     query === ''
       ? allOptions
-      : allOptions.filter((i) => i.name.toLowerCase().includes(query?.toLowerCase()));
+      : allOptions.filter(i => i.name.toLowerCase().includes(query.toLowerCase()));
 
-  const getInitials = (name) =>
-    name.split(' ').map((part) => part[0]).join('').toUpperCase();
+  const getInitials = name =>
+    name.split(' ').map(part => part[0]).join('').toUpperCase();
 
   const handleSelect = (value) => {
     if (isGuest) return;
@@ -88,90 +80,65 @@ export default function IntervenantDatePicker({ pin }) {
 
   const updateAssignedIntervenant = async (intervenant) => {
     if (isGuest) return;
-
     const { data, error } = await supabase
       .from('pdf_pins')
-      .update({ assigned_to: intervenant?.id })
+      .update({ assigned_to: intervenant?.id ?? null })
       .eq('id', selectedPin.id)
       .is('deleted_at', null)
       .select('*')
       .single();
 
     if (data) {
-      const response = await fetch('/api/send-task-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
-          taskId: selectedPin.id,
-          projectId: selectedPin.project_id,
-          assignedBy: user.name,
-          assignedUserEmail: intervenant.email,
-          assignedUserName: intervenant.name,
-          dueDate: selectedPin.due_date,
-          taskName: selectedPin?.name || 'Sans nom',
-        }),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        console.log('✅ Email sent successfully:', result);
-      } else {
-        console.error('❌ Error sending email:', result);
-      }
+      try {
+        await fetch('/api/send-task-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
+            taskId: selectedPin.id, projectId: selectedPin.project_id,
+            assignedBy: user.name, assignedUserEmail: intervenant.email,
+            assignedUserName: intervenant.name, dueDate: selectedPin.due_date,
+            taskName: selectedPin?.name || 'Sans nom',
+          }),
+        });
+      } catch (e) { console.error('email notif error', e); }
 
-      const response2 = await fetch('https://zaynbackend-production.up.railway.app/api/pins/assign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
-          pinId: selectedPin.id,
-          projectId: selectedPin.project_id,
-          assignedByName: user?.name || 'user',
-          assignedUserEmail: intervenant.email,
-          assignedUserName: intervenant.name,
-          assignedToUserId: intervenant.auth_id,
-          dueDate: selectedPin.due_date,
-          taskName: selectedPin?.name || 'Sans nom',
-        }),
-      });
-      const result2 = await response2.json();
-      if (response2.ok) {
-        console.log('✅ Notification sent successfully:', result2);
-      } else {
-        console.error('❌ Error sending notification:', result2);
-      }
+      try {
+        await fetch('https://zaynbackend-production.up.railway.app/api/pins/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
+            pinId: selectedPin.id, projectId: selectedPin.project_id,
+            assignedByName: user?.name || 'user',
+            assignedUserEmail: intervenant.email,
+            assignedUserName: intervenant.name,
+            assignedToUserId: intervenant.auth_id,
+            dueDate: selectedPin.due_date,
+            taskName: selectedPin?.name || 'Sans nom',
+          }),
+        });
+      } catch (e) { console.error('push notif error', e); }
 
-      setSelectedIntervenant(intervenant);
-      setPins(prevPins => {
-        if (!prevPins?.length) return prevPins;
-        return prevPins.map(p =>
-          p.id === selectedPin.id ? { ...p, intervenant_id: intervenant.id } : p
-        );
-      });
+      const assignedObj = intervenant?.id === 0
+        ? null
+        : { id: intervenant.id, name: intervenant.name };
+
+      // Update pinsAtom — no setSelectedPin to avoid re-render cascade
+      setPins(prev => prev.map(p =>
+        p.id === selectedPin.id ? { ...p, assigned_to: assignedObj } : p
+      ));
     }
-    if (error) {
-      console.error('updateAssignedIntervenant error:', error);
-    }
+    if (error) console.error('updateAssignedIntervenant error:', error);
   };
 
-  // Watches selectedIntervenant and fires the notification only on real user-driven changes
+  // Fire only on real user-driven intervenant changes
   useEffect(() => {
-    // 1. Skip the initial mount run
-    if (isFirstMountRef.current) {
-      isFirstMountRef.current = false;
-      return;
-    }
+    if (isFirstMountRef.current) { isFirstMountRef.current = false; return; }
+    if (isInitializingRef.current) { isInitializingRef.current = false; return; }
 
-    // 2. Skip programmatic initialization (drawer open / pin switch)
-    if (isInitializingRef.current) {
-      isInitializingRef.current = false;
-      return;
-    }
-
-    // 3. Only notify when the ID actually changed
-    const currentId = selectedIntervenant?.id ?? null;
+    const currentId  = selectedIntervenant?.id ?? null;
     const hasChanged = currentId !== previousIntervenantIdRef.current;
-
     if (hasChanged && currentId !== 0 && currentId !== null) {
       updateAssignedIntervenant(selectedIntervenant);
       previousIntervenantIdRef.current = currentId;
@@ -180,7 +147,6 @@ export default function IntervenantDatePicker({ pin }) {
 
   const updateDueDate = async (date) => {
     if (isGuest) return;
-
     const { data, error } = await supabase
       .from('pdf_pins')
       .update({ due_date: date })
@@ -190,16 +156,12 @@ export default function IntervenantDatePicker({ pin }) {
 
     if (data) {
       setSelectedDate(date);
-      setPins(prevPins => {
-        if (!prevPins?.length) return prevPins;
-        return prevPins.map(p =>
-          p.id === selectedPin.id ? { ...p, due_date: date } : p
-        );
-      });
+      // Update pinsAtom only — no setSelectedPin to avoid re-render cascade
+      setPins(prev => prev.map(p =>
+        p.id === selectedPin.id ? { ...p, due_date: date } : p
+      ));
     }
-    if (error) {
-      console.error('updateDueDate error:', error);
-    }
+    if (error) console.error('updateDueDate error:', error);
   };
 
   const displayText = selectedIntervenant?.name || 'Assigner intervenant';
@@ -223,33 +185,25 @@ export default function IntervenantDatePicker({ pin }) {
                     <Combobox.Input
                       autoFocus
                       className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-muted hover:bg-muted/80 text-gray-800 placeholder:text-muted-foreground transition-all"
-                      onChange={(e) => setQuery(e.target.value)}
+                      onChange={e => setQuery(e.target.value)}
                       onFocus={() => setQuery('')}
                       displayValue={() => query || selectedIntervenant?.name || ''}
                       placeholder="Ajouter un intervenant..."
                     />
                     <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                      <IconCircle>
-                        <User2Icon size={14} className="text-gray-800" />
-                      </IconCircle>
+                      <IconCircle><User2Icon size={14} className="text-gray-800" /></IconCircle>
                     </div>
                     <button
                       type="button"
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-gray-800 transition-colors"
-                      onClick={() => {
-                        setSelectedIntervenant(null);
-                        setQuery('');
-                        setIsEditing(false);
-                      }}
+                      onClick={() => { setSelectedIntervenant(null); setQuery(''); setIsEditing(false); }}
                     >
-                      <IconCircle>
-                        <XIcon size={14} className="text-gray-800" />
-                      </IconCircle>
+                      <IconCircle><XIcon size={14} className="text-gray-800" /></IconCircle>
                     </button>
                   </div>
                   {open && (
                     <Combobox.Options className="absolute mt-2 w-full bg-card shadow-lg rounded-lg max-h-60 overflow-auto z-10 border border-border/50 py-1">
-                      {filteredIntervenants.map((person) => (
+                      {filteredIntervenants.map(person => (
                         <Combobox.Option
                           key={person.id}
                           value={person}
@@ -258,9 +212,7 @@ export default function IntervenantDatePicker({ pin }) {
                           }
                         >
                           {person.id === 0 ? (
-                            <span className="text-muted-foreground italic text-sm">
-                              Aucun intervenant
-                            </span>
+                            <span className="text-muted-foreground italic text-sm">Aucun intervenant</span>
                           ) : (
                             <>
                               <div className="w-8 h-8 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-foreground">
@@ -287,18 +239,11 @@ export default function IntervenantDatePicker({ pin }) {
                       ? 'bg-muted/70 cursor-not-allowed opacity-80 text-muted-foreground'
                       : 'bg-muted hover:bg-muted/80 text-gray-800 cursor-pointer'
                   )}
-                  onClick={() => {
-                    if (!isGuest) {
-                      setIsEditing(true);
-                      setTimeout(() => setQuery(''), 0);
-                    }
-                  }}
+                  onClick={() => { if (!isGuest) { setIsEditing(true); setTimeout(() => setQuery(''), 0); } }}
                 >
                   {displayText}
                   <div className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-800">
-                    <IconCircle>
-                      <User2Icon size={14} className="text-gray-800" />
-                    </IconCircle>
+                    <IconCircle><User2Icon size={14} className="text-gray-800" /></IconCircle>
                   </div>
                 </Combobox.Button>
               )}
@@ -312,11 +257,7 @@ export default function IntervenantDatePicker({ pin }) {
         {isPickingDate && !isGuest ? (
           <DatePicker
             selected={selectedDate}
-            onChange={(date) => {
-              setSelectedDate(date);
-              setIsPickingDate(false);
-              updateDueDate(date);
-            }}
+            onChange={date => { setIsPickingDate(false); updateDueDate(date); }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus
             className="w-full border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-muted hover:bg-muted/80 text-gray-800"
@@ -340,9 +281,7 @@ export default function IntervenantDatePicker({ pin }) {
             >
               {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
               <div className={clsx('absolute left-2 top-1/2 -translate-y-1/2', isOverDue ? 'text-destructive' : 'text-gray-800')}>
-                <IconCircle>
-                  <CalendarIcon size={14} className="text-gray-800" />
-                </IconCircle>
+                <IconCircle><CalendarIcon size={14} className="text-gray-800" /></IconCircle>
               </div>
             </button>
 
@@ -353,15 +292,9 @@ export default function IntervenantDatePicker({ pin }) {
                   'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
                   isOverDue ? 'text-destructive hover:text-destructive/80 bg-red-50' : 'text-muted-foreground hover:text-destructive'
                 )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedDate(null);
-                  updateDueDate(null);
-                }}
+                onClick={e => { e.stopPropagation(); updateDueDate(null); }}
               >
-                <IconCircle>
-                  <XIcon size={14} className="text-gray-800" />
-                </IconCircle>
+                <IconCircle><XIcon size={14} className="text-gray-800" /></IconCircle>
               </button>
             )}
           </div>

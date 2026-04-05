@@ -18,7 +18,7 @@ const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 export default function ReportsPage({ params }) {
   const { organizationId } = params
   const router = useRouter()
-  const { user, profile, organization, organizations, isAdmin } = useUserData()
+  const { user, profile, organization, organizations, isAdmin } = useUserData(organizationId)
 
   const [templates, setTemplates] = useState([])
   const [filteredTemplates, setFilteredTemplates] = useState([])
