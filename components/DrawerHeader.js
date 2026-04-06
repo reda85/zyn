@@ -116,13 +116,14 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
         const { data: { publicUrl } } = await supabase.storage.from('pinphotos').getPublicUrl(filePath)
         const { data: newPinPhoto, error: pinPhotoError } = await supabase
           .from('pins_photos')
-          .insert({ project_id: pin.project_id, pin_id: pin.id, public_url: publicUrl, sender_id: user.auth_id })
+          .insert({ project_id: pin.project_id, pin_id: pin.id, public_url: publicUrl, sender_id: profile.id })
           .select().single()
         if (pinPhotoError) throw pinPhotoError
-        await supabase.from('events').insert({
+      /*  await supabase.from('events').insert({
           pin_id: pin.id, category: 'photo_upload',
           pin_photo_id: newPinPhoto.id, project_id: pin.project_id, user_id: user.auth_id,
         })
+          */
       }
       onPhotoUploaded?.()
     } catch (err) {
