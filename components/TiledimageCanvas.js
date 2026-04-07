@@ -485,6 +485,8 @@ export default function TiledImageCanvas({ plan, project, user }) {
       pdf_name: plan.name,
       plan_id: plan.id,
       created_by: user?.id || null,
+      updated_by: user?.id || null,
+      updated_at: new Date().toISOString(),
     };
 
     handlePinAdd(newPin, user);

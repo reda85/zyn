@@ -43,7 +43,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
 
     const { data } = await supabase
       .from('pdf_pins')
-      .update({ category_id: category.id })
+      .update({ category_id: category.id, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
       .select('*')
       .single()

@@ -39,7 +39,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
     if (!name || isGuest) return;
     const { data } = await supabase
       .from('pdf_pins')
-      .update({ name })
+      .update({ name, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
       .select('*')
       .single();
@@ -54,7 +54,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
     if (!note || isGuest) return;
     const { data } = await supabase
       .from('pdf_pins')
-      .update({ note })
+      .update({ note, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
       .select('*')
       .single();

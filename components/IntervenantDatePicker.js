@@ -82,7 +82,7 @@ export default function IntervenantDatePicker({ pin }) {
     if (isGuest) return;
     const { data, error } = await supabase
       .from('pdf_pins')
-      .update({ assigned_to: intervenant?.id ?? null })
+      .update({ assigned_to: intervenant?.id ?? null , updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', selectedPin.id)
       .is('deleted_at', null)
       .select('*')
@@ -149,7 +149,7 @@ export default function IntervenantDatePicker({ pin }) {
     if (isGuest) return;
     const { data, error } = await supabase
       .from('pdf_pins')
-      .update({ due_date: date })
+      .update({ due_date: date, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', selectedPin.id)
       .select('*')
       .single();

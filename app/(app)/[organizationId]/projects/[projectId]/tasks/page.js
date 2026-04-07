@@ -35,7 +35,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
     setOpen(false)
     const { error } = await supabase
       .from('pdf_pins')
-      .update({ due_date: date })
+      .update({ due_date: date, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
     if (error) console.error('update due_date failed', error)
     onUpdate?.(pin.id, date)
@@ -360,6 +360,8 @@ export default function Tasks({ params }) {
           created_by:  profile.id,
           category_id: categories.find(c => c.order === 0)?.id,
           status_id:   statuses.find(s => s.order === 0)?.id,
+          updated_by: profile.id,
+          updated_at: new Date().toISOString(), 
         })
         .select('*')
         .single()

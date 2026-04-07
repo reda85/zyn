@@ -463,6 +463,8 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
       note: '', name: '',
       project_id: project.id, pdf_name: plan.name,
       plan_id: plan.id, created_by: user?.id || null,
+      updated_by: user?.id || null, updated_at: new Date().toISOString(),
+    
     };
     const { data, error } = await supabase.from('pdf_pins').insert(newPin).select('*,projects(*),plans(*)').single();
     if (data) {

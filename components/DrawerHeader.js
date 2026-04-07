@@ -92,7 +92,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
     const newVal = !pin.isArchived
     const { error } = await supabase
       .from('pdf_pins')
-      .update({ isArchived: newVal })
+      .update({ isArchived: newVal, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
     if (error) { console.error(error); alert('Erreur lors de l\'archivage'); return }
 

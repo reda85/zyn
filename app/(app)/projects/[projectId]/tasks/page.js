@@ -43,7 +43,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
 
     const { error } = await supabase
       .from("pdf_pins")
-      .update({ due_date: date })
+      .update({ due_date: date, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq("id", pin.id);
 
     if (!error) {

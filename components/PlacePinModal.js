@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { X, ZoomIn, ZoomOut, MapPin, Check } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
 
+
 const SUPABASE_STORAGE = `https://zvebdabtofcusfdaacrq.supabase.co/storage/v1/object/public/project-plans`
 
 let OSD = null // lazy-loaded OpenSeadragon singleton
@@ -191,6 +192,7 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
         y: pendingPos.y,
         plan_id: selectedPlan.id,
         pdf_name: selectedPlan.name,
+       
       })
       .eq('id', pin.id)
       .select('*,projects(*),plans(*)')
