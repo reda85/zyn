@@ -1,98 +1,100 @@
-import { Lexend } from 'next/font/google';
-
-// Initialize Lexend font
-const lexend = Lexend({ subsets: ['latin'] });
-
+import Image from "next/image";
 import { forgotPasswordAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
 
 export default async function ForgotPassword(props: {
   searchParams: Promise<Message>;
 }) {
   const searchParams = await props.searchParams;
+
   return (
-    // FULL-WIDTH CONTAINER: Apply Lexend font
-    <div className={`flex min-h-screen w-screen overflow-hidden ${lexend.className}`}> 
-      
-      {/* 1. BRANDING/LOGO SIDE (Left Half) - White Background */}
-      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-gray-100">
-        <div className="text-center">
-          {/* Logo - Adjust size/className as needed */}
-          <img 
-            src="/logo.png" 
-            alt="Company Logo" 
-            className="w-56 h-auto mx-auto mb-6" 
-          />
-          <h2 className="text-5xl font-extrabold text-gray-900 leading-tight">
-            Forgot Your Password? No Problem!
+    <div className="flex min-h-screen w-screen overflow-hidden bg-background font-sans">
+
+      {/* LEFT — Branding */}
+      <div className="hidden lg:flex flex-col w-1/2 bg-muted/30 items-center justify-center p-16 border-r border-border relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-40 pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl mix-blend-multiply animate-blob" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000" />
+
+        <div className="text-center relative z-10 max-w-lg">
+          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/20">
+            <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
+          </div>
+          <h2 className="text-5xl font-bold text-foreground leading-tight font-heading mb-6">
+            Mot de passe oublié ?
           </h2>
-          <p className="text-gray-600 mt-4 text-lg">
-            We'll send you an email to reset it immediately.
+          <p className="text-muted-foreground text-xl leading-relaxed font-sans">
+            Entrez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
           </p>
         </div>
       </div>
 
-      {/* 2. FORGOT PASSWORD FORM SIDE (Right Half) */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-gray-50">
-        {/* The fragment <> is needed here because the original structure wraps both form and SmtpMessage */}
-        <> 
-          <form 
-            className="flex flex-col w-full max-w-md p-8 bg-white rounded-lg shadow-xl border border-gray-200 m-8"
-          >
-            {/* Logo for smaller screens */}
-            <div className="mb-8 lg:hidden flex justify-center">
-              <img 
-                src="/logo.png" 
-                alt="Company Logo" 
-                className="w-32 h-auto"
-              />
-            </div>
+      {/* RIGHT — Form */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-background relative">
+        <div className="w-full max-w-md p-8 m-8">
 
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Reset Password</h1>
-            <p className="text-md text-gray-600 mb-8">
-              Already have an account?{" "}
-              <Link 
-                className="text-teal-600 font-semibold hover:text-teal-700 transition duration-150 underline" 
+          {/* Mobile logo */}
+          <div className="mb-8 lg:hidden flex justify-center">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+              <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={24} height={24} />
+            </div>
+          </div>
+
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-foreground mb-3 font-heading">
+              Réinitialiser le mot de passe
+            </h1>
+            <p className="text-muted-foreground">
+              Vous vous souvenez de votre mot de passe ?{" "}
+              <Link
+                className="text-primary font-medium hover:text-primary/80 transition-colors underline underline-offset-4"
                 href="/sign-in"
               >
-                Sign in
+                Se connecter
               </Link>
             </p>
+          </div>
 
-            <div className="flex flex-col gap-5">
-              
-              {/* Email Field */}
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                <Input 
-                  name="email" 
-                  placeholder="you@example.com" 
-                  required 
-                  className="mt-1 block w-full border-gray-300 focus:border-teal-500 focus:ring-teal-500 rounded-md shadow-sm"
+          <form className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                  Email
+                </Label>
+                <Input
+                  name="email"
+                  placeholder="you@example.com"
+                  required
+                  className="w-full bg-background border-input focus:ring-primary"
                 />
               </div>
-
-              {/* Submit Button - Teal Styling */}
-              <SubmitButton 
-                pendingText="Sending Link..." 
-                formAction={forgotPasswordAction}
-                className="w-full bg-teal-500 text-white font-bold py-3 px-4 rounded-md hover:bg-teal-600 transition duration-150 mt-4 shadow-lg"
-              >
-                Reset Password
-              </SubmitButton>
-
-              {/* Form Message */}
-              <FormMessage message={searchParams} />
             </div>
+
+            <SubmitButton
+              pendingText="Envoi en cours..."
+              formAction={forgotPasswordAction}
+              className="w-full bg-primary text-primary-foreground font-medium py-3 px-4 rounded-lg hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95"
+            >
+              Envoyer le lien
+            </SubmitButton>
+
+            <FormMessage message={searchParams} />
           </form>
-          {/* SmtpMessage is placed outside the form but within the right panel's context */}
-       
-        </>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            <Link
+              href="/sign-in"
+              className="text-primary font-medium hover:text-primary/80 transition-colors underline underline-offset-4"
+            >
+              Retour à la connexion
+            </Link>
+          </p>
+
+        </div>
       </div>
     </div>
   );
