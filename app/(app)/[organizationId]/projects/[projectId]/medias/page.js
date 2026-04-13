@@ -114,24 +114,33 @@ export default function Medias({ params }) {
   }
 
   const handleDownload = async () => {
-    const ids = Array.from(selectedIds).join(',')
-    const downloadUrl = `https://zaynbackend-production.up.railway.app/api/mediareport?projectId=${projectId}&selectedIds=${ids}`
-    try {
-      const response = await fetch(downloadUrl)
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'rapport-medias.pdf'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Failed to download PDF:', error)
-    }
+  const ids = Array.from(selectedIds).join(',')
+  const downloadUrl = `https://zaynbackend-production.up.railway.app/api/mediareport?projectId=${projectId}&selectedIds=${ids}`
+  
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    const response = await fetch(downloadUrl, {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+    })
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+    
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'rapport-medias.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Failed to download PDF:', error)
   }
+}
 
   const hasActiveFilters =
     selectedCanvas || startDate || endDate || selectedUsers.length > 0 || selectedTags.length > 0

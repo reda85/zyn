@@ -76,6 +76,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   const pinsRef            = useRef(pins); // always-current ref for OSD handlers
 
   const isGuest = !user || !user.id;
+  console.log('uuuser ImageCanvas', user, isGuest)
 
   useEffect(() => { pinModeRef.current  = pinMode;   }, [pinMode]);
   useEffect(() => { isDraggingRef.current = isDragging; }, [isDragging]);
@@ -462,7 +463,8 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
       status_id: statuses.find(s => s.order === 0)?.id,
       note: '', name: '',
       project_id: project.id, pdf_name: plan.name,
-      plan_id: plan.id, created_by: user?.id || null,
+      plan_id: plan.id,
+      created_by: user?.id || null,
       updated_by: user?.id || null, updated_at: new Date().toISOString(),
     
     };

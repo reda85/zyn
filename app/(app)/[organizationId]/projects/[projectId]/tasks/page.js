@@ -237,39 +237,44 @@ export default function Tasks({ params }) {
   }
 
   // ── Generate PDF report ──
-  const handleGenerateReport = async (displayMode, participants, customSectionContents) => {
-    setIsReportModalOpen(false)
-    setIsGeneratingReport(true)
-    const selectedPinsArr = displayedPins.filter(p => selectedIds.has(p.id))
-    try {
-      const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          projectId,
-          selectedIds:    selectedPinsArr.map(p => p.id),
-          fields:         reportFields,
-          displayMode,
-          templateConfig: selectedTemplate?.config || null,
-          participants,
-          customSections: customSectionContents,
-        }),
-      })
-      if (!response.ok) throw new Error('Erreur lors de la génération PDF')
-      const blob = await response.blob()
-      const url  = window.URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      a.download = 'rapport-taches.pdf'
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error(err)
-      alert('Impossible de générer le rapport')
-    } finally {
-      setIsGeneratingReport(false)
-    }
+ const handleGenerateReport = async (displayMode, participants, customSectionContents) => {
+  setIsReportModalOpen(false)
+  setIsGeneratingReport(true)
+  const selectedPinsArr = displayedPins.filter(p => selectedIds.has(p.id))
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+
+    const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        projectId,
+        selectedIds:    selectedPinsArr.map(p => p.id),
+        fields:         reportFields,
+        displayMode,
+        templateConfig: selectedTemplate?.config || null,
+        participants,
+        customSections: customSectionContents,
+      }),
+    })
+    if (!response.ok) throw new Error('Erreur lors de la génération PDF')
+    const blob = await response.blob()
+    const url  = window.URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = 'rapport-taches.pdf'
+    a.click()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    console.error(err)
+    alert('Impossible de générer le rapport')
+  } finally {
+    setIsGeneratingReport(false)
   }
+}
 
   // ── Export Excel ──
   const handleExportExcel = () => {

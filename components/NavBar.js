@@ -17,7 +17,16 @@ import { selectedPlanAtom } from '@/store/atoms'
 import { signOutAction } from '@/app/actions'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 
-const tabs = ['Plan', 'Tasks', 'Medias', 'Documents', 'Discussions']
+const tabs = ['Plans', 'Tâches', 'Médias', 'Documents', 'Discussions']
+
+const tabSlugs = {
+  Plans: 'plan',
+  Tâches: 'tasks',
+  Médias: 'medias',
+  Documents: 'documents',
+  Discussions: 'discussions',
+}
+
 const lexend = Outfit({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export default function Navbar({ id, user, project, organizationId }) {
@@ -35,12 +44,12 @@ export default function Navbar({ id, user, project, organizationId }) {
   // Derive the current tab from pathname
   const currentTab = (() => {
     if (pathname === `/${organizationId}/projects/${id}` || pathname === `/${organizationId}/projects/${id}/`) {
-      return 'Plan'
+      return 'Plans'
     }
     const match = tabs.find(tab =>
-      pathname.startsWith(`/${organizationId}/projects/${id}/${tab.toLowerCase()}`)
+      pathname.startsWith(`/${organizationId}/projects/${id}/${tabSlugs[tab]}`)
     )
-    return match ?? 'Plan'
+    return match ?? 'Plans'
   })()
 
   // Close menus on outside click
@@ -148,9 +157,10 @@ export default function Navbar({ id, user, project, organizationId }) {
         {/* Center Tabs — pill style */}
         <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-1 p-1">
           {tabs.map(tab => {
-            const path = tab === 'Plan'
+            const slug = tabSlugs[tab]
+            const path = slug === 'plan'
               ? `/${organizationId}/projects/${id}`
-              : `/${organizationId}/projects/${id}/${tab.toLowerCase()}`
+              : `/${organizationId}/projects/${id}/${slug}`
             return (
               <Link key={tab} href={path}>
                 <button
