@@ -19,7 +19,7 @@ export async function POST(request) {
 
 
 // or hardcode for now to test:
-const redirectTo = 'https://zaynspace.com/accept-invite';
+const redirectTo = 'https://app.zaynspace.com/accept-invite';
     
     console.log('Sending invite with base URL:', redirectUrl)
 
@@ -40,32 +40,51 @@ const redirectTo = 'https://zaynspace.com/accept-invite';
       throw authError
     }
 
-    // Create member record
-    const { data: member, error: memberError } = await supabaseAdmin
-      .from('members')
-      .insert({
-        name,
-        email,
-        role,
-        organization_id: organizationId,
-        status: 'pending',
-        auth_id: authData.user.id
-      })
-      .select()
-      .single()
+  // 1. Check if member already exists
+let member
+const { data: existingMember } = await supabaseAdmin
+  .from('members')
+  .select()
+  .eq('email', email)
+  .maybeSingle()
 
-    if (memberError) throw memberError
+if (existingMember) {
+  // 2. Already exists — check they're not already in this org
+  const { data: existingOrgMember } = await supabaseAdmin
+    .from('members_organizations')
+    .select()
+    .eq('member_id', existingMember.id)
+    .eq('organization_id', organizationId)
+    .maybeSingle()
 
-    // Assign projects
-    if (projects?.length > 0) {
-      await supabaseAdmin.from('members_projects').insert(
-        projects.map(projectId => ({
-          member_id: member.id,
-          project_id: projectId
-        }))
-      )
-    }
+  if (existingOrgMember) {
+    return Response.json({ error: 'Ce membre appartient déjà à cette organisation' }, { status: 400 })
+  }
 
+  member = existingMember
+} else {
+  // 3. New member — send auth invite and create record
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+    email, { redirectTo, data: { name, role, organization_id: organizationId } }
+  )
+  if (authError) throw authError
+
+  const { data: newMember, error: memberError } = await supabaseAdmin
+    .from('members')
+    .insert({ name, email, status: 'pending', auth_id: authData.user.id })
+    .select()
+    .single()
+
+  if (memberError) throw memberError
+  member = newMember
+}
+
+// 4. Always insert into members_organizations
+const { error: orgMemberError } = await supabaseAdmin
+  .from('members_organizations')
+  .insert({ member_id: member.id, organization_id: organizationId, role })
+
+if (orgMemberError) throw orgMemberError
     return Response.json({ success: true, member })
   } catch (error) {
     console.error('Invite API error:', error)
