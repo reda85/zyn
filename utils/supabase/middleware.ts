@@ -15,7 +15,10 @@ const AUTH_PATHS = [
   "/accept-invite",
 ];
 
+const NEVER_REDIRECT_PATHS = ["/accept-invite"];
+
 const isAuthPath = (pathname: string) => AUTH_PATHS.includes(pathname);
+const isNeverRedirectPath = (pathname: string) => NEVER_REDIRECT_PATHS.includes(pathname);
 
 export const updateSession = async (request: NextRequest) => {
   const hostHeader = request.headers.get("host") || "";
@@ -57,9 +60,6 @@ export const updateSession = async (request: NextRequest) => {
     }
   );
 
-  // Guard: only call getUser() if a session cookie actually exists.
-  // Without this, Supabase tries to refresh a non-existent token and
-  // throws AuthApiError, which flashes in the console before redirect.
   const hasSessionCookie = request.cookies
     .getAll()
     .some(
@@ -72,8 +72,6 @@ export const updateSession = async (request: NextRequest) => {
     const { data, error } = await supabase.auth.getUser();
 
     if (error) {
-      // Stale or invalid refresh token — clear all sb- cookies so the
-      // browser doesn't keep sending a broken session on every request.
       request.cookies
         .getAll()
         .filter((c) => c.name.startsWith("sb-"))
@@ -89,7 +87,6 @@ export const updateSession = async (request: NextRequest) => {
       const redirectUrl = `${request.nextUrl.protocol}//${hostHeader}${SIGN_IN_URL}`;
       return NextResponse.redirect(new URL(redirectUrl));
     }
-    // On auth paths with no user yet — let through with cookies intact
     return response;
   }
 
@@ -99,9 +96,11 @@ export const updateSession = async (request: NextRequest) => {
   }
 
   // C. Redirect authenticated users hitting the dashboard path or any auth path on the main domain
+  // Never redirect away from /accept-invite — the user needs to set their password first
   if (
     user &&
     !isAppSubdomain &&
+    !isNeverRedirectPath(request.nextUrl.pathname) &&
     (request.nextUrl.pathname.startsWith(APP_DASHBOARD_PATH) ||
       isAuthPath(request.nextUrl.pathname))
   ) {
