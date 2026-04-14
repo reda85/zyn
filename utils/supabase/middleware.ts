@@ -12,6 +12,7 @@ const AUTH_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/auth/callback",
+  "/accept-invite",
 ];
 
 const isAuthPath = (pathname: string) => AUTH_PATHS.includes(pathname);

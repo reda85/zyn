@@ -20,41 +20,36 @@ function AcceptInviteContent() {
   const [linkExpired, setLinkExpired] = useState(false)
 
   useEffect(() => {
-    const checkInvitation = async () => {
-      // Check for error in URL hash
-      const hash = window.location.hash
-      if (hash.includes('error=access_denied') || hash.includes('otp_expired')) {
-        setLinkExpired(true)
-        setError('Le lien d\'invitation a expiré ou est invalide. Veuillez demander une nouvelle invitation.')
-        return
-      }
+    const hash = window.location.hash
 
-      // Get current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError)
-        setError('Erreur de session')
-        return
-      }
+    // Check for error in hash first
+    if (hash.includes('error=access_denied') || hash.includes('otp_expired')) {
+      setLinkExpired(true)
+      setError("Le lien d'invitation a expiré ou est invalide. Veuillez demander une nouvelle invitation.")
+      return
+    }
 
+    // Listen for Supabase processing the hash tokens
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+        setUserEmail(session.user.email)
+      }
+    })
+
+    // Fallback for already-active session (e.g. page reload)
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUserEmail(session.user.email)
-        
-        // Check if user already has a password set
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          // User is already authenticated, redirect to app
-         // router.push('/projects')
-        }
-      } else {
+      } else if (!hash.includes('access_token')) {
+        // No hash token and no session — nothing to work with
         setLinkExpired(true)
         setError('Aucune session trouvée. Veuillez cliquer sur le lien dans votre email.')
         setTimeout(() => router.replace('/sign-in'), 3000)
       }
-    }
+      // else: has access_token in hash, wait for onAuthStateChange to fire
+    })
 
-    checkInvitation()
+    return () => subscription.unsubscribe()
   }, [router])
 
   const handleAcceptInvite = async (e) => {
@@ -74,16 +69,10 @@ function AcceptInviteContent() {
     setLoading(true)
 
     try {
-      // Update user password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password
-      })
-
+      const { error: updateError } = await supabase.auth.updateUser({ password })
       if (updateError) throw updateError
 
-      // Update member status to active
       const { data: { user } } = await supabase.auth.getUser()
-      
       if (user) {
         await supabase
           .from('members')
@@ -92,21 +81,13 @@ function AcceptInviteContent() {
       }
 
       setSuccess(true)
-
-      setTimeout(() => {
-        router.push('https://app.zaynspace.com/workspaces')
-      }, 2000)
-
+      setTimeout(() => router.push('https://app.zaynspace.com/workspaces'), 2000)
     } catch (error) {
       console.error('Accept invite error:', error)
       setError(error.message || 'Une erreur est survenue')
     } finally {
       setLoading(false)
     }
-  }
-
-  const requestNewInvite = () => {
-    router.push('/sign-in')
   }
 
   return (
@@ -118,14 +99,10 @@ function AcceptInviteContent() {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
-              <h2 className="text-2xl font-bold font-heading text-foreground mb-2">
-                Lien expiré
-              </h2>
-              <p className="text-muted-foreground mb-6">
-                {error}
-              </p>
+              <h2 className="text-2xl font-bold font-heading text-foreground mb-2">Lien expiré</h2>
+              <p className="text-muted-foreground mb-6">{error}</p>
               <button
-                onClick={requestNewInvite}
+                onClick={() => router.push('/sign-in')}
                 className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all"
               >
                 Retour à la connexion
@@ -136,22 +113,14 @@ function AcceptInviteContent() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold font-heading text-foreground mb-2">
-                Bienvenue!
-              </h2>
-              <p className="text-muted-foreground">
-                Votre compte a été activé. Redirection en cours...
-              </p>
+              <h2 className="text-2xl font-bold font-heading text-foreground mb-2">Bienvenue!</h2>
+              <p className="text-muted-foreground">Votre compte a été activé. Redirection en cours...</p>
             </div>
           ) : (
             <>
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold font-heading text-foreground mb-2">
-                  Accepter l'invitation
-                </h1>
-                <p className="text-muted-foreground">
-                  Définissez votre mot de passe pour commencer
-                </p>
+                <h1 className="text-3xl font-bold font-heading text-foreground mb-2">Accepter l'invitation</h1>
+                <p className="text-muted-foreground">Définissez votre mot de passe pour commencer</p>
                 {userEmail && (
                   <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
                     <Mail className="w-4 h-4" />
@@ -162,9 +131,7 @@ function AcceptInviteContent() {
 
               <form onSubmit={handleAcceptInvite} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Mot de passe
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Mot de passe</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
@@ -179,9 +146,7 @@ function AcceptInviteContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Confirmer le mot de passe
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Confirmer le mot de passe</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <input
@@ -221,7 +186,6 @@ function AcceptInviteContent() {
   )
 }
 
-// Loading fallback component
 function LoadingFallback() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
@@ -230,7 +194,6 @@ function LoadingFallback() {
   )
 }
 
-// Main component with Suspense wrapper
 export default function AcceptInvitePage() {
   return (
     <Suspense fallback={<LoadingFallback />}>

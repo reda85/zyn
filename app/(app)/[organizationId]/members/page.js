@@ -168,14 +168,18 @@ const fetchMembers = async () => {
     if (!inviteEmail.trim()) { setInviteError("L'email est requis"); return }
     if (!validateEmail(inviteEmail)) { setInviteError('Veuillez entrer une adresse email valide'); return }
 
-    const { data: existingMember, error: checkError } = await supabase
-      .from('members')
-      .select('email')
-      .eq('email', inviteEmail.toLowerCase())
-      .maybeSingle()
+   // Replace the existing client-side check with this
+const { data: existingOrgMember, error: orgMemberError } = await supabase
+  .from('members_organizations')
+  .select('member_id, members!inner(email)')
+  .eq('organization_id', organizationId)
+  .eq('members.email', inviteEmail.toLowerCase())
+  .maybeSingle()
 
-    if (checkError) { setInviteError("Erreur lors de la vérification de l'email"); return }
-    if (existingMember) { setInviteError('Un membre avec cet email existe déjà'); return }
+if (existingOrgMember) { setInviteError('Ce membre appartient déjà à cette organisation'); return }
+
+    if (orgMemberError) { setInviteError("Erreur lors de la vérification de l'email"); return }
+   
 
     setInviteLoading(true)
     try {
