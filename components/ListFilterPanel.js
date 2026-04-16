@@ -17,6 +17,7 @@ import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
 import ProjectPlanFilter from './ProjectPlanFilter';
 import TagFilter from './TagFilter';
+import ShowArchivedFilter from './ShowArchivedFilter';
 
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
@@ -38,6 +39,7 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
     overdue: false,
     projectPlan: false,
     tag: false,
+    showArchived: false, // ← hidden by default
   });
 
   const [categoryTags, setCategoryTags] = useState([]);
@@ -46,6 +48,10 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
 
   const applyFilters = () => {
     let filtered = [...originalPins];
+
+     if (!filters.showArchived) {
+      filtered = filtered.filter((pin) => !pin.isArchived);
+    }
 
     if (filters.me) {
       filtered = filtered.filter((pin) => pin.created_by === user.id);
@@ -131,6 +137,8 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
+   const archivedCount = pins.filter((p) => p.isArchived).length;
+
   return (
     <>
       <button
@@ -191,6 +199,11 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
             <OverdueFilter
               active={filters.overdue}
               onToggle={(value) => setFilters((prev) => ({ ...prev, overdue: value }))}
+            />
+            <ShowArchivedFilter
+              active={filters.showArchived}
+              onToggle={(value) => setFilters((prev) => ({ ...prev, showArchived: value }))}
+              archivedCount={archivedCount}
             />
             <ProjectPlanFilter
               active={filters.projectPlan}

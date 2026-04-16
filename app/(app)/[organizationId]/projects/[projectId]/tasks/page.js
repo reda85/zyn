@@ -205,7 +205,7 @@ export default function Tasks({ params }) {
       let query = supabase
         .from('pdf_pins')
         .select(
-          'id,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number,organization_id),project_id,pins_photos(id,public_url),plans(id,name,file_url),pin_tags(tag_id,tags(*))'
+          'id,isArchived,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number,organization_id),project_id,pins_photos(id,public_url),plans(id,name,file_url),pin_tags(tag_id,tags(*))'
         )
         .is('deleted_at', null)
         .eq('project_id', projectId)

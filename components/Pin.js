@@ -1,10 +1,11 @@
 import { categoriesAtom, statusesAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
-import { CheckIcon, DropletsIcon, DoorClosedIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon, SnowflakeIcon, FolderIcon, AirVentIcon, AlarmSmokeIcon, CheckCircleIcon, PackageIcon, BrickWallIcon, BrushIcon, ConstructionIcon, DropletOffIcon, DoorOpenIcon, TrendingUpIcon, FlameIcon, TrendingDownIcon, WifiIcon } from "lucide-react";
+import { CheckIcon, DropletsIcon, DoorClosedIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon, SnowflakeIcon, FolderIcon, AirVentIcon, AlarmSmokeIcon, CheckCircleIcon, PackageIcon, BrickWallIcon, BrushIcon, ConstructionIcon, DropletOffIcon, DoorOpenIcon, TrendingUpIcon, FlameIcon, TrendingDownIcon, WifiIcon, ArchiveIcon } from "lucide-react";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
+
 const categoriesIcons = {
   'unassigned' : <CheckIcon className="text-white h-4 w-4" />,
   'zap': <ZapIcon className="text-white h-4 w-4" />,
@@ -28,19 +29,30 @@ const categoriesIcons = {
   'flame': <FlameIcon className="text-white h-4 w-4" />,
   'trending-down': <TrendingDownIcon className="text-white h-4 w-4" />,
   'wifi': <WifiIcon className="text-white h-4 w-4" />,
-  
 }
-
-
 
 export default function Pin({ pin }) {
     const [statuses] = useAtom(statusesAtom)
     const [categories] = useAtom(categoriesAtom)
-    console.log('statuses', statuses)
-    const statusColor = statuses?.find(status => status?.id === pin?.status_id)?.color || '#ccc';
+
+    const isArchived = pin?.isArchived ?? false;
+    const statusColor = isArchived
+        ? "#4b5563"
+        : statuses?.find(status => status?.id === pin?.status_id)?.color || '#ccc';
+
+    const catIconKey = categories?.find(c => c.id === pin.category_id)?.icon || 'unassigned';
+
     return (
-        <div className=" rounded-full p-1 " style={{ backgroundColor: statusColor }}>
-             {categoriesIcons[categories?.find(c => c.id === pin.category_id)?.icon || 'Non assigné']}
+        <div className={classNames("relative rounded-full p-1", isArchived && "opacity-50 grayscale")}
+            style={{ backgroundColor: statusColor }}
+        >
+            {categoriesIcons[catIconKey]}
+
+            {isArchived && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-stone-800 border border-stone-600 rounded-full flex items-center justify-center">
+                    <ArchiveIcon className="w-2 h-2 text-stone-300" />
+                </div>
+            )}
         </div>
     )
 }

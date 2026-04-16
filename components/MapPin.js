@@ -2,33 +2,20 @@ import { categoriesAtom, selectedPinAtom, statusesAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
 import {
   Calendar1Icon,
-  CheckIcon,
-  DropletsIcon,
-  FireExtinguisherIcon,
-  GripIcon,
-  PaintRoller,
-  SnowflakeIcon,
   UserCircleIcon,
-  ZapIcon
+  ArchiveIcon,
 } from "lucide-react";
 import { format as formatDate } from "date-fns";
 import clsx from "clsx";
-import { Snowburst_One } from "next/font/google";
 import { categoriesPinIcons } from "@/utils/categories";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const categoriesIcons = categoriesPinIcons
+const categoriesIcons = categoriesPinIcons;
 
-const statusColors = {
-  "En cours": "bg-green-600",
-  "A valider": "bg-blue-600",
-  Termine: "bg-red-600"
-};
-
-export default function MapPin({ pin, dragging=false, hovered = false }) {
+export default function MapPin({ pin, dragging = false, hovered = false }) {
   const [selectedPin] = useAtom(selectedPinAtom);
   const [categories] = useAtom(categoriesAtom);
   const [statuses] = useAtom(statusesAtom);
@@ -47,6 +34,10 @@ export default function MapPin({ pin, dragging=false, hovered = false }) {
     categories.find((c) => c.id === pin.category_id)?.icon || "unassigned";
 
   const isSelected = selectedPin?.id === pin.id;
+  const isArchived = pin?.isArchived ?? false;
+
+  // Archived pins use a muted grey instead of their status color
+  const pinColor = isArchived ? "#4b5563" : statusColor;
 
   return (
     <div className="relative flex flex-col items-center">
@@ -55,24 +46,34 @@ export default function MapPin({ pin, dragging=false, hovered = false }) {
         <div
           className="
             absolute bottom-full left-1/2 -translate-x-1/2
-            mb-3 w-max max-w-xs min-w-52 p-4 text-xs text-white 
+            mb-3 w-max max-w-xs min-w-52 p-4 text-xs text-white
             bg-gray-800 rounded-lg shadow-lg
             whitespace-nowrap pointer-events-none
             z-[1]
           "
         >
-          <div
-            className="rounded-full py-1 px-2 text-white w-fit"
-            style={{ backgroundColor: statusColor }}
-          >
-            {statuses.find((status) => status?.id === pin.status_id)?.name ||
-              "Non assigné"}
+          <div className="flex flex-row items-center gap-2 flex-wrap">
+            <div
+              className="rounded-full py-1 px-2 text-white w-fit"
+              style={{ backgroundColor: isArchived ? "#4b5563" : statusColor }}
+            >
+              {statuses.find((status) => status?.id === pin.status_id)?.name ||
+                "Non assigné"}
+            </div>
+
+            {/* Archived badge inside popover */}
+            {isArchived && (
+              <div className="flex items-center gap-1 rounded-full py-1 px-2 bg-stone-700 text-stone-300 w-fit">
+                <ArchiveIcon className="w-3 h-3" />
+                <span>Archivé</span>
+              </div>
+            )}
           </div>
 
           <p className="mt-4 text-xs text-stone-500">
             ID: {pin?.projects?.project_number}-{pin.pin_number}
           </p>
-          <p className="mt-4 text-base text-stone-300">
+          <p className={clsx("mt-4 text-base", isArchived ? "text-stone-500 line-through" : "text-stone-300")}>
             {pin.name || "Pin sans nom"}
           </p>
 
@@ -94,14 +95,14 @@ export default function MapPin({ pin, dragging=false, hovered = false }) {
             <Calendar1Icon
               className={clsx(
                 "w-5 h-5 mr-2",
-                isOverDue ? "text-red-600" : "text-stone-400"
+                isOverDue && !isArchived ? "text-red-600" : "text-stone-400"
               )}
             />
             <div className="flex flex-col">
               <p
                 className={clsx(
                   "text-xs",
-                  isOverDue ? "text-red-600" : "text-stone-400"
+                  isOverDue && !isArchived ? "text-red-600" : "text-stone-400"
                 )}
               >
                 Échéance
@@ -109,7 +110,7 @@ export default function MapPin({ pin, dragging=false, hovered = false }) {
               <div
                 className={clsx(
                   "text-sm mt-1",
-                  isOverDue ? "text-red-600" : "text-stone-300"
+                  isOverDue && !isArchived ? "text-red-600" : "text-stone-300"
                 )}
               >
                 {pin?.due_date
@@ -127,23 +128,41 @@ export default function MapPin({ pin, dragging=false, hovered = false }) {
           <div className="w-0 h-2 border-l-[1px] border-white opacity-80" />
         )}
 
-        <div
-          className={classNames(
-            "rounded-full transition-all duration-200",
-            isSelected ? "p-2 scale-150" : "p-1"
-          )}
-          style={{ backgroundColor: statusColor }}
-        >
-          {categoriesIcons[catIconKey]}
+        {/* Outer wrapper for grayscale + opacity on archived */}
+        <div className={clsx(isArchived && "opacity-50 grayscale")}>
+          <div
+            className={classNames(
+              "rounded-full transition-all duration-200 relative",
+              isSelected ? "p-2 scale-150" : "p-1"
+            )}
+            style={{ backgroundColor: pinColor }}
+          >
+            {/* Archive icon badge — top-right corner of the circle */}
+            {isArchived && (
+              <div
+                className={classNames(
+                  "absolute bg-stone-800 border border-stone-600 rounded-full flex items-center justify-center",
+                  isSelected
+                    ? "-top-1.5 -right-1.5 w-4 h-4"
+                    : "-top-1 -right-1 w-3 h-3"
+                )}
+              >
+                <ArchiveIcon
+                  className={classNames(
+                    "text-stone-300",
+                    isSelected ? "w-2.5 h-2.5" : "w-2 h-2"
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Icon inside the pin */}
+            {categoriesIcons[catIconKey]}
+          </div>
         </div>
 
         {isSelected && (
-          <div
-            className={classNames(
-              "mt-1 w-px h-6 rounded-sm",
-              statusColors[pin.status]
-            )}
-          />
+          <div className="mt-1 w-px h-6 rounded-sm bg-stone-500" />
         )}
       </div>
     </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { ListFilterIcon } from 'lucide-react';
+import { ArchiveIcon, ListFilterIcon } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { filteredPinsAtom, pinsAtom, selectedProjectAtom } from '@/store/atoms';
 import dayjs from 'dayjs';
@@ -16,6 +16,7 @@ import DateFilter from './DateFilter';
 import StatusFilter from './StatusFilter';
 import OverdueFilter from './OverdueFilter';
 import AssignedToMemberFilter from './AssigneeFilter';
+import ShowArchivedFilter from './ShowArchivedFilter';
 import TagFilter from './TagFilter';
 import { Outfit } from 'next/font/google';
 import clsx from 'clsx';
@@ -43,7 +44,8 @@ export default function FilterPanel({ user, projectId }) {
   useEffect(() => {
     if (pins && allPins.length === 0) {
       setAllPins(pins);
-      setFilteredPins(pins);
+      // Don't show archived pins by default — filter them out on first load
+      setFilteredPins(pins.filter((p) => !p.is_archived));
     }
   }, [pins]);
 
@@ -71,6 +73,7 @@ export default function FilterPanel({ user, projectId }) {
     overdue: false,
     assignee: false,
     tag: false,
+    showArchived: false, // ← hidden by default
   });
 
   const [categoryTags, setCategoryTags] = useState([]);
@@ -78,6 +81,11 @@ export default function FilterPanel({ user, projectId }) {
 
   const applyFilters = () => {
     let filtered = [...pins];
+
+    // Always exclude archived unless the toggle is ON
+    if (!filters.showArchived) {
+      filtered = filtered.filter((pin) => !pin.isArchived);
+    }
 
     if (filters.me) {
       filtered = filtered.filter((pin) => pin.created_by === user.id);
@@ -117,7 +125,6 @@ export default function FilterPanel({ user, projectId }) {
       });
     }
 
-    // Tag filter — toggle ON + no tags = zero results
     if (filters.tag) {
       if (tagIds.length === 0) {
         filtered = [];
@@ -170,7 +177,10 @@ export default function FilterPanel({ user, projectId }) {
     filters.overdue ||
     filters.assignee ||
     filters.tag ||
+    filters.showArchived ||
     statusTags.length > 0;
+
+  const archivedCount = pins.filter((p) => p.isArchived).length;
 
   return (
     <>
@@ -230,12 +240,12 @@ export default function FilterPanel({ user, projectId }) {
                 setActiveStatuses={setStatusTags}
               />
               <TagFilter
-  active={filters.tag}
-  onToggle={(value) => setFilters((prev) => ({ ...prev, tag: value }))}
-  tags={tagIds}
-  setTags={setTagIds}
-  projectId={projectId}  // ← add this
-/>
+                active={filters.tag}
+                onToggle={(value) => setFilters((prev) => ({ ...prev, tag: value }))}
+                tags={tagIds}
+                setTags={setTagIds}
+                projectId={projectId}
+              />
               <AssignedToMemberFilter
                 active={filters.assignee}
                 onToggle={(value) => setFilters((prev) => ({ ...prev, assignee: value }))}
@@ -246,6 +256,12 @@ export default function FilterPanel({ user, projectId }) {
               <OverdueFilter
                 active={filters.overdue}
                 onToggle={(value) => setFilters((prev) => ({ ...prev, overdue: value }))}
+              />
+
+              <ShowArchivedFilter
+               active={filters.showArchived}
+               onToggle={(value) => setFilters((prev) => ({ ...prev, showArchived: value }))}
+               archivedCount={archivedCount}
               />
             </div>
           </div>,
