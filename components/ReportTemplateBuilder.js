@@ -5,26 +5,26 @@ import {
   Layout, Settings, FileText, Eye,
   Users, AlignLeft, Plus, Trash2, Download,
   ChevronDown, ChevronRight, List, Table, Grid,
-  Image as ImageIcon,
+  Image as ImageIcon, Map,
 } from "lucide-react"
 import clsx from "clsx"
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
 const webFontMap = {
-  helvetica: 'Arial, sans-serif',
-  times:     '"Times New Roman", serif',
-  courier:   '"Courier New", monospace',
-  inter:     '"Inter", sans-serif',
-  outfit:    '"Outfit", sans-serif',
-  roboto:    '"Roboto", sans-serif',
-  lato:      '"Lato", sans-serif',
-  montserrat:'"Montserrat", sans-serif',
-  poppins:   '"Poppins", sans-serif',
-  raleway:   '"Raleway", sans-serif',
-  opensans:  '"Open Sans", sans-serif',
-  playfair:  '"Playfair Display", serif',
-  dmsans:    '"DM Sans", sans-serif',
+  helvetica:  'Arial, sans-serif',
+  times:      '"Times New Roman", serif',
+  courier:    '"Courier New", monospace',
+  inter:      '"Inter", sans-serif',
+  outfit:     '"Outfit", sans-serif',
+  roboto:     '"Roboto", sans-serif',
+  lato:       '"Lato", sans-serif',
+  montserrat: '"Montserrat", sans-serif',
+  poppins:    '"Poppins", sans-serif',
+  raleway:    '"Raleway", sans-serif',
+  opensans:   '"Open Sans", sans-serif',
+  playfair:   '"Playfair Display", serif',
+  dmsans:     '"DM Sans", sans-serif',
 }
 
 const fontOptions = [
@@ -43,13 +43,14 @@ const fontOptions = [
   { value: "courier",    label: "Courier" },
 ]
 
-const DEFAULT_SECTION_ORDER = ['summary', 'participants', 'signatures', 'tasks', 'customSections']
+const DEFAULT_SECTION_ORDER = ['summary', 'planOverviews', 'participants', 'signatures', 'tasks', 'customSections']
 
 const SECTION_LABELS = {
-  summary:        { label: 'Résumé', icon: '📊' },
-  participants:   { label: 'Participants', icon: '👥' },
-  signatures:     { label: 'Signatures', icon: '✍️' },
-  tasks:          { label: 'Tâches', icon: '📋' },
+  summary:        { label: 'Résumé',                  icon: '📊' },
+  planOverviews:  { label: 'Aperçus des plans',        icon: '🗺️' },
+  participants:   { label: 'Participants',             icon: '👥' },
+  signatures:     { label: 'Signatures',              icon: '✍️' },
+  tasks:          { label: 'Tâches',                  icon: '📋' },
   customSections: { label: 'Sections personnalisées', icon: '📝' },
 }
 
@@ -58,7 +59,8 @@ const SECTION_LABELS = {
 const Section = ({ title, icon: Icon, section, expandedSections, toggleSection, children }) => (
   <div className="border-b border-border/30">
     <button
-      onClick={(e) => { e.preventDefault(); toggleSection(section) }}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => toggleSection(section)}
       className="w-full flex items-center justify-between p-5 hover:bg-secondary/20 transition-all text-left group"
     >
       <div className="flex items-center gap-3">
@@ -77,17 +79,31 @@ const Section = ({ title, icon: Icon, section, expandedSections, toggleSection, 
   </div>
 )
 
-const Toggle = ({ label, checked, onChange }) => (
-  <label className="flex items-center justify-between cursor-pointer group py-2 px-3 rounded-lg hover:bg-secondary/30 transition-all">
-    <span className="text-sm text-foreground font-medium">{label}</span>
-    <div className="relative flex-shrink-0">
-      <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
-      <div className={clsx("w-11 h-6 rounded-full transition-all", checked ? "bg-primary" : "bg-secondary/50")}>
-        <div className={clsx("absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm", checked && "translate-x-5")} />
+const Toggle = ({ label, checked, onChange }) => {
+  const handleChange = (e) => {
+    const aside = e.currentTarget.closest('aside')
+    const scrollTop = aside?.scrollTop ?? 0
+    onChange(e)
+    requestAnimationFrame(() => {
+      if (aside) aside.scrollTop = scrollTop
+    })
+  }
+
+  return (
+    <label
+      onMouseDown={(e) => e.preventDefault()}
+      className="flex items-center justify-between cursor-pointer group py-2 px-3 rounded-lg hover:bg-secondary/30 transition-all"
+    >
+      <span className="text-sm text-foreground font-medium">{label}</span>
+      <div className="relative flex-shrink-0">
+        <input type="checkbox" checked={checked} onChange={handleChange} className="sr-only peer" />
+        <div className={clsx("w-11 h-6 rounded-full transition-all", checked ? "bg-primary" : "bg-secondary/50")}>
+          <div className={clsx("absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm", checked && "translate-x-5")} />
+        </div>
       </div>
-    </div>
-  </label>
-)
+    </label>
+  )
+}
 
 const SelectField = ({ label, value, onChange, options }) => (
   <div className="space-y-2">
@@ -190,6 +206,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       showPlanCount:       true,
       showStatusBreakdown: true,
       backgroundColor:     "#f5f5f4",
+    },
+    planOverviews: {
+      enabled:      false,
+      title:        "Aperçus des plans",
+      showPinCount: true,
+      showLegend:   true,
     },
     tasks: {
       displayMode:            "list",
@@ -303,6 +325,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       sectionTitles: { ...defaultConfig.sectionTitles, ...(saved.sectionTitles || {}) },
       header:        { ...defaultConfig.header,        ...saved.header },
       summary:       { ...defaultConfig.summary,       ...saved.summary },
+      planOverviews: { ...defaultConfig.planOverviews, ...(saved.planOverviews || {}) },
       tasks:         { ...defaultConfig.tasks,         ...saved.tasks },
       fields:        { ...defaultConfig.fields,        ...saved.fields },
       listView:      { ...defaultConfig.listView,      ...saved.listView },
@@ -325,6 +348,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     const base = {
       header:        true,
       summary:       false,
+      planOverviews: false,
       tasks:         false,
       fields:        false,
       listView:      false,
@@ -344,13 +368,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
   })
 
   const toggleSection = (section) => {
-    setExpandedSections(prev => {
-      if (prev[section]) return { ...prev, [section]: false }
-      const next = {}
-      Object.keys(prev).forEach(k => { next[k] = false })
-      next[section] = true
-      return next
-    })
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
   }
 
   const addCustomSection = () => {
@@ -360,12 +378,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       ...prev,
       customSections: [...prev.customSections, { id, title: "Nouvelle section", type: "text", enabled: true }],
     }))
-    setExpandedSections(prev => {
-      const next = {}
-      Object.keys(prev).forEach(k => { next[k] = false })
-      next[key] = true
-      return next
-    })
+    setExpandedSections(prev => ({ ...prev, [key]: true }))
   }
 
   const moveSection = (index, direction) => {
@@ -417,6 +430,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
   // ── Preview renderers per section ─────────────────────────────────────────
   const renderPreviewSection = (sectionId) => {
     switch (sectionId) {
+
       case 'summary':
         if (!config.summary.enabled) return null
         return (
@@ -437,6 +451,59 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <span className="px-3 py-1 rounded-full text-xs text-white bg-red-500">Bloqué (3)</span>
               </div>
             )}
+          </div>
+        )
+
+      case 'planOverviews':
+        if (!config.planOverviews?.enabled) return null
+        return (
+          <div key="planOverviews">
+            <div style={sectionTitlePreviewStyle()}>{config.planOverviews.title || 'Aperçus des plans'}</div>
+            <div className="space-y-4">
+              {['Plan RDC', 'Plan R+1'].map((planName, pi) => (
+                <div key={planName} className="border border-slate-200 rounded-lg overflow-hidden">
+                  {/* Plan image placeholder with dots */}
+                  <div className="relative bg-slate-100 flex items-center justify-center" style={{ height: '140px' }}>
+                    {/* Grid lines to suggest a blueprint */}
+                    <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+                      <defs><pattern id={`grid-${pi}`} width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#94a3b8" strokeWidth="0.5"/></pattern></defs>
+                      <rect width="100%" height="100%" fill={`url(#grid-${pi})`}/>
+                    </svg>
+                    <Map className="w-8 h-8 text-slate-300" />
+                    {/* Mock pin dots */}
+                    {[
+                      { top: '30%', left: '40%', color: config.primaryColor },
+                      { top: '55%', left: '65%', color: config.primaryColor },
+                      { top: '70%', left: '28%', color: '#ef4444' },
+                    ].map((dot, di) => (
+                      <div key={di} className="absolute flex items-center justify-center rounded-full border-2 border-white shadow text-white" style={{ backgroundColor: dot.color, top: dot.top, left: dot.left, width: '18px', height: '18px', fontSize: '8px', fontWeight: 700, transform: 'translate(-50%, -50%)' }}>
+                        {di + 1}
+                      </div>
+                    ))}
+                    {/* Pin count badge */}
+                    {config.planOverviews.showPinCount && (
+                      <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: config.primaryColor }}>
+                        3 tâches
+                      </span>
+                    )}
+                  </div>
+                  {/* Plan name + legend */}
+                  <div className="px-3 py-2 bg-white space-y-2">
+                    <div className="text-xs font-semibold text-slate-700">{planName}</div>
+                    {config.planOverviews.showLegend && (
+                      <div className="grid grid-cols-2 gap-1">
+                        {['Fissure cloison', 'Défaut peinture', 'Conformité porte'].map((name, li) => (
+                          <div key={li} className="flex items-center gap-1.5">
+                            <div className="flex items-center justify-center rounded-full text-white flex-shrink-0" style={{ backgroundColor: li === 2 ? '#ef4444' : config.primaryColor, width: '14px', height: '14px', fontSize: '7px', fontWeight: 700 }}>{li + 1}</div>
+                            <span className="text-[10px] text-slate-600 truncate">{name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )
 
@@ -485,10 +552,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     {config.tasks.galleryShowName !== false && (
                       <div className="text-xs font-bold text-slate-600 mb-2">Tâche d'exemple {n}</div>
                     )}
-                    <div
-                      className="grid gap-2"
-                      style={{ gridTemplateColumns: `repeat(${config.tasks.photosPerRow ?? 3}, 1fr)` }}
-                    >
+                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${config.tasks.photosPerRow ?? 3}, 1fr)` }}>
                       {[1, 2, 3].slice(0, config.tasks.photosPerRow ?? 3).map((p) => (
                         <div key={p} className="relative">
                           <div className="bg-slate-200 rounded aspect-square flex items-center justify-center text-slate-400 text-[10px]">Photo {p}</div>
@@ -653,6 +717,42 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <Toggle label="Tâches en retard"       checked={config.summary.showOverdueCount}    onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showOverdueCount:    e.target.checked } }))} />
                 <Toggle label="Nombre de plans"        checked={config.summary.showPlanCount}       onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPlanCount:       e.target.checked } }))} />
                 <Toggle label="Répartition par statut" checked={config.summary.showStatusBreakdown} onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showStatusBreakdown: e.target.checked } }))} />
+              </div>
+            )}
+          </S>
+
+          {/* ── Aperçus des plans ── */}
+          <S title="Aperçus des plans" icon={Map} section="planOverviews">
+            <Toggle
+              label="Activer les aperçus de plans"
+              checked={config.planOverviews?.enabled ?? false}
+              onChange={(e) => setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, enabled: e.target.checked } }))}
+            />
+            {config.planOverviews?.enabled && (
+              <div className="space-y-3 pl-5 border-l-2 border-border/30">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre de la section</label>
+                  <input
+                    type="text"
+                    value={config.planOverviews.title ?? 'Aperçus des plans'}
+                    onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, title: e.target.value } })) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                    className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <Toggle
+                  label="Afficher le nombre de tâches"
+                  checked={config.planOverviews.showPinCount ?? true}
+                  onChange={(e) => setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, showPinCount: e.target.checked } }))}
+                />
+                <Toggle
+                  label="Afficher la légende numérotée"
+                  checked={config.planOverviews.showLegend ?? true}
+                  onChange={(e) => setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, showLegend: e.target.checked } }))}
+                />
+                <p className="text-[10px] text-muted-foreground px-1">
+                  Une page par plan — image complète du plan avec les pins numérotés et leur légende.
+                </p>
               </div>
             )}
           </S>
