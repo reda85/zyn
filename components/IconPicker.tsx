@@ -27,6 +27,16 @@ import {
   TrendingUpIcon,
   TrendingDownIcon,
   WifiIcon,
+  AccessibilityIcon,
+  AsteriskIcon,
+  BadgeIcon,
+  BanIcon,
+  BlocksIcon,
+  BoltIcon,
+  BoxIcon,
+  BoxesIcon,
+  CarIcon,
+  CctvIcon,
 } from 'lucide-react';
 import { BrushCleaning } from 'lucide-static';
 
@@ -58,6 +68,16 @@ const iconOptions: IconOption[] = [
   { name: 'flame', Icon: Flame },
   { name: 'trending-down', Icon: TrendingDownIcon },
   { name: 'wifi', Icon: WifiIcon },
+  { name: 'accessibility', Icon: AccessibilityIcon },
+  { name: 'asterisk', Icon: AsteriskIcon },
+  { name: 'badge', Icon: BadgeIcon },
+  { name: 'ban', Icon: BanIcon },
+  { name: 'blocks', Icon: BlocksIcon },
+  { name: 'bolt', Icon: BoltIcon },
+  { name: 'box', Icon: BoxIcon },
+  { name: 'boxes', Icon: BoxesIcon },
+  { name: 'car', Icon: CarIcon },
+  { name: 'cctv', Icon: CctvIcon },
 
 ];
 

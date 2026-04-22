@@ -1,6 +1,17 @@
 import { categoriesAtom, statusesAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
-import { CheckIcon, DropletsIcon, DoorClosedIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon, SnowflakeIcon, FolderIcon, AirVentIcon, AlarmSmokeIcon, CheckCircleIcon, PackageIcon, BrickWallIcon, BrushIcon, ConstructionIcon, DropletOffIcon, DoorOpenIcon, TrendingUpIcon, FlameIcon, TrendingDownIcon, WifiIcon, ArchiveIcon } from "lucide-react";
+import { CheckIcon, DropletsIcon, DoorClosedIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon, SnowflakeIcon, FolderIcon, AirVentIcon, AlarmSmokeIcon, CheckCircleIcon, PackageIcon, BrickWallIcon, BrushIcon, ConstructionIcon, DropletOffIcon, DoorOpenIcon, TrendingUpIcon, FlameIcon, TrendingDownIcon, WifiIcon, ArchiveIcon,
+    AccessibilityIcon,
+    AsteriskIcon,
+    BadgeIcon,
+    BanIcon,
+    BlocksIcon,
+    BoltIcon,    
+    BoxIcon,
+    BoxesIcon,
+    CarIcon,
+    CctvIcon,
+ } from "lucide-react";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -29,6 +40,16 @@ const categoriesIcons = {
   'flame': <FlameIcon className="text-white h-4 w-4" />,
   'trending-down': <TrendingDownIcon className="text-white h-4 w-4" />,
   'wifi': <WifiIcon className="text-white h-4 w-4" />,
+  'accessibility': <AccessibilityIcon className="text-white h-4 w-4" />,
+  'asterisk': <AsteriskIcon className="text-white h-4 w-4" />,
+  'badge': <BadgeIcon className="text-white h-4 w-4" />,
+  'ban': <BanIcon className="text-white h-4 w-4" />,
+  'blocks': <BlocksIcon className="text-white h-4 w-4" />,
+  'bolt': <BoltIcon className="text-white h-4 w-4" />,
+  'box': <BoxIcon className="text-white h-4 w-4" />,
+  'boxes': <BoxesIcon className="text-white h-4 w-4" />,
+  'car': <CarIcon className="text-white h-4 w-4" />,
+  'cctv': <CctvIcon className="text-white h-4 w-4" />,
 }
 
 export default function Pin({ pin }) {

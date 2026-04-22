@@ -21,6 +21,16 @@ import {
   FlameIcon,
   TrendingDownIcon,
   WifiIcon,
+  AccessibilityIcon,
+  AsteriskIcon,
+  BadgeIcon,
+  BanIcon,
+  BlocksIcon,
+  BoltIcon,
+  BoxIcon,
+  BoxesIcon,
+  CarIcon,
+  CctvIcon,
 } from 'lucide-react';
 
 export const categoriesIcons = {
@@ -46,6 +56,16 @@ export const categoriesIcons = {
   'flame': <FlameIcon className="text-muted-foreground h-4 w-4" />,
   'trending-down': <TrendingDownIcon className="text-muted-foreground h-4 w-4" />,
   'wifi': <WifiIcon className="text-muted-foreground h-4 w-4" />,
+  'accessibility': <AccessibilityIcon className="text-muted-foreground h-4 w-4" />,
+  'asterisk': <AsteriskIcon className="text-muted-foreground h-4 w-4" />,
+  'badge': <BadgeIcon className="text-muted-foreground h-4 w-4" />,
+  'ban': <BanIcon className="text-muted-foreground h-4 w-4" />,
+  'blocks': <BlocksIcon className="text-muted-foreground h-4 w-4" />,
+  'bolt': <BoltIcon className="text-muted-foreground h-4 w-4" />,
+  'box': <BoxIcon className="text-muted-foreground h-4 w-4" />,
+  'boxes': <BoxesIcon className="text-muted-foreground h-4 w-4" />,
+  'car': <CarIcon className="text-muted-foreground h-4 w-4" />,
+  'cctv': <CctvIcon className="text-muted-foreground h-4 w-4" />,
 };
 
 export const categoriesPinIcons = {
@@ -71,5 +91,15 @@ export const categoriesPinIcons = {
   "flame": <FlameIcon className="text-white h-4 w-4" />,
   "trending-down": <TrendingDownIcon className="text-white h-4 w-4" />,
   "wifi": <WifiIcon className="text-white h-4 w-4" />,
+  'accessibility': <AccessibilityIcon className="text-white h-4 w-4" />,
+  'asterisk': <AsteriskIcon className="text-white h-4 w-4" />,
+  'badge': <BadgeIcon className="text-white h-4 w-4" />,
+  'ban': <BanIcon className="text-white h-4 w-4" />,
+  'blocks': <BlocksIcon className="text-white h-4 w-4" />,
+  'bolt': <BoltIcon className="text-white h-4 w-4" />,
+  'box': <BoxIcon className="text-white h-4 w-4" />,
+  'boxes': <BoxesIcon className="text-white h-4 w-4" />,
+  'car': <CarIcon className="text-white h-4 w-4" />,
+  'cctv': <CctvIcon className="text-white h-4 w-4" />,
 };
 

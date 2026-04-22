@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Tag } from 'lucide-react';
 import { useAtom } from 'jotai';
-import { selectedPinAtom } from '@/store/atoms';
+import { organizationsAtom, selectedPinAtom } from '@/store/atoms';
 import { supabase } from '@/utils/supabase/client';
+import { useUserData } from '@/hooks/useUserData';
 
 export default function TagEditor({ onChange, disabled = false }) {
   const [input, setInput] = useState('');
@@ -11,6 +12,7 @@ export default function TagEditor({ onChange, disabled = false }) {
   const [availableTags, setAvailableTags] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [saving, setSaving] = useState(false);
+  const {organization} = useUserData();
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -114,6 +116,7 @@ export default function TagEditor({ onChange, disabled = false }) {
           project_id: selectedPin.project_id,
           name: trimmed,
           order: availableTags.length,
+          organization_id: organization.id,
         })
         .select()
         .single();
