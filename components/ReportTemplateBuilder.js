@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from "react"
+import React, { useState,  useCallback } from "react"
 import {
-  Layout, Settings, FileText, Eye,
+  Layout, Settings, FileText, Eye, Calendar,
   Users, AlignLeft, Plus, Trash2, Download,
   ChevronDown, ChevronRight, List, Table, Grid,
   Image as ImageIcon, Map,
@@ -43,11 +43,12 @@ const fontOptions = [
   { value: "courier",    label: "Courier" },
 ]
 
-const DEFAULT_SECTION_ORDER = ['summary', 'planOverviews', 'participants', 'signatures', 'tasks', 'customSections']
+const DEFAULT_SECTION_ORDER = ['summary', 'planOverviews', 'planning', 'participants', 'signatures', 'tasks', 'customSections']
 
 const SECTION_LABELS = {
   summary:        { label: 'Résumé',                  icon: '📊' },
   planOverviews:  { label: 'Aperçus des plans',        icon: '🗺️' },
+  planning:       { label: 'Planning',                 icon: '📅' },
   participants:   { label: 'Participants',             icon: '👥' },
   signatures:     { label: 'Signatures',              icon: '✍️' },
   tasks:          { label: 'Tâches',                  icon: '📋' },
@@ -312,6 +313,14 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       showCompanyInfo: false,
       customText:      "",
     },
+    planning: {
+  enabled:           false,
+  title:             "Pointage de planning",
+  imagesPerPage:     1,
+  fitMode:           "contain",
+  showObservations:  true,
+  observationsTitle: "Retards et observations",
+},
     customSections: [],
   }
 
@@ -321,7 +330,18 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     return {
       ...defaultConfig,
       ...saved,
-      sectionOrder:  saved.sectionOrder  || defaultConfig.sectionOrder,
+      sectionOrder: (() => {
+  const saved_order = saved.sectionOrder || defaultConfig.sectionOrder
+  // Migration: ensure 'planning' is in sectionOrder for older templates
+  if (!saved_order.includes('planning')) {
+    const next = [...saved_order]
+    const planOverviewsIdx = next.indexOf('planOverviews')
+    // Insert 'planning' right after 'planOverviews', or at the start if not found
+    next.splice(planOverviewsIdx >= 0 ? planOverviewsIdx + 1 : 0, 0, 'planning')
+    return next
+  }
+  return saved_order
+})(),
       sectionTitles: { ...defaultConfig.sectionTitles, ...(saved.sectionTitles || {}) },
       header:        { ...defaultConfig.header,        ...saved.header },
       summary:       { ...defaultConfig.summary,       ...saved.summary },
@@ -334,6 +354,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       projectInfo:   { ...defaultConfig.projectInfo,   ...saved.projectInfo },
       photoGallery:  { ...defaultConfig.photoGallery,  ...saved.photoGallery },
       participants:  { ...defaultConfig.participants,  ...saved.participants },
+      planning:      { ...defaultConfig.planning,      ...saved.planning },
       signatures: {
         ...defaultConfig.signatures,
         ...saved.signatures,
@@ -349,6 +370,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       header:        true,
       summary:       false,
       planOverviews: false,
+      planning:      false,
       tasks:         false,
       fields:        false,
       listView:      false,
@@ -367,20 +389,23 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     return base
   })
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
-  }
+ const toggleSection = useCallback((section) => {
+  setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
+}, [])
 
-  const addCustomSection = () => {
-    const id  = Date.now()
-    const key = `custom-${id}`
-    setConfig(prev => ({
-      ...prev,
-      customSections: [...prev.customSections, { id, title: "Nouvelle section", type: "text", enabled: true }],
-    }))
-    setExpandedSections(prev => ({ ...prev, [key]: true }))
-  }
-
+ const addCustomSection = () => {
+  const id  = Date.now()
+  const key = `custom-${id}`
+  setConfig(prev => ({
+    ...prev,
+    customSections: [...prev.customSections, {
+      id,
+      title:   "Nouvelle section",
+      enabled: true,
+    }],
+  }))
+  setExpandedSections(prev => ({ ...prev, [key]: true }))
+}
   const moveSection = (index, direction) => {
     const arr  = [...(config.sectionOrder || DEFAULT_SECTION_ORDER)]
     const swap = index + direction
@@ -425,8 +450,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
   const sectionOrder = config.sectionOrder || DEFAULT_SECTION_ORDER
 
-  const S = (props) => <Section {...props} expandedSections={expandedSections} toggleSection={toggleSection} />
-
+  const S = useCallback(
+  ({ title, icon, section, children }) => (
+    <Section
+      title={title}
+      icon={icon}
+      section={section}
+      expandedSections={expandedSections}
+      toggleSection={toggleSection}
+    >
+      {children}
+    </Section>
+  ),
+  [expandedSections, toggleSection]
+)
   // ── Preview renderers per section ─────────────────────────────────────────
   const renderPreviewSection = (sectionId) => {
     switch (sectionId) {
@@ -506,6 +543,50 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             </div>
           </div>
         )
+
+        case 'planning':
+  if (!config.planning?.enabled) return null
+  return (
+    <div key="planning" className="space-y-4">
+      <div style={sectionTitlePreviewStyle()}>{config.planning.title || 'Pointage de planning'}</div>
+
+      {/* Image placeholder */}
+      <div className="border border-slate-200 rounded-lg overflow-hidden bg-slate-50 p-4">
+        <div className="aspect-[4/3] bg-white border border-dashed border-slate-300 rounded flex flex-col items-center justify-center gap-2">
+          <Calendar className="w-12 h-12 text-slate-300" />
+          <p className="text-xs text-slate-400 italic">Capture du planning MS Project</p>
+          <p className="text-[10px] text-slate-400">{config.planning.imagesPerPage === 2 ? '2 images / page' : '1 image / page'}</p>
+        </div>
+      </div>
+
+      {/* Observations preview */}
+      {config.planning.showObservations && (
+        <div>
+          <div style={sectionTitlePreviewStyle()}>{config.planning.observationsTitle || 'Retards et observations'}</div>
+          {config.planning.observationsText?.trim() ? (
+            <div className="space-y-1.5">
+              {config.planning.observationsText.split('\n').filter(l => l.trim()).slice(0, 5).map((line, i) => {
+                const trimmed = line.trim()
+                const isBullet = /^[-•▪➢➤◦]/.test(trimmed)
+                const cleanLine = isBullet ? trimmed.replace(/^[-•▪➢➤◦]\s*/, '') : trimmed
+                return (
+                  <div key={i} className="flex items-start gap-2">
+                    {isBullet && <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: config.primaryColor }} />}
+                    <span className="text-sm text-slate-600">{cleanLine}</span>
+                  </div>
+                )
+              })}
+              {config.planning.observationsText.split('\n').filter(l => l.trim()).length > 5 && (
+                <p className="text-xs text-slate-400 italic mt-2">… et plus</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 italic">Saisissez les observations dans le panneau de configuration</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
 
       case 'participants':
         if (!config.participants.enabled) return null
@@ -620,29 +701,25 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           </div>
         )
 
-      case 'customSections':
-        if (config.customSections.filter(s => s.enabled).length === 0) return null
-        return (
-          <div key="customSections" className="space-y-6">
-            {config.customSections.filter(s => s.enabled).map((section) => (
-              <div key={section.id}>
-                <div style={sectionTitlePreviewStyle()}>{section.title}</div>
-                {section.type === 'list' ? (
-                  <div className="space-y-1.5">
-                    {['Élément 1', 'Élément 2', 'Élément 3'].map((item) => (
-                      <div key={item} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: config.primaryColor }} />
-                        <span className="text-sm text-slate-600 italic">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 rounded p-3"><p className="text-sm text-slate-500 italic">Contenu texte libre…</p></div>
-                )}
-              </div>
-            ))}
+    case 'customSections':
+  const visibleCustomSections = config.customSections.filter(s => s.enabled)
+  if (visibleCustomSections.length === 0) return null
+  return (
+    <div key="customSections" className="space-y-6">
+      {visibleCustomSections.map((section) => (
+        <div key={section.id}>
+          <div style={sectionTitlePreviewStyle()}>{section.title}</div>
+          <div className="bg-slate-50 rounded p-4 border border-dashed border-slate-300">
+            <p className="text-sm text-slate-400 italic text-center">
+              Contenu riche à saisir lors de la génération du rapport
+              <br />
+              <span className="text-xs">(texte formaté, listes, tableaux)</span>
+            </p>
           </div>
-        )
+        </div>
+      ))}
+    </div>
+  )
 
       default:
         return null
@@ -757,6 +834,90 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             )}
           </S>
 
+{/* ── Planning ── */}
+<S title="Planning" icon={Calendar} section="planning">
+  <Toggle
+    label="Activer le planning"
+    checked={config.planning?.enabled ?? false}
+    onChange={(e) => setConfig(p => ({ ...p, planning: { ...p.planning, enabled: e.target.checked } }))}
+  />
+  {config.planning?.enabled && (
+    <div className="space-y-3 pl-5 border-l-2 border-border/30">
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre de la section</label>
+        <input
+          type="text"
+          value={config.planning.title ?? 'Pointage de planning'}
+          onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, title: e.target.value } })) }}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+          className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+        />
+      </div>
+
+      <SelectField
+        label="Images par page"
+        value={String(config.planning.imagesPerPage ?? 1)}
+        onChange={(e) => setConfig(p => ({ ...p, planning: { ...p.planning, imagesPerPage: parseInt(e.target.value) } }))}
+        options={[
+          { value: "1", label: "1 image par page" },
+          { value: "2", label: "2 images par page" },
+        ]}
+      />
+
+      <SelectField
+        label="Mode d'ajustement"
+        value={config.planning.fitMode ?? 'contain'}
+        onChange={(e) => setConfig(p => ({ ...p, planning: { ...p.planning, fitMode: e.target.value } }))}
+        options={[
+          { value: "contain", label: "Adapter (préserve ratio)" },
+          { value: "cover",   label: "Remplir (peut couper)" },
+        ]}
+      />
+
+      <p className="text-[10px] text-muted-foreground px-1">
+        Les captures de planning seront uploadées au moment de la génération du rapport.
+      </p>
+
+      <div className="pt-3 border-t border-border/30 space-y-3">
+        <Toggle
+          label="Section observations / retards"
+          checked={config.planning.showObservations ?? true}
+          onChange={(e) => setConfig(p => ({ ...p, planning: { ...p.planning, showObservations: e.target.checked } }))}
+        />
+
+        {config.planning.showObservations && (
+          <>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre des observations</label>
+              <input
+                type="text"
+                value={config.planning.observationsTitle ?? 'Retards et observations'}
+                onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, observationsTitle: e.target.value } })) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+                className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Contenu des observations</label>
+              <textarea
+                value={config.planning.observationsText ?? ''}
+                onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, observationsText: e.target.value } })) }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }}
+                placeholder={"- Retard sur le lot Gros-Œuvre\n- Étanchéité à entamer la semaine prochaine\n- ..."}
+                rows={8}
+                className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none font-mono"
+              />
+              <p className="text-[10px] text-muted-foreground px-1">
+                Une ligne par observation. Préfixez avec - ou • pour les puces.
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )}
+</S>
           {/* ── Tâches ── */}
           <S title="Affichage des tâches" icon={Layout} section="tasks">
             <div className="space-y-2">
@@ -982,20 +1143,50 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Custom sections ── */}
           {config.customSections.map((customSection, index) => (
-            <S key={customSection.id} title={customSection.title || "Section personnalisée"} icon={FileText} section={`custom-${customSection.id}`}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre</label>
-                  <input type="text" value={customSection.title} onChange={(e) => { e.preventDefault(); e.stopPropagation(); const next = config.customSections.map((s, i) => i === index ? { ...s, title: e.target.value } : s); setConfig(p => ({ ...p, customSections: next })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" />
-                </div>
-                <SelectField label="Type de contenu" value={customSection.type} onChange={(e) => { e.preventDefault(); e.stopPropagation(); const next = config.customSections.map((s, i) => i === index ? { ...s, type: e.target.value } : s); setConfig(p => ({ ...p, customSections: next })) }} options={[{ value: "text", label: "Texte libre" }, { value: "list", label: "Liste à puces" }]} />
-                <Toggle label="Activer" checked={customSection.enabled} onChange={(e) => { const next = config.customSections.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s); setConfig(p => ({ ...p, customSections: next })) }} />
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfig(p => ({ ...p, customSections: p.customSections.filter((_, i) => i !== index) })) }} className="w-full px-4 py-2.5 border border-red-200 bg-red-50 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 transition-all flex items-center justify-center gap-2">
-                  <Trash2 className="w-4 h-4" />Supprimer
-                </button>
-              </div>
-            </S>
-          ))}
+  <S key={customSection.id} title={customSection.title || "Section personnalisée"} icon={FileText} section={`custom-${customSection.id}`}>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Titre</label>
+        <input
+          type="text"
+          value={customSection.title}
+          onChange={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            const next = config.customSections.map((s, i) => i === index ? { ...s, title: e.target.value } : s)
+            setConfig(p => ({ ...p, customSections: next }))
+          }}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+          className="w-full rounded-lg border border-border/50 bg-secondary/30 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+        />
+      </div>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 items-start">
+        <FileText className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-blue-700">
+          Cette section sera remplie avec un éditeur riche (texte, listes, tableaux) au moment de la génération du rapport.
+        </p>
+      </div>
+      <Toggle
+        label="Activer"
+        checked={customSection.enabled}
+        onChange={(e) => {
+          const next = config.customSections.map((s, i) => i === index ? { ...s, enabled: e.target.checked } : s)
+          setConfig(p => ({ ...p, customSections: next }))
+        }}
+      />
+      <button
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setConfig(p => ({ ...p, customSections: p.customSections.filter((_, i) => i !== index) }))
+        }}
+        className="w-full px-4 py-2.5 border border-red-200 bg-red-50 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+      >
+        <Trash2 className="w-4 h-4" />Supprimer
+      </button>
+    </div>
+  </S>
+))}
 
           {/* ── Actions ── */}
           <div className="p-5 space-y-3 bg-secondary/10 border-t border-border/30">

@@ -8,7 +8,7 @@ import { supabase } from '@/utils/supabase/client'
 import { Outfit } from 'next/font/google'
 import Pin from '@/components/Pin'
 import CategoryComboBox from '@/components/CategoryComboBox'
-import { Calendar1Icon, Download, FileText, Search, XIcon } from 'lucide-react'
+import { Calendar1Icon, Download, FileText, Search, XIcon, Upload, X as XCloseIcon } from 'lucide-react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import ListFilterPanel from '@/components/ListFilterPanel'
@@ -19,8 +19,11 @@ import { fr } from 'date-fns/locale/fr'
 import PinDrawer from '@/components/PinDrawer'
 import * as XLSX from 'xlsx'
 import ExcelJS from 'exceljs'
+import RichTextEditor from '@/components/RichTextEditor'
 
 const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
+
+const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] }
 
 // ── Due Date Picker ────────────────────────────────────────────────────────────
 const DueDatePicker = ({ pin, onUpdate }) => {
@@ -35,7 +38,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
     setOpen(false)
     const { error } = await supabase
       .from('pdf_pins')
-      .update({ due_date: date, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
+      .update({ due_date: date, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
     if (error) console.error('update due_date failed', error)
     onUpdate?.(pin.id, date)
@@ -83,8 +86,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
 export default function Tasks({ params }) {
   const { projectId, organizationId } = params
 
-  // ── Atoms — pinsAtom is the single source of truth shared with the drawer ──
-  const [allPins, setAllPins]       = useAtom(pinsAtom)          // ← shared with drawer
+  const [allPins, setAllPins]       = useAtom(pinsAtom)
   const [, setPlan]                 = useAtom(selectedPlanAtom)
   const [project, setProject]       = useAtom(selectedProjectAtom)
   const [categories, setCategories] = useAtom(categoriesAtom)
@@ -92,8 +94,7 @@ export default function Tasks({ params }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
   const [, setProjectPlans]         = useAtom(projectPlansAtom)
 
-  // ── Local state — only for filtering/search on top of allPins ─────────────
-  const [displayedPins, setDisplayedPins] = useState([])   // filtered view
+  const [displayedPins, setDisplayedPins] = useState([])
   const [searchQuery, setSearchQuery]     = useState('')
   const [selectedIds, setSelectedIds]     = useState(new Set())
 
@@ -113,9 +114,6 @@ export default function Tasks({ params }) {
   const [availableTemplates, setAvailableTemplates]   = useState([])
   const [projectMembers, setProjectMembers]           = useState([])
 
-  // ── Keep displayedPins in sync with allPins + searchQuery ─────────────────
-  // Any drawer action (archive, place, remove, category change…) updates
-  // pinsAtom → allPins → displayedPins automatically re-filters here.
   useEffect(() => {
     const q = searchQuery.toLowerCase()
     setDisplayedPins(
@@ -125,7 +123,6 @@ export default function Tasks({ params }) {
     )
   }, [allPins, searchQuery])
 
-  // ── Fetch templates ──
   useEffect(() => {
     const fetchTemplates = async () => {
       const { data } = await supabase
@@ -141,7 +138,6 @@ export default function Tasks({ params }) {
     if (organizationId) fetchTemplates()
   }, [organizationId])
 
-  // ── Sync reportFields when template changes ──
   useEffect(() => {
     if (selectedTemplate?.config?.fields) {
       const f = selectedTemplate.config.fields
@@ -157,7 +153,6 @@ export default function Tasks({ params }) {
     }
   }, [selectedTemplate])
 
-  // ── Fetch project members ──
   useEffect(() => {
     const fetchMembers = async () => {
       const { data, error } = await supabase
@@ -170,7 +165,6 @@ export default function Tasks({ params }) {
     if (projectId) fetchMembers()
   }, [projectId])
 
-  // ── Deep-link via hash ──
   useEffect(() => {
     const hash = window.location.hash
     if (hash.startsWith('#pin-')) {
@@ -183,7 +177,6 @@ export default function Tasks({ params }) {
     }
   }, [allPins])
 
-  // ── Fetch project ──
   useEffect(() => {
     const fetchProject = async () => {
       const { data } = await supabase
@@ -197,7 +190,6 @@ export default function Tasks({ params }) {
     fetchProject()
   }, [projectId])
 
-  // ── Fetch pins → push into pinsAtom ──────────────────────────────────────
   useEffect(() => {
     if (!projectId || !user || !profile) return
     const isGuest = profile?.role === 'guest'
@@ -211,13 +203,12 @@ export default function Tasks({ params }) {
         .eq('project_id', projectId)
       if (isGuest) query = query.eq('assigned_to', profile.id)
       const { data, error } = await query
-      if (data) setAllPins(data)   // ← write into the shared atom
+      if (data) setAllPins(data)
       if (error) console.error('pins fetch', error)
     }
     fetchPins()
   }, [projectId, user, profile])
 
-  // ── Selection helpers ──
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
       const next = new Set(prev)
@@ -231,52 +222,87 @@ export default function Tasks({ params }) {
     )
   }
 
-  // due_date updates come from the inline picker — patch pinsAtom directly
   const handleDueDateUpdate = (pinId, date) => {
     setAllPins(prev => prev.map(p => p.id === pinId ? { ...p, due_date: date } : p))
   }
 
-  // ── Generate PDF report ──
- const handleGenerateReport = async (displayMode, participants, customSectionContents) => {
-  setIsReportModalOpen(false)
-  setIsGeneratingReport(true)
-  const selectedPinsArr = displayedPins.filter(p => selectedIds.has(p.id))
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-
-    const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        projectId,
-        selectedIds:    selectedPinsArr.map(p => p.id),
-        fields:         reportFields,
-        displayMode,
-        templateConfig: selectedTemplate?.config || null,
-        participants,
-        customSections: customSectionContents,
-      }),
-    })
-    if (!response.ok) throw new Error('Erreur lors de la génération PDF')
-    const blob = await response.blob()
-    const url  = window.URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = 'rapport-taches.pdf'
-    a.click()
-    window.URL.revokeObjectURL(url)
-  } catch (err) {
-    console.error(err)
-    alert('Impossible de générer le rapport')
-  } finally {
-    setIsGeneratingReport(false)
+  // ── Upload planning images to Supabase Storage ───────────────────────────
+  const uploadPlanningImages = async (files) => {
+    const uploadedUrls = []
+    for (const file of files) {
+      const ext      = file.name.split('.').pop()
+      const fileName = `planning/${projectId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { data, error } = await supabase.storage
+        .from('reports')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false })
+      if (error) {
+        console.error('Planning image upload failed', error)
+        continue
+      }
+      const { data: { publicUrl } } = supabase.storage.from('reports').getPublicUrl(data.path)
+      uploadedUrls.push(publicUrl)
+    }
+    return uploadedUrls
   }
-}
 
-  // ── Export Excel ──
+  // ── Generate PDF report ──────────────────────────────────────────────────
+  const handleGenerateReport = async ({
+    reportTitle,
+    displayMode,
+    participants,
+    customSections,
+    planningImageFiles,
+    planningObservations,
+  }) => {
+    setIsReportModalOpen(false)
+    setIsGeneratingReport(true)
+    const selectedPinsArr = displayedPins.filter(p => selectedIds.has(p.id))
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      // Upload planning images first if any
+      let planningImages = []
+      if (planningImageFiles?.length) {
+        planningImages = await uploadPlanningImages(planningImageFiles)
+      }
+
+   //   const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
+       const response = await fetch('http://localhost:3001/api/report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          projectId,
+          selectedIds:    selectedPinsArr.map(p => p.id),
+          fields:         reportFields,
+          displayMode,
+          templateConfig: selectedTemplate?.config || null,
+          reportTitle,
+          participants,
+          customSections,                  // [{ id, title, enabled, content: <TipTap JSON> }]
+          planningImages,                  // [url1, url2, ...]
+          planningObservations,            // <TipTap JSON>
+        }),
+      })
+      if (!response.ok) throw new Error('Erreur lors de la génération PDF')
+      const blob = await response.blob()
+      const url  = window.URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = 'rapport-taches.pdf'
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      alert('Impossible de générer le rapport')
+    } finally {
+      setIsGeneratingReport(false)
+    }
+  }
+
+  // ── Export Excel (unchanged) ──
   const handleExportExcel = () => {
     const selected = displayedPins.filter(p => selectedIds.has(p.id))
     if (!selected.length) return
@@ -296,7 +322,6 @@ export default function Tasks({ params }) {
     XLSX.writeFile(wb, 'liste-des-taches.xlsx')
   }
 
-  // ── Export Excel with images ──
   const handleExportExcelWithEmbeddedMedia = async () => {
     const selected = displayedPins.filter(p => selectedIds.has(p.id))
     if (!selected.length) return
@@ -351,7 +376,6 @@ export default function Tasks({ params }) {
     window.URL.revokeObjectURL(url)
   }
 
-  // ── Create task ──
   const handleCreateTask = async () => {
     if (!newTaskName.trim()) return
     try {
@@ -366,12 +390,12 @@ export default function Tasks({ params }) {
           category_id: categories.find(c => c.order === 0)?.id,
           status_id:   statuses.find(s => s.order === 0)?.id,
           updated_by: profile.id,
-          updated_at: new Date().toISOString(), 
+          updated_at: new Date().toISOString(),
         })
         .select('*')
         .single()
       if (error) throw error
-      setAllPins(prev => [data, ...prev])   // ← write into pinsAtom
+      setAllPins(prev => [data, ...prev])
       setNewTaskName('')
       setNewTaskDescription('')
       setIsAddTaskOpen(false)
@@ -393,7 +417,6 @@ export default function Tasks({ params }) {
           <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
 
           <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
-            {/* ── Header ── */}
             <div className="flex items-start justify-between mb-5">
               <div>
                 <h1 className="text-xl font-semibold text-neutral-900">Liste des tâches</h1>
@@ -423,21 +446,20 @@ export default function Tasks({ params }) {
                   projectId={projectId}
                 />
 
-             { profile?.role != 'guest' && <button
-                  onClick={() => setIsAddTaskOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-[7px] bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
-                >
-                  <span className="text-sm leading-none">+</span>
-                  Nouvelle tâche
-                </button>
-}
+                {profile?.role !== 'guest' && (
+                  <button
+                    onClick={() => setIsAddTaskOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-[7px] bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
+                  >
+                    <span className="text-sm leading-none">+</span>
+                    Nouvelle tâche
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* ── Main card ── */}
             <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
 
-              {/* Selection bar */}
               {selectedIds.size > 0 && (
                 <div className="flex items-center justify-between px-4 py-2.5 bg-neutral-50 border-b border-neutral-200">
                   <p className="text-[12px] font-medium text-neutral-900">
@@ -494,7 +516,6 @@ export default function Tasks({ params }) {
                 </div>
               )}
 
-              {/* Report modal */}
               {isReportModalOpen && (
                 <ReportFieldsModal
                   fields={reportFields}
@@ -506,7 +527,6 @@ export default function Tasks({ params }) {
                 />
               )}
 
-              {/* ── Table ── */}
               <div className="overflow-x-auto">
                 <table className="w-full" style={{ borderCollapse: 'collapse' }}>
                   <thead>
@@ -589,12 +609,12 @@ export default function Tasks({ params }) {
                         </td>
 
                         <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-  <DueDatePicker
-    key={pin.due_date ?? 'null'}   // ← force remount quand la date change
-    pin={pin}
-    onUpdate={handleDueDateUpdate}
-  />
-</td>
+                          <DueDatePicker
+                            key={pin.due_date ?? 'null'}
+                            pin={pin}
+                            onUpdate={handleDueDateUpdate}
+                          />
+                        </td>
 
                         <td className="px-4 py-3">
                           {pin.pdf_name ? (
@@ -631,7 +651,6 @@ export default function Tasks({ params }) {
 
           {selectedPin && <PinDrawer pin={selectedPin} organization_id={organizationId} />}
 
-          {/* ── Create Task Modal ── */}
           {isAddTaskOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
               <div className={clsx(outfit.className, 'bg-white w-full max-w-md rounded-xl border border-neutral-200 shadow-xl')}>
@@ -682,7 +701,6 @@ export default function Tasks({ params }) {
             </div>
           )}
 
-          {/* ── Generating report toast ── */}
           {isGeneratingReport && (
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 bg-neutral-900 text-white rounded-xl shadow-2xl border border-neutral-700">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
@@ -702,10 +720,24 @@ export default function Tasks({ params }) {
   )
 }
 
-// ── Report Fields Modal (unchanged) ───────────────────────────────────────────
-function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConfig, projectMembers }) {
-  const [displayMode, setDisplayMode] = useState(templateConfig?.tasks?.displayMode || 'list')
+// ── Report Fields Modal (refactorisée) ────────────────────────────────────────
+function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
+   const templateConfig = {
+    ...rawTemplateConfig,
+    planning: {
+      enabled:           false,
+      title:             "Pointage de planning",
+      imagesPerPage:     1,
+      fitMode:           "contain",
+      showObservations:  true,
+      observationsTitle: "Retards et observations",
+      ...(rawTemplateConfig?.planning || {}),
+    },
+  }
+    const [displayMode, setDisplayMode] = useState(templateConfig?.tasks?.displayMode || 'list')
+    const [reportTitle, setReportTitle] = useState(templateConfig?.reportTitle || 'RAPPORT DE TÂCHES')
 
+  
   const showParticipants =
     templateConfig?.participants?.enabled === true ||
     templateConfig?.coverPage?.showParticipants === true
@@ -715,9 +747,15 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
     projectMembers.map(m => ({ ...m, present: true }))
   )
 
+  const planningEnabled = templateConfig?.planning?.enabled
+  const showPlanningObs = planningEnabled && (templateConfig?.planning?.showObservations ?? true)
+
+  const [planningImageFiles, setPlanningImageFiles]       = useState([])  // [{ file, url, name }]
+  const [planningObservations, setPlanningObservations]   = useState(EMPTY_DOC)
+
   const enabledSections = (templateConfig?.customSections || []).filter(s => s.enabled)
   const [customSectionContents, setCustomSectionContents] = useState(() =>
-    enabledSections.map(s => ({ id: s.id, title: s.title, type: s.type, content: '' }))
+    enabledSections.map(s => ({ id: s.id, title: s.title, enabled: s.enabled, content: EMPTY_DOC }))
   )
 
   const toggle = (key) => setFields(f => ({ ...f, [key]: !f[key] }))
@@ -726,6 +764,48 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
   const updateSectionContent = (id, content) =>
     setCustomSectionContents(prev => prev.map(s => s.id === id ? { ...s, content } : s))
 
+  const handlePlanningImageUpload = (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+    const newImages = files.map(file => ({
+      file,
+      url:  URL.createObjectURL(file),
+      name: file.name,
+    }))
+    setPlanningImageFiles(prev => [...prev, ...newImages])
+    e.target.value = ''
+  }
+
+  const removePlanningImage = (index) => {
+    setPlanningImageFiles(prev => {
+      const next = [...prev]
+      const removed = next.splice(index, 1)[0]
+      if (removed?.url?.startsWith('blob:')) URL.revokeObjectURL(removed.url)
+      return next
+    })
+  }
+
+  const movePlanningImage = (index, dir) => {
+    setPlanningImageFiles(prev => {
+      const next = [...prev]
+      const target = index + dir
+      if (target < 0 || target >= next.length) return prev
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
+  }
+
+  const handleConfirm = () => {
+    onConfirm({
+      reportTitle,
+      displayMode,
+      participants,
+      customSections:        customSectionContents,
+      planningImageFiles:    planningImageFiles.map(p => p.file),
+      planningObservations,
+    })
+  }
+
   const FIELD_LABELS = {
     description: 'Description', photos: 'Photos', snapshot: 'Snapshot du plan',
     assignedTo: 'Assigné à', dueDate: 'Échéance', category: 'Catégorie', status: 'Statut',
@@ -733,10 +813,10 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className={clsx(outfit.className, 'bg-white w-full max-w-lg rounded-xl border border-neutral-200 shadow-xl max-h-[90vh] flex flex-col')}>
+      <div className={clsx(outfit.className, 'bg-white w-full max-w-2xl rounded-xl border border-neutral-200 shadow-xl max-h-[92vh] flex flex-col')}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 flex-shrink-0">
           <div>
-            <h3 className="text-base font-semibold text-neutral-900">Options du rapport</h3>
+            <h3 className="text-base font-semibold text-neutral-900">Composer le rapport</h3>
             {templateConfig?.reportTitle && (
               <p className="text-[11px] text-neutral-400 mt-0.5">{templateConfig.reportTitle}</p>
             )}
@@ -747,7 +827,23 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
         </div>
 
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
+
+           <div>
+            <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">Titre du rapport</p>
+            <input
+              type="text"
+              value={reportTitle}
+              onChange={(e) => setReportTitle(e.target.value)}
+              placeholder="RAPPORT DE TÂCHES"
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] font-medium text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors"
+            />
+            <p className="text-[10px] text-neutral-400 mt-1">
+              Ce titre apparaîtra sur la couverture et dans le résumé du rapport.
+            </p>
+          </div>
+
           {/* Display mode */}
+          
           <div>
             <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">Mode d'affichage</p>
             <div className="grid grid-cols-2 gap-2">
@@ -774,9 +870,6 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-neutral-400 mt-1.5">
-              {displayMode === 'list' ? 'Affichage détaillé avec snapshots et photos' : "Vue tableau compacte idéale pour l'impression"}
-            </p>
           </div>
 
           {/* Fields */}
@@ -834,30 +927,74 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
             </div>
           )}
 
+          {/* Planning */}
+          {planningEnabled && (
+            <div className="space-y-3">
+              <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
+                {templateConfig.planning.title || 'Pointage de planning'}
+              </p>
+
+              {/* Image list */}
+              {planningImageFiles.length > 0 && (
+                <div className="space-y-2">
+                  {planningImageFiles.map((img, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-neutral-50 rounded-lg p-2 border border-neutral-200">
+                      <img src={img.url} alt={img.name} className="w-14 h-10 object-cover rounded" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-medium text-neutral-900 truncate">{img.name}</p>
+                        <p className="text-[10px] text-neutral-400">Page {i + 1}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <button type="button" onClick={() => movePlanningImage(i, -1)} disabled={i === 0} className="w-6 h-6 flex items-center justify-center rounded hover:bg-neutral-200 disabled:opacity-20 text-[11px] font-bold">▲</button>
+                        <button type="button" onClick={() => movePlanningImage(i, 1)} disabled={i === planningImageFiles.length - 1} className="w-6 h-6 flex items-center justify-center rounded hover:bg-neutral-200 disabled:opacity-20 text-[11px] font-bold">▼</button>
+                        <button type="button" onClick={() => removePlanningImage(i)} className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 text-red-500">
+                          <XCloseIcon className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <label className="block">
+                <input type="file" accept="image/*" multiple onChange={handlePlanningImageUpload} className="sr-only" />
+                <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-neutral-200 rounded-lg cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-all">
+                  <Upload className="w-4 h-4 text-neutral-400" />
+                  <span className="text-[12px] text-neutral-600">Ajouter des captures de planning</span>
+                </div>
+              </label>
+
+              <p className="text-[10px] text-neutral-400 px-1">
+                Format recommandé : capture d'écran de votre Gantt MS Project. {templateConfig.planning.imagesPerPage === 2 ? '2 images par page.' : '1 image par page.'}
+              </p>
+
+              {showPlanningObs && (
+                <div className="space-y-2 pt-3 border-t border-neutral-100">
+                  <p className="text-[12px] font-medium text-neutral-700">{templateConfig.planning.observationsTitle || 'Retards et observations'}</p>
+                  <RichTextEditor
+                    content={planningObservations}
+                    onChange={setPlanningObservations}
+                    placeholder="Saisissez les retards constatés et observations..."
+                    minHeight={120}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Custom sections */}
           {enabledSections.length > 0 && (
             <div className="space-y-4">
               <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">Sections additionnelles</p>
               {customSectionContents.map(section => (
-                <div key={section.id}>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-[12px] font-medium text-neutral-700">{section.title}</label>
-                    {section.type && (
-                      <span className="text-[10px] text-neutral-300 uppercase tracking-wide">
-                        — {section.type === 'list' ? 'liste' : section.type}
-                      </span>
-                    )}
-                  </div>
-                  <textarea
-                    value={section.content}
-                    onChange={e => updateSectionContent(section.id, e.target.value)}
-                    placeholder={section.type === 'list' ? 'Un élément par ligne…' : `Contenu de la section "${section.title}"…`}
-                    rows={section.type === 'list' ? 4 : 3}
-                    className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 resize-none transition-colors"
+                <div key={section.id} className="space-y-2">
+                  <label className="text-[12px] font-medium text-neutral-700">{section.title}</label>
+                  <RichTextEditor
+                    content={section.content}
+                    onChange={(content) => updateSectionContent(section.id, content)}
+                    placeholder={`Contenu de "${section.title}"...`}
+                    minHeight={150}
                   />
-                  {section.type === 'list' && (
-                    <p className="text-[10px] text-neutral-300 mt-1">Chaque ligne sera un élément de liste dans le rapport.</p>
-                  )}
                 </div>
               ))}
             </div>
@@ -869,7 +1006,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
             Annuler
           </button>
           <button
-            onClick={() => onConfirm(displayMode, participants, customSectionContents)}
+            onClick={handleConfirm}
             className="flex items-center gap-1.5 px-4 py-2 bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
