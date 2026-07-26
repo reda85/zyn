@@ -295,6 +295,7 @@ export default function Tasks({ params }) {
 
       // ── Backend returns a signed URL — browser downloads directly from Supabase Storage ──
       const { downloadUrl, fileName } = await response.json()
+      console.log('downloadUrl =', downloadUrl)
       if (!downloadUrl) throw new Error('URL de téléchargement manquante')
 
       // Trigger download via anchor click. The browser handles the streaming.
