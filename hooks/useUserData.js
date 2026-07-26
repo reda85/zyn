@@ -22,7 +22,7 @@ export function useUserData(organizationId = null) {
       setIsLoading(false);
       return;
     }
-
+console.log('useUserData', user, organizationId);
     const fetchUserData = async () => {
       setIsLoading(true);
       try {

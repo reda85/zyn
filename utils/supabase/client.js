@@ -1,5 +1,3 @@
-// /utils/supabase/client.ts - REPLACE YOUR CURRENT FILE WITH THIS
-
 import { createBrowserClient } from '@supabase/ssr'
 
 export const supabase = createBrowserClient(
@@ -7,18 +5,19 @@ export const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-// Keep your existing auth state handler
 supabase.auth.onAuthStateChange((event, session) => {
+  if (typeof window !== 'undefined' && window.location.pathname.includes('accept-invite')) return
+
   if (event === 'TOKEN_REFRESHED') {
     console.log('Token refreshed successfully')
   }
-  
+
   if (event === 'SIGNED_OUT') {
     localStorage.clear()
     sessionStorage.clear()
     window.location.href = '/sign-in'
   }
-  
+
   if (event === 'USER_UPDATED' && !session) {
     console.error('Session lost, signing out')
     supabase.auth.signOut()

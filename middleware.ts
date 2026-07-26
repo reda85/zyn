@@ -11,6 +11,6 @@ export const config = {
     /*
      * Match toutes les routes sauf celles qui doivent être ignorées
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|sign-in|sign-up|forgot-password|reset-password|auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|sign-in|sign-up|forgot-password|reset-password|accept-invite|auth/callback).*)',
   ],
 };

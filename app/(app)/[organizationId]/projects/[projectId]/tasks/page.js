@@ -246,6 +246,7 @@ export default function Tasks({ params }) {
   }
 
   // ── Generate PDF report ──────────────────────────────────────────────────
+ // ── Generate PDF report ──────────────────────────────────────────────────
   const handleGenerateReport = async ({
     reportTitle,
     displayMode,
@@ -267,10 +268,10 @@ export default function Tasks({ params }) {
       }
 
       const response = await fetch('https://zaynbackend-production.up.railway.app/api/report', {
-   //    const response = await fetch('http://localhost:3001/api/report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept':       'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
@@ -281,27 +282,36 @@ export default function Tasks({ params }) {
           templateConfig: selectedTemplate?.config || null,
           reportTitle,
           participants,
-          customSections,                  // [{ id, title, enabled, content: <TipTap JSON> }]
-          planningImages,                  // [url1, url2, ...]
-          planningObservations,            // <TipTap JSON>
+          customSections,
+          planningImages,
+          planningObservations,
         }),
       })
-      if (!response.ok) throw new Error('Erreur lors de la génération PDF')
-      const blob = await response.blob()
-      const url  = window.URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      a.download = 'rapport-taches.pdf'
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Erreur API ${response.status}: ${errorText.substring(0, 200)}`)
+      }
+
+      // ── Backend returns a signed URL — browser downloads directly from Supabase Storage ──
+      const { downloadUrl, fileName } = await response.json()
+      if (!downloadUrl) throw new Error('URL de téléchargement manquante')
+
+      // Trigger download via anchor click. The browser handles the streaming.
+      const a = document.createElement('a')
+      a.href     = downloadUrl
+      a.download = fileName || 'rapport-taches.pdf'
+      a.target   = '_blank'   // fallback if download attribute is ignored cross-origin
+      document.body.appendChild(a)
       a.click()
-      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
     } catch (err) {
       console.error(err)
-      alert('Impossible de générer le rapport')
+      alert(err.message || 'Impossible de générer le rapport')
     } finally {
       setIsGeneratingReport(false)
     }
   }
-
   // ── Export Excel (unchanged) ──
   const handleExportExcel = () => {
     const selected = displayedPins.filter(p => selectedIds.has(p.id))

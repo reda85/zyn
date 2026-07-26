@@ -17,40 +17,52 @@ function AcceptInviteContent() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [userEmail, setUserEmail] = useState('')
+  const [organizationId, setOrganizationId] = useState(null)
   const [linkExpired, setLinkExpired] = useState(false)
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     const hash = window.location.hash
+    console.log('[accept-invite] hash:', hash)
 
-    // Check for error in hash first
-    if (hash.includes('error=access_denied') || hash.includes('otp_expired')) {
+    const hashParams = new URLSearchParams(hash.substring(1))
+    const accessToken = hashParams.get('access_token')
+    const refreshToken = hashParams.get('refresh_token')
+    const errorCode = hashParams.get('error_code')
+    const errorDesc = hashParams.get('error_description')
+
+    console.log('[accept-invite] access_token:', accessToken ? 'present' : 'null')
+    console.log('[accept-invite] error:', errorCode, errorDesc)
+
+    if (errorCode || errorDesc) {
       setLinkExpired(true)
-      setError("Le lien d'invitation a expiré ou est invalide. Veuillez demander une nouvelle invitation.")
+      setError("Le lien d'invitation a expiré ou est invalide.")
+      setChecking(false)
       return
     }
 
-    // Listen for Supabase processing the hash tokens
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
-        setUserEmail(session.user.email)
-      }
-    })
+    if (!accessToken || !refreshToken) {
+      setLinkExpired(true)
+      setError("Aucun token d'invitation détecté. Veuillez cliquer sur le lien dans votre email.")
+      setChecking(false)
+      return
+    }
 
-    // Fallback for already-active session (e.g. page reload)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserEmail(session.user.email)
-      } else if (!hash.includes('access_token')) {
-        // No hash token and no session — nothing to work with
-        setLinkExpired(true)
-        setError('Aucune session trouvée. Veuillez cliquer sur le lien dans votre email.')
-        setTimeout(() => router.replace('/sign-in'), 3000)
-      }
-      // else: has access_token in hash, wait for onAuthStateChange to fire
-    })
-
-    return () => subscription.unsubscribe()
-  }, [router])
+    // Établir la session depuis les tokens du hash directement
+    supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      .then(({ data, error: sessionError }) => {
+        console.log('[accept-invite] setSession result:', data?.user?.email, sessionError)
+        if (sessionError || !data?.session?.user) {
+          setLinkExpired(true)
+          setError("Session invalide. Le lien a peut-être déjà été utilisé.")
+          setChecking(false)
+          return
+        }
+        setUserEmail(data.session.user.email)
+        setOrganizationId(data.session.user.user_metadata?.organization_id ?? null)
+        setChecking(false)
+      })
+  }, [])
 
   const handleAcceptInvite = async (e) => {
     e.preventDefault()
@@ -60,38 +72,43 @@ function AcceptInviteContent() {
       setError('Le mot de passe doit contenir au moins 6 caractères')
       return
     }
-
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas')
       return
     }
 
     setLoading(true)
-
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password })
       if (updateError) throw updateError
 
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await supabase
-          .from('members')
-          .update({ status: 'active' })
-          .eq('email', user.email)
+        await supabase.from('members').update({ status: 'active' }).eq('email', user.email)
       }
 
       setSuccess(true)
-      setTimeout(() => router.push('https://app.zaynspace.com/workspaces'), 2000)
-    } catch (error) {
-      console.error('Accept invite error:', error)
-      setError(error.message || 'Une erreur est survenue')
+      const orgId = organizationId ?? user?.user_metadata?.organization_id
+      setTimeout(() => {
+        router.push(orgId ? `/${orgId}/projects` : '/projects')
+      }, 2000)
+    } catch (err) {
+      setError(err.message || 'Une erreur est survenue')
     } finally {
       setLoading(false)
     }
   }
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   return (
-    <div className={clsx("min-h-screen bg-background flex items-center justify-center p-6", lexend.className)}>
+    <div className={clsx('min-h-screen bg-background flex items-center justify-center p-6', lexend.className)}>
       <div className="w-full max-w-md">
         <div className="bg-card border border-border/50 rounded-2xl shadow-xl p-8">
           {linkExpired ? (
@@ -113,7 +130,7 @@ function AcceptInviteContent() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold font-heading text-foreground mb-2">Bienvenue!</h2>
+              <h2 className="text-2xl font-bold font-heading text-foreground mb-2">Bienvenue !</h2>
               <p className="text-muted-foreground">Votre compte a été activé. Redirection en cours...</p>
             </div>
           ) : (
@@ -160,7 +177,7 @@ function AcceptInviteContent() {
                   </div>
                 </div>
 
-                {error && !linkExpired && (
+                {error && (
                   <div className="p-3 bg-red-100 border border-red-200 rounded-lg">
                     <p className="text-sm text-red-700">{error}</p>
                   </div>
