@@ -7,15 +7,15 @@ import { useAtom } from 'jotai'
 import { selectedOrganizationAtom, selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
 import { Plus, Search, MoreVertical, Archive, Trash2, X, LayoutGrid, List } from 'lucide-react'
 import Link from 'next/link'
-import { Outfit } from 'next/font/google'
+
 import clsx from 'clsx'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { useUserData } from '@/hooks/useUserData'
 import Sidebar from '@/components/Sidebar'
 
-const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
-
 export default function ProjectsPage({ params }) {
-   const { organizationId } = params
+  const { organizationId } = params
   const [projects, setProjects] = useState([])
   const [newProjectName, setNewProjectName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -32,23 +32,22 @@ export default function ProjectsPage({ params }) {
   const [refresh, setRefresh] = useState(false)
 
   const menuRef = useRef(null)
- 
-const { user, profile, organization, isAdmin } = useUserData(organizationId)
+
+  const { user, profile, organization, isAdmin } = useUserData(organizationId)
 
   console.log('userUserData', { user, profile, organization })
 
   useEffect(() => {
     const fetchProjects = async () => {
       if (!organization?.id || !user?.id || !profile?.id) return
-console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
-     // const isAdmin = profile?.role === 'admin'
+      console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
 
-     let query = supabase
-  .from('projects')
-  .select('*,organization_id,plans!inner(*),members_projects(*,members(*))')
-  .eq('organization_id', organization?.id)
-  .is('plans.deleted_at', null)
-  .order('created_at', { ascending: false })
+      let query = supabase
+        .from('projects')
+        .select('*,organization_id,plans!inner(*),members_projects(*,members(*))')
+        .eq('organization_id', organization?.id)
+        .is('plans.deleted_at', null)
+        .order('created_at', { ascending: false })
 
       if (!isAdmin) {
         const { data: memberProjects, error } = await supabase
@@ -71,15 +70,15 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
         query = query.in('id', projectIds)
       }
 
-      const { data,error } = await query
+      const { data, error } = await query
       if (error) console.error('Error fetching projects:', error)
       console.log('🚩 data:', JSON.stringify(data))
       setProjects(data || [])
     }
 
-   if(user && profile && organization) {
-    fetchProjects()
-  }
+    if (user && profile && organization) {
+      fetchProjects()
+    }
   }, [refresh, organization, user, profile])
 
   useEffect(() => {
@@ -196,21 +195,22 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
   )
 
   return (
-    <div className={clsx('flex h-screen bg-neutral-50 overflow-hidden', outfit.className)}>
+    <div className={clsx('flex h-screen bg-[#fafaf9] overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="projects" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl font-semibold text-neutral-900">Projets</h1>
-            <p className="text-xs text-neutral-400 mt-0.5">
-              {projects.length} projet{projects.length !== 1 ? 's' : ''} au total
+            <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Projets</h1>
+            <p className="text-[12px] text-[#8a8a84] mt-0.5">
+              <span className={GeistMono.className}>{projects.length}</span> projet
+              {projects.length !== 1 ? 's' : ''} au total
             </p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-neutral-900 text-white px-4 py-2 rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors flex items-center gap-1.5"
+            className="bg-[#0d0d0c] text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Créer un projet
@@ -220,23 +220,23 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
         {/* ── Search + View Toggle ── */}
         <div className="flex items-center gap-2 mb-5">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
             <input
               type="text"
-              className="border border-neutral-200 bg-white pl-8 pr-3 py-[7px] w-full rounded-lg text-[13px] focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 placeholder:text-neutral-300"
+              className="border border-[#e5e5e2] bg-white pl-8 pr-3 py-[7px] w-full rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
               placeholder="Rechercher un projet..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex bg-neutral-100 rounded-lg p-0.5">
+          <div className="flex bg-[#eeeeec] rounded-[4px] p-0.5">
             <button
               onClick={() => setViewMode('grid')}
               className={clsx(
-                'p-[6px] rounded-md transition-all',
+                'p-[6px] rounded-[3px] transition-all',
                 viewMode === 'grid'
-                  ? 'bg-white shadow-sm text-neutral-900'
-                  : 'text-neutral-400 hover:text-neutral-600'
+                  ? 'bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] text-[#050505]'
+                  : 'text-[#8a8a84] hover:text-[#4a4a46]'
               )}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -244,10 +244,10 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
             <button
               onClick={() => setViewMode('list')}
               className={clsx(
-                'p-[6px] rounded-md transition-all',
+                'p-[6px] rounded-[3px] transition-all',
                 viewMode === 'list'
-                  ? 'bg-white shadow-sm text-neutral-900'
-                  : 'text-neutral-400 hover:text-neutral-600'
+                  ? 'bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] text-[#050505]'
+                  : 'text-[#8a8a84] hover:text-[#4a4a46]'
               )}
             >
               <List className="w-3.5 h-3.5" />
@@ -261,7 +261,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
             {filteredProjects.map((proj) => (
               <div
                 key={proj.id}
-                className="bg-white border border-neutral-200 rounded-lg p-4 hover:border-neutral-300 hover:shadow-sm transition-all group relative cursor-pointer"
+                className="bg-white border border-[#e5e5e2] rounded-[4px] p-4 hover:border-[#d6d6d2] hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] transition-all group relative cursor-pointer"
                 onClick={() => handleProjectClick(proj)}
               >
                 {/* Menu */}
@@ -274,19 +274,19 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                       e.stopPropagation()
                       setOpenMenuId(openMenuId === proj.id ? null : proj.id)
                     }}
-                    className="p-1.5 rounded-md hover:bg-neutral-100 transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-1.5 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
                   >
-                    <MoreVertical className="w-4 h-4 text-neutral-400" />
+                    <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
                   </button>
 
                   {openMenuId === proj.id && (
-                    <div className="absolute right-0 mt-1 w-44 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden z-10">
+                    <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           archiveProject(proj.id)
                         }}
-                        className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-neutral-600 hover:bg-neutral-50 transition-colors"
+                        className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
                       >
                         <Archive className="w-3.5 h-3.5" />
                         Archiver
@@ -298,7 +298,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                           setShowDeleteModal(true)
                           setOpenMenuId(null)
                         }}
-                        className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors"
+                        className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Supprimer
@@ -309,10 +309,10 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
 
                 {/* Card content */}
                 <div className="flex items-center gap-2.5 mb-3">
-                  <div className="w-8 h-8 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center text-sm font-bold text-neutral-900 flex-shrink-0">
+                  <div className="w-8 h-8 rounded-[4px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-sm font-medium text-[#050505] flex-shrink-0">
                     {proj.name?.[0]?.toUpperCase() || '?'}
                   </div>
-                  <h3 className="text-[14px] font-medium text-neutral-900 truncate flex-1 pr-6">
+                  <h3 className="text-[14px] font-medium text-[#0d0d0c] truncate flex-1 pr-6">
                     {proj.name}
                   </h3>
                 </div>
@@ -320,7 +320,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                 {/* Stats */}
                 <div className="flex items-center gap-3 mb-3">
                   {proj.plans?.length > 0 && (
-                    <span className="text-[12px] text-neutral-500 flex items-center gap-1">
+                    <span className={clsx('text-[12px] text-[#666660] flex items-center gap-1', GeistMono.className)}>
                       <svg
                         width="12"
                         height="12"
@@ -339,7 +339,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
 
                 {/* Footer: date */}
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-neutral-300">
+                  <span className={clsx('text-[11px] text-[#b8b8b3]', GeistMono.className)}>
                     {getRelativeTime(proj.created_at)}
                   </span>
                 </div>
@@ -350,7 +350,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
 
         {/* ── List View ── */}
         {viewMode === 'list' && (
-          <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+          <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
             <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <colgroup>
                 <col style={{ width: '40%' }} />
@@ -360,11 +360,14 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                 <col style={{ width: '5%' }} />
               </colgroup>
               <thead>
-                <tr className="bg-neutral-50">
+                <tr className="bg-[#f5f5f4]">
                   {['Projet', 'Plans', 'Créé le', 'Activité', ''].map((h) => (
                     <th
                       key={h}
-                      className="px-4 py-2 text-[10px] font-medium text-neutral-400 uppercase tracking-wider text-left border-b border-neutral-200"
+                      className={clsx(
+                        'px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]',
+                        GeistMono.className
+                      )}
                     >
                       {h}
                     </th>
@@ -375,30 +378,30 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                 {filteredProjects.map((proj) => (
                   <tr
                     key={proj.id}
-                    className="border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer transition-colors group"
+                    className="border-b border-[#eeeeec] hover:bg-[#f5f5f4] cursor-pointer transition-colors group"
                     onClick={() => handleProjectClick(proj)}
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-900 flex-shrink-0">
+                        <div className="w-7 h-7 rounded-[3px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-xs font-medium text-[#050505] flex-shrink-0">
                           {proj.name?.[0]?.toUpperCase() || '?'}
                         </div>
-                        <span className="text-[13px] font-medium text-neutral-900 truncate">
+                        <span className="text-[13px] font-medium text-[#0d0d0c] truncate">
                           {proj.name}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-neutral-500">
+                    <td className={clsx('px-4 py-3 text-[13px] text-[#666660]', GeistMono.className)}>
                       {proj.plans?.length || 0}
                     </td>
-                    <td className="px-4 py-3 text-[13px] text-neutral-500">
+                    <td className={clsx('px-4 py-3 text-[13px] text-[#666660]', GeistMono.className)}>
                       {new Date(proj.created_at).toLocaleDateString('fr-FR', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-[12px] text-neutral-400">
+                    <td className={clsx('px-4 py-3 text-[12px] text-[#8a8a84]', GeistMono.className)}>
                       {getRelativeTime(proj.created_at)}
                     </td>
                     <td className="px-4 py-3">
@@ -408,19 +411,19 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                             e.stopPropagation()
                             setOpenMenuId(openMenuId === proj.id ? null : proj.id)
                           }}
-                          className="p-1 rounded-md hover:bg-neutral-100 transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
                         >
-                          <MoreVertical className="w-4 h-4 text-neutral-400" />
+                          <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
                         </button>
 
                         {openMenuId === proj.id && (
-                          <div className="absolute right-0 mt-1 w-44 bg-white border border-neutral-200 rounded-lg shadow-lg overflow-hidden z-10">
+                          <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
                                 archiveProject(proj.id)
                               }}
-                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-neutral-600 hover:bg-neutral-50 transition-colors"
+                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
                             >
                               <Archive className="w-3.5 h-3.5" />
                               Archiver
@@ -432,7 +435,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                                 setShowDeleteModal(true)
                                 setOpenMenuId(null)
                               }}
-                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors"
+                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                               Supprimer
@@ -450,7 +453,7 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
 
         {filteredProjects.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-[13px] text-neutral-400">Aucun projet trouvé.</p>
+            <p className="text-[13px] text-[#8a8a84]">Aucun projet trouvé.</p>
           </div>
         )}
 
@@ -459,25 +462,25 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/20" onClick={() => setShowModal(false)} />
 
-            <div className="relative bg-white border border-neutral-200 rounded-xl p-6 shadow-xl max-w-md w-full mx-4">
+            <div className="relative bg-white border border-[#e5e5e2] rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 p-1 rounded-md hover:bg-neutral-100 transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"
               >
-                <X className="w-4 h-4 text-neutral-400" />
+                <X className="w-4 h-4 text-[#8a8a84]" />
               </button>
 
-              <h2 className="text-base font-semibold text-neutral-900 mb-1">
+              <h2 className="text-base font-medium text-[#050505] mb-1">
                 Créer un nouveau projet
               </h2>
-              <p className="text-[13px] text-neutral-400 mb-5">
+              <p className="text-[13px] text-[#8a8a84] mb-5">
                 Organisation:{' '}
-                <span className="font-medium text-neutral-900">{selectedOrganization?.name}</span>
+                <span className="font-medium text-[#0d0d0c]">{selectedOrganization?.name}</span>
               </p>
 
               <input
                 type="text"
-                className="border border-neutral-200 bg-white px-3 py-2.5 w-full rounded-lg text-[13px] mb-5 focus:outline-none focus:border-neutral-400 transition-colors text-neutral-900 placeholder:text-neutral-300"
+                className="border border-[#e5e5e2] bg-white px-3 py-2.5 w-full rounded-[4px] text-[13px] mb-5 focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
                 placeholder="Nom du projet"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
@@ -488,14 +491,14 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={createProject}
                   disabled={loading || !newProjectName.trim()}
-                  className="px-4 py-2 text-[13px] font-medium text-white bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-[13px] font-medium text-white bg-[#0d0d0c] rounded-[4px] hover:bg-[#1a1a18] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Création...' : 'Créer'}
                 </button>
@@ -509,23 +512,23 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/20" onClick={() => setShowDeleteModal(false)} />
 
-            <div className="relative bg-white border border-neutral-200 rounded-xl p-6 shadow-xl max-w-md w-full mx-4">
+            <div className="relative bg-white border border-[#e5e5e2] rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
               <button
                 onClick={() => {
                   setShowDeleteModal(false)
                   setProjectToDelete(null)
                 }}
-                className="absolute top-4 right-4 p-1 rounded-md hover:bg-neutral-100 transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"
               >
-                <X className="w-4 h-4 text-neutral-400" />
+                <X className="w-4 h-4 text-[#8a8a84]" />
               </button>
 
-              <h2 className="text-base font-semibold text-neutral-900 mb-1">
+              <h2 className="text-base font-medium text-[#050505] mb-1">
                 Supprimer le projet
               </h2>
-              <p className="text-[13px] text-neutral-500 mb-5">
+              <p className="text-[13px] text-[#666660] mb-5">
                 Êtes-vous sûr de vouloir supprimer{' '}
-                <span className="font-medium text-neutral-900">"{projectToDelete?.name}"</span> ?
+                <span className="font-medium text-[#0d0d0c]">"{projectToDelete?.name}"</span> ?
                 Cette action est irréversible.
               </p>
 
@@ -535,13 +538,13 @@ console.log('Fetching projects for org:', organization.id, 'and user:', user.id)
                     setShowDeleteModal(false)
                     setProjectToDelete(null)
                   }}
-                  className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={deleteProject}
-                  className="px-4 py-2 text-[13px] font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-white bg-[#dc2626] rounded-[4px] hover:bg-[#b91c1c] transition-colors"
                 >
                   Supprimer
                 </button>

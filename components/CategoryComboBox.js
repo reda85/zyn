@@ -69,7 +69,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
           if (!isGuest) {
             setSelected(value)
             setIsOpen(false)
-            handleUpdateCategory(value) // direct call — no useEffect indirection
+            handleUpdateCategory(value)
           }
         }}
         disabled={isGuest}
@@ -80,19 +80,19 @@ export default function CategoryComboBox({ pin, organization_id }) {
             onClick={() => { if (!isGuest) setIsOpen(prev => !prev) }}
             disabled={isGuest}
             className={clsx(
-              'relative w-full text-sm font-medium rounded-xl py-2.5 pl-3 pr-10 text-left border transition-all focus:outline-none',
+              'relative w-full text-[13px] font-medium rounded-[4px] py-2 pl-3 pr-9 text-left border transition-colors focus:outline-none',
               isGuest
-                ? 'bg-secondary/30 border-border/30 text-muted-foreground cursor-not-allowed opacity-60'
-                : 'bg-secondary/50 border-border/50 text-gray-800 cursor-pointer hover:bg-secondary/80 hover:border-primary/20 focus:ring-2 focus:ring-primary/20 focus:border-primary/50'
+                ? 'bg-[#f5f5f4] border-[#eeeeec] text-[#8a8a84] cursor-not-allowed opacity-60'
+                : 'bg-[#f5f5f4] border-[#e5e5e2] text-[#0d0d0c] cursor-pointer hover:bg-[#eeeeec] hover:border-[#d6d6d2] focus:border-[#0d0d0c]'
             )}
           >
             <span className="flex items-center gap-2">
               {selected?.icon && categoriesIcons[selected.icon]}
-              <span className="block truncate text-sm">{selected?.name}</span>
+              <span className="block truncate text-[13px]">{selected?.name}</span>
             </span>
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
               <ChevronUpDownIcon
-                className={clsx('h-5 w-5', isGuest ? 'text-muted-foreground/50' : 'text-muted-foreground')}
+                className={clsx('h-4 w-4', isGuest ? 'text-[#b8b8b3]' : 'text-[#8a8a84]')}
                 aria-hidden="true"
               />
             </span>
@@ -110,7 +110,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
                 <Portal>
                   <Listbox.Options
                     static
-                    className="absolute z-[1100] max-h-60 overflow-auto rounded-xl bg-card py-1 text-base shadow-xl border border-border/50 ring-1 ring-black/5 focus:outline-none sm:text-sm backdrop-blur-sm"
+                    className="absolute z-[1100] max-h-60 overflow-auto rounded-[4px] bg-white py-1 text-[13px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-[#e5e5e2] focus:outline-none"
                     style={{
                       top: buttonRect.bottom + window.scrollY + 4,
                       left: buttonRect.left + window.scrollX,
@@ -123,16 +123,16 @@ export default function CategoryComboBox({ pin, organization_id }) {
                         className={({ active }) =>
                           clsx(
                             'relative cursor-pointer select-none py-2.5 pl-3 pr-4 transition-colors',
-                            active ? 'bg-primary/10 text-gray-800' : 'text-gray-800'
+                            active ? 'bg-[#f5f5f4] text-[#0d0d0c]' : 'text-[#0d0d0c]'
                           )
                         }
                         value={cat}
                       >
                         {({ selected: isSelected }) => (
-                          <span className={clsx('flex gap-2 items-center truncate', isSelected ? 'font-semibold' : 'font-normal')}>
+                          <span className={clsx('flex gap-2 items-center truncate', isSelected ? 'font-medium' : 'font-normal')}>
                             {cat.icon && categoriesIcons[cat.icon]}
-                            <span className="text-sm">{cat.name}</span>
-                            {isSelected && <CheckIcon className="ml-auto h-4 w-4 text-primary" />}
+                            <span className="text-[13px]">{cat.name}</span>
+                            {isSelected && <CheckIcon className="ml-auto h-4 w-4 text-[#2f5ee0]" />}
                           </span>
                         )}
                       </Listbox.Option>

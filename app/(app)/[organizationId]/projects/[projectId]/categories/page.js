@@ -10,15 +10,13 @@ import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { selectedProjectAtom } from '@/store/atoms'
 import { useParams, useRouter } from 'next/navigation'
-import { Lexend } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
 import clsx from 'clsx'
-
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
 // StrictMode wrapper for Droppable
 const StrictModeDroppable = ({ children, ...props }) => {
   const [enabled, setEnabled] = useState(false)
-  
+
   useEffect(() => {
     const animation = requestAnimationFrame(() => setEnabled(true))
     return () => {
@@ -26,11 +24,11 @@ const StrictModeDroppable = ({ children, ...props }) => {
       setEnabled(false)
     }
   }, [])
-  
+
   if (!enabled) {
     return null
   }
-  
+
   return <Droppable {...props}>{children}</Droppable>
 }
 
@@ -44,7 +42,7 @@ export default function ProjectCategories() {
   useEffect(() => {
     const fetchCategories = async () => {
       if (!projectId) return
-      
+
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -62,7 +60,7 @@ export default function ProjectCategories() {
   const handleDragEnd = async (result) => {
     if (!result.destination) return
     if (result.destination.index === result.source.index) return
-    
+
     const reordered = Array.from(categories)
     const [removed] = reordered.splice(result.source.index, 1)
     reordered.splice(result.destination.index, 0, removed)
@@ -71,10 +69,9 @@ export default function ProjectCategories() {
       ...cat,
       order: index,
     }))
-    
+
     setCategories(updated)
 
-    // Update in database
     try {
       await Promise.all(
         updated.map((cat) =>
@@ -144,22 +141,22 @@ export default function ProjectCategories() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background font-sans">
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-[#fafaf9]", GeistSans.className)}>
         <div className="text-center">
-          <div className="mb-8 flex justify-center">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 animate-pulse">
-              <span className="text-primary-foreground font-bold text-3xl font-heading">z</span>
+          <div className="mb-6 flex justify-center">
+            <div className="w-12 h-12 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center animate-pulse">
+              <span className="text-white font-medium text-xl">z</span>
             </div>
           </div>
-          <h2 className="text-2xl font-bold font-heading text-foreground mb-3">
+          <h2 className="text-[17px] font-medium text-[#050505] mb-2">
             Chargement...
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-[13px] text-[#8a8a84]">
             Veuillez patienter
           </p>
           <div className="mt-8 w-64 mx-auto">
-            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-0 animate-[loading_1.5s_ease-in-out_infinite]"></div>
+            <div className="h-1 bg-[#eeeeec] rounded-full overflow-hidden">
+              <div className="h-full bg-[#0d0d0c] w-0 animate-[loading_1.5s_ease-in-out_infinite]"></div>
             </div>
           </div>
         </div>
@@ -175,35 +172,35 @@ export default function ProjectCategories() {
   }
 
   return (
-    <div className={clsx("min-h-screen bg-background font-sans", lexend.className)}>
+    <div className={clsx("min-h-screen bg-[#fafaf9]", GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button 
-            onClick={() => router.back()}  
-            className="mb-6 flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium hover:bg-secondary/80 transition-all"
+          <button
+            onClick={() => router.back()}
+            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-[#eeeeec] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#e5e5e2] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour
           </button>
-          
-          <h1 className="text-4xl font-bold font-heading text-foreground mb-4">
+
+          <h1 className="text-[30px] font-medium tracking-[-0.02em] text-[#050505] mb-4">
             Gestionnaire de catégories
           </h1>
-          <p className="text-muted-foreground leading-relaxed max-w-2xl">
-            Les catégories vous permettent d'organiser vos tâches par thème ou par type. 
+          <p className="text-[13px] text-[#666660] leading-relaxed max-w-2xl">
+            Les catégories vous permettent d'organiser vos tâches par thème ou par type.
             Organisez-les par glisser-déposer pour définir leur ordre d'apparition dans l'application.
           </p>
         </div>
 
         {/* Categories List */}
         {categories.length === 0 ? (
-          <div className="bg-card border border-border/50 rounded-xl p-12 text-center">
-            <Folder className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">Aucune catégorie trouvée pour ce projet.</p>
+          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-12 text-center">
+            <Folder className="w-12 h-12 text-[#d6d6d2] mx-auto mb-4" />
+            <p className="text-[13px] text-[#8a8a84] mb-4">Aucune catégorie trouvée pour ce projet.</p>
             <button
               onClick={handleAddCategory}
-              className="px-6 py-2.5 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 inline-flex items-center gap-2"
+              className="px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors inline-flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Créer la première catégorie
@@ -217,8 +214,8 @@ export default function ProjectCategories() {
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                   className={clsx(
-                    "space-y-3 border border-border/50 p-6 rounded-xl bg-card shadow-sm transition-colors",
-                    snapshot.isDraggingOver && "bg-secondary/30"
+                    "space-y-2 border border-[#e5e5e2] p-6 rounded-[4px] bg-white transition-colors",
+                    snapshot.isDraggingOver && "bg-[#f5f5f4]"
                   )}
                 >
                   {categories.map((cat, index) => (
@@ -233,17 +230,17 @@ export default function ProjectCategories() {
                           {...provided.draggableProps}
                           style={provided.draggableProps.style}
                           className={clsx(
-                            "bg-secondary/30 p-4 border border-border/50 rounded-xl transition-all",
-                            snapshot.isDragging && "shadow-lg shadow-primary/20 rotate-2 scale-105"
+                            "bg-[#f5f5f4] p-3 border border-[#e5e5e2] rounded-[4px] transition-all",
+                            snapshot.isDragging && "shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)]"
                           )}
                         >
                           <div className="flex items-center gap-3">
                             {/* Drag Handle */}
-                            <div 
+                            <div
                               {...provided.dragHandleProps}
-                              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors"
+                              className="cursor-grab active:cursor-grabbing text-[#8a8a84] hover:text-[#0d0d0c] transition-colors"
                             >
-                              <GripVertical className="w-5 h-5" />
+                              <GripVertical className="w-4 h-4" />
                             </div>
 
                             {/* Icon Picker */}
@@ -260,7 +257,7 @@ export default function ProjectCategories() {
                               value={cat.name}
                               onChange={(e) => handleNameChange(index, e.target.value)}
                               onBlur={() => handleSaveCategory(cat)}
-                              className="flex-1 border-border/50 bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary/50 font-medium"
+                              className="flex-1 border-[#e5e5e2] bg-white focus:outline-none focus:border-[#0d0d0c] focus:ring-0 font-medium text-[13px]"
                               placeholder="Nom de la catégorie"
                             />
 
@@ -269,9 +266,9 @@ export default function ProjectCategories() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteCategory(cat.id)}
-                              className="hover:bg-destructive/10 text-destructive hover:text-destructive"
+                              className="hover:bg-[#fde8e8] text-[#dc2626] hover:text-[#9c1b1b] rounded-[3px] transition-colors"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
@@ -279,13 +276,13 @@ export default function ProjectCategories() {
                     </Draggable>
                   ))}
                   {provided.placeholder}
-                  
+
                   {/* Add Button */}
-                  <button 
-                    onClick={handleAddCategory} 
-                    className="flex bg-secondary/50 border border-border/50 items-center text-foreground w-full gap-2 p-4 rounded-xl hover:bg-secondary/80 hover:border-primary/20 transition-all font-medium justify-center"
+                  <button
+                    onClick={handleAddCategory}
+                    className="flex bg-[#f5f5f4] border border-[#e5e5e2] items-center text-[#0d0d0c] w-full gap-2 p-3 rounded-[4px] hover:bg-[#eeeeec] hover:border-[#d6d6d2] transition-colors text-[13px] font-medium justify-center"
                   >
-                    <Plus className="w-5 h-5" /> 
+                    <Plus className="w-4 h-4" />
                     Ajouter une catégorie
                   </button>
                 </div>

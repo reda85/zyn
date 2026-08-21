@@ -2,9 +2,10 @@
 
 import './globals.css'
 
-import { Outfit, Lexend } from "next/font/google";
-const outfit = Outfit({ subsets: ["latin"], weight: ["300","400","500","600","700"], variable: "--font-outfit" });
-const lexend = Lexend({ subsets: ["latin"], weight: ["600","700"], variable: "--font-lexend" });
+
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+
 // on <html>: className={`${outfit.variable} ${lexend.variable}`}
 
 export const metadata = {
@@ -14,8 +15,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${lexend.variable} ${outfit.variable} font-sans `}>
+    <html lang="fr" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body >
         {children}
         <div id="portal-root"></div>
       </body>

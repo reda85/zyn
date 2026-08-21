@@ -18,10 +18,8 @@ import OverdueFilter from './OverdueFilter';
 import AssignedToMemberFilter from './AssigneeFilter';
 import ShowArchivedFilter from './ShowArchivedFilter';
 import TagFilter from './TagFilter';
-import { Outfit } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
-
-const outfit = Outfit({ subsets: ['latin'], display: 'swap' });
 
 dayjs.extend(isToday);
 dayjs.extend(isSameOrAfter);
@@ -44,7 +42,6 @@ export default function FilterPanel({ user, projectId }) {
   useEffect(() => {
     if (pins && allPins.length === 0) {
       setAllPins(pins);
-      // Don't show archived pins by default — filter them out on first load
       setFilteredPins(pins.filter((p) => !p.is_archived));
     }
   }, [pins]);
@@ -73,7 +70,7 @@ export default function FilterPanel({ user, projectId }) {
     overdue: false,
     assignee: false,
     tag: false,
-    showArchived: false, // ← hidden by default
+    showArchived: false,
   });
 
   const [categoryTags, setCategoryTags] = useState([]);
@@ -82,7 +79,6 @@ export default function FilterPanel({ user, projectId }) {
   const applyFilters = () => {
     let filtered = [...pins];
 
-    // Always exclude archived unless the toggle is ON
     if (!filters.showArchived) {
       filtered = filtered.filter((pin) => !pin.isArchived);
     }
@@ -188,10 +184,10 @@ export default function FilterPanel({ user, projectId }) {
         ref={buttonRef}
         onClick={() => setOpen(!open)}
         className={clsx(
-          'flex items-center gap-1.5 px-2.5 py-[7px] rounded-lg border transition-colors',
+          'flex items-center gap-1.5 px-2.5 py-[7px] rounded-[4px] border transition-colors',
           hasActiveFilters
-            ? 'bg-neutral-900 text-white border-neutral-900'
-            : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'
+            ? 'bg-[#0d0d0c] text-white border-[#0d0d0c]'
+            : 'bg-white text-[#4a4a46] border-[#e5e5e2] hover:bg-[#f5f5f4]'
         )}
       >
         <ListFilterIcon className="h-4 w-4" />
@@ -203,18 +199,18 @@ export default function FilterPanel({ user, projectId }) {
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
             className={clsx(
-              'absolute z-50 w-80 bg-white border border-neutral-200 shadow-lg rounded-lg',
+              'absolute z-50 w-80 bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px]',
               'max-h-[75vh] overflow-y-auto',
-              outfit.className
+              GeistSans.className
             )}
           >
-            <div className="flex justify-between items-center px-4 py-3 border-b border-neutral-100">
-              <h3 className="text-[13px] font-semibold text-neutral-900">Filtres</h3>
+            <div className="flex justify-between items-center px-4 py-3 border-b border-[#eeeeec]">
+              <h3 className="text-[13px] font-medium text-[#050505]">Filtres</h3>
               <button
                 onClick={() => setOpen(false)}
-                className="p-1 rounded-md hover:bg-neutral-100 transition-colors"
+                className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"
               >
-                <XMarkIcon className="h-4 w-4 text-neutral-400" />
+                <XMarkIcon className="h-4 w-4 text-[#8a8a84]" />
               </button>
             </div>
 

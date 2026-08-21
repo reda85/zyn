@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { GeistSans } from 'geist/font/sans'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -63,23 +64,26 @@ export default function ResetPasswordPage() {
 
   if (!ready) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-200 border-t-neutral-900" />
+      <div className={`flex h-screen items-center justify-center bg-[#fafaf9] ${GeistSans.className}`}>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#e5e5e2] border-t-[#0d0d0c]" />
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex-1 flex flex-col w-full gap-2 text-foreground [&>input]:mb-6 min-w-64 max-w-64 mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className={`flex-1 flex flex-col w-full gap-2 text-[#0d0d0c] min-w-64 max-w-64 mx-auto ${GeistSans.className}`}
+    >
       <div>
-        <h1 className="text-2xl font-medium">Reset password</h1>
-        <p className="text-sm text-secondary-foreground">
+        <h1 className="text-[20px] font-medium text-[#050505] tracking-[-0.011em]">Reset password</h1>
+        <p className="text-[13px] text-[#8a8a84]">
           Please enter your new password below.
         </p>
       </div>
 
-      <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-        <Label htmlFor="password">New password</Label>
+      <div className="flex flex-col gap-3 mt-8">
+        <Label htmlFor="password" className="text-[13px] font-medium text-[#0d0d0c]">New password</Label>
         <Input
           id="password"
           type="password"
@@ -87,9 +91,10 @@ export default function ResetPasswordPage() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="New password"
           required
+          className="h-9 bg-white border-[#e5e5e2] rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] focus:ring-0"
         />
 
-        <Label htmlFor="confirmPassword">Confirm password</Label>
+        <Label htmlFor="confirmPassword" className="text-[13px] font-medium text-[#0d0d0c] mt-3">Confirm password</Label>
         <Input
           id="confirmPassword"
           type="password"
@@ -97,15 +102,16 @@ export default function ResetPasswordPage() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="Confirm password"
           required
+          className="h-9 bg-white border-[#e5e5e2] rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] focus:ring-0"
         />
 
-        {error && <p className="text-destructive text-sm">{error}</p>}
-        {success && <p className="text-sm text-foreground">Password updated. Redirecting...</p>}
+        {error && <p className="text-[#9c1b1b] text-[13px] mt-1">{error}</p>}
+        {success && <p className="text-[13px] text-[#0f7a3a] mt-1">Password updated. Redirecting...</p>}
 
         <button
           type="submit"
           disabled={loading || success}
-          className="w-full rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+          className="w-full rounded-[4px] bg-[#0d0d0c] text-white px-4 py-2.5 text-[13px] font-medium hover:bg-[#1a1a18] transition-colors disabled:opacity-50 mt-2"
         >
           {loading ? 'Updating...' : 'Reset password'}
         </button>

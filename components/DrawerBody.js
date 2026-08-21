@@ -10,6 +10,8 @@ import { supabase } from '@/utils/supabase/client';
 import Timeline from './Timeline';
 import TagEditor from './TagEditor';
 import { useUserData } from '@/hooks/useUserData';
+import { GeistMono } from 'geist/font/mono';
+import clsx from 'clsx';
 
 export default function DrawerBody({ pin, newComment, photoUploadTrigger, organization_id }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
@@ -83,7 +85,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
           <Pin pin={pin} />
           <div className="text-base">{pin && <StatusSelect pin={pin} />}</div>
         </div>
-        <div className="text-sm text-stone-500">
+        <div className={clsx('text-[12px] text-[#8a8a84]', GeistMono.className)}>
           ID: {pin?.projects?.project_number}-{pin.pin_number}
         </div>
         <div className="text-base">
@@ -93,7 +95,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
             value={name || ''}
             onChange={(e) => setName(e.target.value)}
             disabled={isGuest}
-            className="w-full resize-none text-lg focus:outline-none placeholder:text-lg disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-muted/50"
+            className="w-full resize-none text-lg text-[#0d0d0c] placeholder:text-lg placeholder:text-[#b8b8b3] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[#f5f5f4]"
           />
         </div>
         <div className="text-xs">
@@ -103,7 +105,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
             onBlur={handleUpdateNote}
             onChange={(e) => setNote(e.target.value)}
             disabled={isGuest}
-            className="w-full resize-none text-sm placeholder:text-sm focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-muted/50"
+            className="w-full resize-none text-[13px] text-[#4a4a46] placeholder:text-[13px] placeholder:text-[#b8b8b3] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[#f5f5f4]"
           />
         </div>
         <TagEditor onChange={handleTagsChange} disabled={isGuest} />

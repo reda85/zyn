@@ -1,4 +1,3 @@
-import { Outfit } from 'next/font/google'
 import CustomSelect from './customSelect'
 import FilterPanel from './FilterPanel'
 import { MapPinIcon } from '@heroicons/react/24/outline'
@@ -10,11 +9,11 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/fr'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 
 dayjs.extend(relativeTime)
 dayjs.locale('fr')
-
-const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 export default function PinsList({ pins = [], plans = [], user, projectId, organizationId }) {
   const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
@@ -27,8 +26,8 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
   return (
     <div
       className={clsx(
-        outfit.className,
-        'overflow-auto bg-neutral-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+        GeistSans.className,
+        'overflow-auto bg-[#fafaf9] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       )}
     >
       {/* Header */}
@@ -46,9 +45,9 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
       </div>
 
       {/* Counter bar */}
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-neutral-100 border-y border-neutral-200">
-        <MapPinIcon className="h-3.5 w-3.5 text-neutral-400" />
-        <p className="text-neutral-600 text-[11px] font-medium">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-[#eeeeec] border-y border-[#e5e5e2]">
+        <MapPinIcon className="h-3.5 w-3.5 text-[#8a8a84]" />
+        <p className={clsx('text-[#4a4a46] text-[11px] font-medium', GeistMono.className)}>
           {pins.length} pins
         </p>
       </div>
@@ -61,17 +60,17 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
             <div
               key={pin.id}
               onClick={() => setSelectedPin(pin)}
-              className={clsx(
-                'cursor-pointer rounded-lg p-3 flex flex-col gap-2 transition-all',
+                            className={clsx(
+                'cursor-pointer rounded-[4px] p-3 flex flex-col gap-2 transition-all',
                 isSelected
-                  ? 'bg-white border border-neutral-300 shadow-sm'
-                  : 'bg-gray-100 border border-neutral-200 hover:border-neutral-300 hover:shadow-sm'
+                  ? 'bg-[#f5f5f4] border border-[#e5e5e2] hover:border-[#d6d6d2] hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]'
+                  : 'bg-white border border-[#d6d6d2] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]'
               )}
             >
               {/* Header: status + name */}
               <div className="flex items-center gap-2">
                 <Pin pin={pin} />
-                <span className="text-[13px] font-medium text-neutral-900 truncate flex-1">
+                <span className="text-[13px] font-medium text-[#0d0d0c] truncate flex-1">
                   {(isSelected ? selectedPin.name : pin.name) || 'Pin sans nom'}
                 </span>
               </div>
@@ -83,14 +82,14 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
                     <img
                       key={i}
                       src={photo.public_url}
-                      className="w-12 h-12 rounded-md border border-neutral-200 object-cover"
+                      className="w-12 h-12 rounded-[3px] border border-[#e5e5e2] object-cover"
                     />
                   ))}
                 </div>
               )}
 
               {/* Date */}
-              <p className="text-[11px] text-neutral-300 ml-7">
+              <p className={clsx('text-[11px] text-[#b8b8b3] ml-7', GeistMono.className)}>
                 {dayjs(pin.created_at).fromNow()}
               </p>
             </div>

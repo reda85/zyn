@@ -9,21 +9,16 @@ import { useState, useRef, useEffect } from 'react'
 import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
 import clsx from 'clsx'
-import { Outfit } from 'next/font/google'
-
-const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
-  
-  
-  
   const { user, profile, organization, organizations, isAdmin } = useUserData(organizationId)
   const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  // Fix 2: prioritize the prop-matched org, no fallback to atom until orgs are loaded
   const displayedOrg = organizations?.find((o) => o.id === organizationId) ?? null
 
   useEffect(() => {
@@ -52,7 +47,6 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
       : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
 
-  // Fix 1: read count from members_organizations instead of members
   const getMemberCount = (org) => org?.members_organizations?.[0]?.count ?? 0
 
   const navLinks = [
@@ -63,31 +57,31 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   ]
 
   return (
-    <aside className={clsx(outfit.className, 'w-60 h-screen bg-white border-r border-neutral-200 flex flex-col')}>
+    <aside className={clsx('w-60 h-screen bg-white border-r border-[#e5e5e2] flex flex-col', GeistSans.className)}>
 
       {/* ── Organization Selector ── */}
       <div className="px-3 pt-4 pb-3 relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((prev) => !prev)}
-          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-neutral-50 transition-colors"
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[4px] hover:bg-[#f5f5f4] transition-colors"
         >
-          <div className="h-[30px] w-[30px] rounded-lg bg-neutral-900 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+          <div className="h-[30px] w-[30px] rounded-[4px] bg-[#0d0d0c] flex items-center justify-center text-xs font-medium text-white flex-shrink-0">
             {displayedOrg?.name?.[0]?.toUpperCase() || '?'}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <p className="text-[13px] font-semibold text-neutral-900 truncate leading-tight">
+            <p className="text-[13px] font-medium text-[#050505] truncate leading-tight">
               {displayedOrg?.name}
             </p>
-            <p className="text-[11px] text-neutral-400 leading-tight">
+            <p className={clsx('text-[11px] text-[#8a8a84] leading-tight', GeistMono.className)}>
               {getMemberCount(displayedOrg)} membres
             </p>
           </div>
-          <ChevronsUpDown className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+          <ChevronsUpDown className="w-3.5 h-3.5 text-[#8a8a84] flex-shrink-0" />
         </button>
 
         {dropdownOpen && (
-          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden">
-            <p className="px-3 pt-3 pb-2 text-[10px] font-medium text-neutral-400 uppercase tracking-wider">
+          <div className="absolute left-3 right-3 top-full mt-1 z-50 rounded-[4px] border border-[#e5e5e2] bg-white shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden">
+            <p className={clsx('px-3 pt-3 pb-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em]', GeistMono.className)}>
               Organisations
             </p>
             <ul className="pb-1">
@@ -95,16 +89,16 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
                 <li key={org.id}>
                   <button
                     onClick={() => handleOrgChange(org)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] hover:bg-neutral-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] hover:bg-[#f5f5f4] transition-colors"
                   >
-                    <div className="h-6 w-6 rounded-md bg-neutral-100 border border-neutral-200 flex items-center justify-center text-[10px] font-bold text-neutral-900 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-[3px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[10px] font-medium text-[#050505] flex-shrink-0">
                       {org.name?.[0]?.toUpperCase() || '?'}
                     </div>
-                    <span className="flex-1 text-left font-medium text-neutral-900 truncate">
+                    <span className="flex-1 text-left font-medium text-[#0d0d0c] truncate">
                       {org.name}
                     </span>
                     {org.id === organizationId && (
-                      <Check className="w-3.5 h-3.5 text-neutral-900 flex-shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-[#2f5ee0] flex-shrink-0" />
                     )}
                   </button>
                 </li>
@@ -115,7 +109,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-neutral-100 mx-3" />
+      <div className="h-px bg-[#eeeeec] mx-3" />
 
       {/* ── Navigation ── */}
       <nav className="flex-1 px-3 pt-2 space-y-0.5">
@@ -127,13 +121,13 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
               key={link.key}
               href={link.href}
               className={clsx(
-                'flex text-[13px] items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors',
+                'flex text-[13px] items-center gap-2.5 px-2.5 py-2 rounded-[4px] transition-colors',
                 isActive
-                  ? 'bg-neutral-100 text-neutral-900 font-medium'
-                  : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900 font-normal'
+                  ? 'bg-[#eeeeec] text-[#050505] font-medium'
+                  : 'text-[#666660] hover:bg-[#f5f5f4] hover:text-[#0d0d0c] font-normal'
               )}
             >
-              <Icon className={clsx('w-4 h-4', isActive ? 'text-neutral-900' : 'text-neutral-400')} />
+              <Icon className={clsx('w-4 h-4', isActive ? 'text-[#0d0d0c]' : 'text-[#8a8a84]')} />
               {link.label}
             </Link>
           )
@@ -142,19 +136,19 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
       {/* ── Profile ── */}
       <div className="px-3 pb-4">
-        <div className="h-px bg-neutral-100 mb-3" />
+        <div className="h-px bg-[#eeeeec] mb-3" />
         <Link
           href={`/${organizationId}/profile`}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-neutral-50 transition-colors group"
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-[4px] hover:bg-[#f5f5f4] transition-colors group"
         >
-          <div className="h-7 w-7 rounded-full bg-neutral-900 flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0">
+          <div className="h-7 w-7 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[10px] font-medium text-[#0d0d0c] flex-shrink-0">
             {getInitials(profile?.full_name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-neutral-900 truncate leading-tight">
+            <p className="text-[13px] font-medium text-[#0d0d0c] truncate leading-tight">
               {profile?.full_name || user?.email || 'Utilisateur'}
             </p>
-            <p className="text-[11px] text-neutral-400 leading-tight">Mon profil</p>
+            <p className="text-[11px] text-[#8a8a84] leading-tight">Mon profil</p>
           </div>
         </Link>
       </div>

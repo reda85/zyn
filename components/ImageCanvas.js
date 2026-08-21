@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Lexend } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
 import { useAtom } from 'jotai';
 import {
   categoriesAtom, filteredPinsAtom, focusOnPinAtom,
@@ -12,8 +12,6 @@ import MapPin from './MapPin';
 import { ZoomIn, ZoomOut, PointerIcon, MapPinIcon } from 'lucide-react';
 import GhostPin from './GhostPin';
 import { supabase } from '@/utils/supabase/client';
-
-const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 const RENDER_SCALE = 3;
 const SUPABASE_STORAGE = `https://zvebdabtofcusfdaacrq.supabase.co/storage/v1/object/public/project-plans`;
@@ -60,7 +58,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   const offsetRef          = useRef({ x: 0, y: 0 });
   const imageLayerRef      = useRef(null);
   const pinElemRefs        = useRef({});
-  const osdPinElemRefs     = useRef({});  // { [pin.id]: HTMLElement } for OSD pins
+  const osdPinElemRefs     = useRef({});
   const osdViewerRef       = useRef(null);
   const osdNativeSize      = useRef({ width: 1, height: 1 });
   const containerRef       = useRef(null);
@@ -73,7 +71,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   const initialScaleRef    = useRef(1);
   const animFrameRef       = useRef(null);
   const wheelCommitTimer   = useRef(null);
-  const pinsRef            = useRef(pins); // always-current ref for OSD handlers
+  const pinsRef            = useRef(pins);
 
   const isGuest = !user || !user.id;
   console.log('uuuser ImageCanvas', user, isGuest)
@@ -83,8 +81,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   useEffect(() => { pinsRef.current = pins; }, [pins]);
 
   // ── OSD coordinate helpers ────────────────────────────────────────────────
-  // OSD viewport: x in [0,1], y in [0, height/width]
-  // Our pins: x,y both in [0,1] normalized independently
   const pinToViewport = useCallback((px, py) => {
     const { width, height } = osdNativeSize.current;
     return new OpenSeadragon.Point(px, py * (height / width));
@@ -95,7 +91,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
     return { x: vx, y: vy / (height / width) };
   }, []);
 
-  // ── OSD: write pin positions directly to DOM (no React state = no lag) ────
   const syncOsdPinPositions = useCallback(() => {
     const v = osdViewerRef.current;
     if (!v || !OpenSeadragon) return;
@@ -170,7 +165,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
             viewer.addHandler('zoom',             ({ zoom }) => setScale(zoom));
             viewer.addHandler('viewport-change',  () => syncOsdPinPositions());
 
-            // Pin placement
             viewer.addHandler('canvas-click', (e) => {
               if (!pinModeRef.current || !e.quick) return;
               const vp  = viewer.viewport.pointFromPixel(e.position);
@@ -189,7 +183,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [plan?.tiles_path]);
 
-  // Re-sync pin positions when pin list changes (new pin added, etc.)
   useEffect(() => {
     if (useOSD) syncOsdPinPositions();
   }, [pins, useOSD, syncOsdPinPositions]);
@@ -355,7 +348,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
       const currPin  = viewportToPin(currVP.x,  currVP.y);
       const newX = Math.max(0, Math.min(1, pinDragStart.pinX + (currPin.x - startPin.x)));
       const newY = Math.max(0, Math.min(1, pinDragStart.pinY + (currPin.y - startPin.y)));
-      // Write drag position directly to DOM
       const dragEl = osdPinElemRefs.current[id];
       if (dragEl) {
         const vp2 = pinToViewport(newX, newY);
@@ -466,14 +458,13 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
       plan_id: plan.id,
       created_by: user?.id || null,
       updated_by: user?.id || null, updated_at: new Date().toISOString(),
-    
+
     };
     const { data, error } = await supabase.from('pdf_pins').insert(newPin).select('*,projects(*),plans(*)').single();
     if (data) {
       setSelectedPin(data);
       setAllPins(prev => [...prev, data]);
       setPinMode(false);
-    //  await supabase.from('events').insert({ user_id: data.created_by, pin_id: data.id, event: ' a créé ce pin', category: 'creation' });
     }
     if (error) console.error('handlePinAdd', error);
   };
@@ -522,7 +513,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
     });
   }, [pins, baseImageSize, selectedPin?.id, hoveredPinId, pinMode, draggingPin, isDragging, pinDragStart?.hasMoved, useOSD]);
 
-  // ── OSD pins — screen-space divs, positions written directly to DOM via ref ─
+  // ── OSD pins ─────────────────────────────────────────────────────────────
   const osdPins = useMemo(() => {
     if (!useOSD || !imageLoaded) return null;
     return pins.map((pin, idx) => {
@@ -537,7 +528,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
           style={{
             position: 'absolute',
             left: 0, top: 0,
-            transform: 'translate(0px, 0px) translate(-50%, -50%)', // overwritten by syncOsdPinPositions
+            transform: 'translate(0px, 0px) translate(-50%, -50%)',
             zIndex: z,
             cursor: pinMode ? 'crosshair' : 'move',
             opacity: draggingPin === pin.id ? 0.7 : 1,
@@ -564,7 +555,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   return (
     <>
       <div
-        className={inter.className}
+        className={GeistSans.className}
         ref={containerRef}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
@@ -581,45 +572,44 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
           width: '100%',
           height: 'calc(100vh - 64px)',
           position: 'relative',
-          backgroundColor: '#eee',
+          backgroundColor: '#fafaf9',
           userSelect: 'none',
         }}
       >
         {/* Controls */}
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5">
-  <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-lg shadow-sm overflow-hidden border border-neutral-200">
-    <button onClick={zoomOut} className="p-2.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors border-r border-neutral-200">
-      <ZoomOut className="h-4 w-4 text-neutral-600" />
-    </button>
-    <button onClick={zoomIn} className="p-2.5 hover:bg-neutral-50 active:bg-neutral-100 transition-colors">
-      <ZoomIn className="h-4 w-4 text-neutral-600" />
-    </button>
-  </div>
-  {!isGuest && (
-    <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-lg shadow-sm overflow-hidden border border-neutral-200">
-      <button onClick={() => setPinMode(false)} className={`p-2.5 transition-colors border-r border-neutral-200 ${!pinMode ? 'bg-neutral-400 text-white' : 'hover:bg-neutral-50 text-neutral-600'}`}>
-        <PointerIcon className="h-4 w-4" />
-      </button>
-      <button onClick={() => setPinMode(true)} className={`p-2.5 transition-colors ${pinMode ? 'bg-neutral-400 text-white' : 'hover:bg-neutral-50 text-neutral-600'}`}>
-        <MapPinIcon className="h-4 w-4" />
-      </button>
-    </div>
-  )}
-</div>
+        <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5">
+          <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden border border-[#e5e5e2]">
+            <button onClick={zoomOut} className="p-2.5 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors border-r border-[#e5e5e2]">
+              <ZoomOut className="h-4 w-4 text-[#4a4a46]" />
+            </button>
+            <button onClick={zoomIn} className="p-2.5 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors">
+              <ZoomIn className="h-4 w-4 text-[#4a4a46]" />
+            </button>
+          </div>
+          {!isGuest && (
+            <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden border border-[#e5e5e2]">
+              <button onClick={() => setPinMode(false)} className={`p-2.5 transition-colors border-r border-[#e5e5e2] ${!pinMode ? 'bg-[#2f5ee0] text-white' : 'hover:bg-[#f5f5f4] text-[#4a4a46]'}`}>
+                <PointerIcon className="h-4 w-4" />
+              </button>
+              <button onClick={() => setPinMode(true)} className={`p-2.5 transition-colors ${pinMode ? 'bg-[#2f5ee0] text-white' : 'hover:bg-[#f5f5f4] text-[#4a4a46]'}`}>
+                <MapPinIcon className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* OSD tiled viewer */}
         {useOSD && (
           <>
             {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100">
+              <div className="absolute inset-0 flex items-center justify-center z-10 bg-[#f5f5f4]">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4" />
-                  <p className="text-gray-600">Chargement du plan...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#e5e5e2] border-t-[#2f5ee0] mx-auto mb-4" />
+                  <p className="text-[13px] text-[#666660]">Chargement du plan...</p>
                 </div>
               </div>
             )}
             <div id={`osd-viewer-${plan.id}`} style={{ position: 'absolute', inset: 0 }} />
-            {/* Pins sit in a screen-space div on top of OSD — no OSD overlay system */}
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
               {osdPins}
             </div>
@@ -642,8 +632,8 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
             {!imageLoaded && (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4" />
-                  <p className="text-gray-600">Chargement de l'image...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#e5e5e2] border-t-[#2f5ee0] mx-auto mb-4" />
+                  <p className="text-[13px] text-[#666660]">Chargement de l'image...</p>
                 </div>
               </div>
             )}
@@ -671,14 +661,14 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
 
       {/* Right drawer */}
       {selectedPin && (
-        <div className={`${inter.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-gray-300 rounded-md flex flex-col overflow-hidden`}>
-          <div className="px-5 py-4 border-b border-gray-200 shrink-0">
+        <div className={`${GeistSans.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col overflow-hidden`}>
+          <div className="px-5 py-4 border-b border-[#eeeeec] shrink-0">
             <DrawerHeader organization_id={organizationId} pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={() => setPhotoUploadTrigger(p => p + 1)} />
           </div>
           <div className="flex-1 overflow-y-auto">
             <DrawerBody organization_id={organizationId} pin={selectedPin} onClose={closeDrawer} newComment={newComment} photoUploadTrigger={photoUploadTrigger} />
           </div>
-          <div className="px-5 py-4 border-t border-gray-200 shrink-0">
+          <div className="px-5 py-4 border-t border-[#eeeeec] shrink-0">
             <DrawerFooter organization_id={organizationId} pin={selectedPin} submit={closeDrawer} onCommentAdded={setNewComment} />
           </div>
         </div>

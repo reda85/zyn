@@ -5,7 +5,8 @@ import NavBar from '@/components/NavBar'
 import { selectedProjectAtom } from '@/store/atoms'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
-import { Outfit } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import Pin from '@/components/Pin'
 import CategoryComboBox from '@/components/CategoryComboBox'
 import { Calendar1Icon, Download, FileText, Search, XIcon, Upload, X as XCloseIcon } from 'lucide-react'
@@ -20,8 +21,6 @@ import PinDrawer from '@/components/PinDrawer'
 import * as XLSX from 'xlsx'
 import ExcelJS from 'exceljs'
 import RichTextEditor from '@/components/RichTextEditor'
-
-const outfit = Outfit({ subsets: ['latin'], display: 'swap' })
 
 const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] }
 
@@ -50,12 +49,13 @@ const DueDatePicker = ({ pin, onUpdate }) => {
         type="button"
         onClick={() => setOpen(true)}
         className={clsx(
-          'w-full border rounded-md px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-neutral-50 relative transition-colors text-[12px] font-medium',
+          'w-full border rounded-[4px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-[#f5f5f4] relative transition-colors text-[12px] font-medium',
+          GeistMono.className,
           isOverDue
-            ? 'border-red-200 text-red-600'
+            ? 'border-[#f5c6c6] text-[#9c1b1b]'
             : selectedDate
-              ? 'border-neutral-200 text-neutral-900'
-              : 'border-neutral-200 text-neutral-300'
+              ? 'border-[#e5e5e2] text-[#0d0d0c]'
+              : 'border-[#e5e5e2] text-[#b8b8b3]'
         )}
       >
         {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
@@ -63,7 +63,7 @@ const DueDatePicker = ({ pin, onUpdate }) => {
           size={12}
           className={clsx(
             'absolute left-2.5 top-1/2 -translate-y-1/2',
-            isOverDue ? 'text-red-400' : selectedDate ? 'text-neutral-500' : 'text-neutral-300'
+            isOverDue ? 'text-[#dc2626]' : selectedDate ? 'text-[#666660]' : 'text-[#b8b8b3]'
           )}
         />
       </button>
@@ -246,7 +246,6 @@ export default function Tasks({ params }) {
   }
 
   // ── Generate PDF report ──────────────────────────────────────────────────
- // ── Generate PDF report ──────────────────────────────────────────────────
   const handleGenerateReport = async ({
     reportTitle,
     displayMode,
@@ -261,7 +260,6 @@ export default function Tasks({ params }) {
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
-      // Upload planning images first if any
       let planningImages = []
       if (planningImageFiles?.length) {
         planningImages = await uploadPlanningImages(planningImageFiles)
@@ -293,16 +291,14 @@ export default function Tasks({ params }) {
         throw new Error(`Erreur API ${response.status}: ${errorText.substring(0, 200)}`)
       }
 
-      // ── Backend returns a signed URL — browser downloads directly from Supabase Storage ──
       const { downloadUrl, fileName } = await response.json()
       console.log('downloadUrl =', downloadUrl)
       if (!downloadUrl) throw new Error('URL de téléchargement manquante')
 
-      // Trigger download via anchor click. The browser handles the streaming.
       const a = document.createElement('a')
       a.href     = downloadUrl
       a.download = fileName || 'rapport-taches.pdf'
-      a.target   = '_blank'   // fallback if download attribute is ignored cross-origin
+      a.target   = '_blank'
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -313,7 +309,7 @@ export default function Tasks({ params }) {
       setIsGeneratingReport(false)
     }
   }
-  // ── Export Excel (unchanged) ──
+
   const handleExportExcel = () => {
     const selected = displayedPins.filter(p => selectedIds.has(p.id))
     if (!selected.length) return
@@ -424,27 +420,27 @@ export default function Tasks({ params }) {
   return (
     <>
       {categories && statuses && (
-        <div className={clsx(outfit.className, 'min-h-screen bg-neutral-50')}>
+        <div className={clsx(GeistSans.className, 'min-h-screen bg-[#fafaf9]')}>
           <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
 
           <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h1 className="text-xl font-semibold text-neutral-900">Liste des tâches</h1>
-                <p className="text-xs text-neutral-400 mt-0.5">
+                <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Liste des tâches</h1>
+                <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
                   {displayedPins.length} tâche{displayedPins.length > 1 ? 's' : ''} au total
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
                   <input
                     type="text"
                     placeholder="Rechercher…"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="w-48 rounded-lg border border-neutral-200 bg-white pl-8 pr-3 py-[7px] text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors"
+                    className="w-48 rounded-[4px] border border-[#e5e5e2] bg-white pl-8 pr-3 py-[7px] text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
                   />
                 </div>
 
@@ -460,7 +456,7 @@ export default function Tasks({ params }) {
                 {profile?.role !== 'guest' && (
                   <button
                     onClick={() => setIsAddTaskOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-[7px] bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-[7px] bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors"
                   >
                     <span className="text-sm leading-none">+</span>
                     Nouvelle tâche
@@ -469,11 +465,11 @@ export default function Tasks({ params }) {
               </div>
             </div>
 
-            <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-[#e5e5e2] rounded-[4px] overflow-hidden">
 
               {selectedIds.size > 0 && (
-                <div className="flex items-center justify-between px-4 py-2.5 bg-neutral-50 border-b border-neutral-200">
-                  <p className="text-[12px] font-medium text-neutral-900">
+                <div className="flex items-center justify-between px-4 py-2.5 bg-[#f5f5f4] border-b border-[#e5e5e2]">
+                  <p className="text-[12px] font-medium text-[#050505]">
                     {selectedIds.size} tâche{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}
                   </p>
                   <div className="flex items-center gap-1.5">
@@ -483,7 +479,7 @@ export default function Tasks({ params }) {
                         const tpl = availableTemplates.find(t => t.id === e.target.value) || null
                         setSelectedTemplate(tpl)
                       }}
-                      className="px-2.5 py-1.5 bg-white text-neutral-600 rounded-lg text-[12px] font-medium border border-neutral-200 focus:outline-none focus:border-neutral-400 transition-colors"
+                      className="px-2.5 py-1.5 bg-white text-[#4a4a46] rounded-[4px] text-[12px] font-medium border border-[#e5e5e2] focus:outline-none focus:border-[#0d0d0c] transition-colors"
                     >
                       <option value="">Template par défaut</option>
                       {availableTemplates.map(t => (
@@ -495,10 +491,10 @@ export default function Tasks({ params }) {
                       onClick={() => setIsReportModalOpen(true)}
                       disabled={isGeneratingReport}
                       className={clsx(
-                        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors',
+                        'flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[12px] font-medium transition-colors',
                         isGeneratingReport
-                          ? 'bg-neutral-400 text-white cursor-not-allowed'
-                          : 'bg-neutral-900 text-white hover:bg-neutral-800'
+                          ? 'bg-[#b8b8b3] text-white cursor-not-allowed'
+                          : 'bg-[#0d0d0c] text-white hover:bg-[#1a1a18]'
                       )}
                     >
                       {isGeneratingReport
@@ -510,7 +506,7 @@ export default function Tasks({ params }) {
 
                     <button
                       onClick={handleExportExcel}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-neutral-600 rounded-lg text-[12px] font-medium border border-neutral-200 hover:bg-neutral-50 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#4a4a46] rounded-[4px] text-[12px] font-medium border border-[#e5e5e2] hover:bg-[#f5f5f4] transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Excel
@@ -518,7 +514,7 @@ export default function Tasks({ params }) {
 
                     <button
                       onClick={handleExportExcelWithEmbeddedMedia}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-neutral-600 rounded-lg text-[12px] font-medium border border-neutral-200 hover:bg-neutral-50 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#4a4a46] rounded-[4px] text-[12px] font-medium border border-[#e5e5e2] hover:bg-[#f5f5f4] transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Excel + Médias
@@ -541,17 +537,17 @@ export default function Tasks({ params }) {
               <div className="overflow-x-auto">
                 <table className="w-full" style={{ borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr className="bg-neutral-50 border-b border-neutral-200">
+                    <tr className="bg-[#f5f5f4] border-b border-[#e5e5e2]">
                       <th className="px-4 py-2 w-10">
                         <input
                           type="checkbox"
                           checked={selectedIds.size === displayedPins.length && displayedPins.length > 0}
                           onChange={toggleSelectAll}
-                          className="w-3.5 h-3.5 rounded border-neutral-300 accent-neutral-900"
+                          className="w-3.5 h-3.5 rounded-[2px] border-[#d6d6d2] accent-[#0d0d0c]"
                         />
                       </th>
                       {TABLE_HEADERS.map(h => (
-                        <th key={h} className="px-4 py-2 text-left text-[10px] font-medium text-neutral-400 uppercase tracking-wider whitespace-nowrap">
+                        <th key={h} className={clsx('px-4 py-2 text-left text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] whitespace-nowrap', GeistMono.className)}>
                           {h}
                         </th>
                       ))}
@@ -562,8 +558,8 @@ export default function Tasks({ params }) {
                     {displayedPins.length === 0 && (
                       <tr>
                         <td colSpan={8} className="py-16 text-center">
-                          <FileText className="w-10 h-10 text-neutral-200 mx-auto mb-3" />
-                          <p className="text-[13px] text-neutral-400">Aucune tâche à afficher</p>
+                          <FileText className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
+                          <p className="text-[13px] text-[#8a8a84]">Aucune tâche à afficher</p>
                         </td>
                       </tr>
                     )}
@@ -573,8 +569,8 @@ export default function Tasks({ params }) {
                         key={pin.id}
                         onClick={() => setSelectedPin({ ...pin })}
                         className={clsx(
-                          'border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer',
-                          selectedIds.has(pin.id) && 'bg-neutral-50'
+                          'border-b border-[#eeeeec] hover:bg-[#f5f5f4] transition-colors cursor-pointer',
+                          selectedIds.has(pin.id) && 'bg-[#f5f5f4]'
                         )}
                       >
                         <td className="px-4 py-3">
@@ -583,21 +579,21 @@ export default function Tasks({ params }) {
                             checked={selectedIds.has(pin.id)}
                             onClick={e => e.stopPropagation()}
                             onChange={() => toggleSelect(pin.id)}
-                            className="w-3.5 h-3.5 rounded border-neutral-300 accent-neutral-900"
+                            className="w-3.5 h-3.5 rounded-[2px] border-[#d6d6d2] accent-[#0d0d0c]"
                           />
                         </td>
 
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
                             <Pin pin={pin} />
-                            <span className="text-[13px] font-medium text-neutral-900">
+                            <span className="text-[13px] font-medium text-[#0d0d0c]">
                               {pin.name || 'Pin sans nom'}
                             </span>
                           </div>
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className="text-[11px] text-neutral-400 font-mono">
+                          <span className={clsx('text-[11px] text-[#8a8a84]', GeistMono.className)}>
                             {pin.projects?.project_number}-{pin.pin_number}
                           </span>
                         </td>
@@ -605,13 +601,13 @@ export default function Tasks({ params }) {
                         <td className="px-4 py-3">
                           {pin.assigned_to?.name ? (
                             <div className="flex items-center gap-2">
-                              <div className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-[9px] font-semibold text-neutral-600 flex-shrink-0">
+                              <div className="w-5 h-5 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[9px] font-medium text-[#4a4a46] flex-shrink-0">
                                 {pin.assigned_to.name.charAt(0).toUpperCase()}
                               </div>
-                              <span className="text-[13px] text-neutral-600">{pin.assigned_to.name}</span>
+                              <span className="text-[13px] text-[#4a4a46]">{pin.assigned_to.name}</span>
                             </div>
                           ) : (
-                            <span className="text-[13px] text-neutral-300">—</span>
+                            <span className="text-[13px] text-[#b8b8b3]">—</span>
                           )}
                         </td>
 
@@ -629,11 +625,11 @@ export default function Tasks({ params }) {
 
                         <td className="px-4 py-3">
                           {pin.pdf_name ? (
-                            <span className="text-[13px] text-neutral-500 truncate max-w-[180px] block">
+                            <span className="text-[13px] text-[#666660] truncate max-w-[180px] block">
                               {pin.pdf_name}
                             </span>
                           ) : (
-                            <span className="text-[13px] text-neutral-300">—</span>
+                            <span className="text-[13px] text-[#b8b8b3]">—</span>
                           )}
                         </td>
 
@@ -642,14 +638,14 @@ export default function Tasks({ params }) {
                             <div className="flex flex-wrap gap-1">
                               {pin.pin_tags.map(pt =>
                                 pt.tags ? (
-                                  <span key={pt.tag_id} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-600">
+                                  <span key={pt.tag_id} className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#eeeeec] text-[#4a4a46]">
                                     {pt.tags.name}
                                   </span>
                                 ) : null
                               )}
                             </div>
                           ) : (
-                            <span className="text-[13px] text-neutral-300">—</span>
+                            <span className="text-[13px] text-[#b8b8b3]">—</span>
                           )}
                         </td>
                       </tr>
@@ -664,46 +660,46 @@ export default function Tasks({ params }) {
 
           {isAddTaskOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-              <div className={clsx(outfit.className, 'bg-white w-full max-w-md rounded-xl border border-neutral-200 shadow-xl')}>
-                <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100">
-                  <h3 className="text-base font-semibold text-neutral-900">Nouvelle tâche</h3>
-                  <button onClick={() => setIsAddTaskOpen(false)} className="p-1 rounded-md hover:bg-neutral-100 transition-colors">
-                    <XIcon className="w-4 h-4 text-neutral-400" />
+              <div className={clsx(GeistSans.className, 'bg-white w-full max-w-md rounded-[6px] border border-[#e5e5e2] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]')}>
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#eeeeec]">
+                  <h3 className="text-base font-medium text-[#050505]">Nouvelle tâche</h3>
+                  <button onClick={() => setIsAddTaskOpen(false)} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
+                    <XIcon className="w-4 h-4 text-[#8a8a84]" />
                   </button>
                 </div>
                 <div className="p-5 space-y-3">
                   <div>
-                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">Nom</label>
+                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom</label>
                     <input
                       type="text"
                       placeholder="Nom de la tâche"
                       value={newTaskName}
                       onChange={e => setNewTaskName(e.target.value)}
-                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors"
+                      className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
                       autoFocus
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-1.5">
-                      Description <span className="text-neutral-300 font-normal normal-case ml-1">(optionnel)</span>
+                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
+                      Description <span className="text-[#b8b8b3] font-normal normal-case ml-1">(optionnel)</span>
                     </label>
                     <textarea
                       placeholder="Ajouter une description..."
                       value={newTaskDescription}
                       onChange={e => setNewTaskDescription(e.target.value)}
                       rows={3}
-                      className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 resize-none transition-colors"
+                      className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] resize-none transition-colors"
                     />
                   </div>
                 </div>
-                <div className="flex justify-end gap-2 px-5 py-4 border-t border-neutral-100">
-                  <button onClick={() => setIsAddTaskOpen(false)} className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors">
+                <div className="flex justify-end gap-2 px-5 py-4 border-t border-[#eeeeec]">
+                  <button onClick={() => setIsAddTaskOpen(false)} className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors">
                     Annuler
                   </button>
                   <button
                     onClick={handleCreateTask}
                     disabled={isCreating || !newTaskName.trim()}
-                    className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     {isCreating ? 'Création…' : 'Créer'}
                   </button>
@@ -713,11 +709,11 @@ export default function Tasks({ params }) {
           )}
 
           {isGeneratingReport && (
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 bg-neutral-900 text-white rounded-xl shadow-2xl border border-neutral-700">
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 bg-[#0d0d0c] text-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] border border-[#2e2e2b]">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
               <div>
-                <p className="text-[13px] font-semibold">Génération du rapport en cours…</p>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
+                <p className="text-[13px] font-medium">Génération du rapport en cours…</p>
+                <p className={clsx('text-[11px] text-[#b8b8b3] mt-0.5', GeistMono.className)}>
                   Traitement de {selectedPinsCount} tâche{selectedPinsCount > 1 ? 's' : ''}, veuillez patienter.
                 </p>
               </div>
@@ -733,7 +729,7 @@ export default function Tasks({ params }) {
 
 // ── Report Fields Modal (refactorisée) ────────────────────────────────────────
 function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
-   const templateConfig = {
+  const templateConfig = {
     ...rawTemplateConfig,
     planning: {
       enabled:           false,
@@ -745,10 +741,9 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
       ...(rawTemplateConfig?.planning || {}),
     },
   }
-    const [displayMode, setDisplayMode] = useState(templateConfig?.tasks?.displayMode || 'list')
-    const [reportTitle, setReportTitle] = useState(templateConfig?.reportTitle || 'RAPPORT DE TÂCHES')
+  const [displayMode, setDisplayMode] = useState(templateConfig?.tasks?.displayMode || 'list')
+  const [reportTitle, setReportTitle] = useState(templateConfig?.reportTitle || 'RAPPORT DE TÂCHES')
 
-  
   const showParticipants =
     templateConfig?.participants?.enabled === true ||
     templateConfig?.coverPage?.showParticipants === true
@@ -761,7 +756,7 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
   const planningEnabled = templateConfig?.planning?.enabled
   const showPlanningObs = planningEnabled && (templateConfig?.planning?.showObservations ?? true)
 
-  const [planningImageFiles, setPlanningImageFiles]       = useState([])  // [{ file, url, name }]
+  const [planningImageFiles, setPlanningImageFiles]       = useState([])
   const [planningObservations, setPlanningObservations]   = useState(EMPTY_DOC)
 
   const enabledSections = (templateConfig?.customSections || []).filter(s => s.enabled)
@@ -824,39 +819,38 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className={clsx(outfit.className, 'bg-white w-full max-w-2xl rounded-xl border border-neutral-200 shadow-xl max-h-[92vh] flex flex-col')}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 flex-shrink-0">
+      <div className={clsx(GeistSans.className, 'bg-white w-full max-w-2xl rounded-[6px] border border-[#e5e5e2] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-h-[92vh] flex flex-col')}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#eeeeec] flex-shrink-0">
           <div>
-            <h3 className="text-base font-semibold text-neutral-900">Composer le rapport</h3>
+            <h3 className="text-base font-medium text-[#050505]">Composer le rapport</h3>
             {templateConfig?.reportTitle && (
-              <p className="text-[11px] text-neutral-400 mt-0.5">{templateConfig.reportTitle}</p>
+              <p className={clsx('text-[11px] text-[#8a8a84] mt-0.5', GeistMono.className)}>{templateConfig.reportTitle}</p>
             )}
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-neutral-100 transition-colors">
-            <XIcon className="w-4 h-4 text-neutral-400" />
+          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
+            <XIcon className="w-4 h-4 text-[#8a8a84]" />
           </button>
         </div>
 
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
 
-           <div>
-            <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">Titre du rapport</p>
+          <div>
+            <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-2', GeistMono.className)}>Titre du rapport</p>
             <input
               type="text"
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
               placeholder="RAPPORT DE TÂCHES"
-              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-[13px] font-medium text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-400 transition-colors"
+              className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] font-medium text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
             />
-            <p className="text-[10px] text-neutral-400 mt-1">
+            <p className="text-[10px] text-[#8a8a84] mt-1">
               Ce titre apparaîtra sur la couverture et dans le résumé du rapport.
             </p>
           </div>
 
           {/* Display mode */}
-          
           <div>
-            <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">Mode d'affichage</p>
+            <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-2', GeistMono.className)}>Mode d'affichage</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { key: 'list',  label: 'Liste détaillée', icon: <FileText className="w-4 h-4" /> },
@@ -871,10 +865,10 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
                   key={key}
                   onClick={() => setDisplayMode(key)}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-2.5 rounded-lg border text-[13px] font-medium transition-colors',
+                    'flex items-center gap-2 px-3 py-2.5 rounded-[4px] border text-[13px] font-medium transition-colors',
                     displayMode === key
-                      ? 'bg-neutral-900 text-white border-neutral-900'
-                      : 'bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50'
+                      ? 'bg-[#0d0d0c] text-white border-[#0d0d0c]'
+                      : 'bg-white text-[#4a4a46] border-[#e5e5e2] hover:bg-[#f5f5f4]'
                   )}
                 >
                   {icon}{label}
@@ -885,12 +879,12 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
 
           {/* Fields */}
           <div>
-            <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">Champs à inclure</p>
+            <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-2', GeistMono.className)}>Champs à inclure</p>
             <div className="space-y-0.5">
               {Object.entries(fields).map(([key, value]) => (
-                <label key={key} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-neutral-50 transition-colors cursor-pointer">
-                  <input type="checkbox" checked={value} onChange={() => toggle(key)} className="w-3.5 h-3.5 rounded border-neutral-300 accent-neutral-900" />
-                  <span className="text-[13px] text-neutral-600">{FIELD_LABELS[key]}</span>
+                <label key={key} className="flex items-center gap-3 px-3 py-2 rounded-[3px] hover:bg-[#f5f5f4] transition-colors cursor-pointer">
+                  <input type="checkbox" checked={value} onChange={() => toggle(key)} className="w-3.5 h-3.5 rounded-[2px] border-[#d6d6d2] accent-[#0d0d0c]" />
+                  <span className="text-[13px] text-[#4a4a46]">{FIELD_LABELS[key]}</span>
                 </label>
               ))}
             </div>
@@ -899,34 +893,34 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
           {/* Participants */}
           {showParticipants && (
             <div>
-              <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-2">
+              <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-2', GeistMono.className)}>
                 {participantsConfig.title || 'Participants'}
               </p>
               {participants.length === 0 ? (
-                <p className="text-[12px] text-neutral-300 px-1">Aucun membre trouvé sur ce projet.</p>
+                <p className="text-[12px] text-[#b8b8b3] px-1">Aucun membre trouvé sur ce projet.</p>
               ) : (
-                <div className="border border-neutral-200 rounded-lg overflow-hidden divide-y divide-neutral-100">
+                <div className="border border-[#e5e5e2] rounded-[4px] overflow-hidden divide-y divide-[#eeeeec]">
                   {participants.map(member => (
-                    <div key={member.id} className="flex items-center justify-between px-3 py-2.5 hover:bg-neutral-50 transition-colors">
+                    <div key={member.id} className="flex items-center justify-between px-3 py-2.5 hover:bg-[#f5f5f4] transition-colors">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center text-[10px] font-semibold text-neutral-600 flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[10px] font-medium text-[#4a4a46] flex-shrink-0">
                           {member.name?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
-                          <p className="text-[13px] font-medium text-neutral-800">{member.name || '—'}</p>
+                          <p className="text-[13px] font-medium text-[#2e2e2b]">{member.name || '—'}</p>
                           <div className="flex items-center gap-2">
-                            {participantsConfig.showRoles   && member.role  && <p className="text-[11px] text-neutral-400">{member.role}</p>}
-                            {participantsConfig.showContact && member.email && <p className="text-[11px] text-neutral-300">{member.email}</p>}
+                            {participantsConfig.showRoles   && member.role  && <p className="text-[11px] text-[#8a8a84]">{member.role}</p>}
+                            {participantsConfig.showContact && member.email && <p className="text-[11px] text-[#b8b8b3]">{member.email}</p>}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2.5">
-                        <span className={clsx('text-[11px] font-medium', member.present ? 'text-emerald-600' : 'text-neutral-300')}>
+                        <span className={clsx('text-[11px] font-medium', member.present ? 'text-[#0f7a3a]' : 'text-[#b8b8b3]')}>
                           {member.present ? 'Présent' : 'Absent'}
                         </span>
                         <button
                           onClick={() => toggleParticipant(member.id)}
-                          className={clsx('w-8 h-4 rounded-full transition-colors relative flex-shrink-0', member.present ? 'bg-neutral-900' : 'bg-neutral-200')}
+                          className={clsx('w-8 h-4 rounded-full transition-colors relative flex-shrink-0', member.present ? 'bg-[#0d0d0c]' : 'bg-[#eeeeec]')}
                         >
                           <span className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform', member.present ? 'translate-x-4' : 'translate-x-0.5')} />
                         </button>
@@ -941,24 +935,23 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
           {/* Planning */}
           {planningEnabled && (
             <div className="space-y-3">
-              <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">
+              <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em]', GeistMono.className)}>
                 {templateConfig.planning.title || 'Pointage de planning'}
               </p>
 
-              {/* Image list */}
               {planningImageFiles.length > 0 && (
                 <div className="space-y-2">
                   {planningImageFiles.map((img, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-neutral-50 rounded-lg p-2 border border-neutral-200">
-                      <img src={img.url} alt={img.name} className="w-14 h-10 object-cover rounded" />
+                    <div key={i} className="flex items-center gap-3 bg-[#f5f5f4] rounded-[4px] p-2 border border-[#e5e5e2]">
+                      <img src={img.url} alt={img.name} className="w-14 h-10 object-cover rounded-[3px]" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-neutral-900 truncate">{img.name}</p>
-                        <p className="text-[10px] text-neutral-400">Page {i + 1}</p>
+                        <p className="text-[12px] font-medium text-[#0d0d0c] truncate">{img.name}</p>
+                        <p className={clsx('text-[10px] text-[#8a8a84]', GeistMono.className)}>Page {i + 1}</p>
                       </div>
                       <div className="flex gap-1">
-                        <button type="button" onClick={() => movePlanningImage(i, -1)} disabled={i === 0} className="w-6 h-6 flex items-center justify-center rounded hover:bg-neutral-200 disabled:opacity-20 text-[11px] font-bold">▲</button>
-                        <button type="button" onClick={() => movePlanningImage(i, 1)} disabled={i === planningImageFiles.length - 1} className="w-6 h-6 flex items-center justify-center rounded hover:bg-neutral-200 disabled:opacity-20 text-[11px] font-bold">▼</button>
-                        <button type="button" onClick={() => removePlanningImage(i)} className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 text-red-500">
+                        <button type="button" onClick={() => movePlanningImage(i, -1)} disabled={i === 0} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-[#eeeeec] disabled:opacity-20 text-[11px] font-bold">▲</button>
+                        <button type="button" onClick={() => movePlanningImage(i, 1)} disabled={i === planningImageFiles.length - 1} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-[#eeeeec] disabled:opacity-20 text-[11px] font-bold">▼</button>
+                        <button type="button" onClick={() => removePlanningImage(i)} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-[#fde8e8] text-[#dc2626]">
                           <XCloseIcon className="w-3 h-3" />
                         </button>
                       </div>
@@ -969,19 +962,19 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
 
               <label className="block">
                 <input type="file" accept="image/*" multiple onChange={handlePlanningImageUpload} className="sr-only" />
-                <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-neutral-200 rounded-lg cursor-pointer hover:border-neutral-400 hover:bg-neutral-50 transition-all">
-                  <Upload className="w-4 h-4 text-neutral-400" />
-                  <span className="text-[12px] text-neutral-600">Ajouter des captures de planning</span>
+                <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-[#e5e5e2] rounded-[4px] cursor-pointer hover:border-[#8a8a84] hover:bg-[#f5f5f4] transition-all">
+                  <Upload className="w-4 h-4 text-[#8a8a84]" />
+                  <span className="text-[12px] text-[#4a4a46]">Ajouter des captures de planning</span>
                 </div>
               </label>
 
-              <p className="text-[10px] text-neutral-400 px-1">
+              <p className="text-[10px] text-[#8a8a84] px-1">
                 Format recommandé : capture d'écran de votre Gantt MS Project. {templateConfig.planning.imagesPerPage === 2 ? '2 images par page.' : '1 image par page.'}
               </p>
 
               {showPlanningObs && (
-                <div className="space-y-2 pt-3 border-t border-neutral-100">
-                  <p className="text-[12px] font-medium text-neutral-700">{templateConfig.planning.observationsTitle || 'Retards et observations'}</p>
+                <div className="space-y-2 pt-3 border-t border-[#eeeeec]">
+                  <p className="text-[12px] font-medium text-[#2e2e2b]">{templateConfig.planning.observationsTitle || 'Retards et observations'}</p>
                   <RichTextEditor
                     content={planningObservations}
                     onChange={setPlanningObservations}
@@ -996,10 +989,10 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
           {/* Custom sections */}
           {enabledSections.length > 0 && (
             <div className="space-y-4">
-              <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">Sections additionnelles</p>
+              <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em]', GeistMono.className)}>Sections additionnelles</p>
               {customSectionContents.map(section => (
                 <div key={section.id} className="space-y-2">
-                  <label className="text-[12px] font-medium text-neutral-700">{section.title}</label>
+                  <label className="text-[12px] font-medium text-[#2e2e2b]">{section.title}</label>
                   <RichTextEditor
                     content={section.content}
                     onChange={(content) => updateSectionContent(section.id, content)}
@@ -1012,13 +1005,13 @@ function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConf
           )}
         </div>
 
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-neutral-100 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-neutral-600 bg-neutral-100 rounded-lg hover:bg-neutral-200 transition-colors">
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-[#eeeeec] flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors">
             Annuler
           </button>
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-neutral-900 text-white rounded-lg text-[13px] font-medium hover:bg-neutral-800 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             Générer PDF

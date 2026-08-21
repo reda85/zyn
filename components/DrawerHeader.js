@@ -119,11 +119,6 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           .insert({ project_id: pin.project_id, pin_id: pin.id, public_url: publicUrl, sender_id: profile.id })
           .select().single()
         if (pinPhotoError) throw pinPhotoError
-      /*  await supabase.from('events').insert({
-          pin_id: pin.id, category: 'photo_upload',
-          pin_photo_id: newPinPhoto.id, project_id: pin.project_id, user_id: user.auth_id,
-        })
-          */
       }
       onPhotoUploaded?.()
     } catch (err) {
@@ -157,28 +152,28 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           {/* View on canvas — only if positioned */}
           {hasPosition && (
             <button
-              className="hover:bg-gray-100 rounded-full p-2 text-gray-500"
+              className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
               onClick={goToCanvas}
               title="Voir sur le plan"
             >
-              <EyeIcon size={20} />
+              <EyeIcon size={18} />
             </button>
           )}
 
           <button
-            className="hover:bg-pink-100 rounded-full p-2 text-pink-500"
+            className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
             onClick={activateSnippetMode}
             title="Créer un snippet du plan"
           >
-            <Scissors size={20} />
+            <Scissors size={18} />
           </button>
 
           <button
-            className="hover:bg-gray-100 rounded-full p-2 text-gray-500"
+            className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
             onClick={onUploadClick}
             title="Joindre une photo"
           >
-            <Paperclip size={20} />
+            <Paperclip size={18} />
           </button>
 
           <input
@@ -192,11 +187,11 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
 
           {!isGuest && (
             <button
-              className="hover:bg-red-100 rounded-full p-2 text-red-500"
+              className="hover:bg-[#fde8e8] rounded-[4px] p-2 text-[#dc2626] transition-colors"
               onClick={deletePin}
               title="Supprimer"
             >
-              <Trash2 size={20} />
+              <Trash2 size={18} />
             </button>
           )}
 
@@ -204,25 +199,25 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           {!isGuest && (
             <div className="relative" ref={menuRef}>
               <button
-                className="hover:bg-gray-100 rounded-full p-2 text-gray-500 transition-colors"
+                className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
                 onClick={() => setMenuOpen(v => !v)}
                 title="Plus d'options"
               >
-                <MoreVertical size={20} />
+                <MoreVertical size={18} />
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-neutral-200 rounded-xl shadow-lg z-[1100] overflow-hidden py-1">
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[1100] overflow-hidden py-1">
 
                   {/* Repositionner / Placer */}
                   <button
                     onClick={openPlaceModal}
                     disabled={loadingPlans}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
                   >
                     {loadingPlans
-                      ? <div className="w-4 h-4 border-2 border-neutral-300 border-t-neutral-500 rounded-full animate-spin" />
-                      : <MapPin size={16} className="text-neutral-400" />
+                      ? <div className="w-4 h-4 border-2 border-[#e5e5e2] border-t-[#8a8a84] rounded-full animate-spin" />
+                      : <MapPin size={16} className="text-[#8a8a84]" />
                     }
                     {hasPosition ? 'Repositionner sur le plan' : 'Placer sur un plan'}
                   </button>
@@ -231,23 +226,23 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
                   {hasPosition && (
                     <button
                       onClick={removeFromPlan}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors text-left"
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
                     >
-                      <MapPinOff size={16} className="text-neutral-400" />
+                      <MapPinOff size={16} className="text-[#8a8a84]" />
                       Retirer du plan
                     </button>
                   )}
 
-                  <div className="h-px bg-neutral-100 my-1" />
+                  <div className="h-px bg-[#eeeeec] my-1" />
 
                   {/* Archiver / Désarchiver */}
                   <button
                     onClick={toggleArchive}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
                   >
                     {pin.isArchived
-                      ? <RotateCcw size={16} className="text-neutral-400" />
-                      : <Archive size={16} className="text-neutral-400" />
+                      ? <RotateCcw size={16} className="text-[#8a8a84]" />
+                      : <Archive size={16} className="text-[#8a8a84]" />
                     }
                     {pin.isArchived ? 'Désarchiver' : 'Archiver'}
                   </button>
@@ -258,10 +253,10 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           )}
 
           <button
-            className="hover:bg-gray-100 rounded-full p-2 text-gray-500"
+            className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
             onClick={onClose}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { useAtom } from 'jotai';
 import { organizationsAtom, selectedPinAtom } from '@/store/atoms';
 import { supabase } from '@/utils/supabase/client';
 import { useUserData } from '@/hooks/useUserData';
+import { GeistMono } from 'geist/font/mono';
+import clsx from 'clsx';
 
 export default function TagEditor({ onChange, disabled = false }) {
   const [input, setInput] = useState('');
@@ -154,9 +156,9 @@ export default function TagEditor({ onChange, disabled = false }) {
 
   return (
     <div className="w-full relative">
-      <div className="flex flex-wrap gap-2 mb-2">
-        <div className={`flex items-center w-fit px-3 py-1 bg-gray-100 border border-gray-300 rounded-full text-sm text-gray-500 ${disabled ? 'opacity-50' : ''}`}>
-          <Tag className="h-4 w-4 mr-2 text-gray-400 shrink-0" />
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        <div className={clsx('flex items-center w-fit px-2.5 py-1 bg-[#f5f5f4] border border-[#e5e5e2] rounded-[3px] text-[13px] text-[#8a8a84]', disabled && 'opacity-50')}>
+          <Tag className="h-3.5 w-3.5 mr-2 text-[#8a8a84] shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -169,14 +171,14 @@ export default function TagEditor({ onChange, disabled = false }) {
             onKeyDown={handleKeyDown}
             placeholder="Ajouter tag"
             disabled={saving || disabled}
-            className="bg-transparent outline-none w-24 placeholder:text-gray-400 disabled:cursor-not-allowed"
+            className="bg-transparent outline-none w-24 text-[#0d0d0c] placeholder:text-[#b8b8b3] disabled:cursor-not-allowed"
           />
         </div>
 
         {currentTags.map((tag) => (
           <span
             key={tag.id}
-            className="flex items-center px-3 py-1 text-sm bg-violet-100 border border-violet-300 text-violet-700 rounded-full"
+            className="flex items-center px-2.5 py-1 text-[13px] bg-[#e6eeff] border border-[#c5d6fb] text-[#1e3a8a] rounded-[3px]"
           >
             <Tag className="h-3 w-3 mr-1.5 shrink-0" />
             {tag.name}
@@ -185,7 +187,7 @@ export default function TagEditor({ onChange, disabled = false }) {
                 type="button"
                 onClick={() => removeTag(tag)}
                 disabled={saving}
-                className="ml-1.5 text-violet-400 hover:text-violet-700 disabled:opacity-50"
+                className="ml-1.5 text-[#264dc2] hover:text-[#1e3a8a] disabled:opacity-50 transition-colors"
               >
                 <X size={12} />
               </button>
@@ -197,11 +199,11 @@ export default function TagEditor({ onChange, disabled = false }) {
       {!disabled && showDropdown && (suggestions.length > 0 || input.trim()) && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+          className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden"
         >
           {suggestions.length > 0 && (
             <>
-              <p className="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+              <p className={clsx('px-3 pt-2 pb-1 text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em]', GeistMono.className)}>
                 Tags disponibles
               </p>
               <ul>
@@ -213,9 +215,9 @@ export default function TagEditor({ onChange, disabled = false }) {
                         e.preventDefault();
                         addTag(tag);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
                     >
-                      <Tag className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <Tag className="w-3.5 h-3.5 text-[#8a8a84] shrink-0" />
                       <span className="truncate">{tag.name}</span>
                     </button>
                   </li>
@@ -234,7 +236,7 @@ export default function TagEditor({ onChange, disabled = false }) {
                   e.preventDefault();
                   handleCreateAndAdd();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 border-t border-gray-100 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-[#264dc2] hover:bg-[#e6eeff] border-t border-[#eeeeec] transition-colors"
               >
                 <Tag className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">Créer "{input.trim()}"</span>

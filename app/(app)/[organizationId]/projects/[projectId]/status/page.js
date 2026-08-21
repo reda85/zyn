@@ -10,9 +10,8 @@ import { useAtom } from 'jotai'
 import { selectedProjectAtom } from '@/store/atoms'
 import { useParams, useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { Lexend } from 'next/font/google'
-
-const lexend = Lexend({ subsets: ['latin'] })
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 
 /* ---------- StrictMode-safe Droppable ---------- */
 function StrictModeDroppable(props) {
@@ -36,7 +35,7 @@ function ColorPickerPopup({ color, onChange }) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-10 h-10 rounded-lg border border-border"
+        className="w-8 h-8 rounded-[4px] border border-[#e5e5e2]"
         style={{ backgroundColor: color }}
         title="Changer la couleur"
       />
@@ -123,7 +122,7 @@ export default function ProjectStatuses() {
       .insert({
         project_id: projectId,
         name: 'Nouveau statut',
-        color: '#3b82f6',
+        color: '#2f5ee0',
         order: insertIndex,
       })
       .select()
@@ -153,26 +152,30 @@ export default function ProjectStatuses() {
   }
 
   if (loading) {
-    return <div className="h-screen flex items-center justify-center">Chargement…</div>
+    return (
+      <div className={clsx('h-screen flex items-center justify-center bg-[#fafaf9] text-[13px] text-[#8a8a84]', GeistSans.className)}>
+        Chargement…
+      </div>
+    )
   }
 
   return (
-    <div className={clsx('min-h-screen bg-background', lexend.className)}>
+    <div className={clsx('min-h-screen bg-[#fafaf9]', GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
 
         {/* Retour */}
         <button
           onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 px-4 py-2 bg-secondary rounded-full text-sm"
+          className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-[#eeeeec] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#e5e5e2] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
 
         {/* Titre */}
-        <h1 className="text-4xl font-bold mb-4">Gestionnaire de statuts</h1>
+        <h1 className="text-[30px] font-medium tracking-[-0.02em] text-[#050505] mb-4">Gestionnaire de statuts</h1>
 
         {/* Description */}
-        <p className="text-muted-foreground leading-relaxed max-w-2xl mb-8">
+        <p className="text-[13px] text-[#666660] leading-relaxed max-w-2xl mb-8">
           Les statuts permettent de classer les tâches selon leur progression.
           Le premier et le dernier statut sont fixes et représentent le début et la fin du cycle.
         </p>
@@ -187,7 +190,7 @@ export default function ProjectStatuses() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="space-y-3"
+                className="space-y-2"
               >
                 {statuses.map((status, index) => (
                   <Draggable
@@ -201,7 +204,7 @@ export default function ProjectStatuses() {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         style={provided.draggableProps.style}
-                        className="p-4 rounded-xl border bg-secondary/30"
+                        className="p-3 rounded-[4px] border border-[#e5e5e2] bg-[#f5f5f4]"
                       >
                         <div className="flex items-center gap-3">
 
@@ -211,11 +214,11 @@ export default function ProjectStatuses() {
                               ? provided.dragHandleProps
                               : {})}
                             className={clsx(
-                              'cursor-grab',
+                              'cursor-grab text-[#8a8a84]',
                               isFixed(index) && 'opacity-30 cursor-not-allowed'
                             )}
                           >
-                            <GripVertical />
+                            <GripVertical className="w-4 h-4" />
                           </div>
 
                           {/* Nom */}
@@ -227,11 +230,12 @@ export default function ProjectStatuses() {
                               setStatuses(copy)
                             }}
                             onBlur={() => saveStatus(status)}
+                            className="border-[#e5e5e2] bg-white focus:outline-none focus:border-[#0d0d0c] focus:ring-0 font-medium text-[13px] text-[#0d0d0c]"
                           />
 
                           {/* Badge “Fixe” */}
                           {isFixed(index) && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-muted">
+                            <span className={clsx('text-[11px] px-2 py-0.5 rounded-[3px] bg-[#eeeeec] text-[#8a8a84] font-medium', GeistMono.className)}>
                               Fixe
                             </span>
                           )}
@@ -253,8 +257,9 @@ export default function ProjectStatuses() {
                               variant="ghost"
                               size="icon"
                               onClick={() => removeStatus(status, index)}
+                              className="hover:bg-[#fde8e8] text-[#dc2626] hover:text-[#9c1b1b] rounded-[3px] transition-colors"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           )}
                         </div>
@@ -269,9 +274,9 @@ export default function ProjectStatuses() {
                 <button
                   disabled={isDragging}
                   onClick={addStatus}
-                  className="w-full p-4 rounded-xl bg-secondary flex justify-center gap-2 disabled:opacity-40"
+                  className="w-full p-3 rounded-[4px] bg-[#f5f5f4] border border-[#e5e5e2] text-[#0d0d0c] text-[13px] font-medium flex justify-center items-center gap-2 hover:bg-[#eeeeec] transition-colors disabled:opacity-40"
                 >
-                  <Plus /> Ajouter un statut
+                  <Plus className="w-4 h-4" /> Ajouter un statut
                 </button>
               </div>
             )}

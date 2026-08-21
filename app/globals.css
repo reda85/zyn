@@ -138,3 +138,11 @@
 .animate-draw-line {
   animation: draw-line 2s ease-out forwards;
 }
+
+body {
+  font-family: var(--font-geist-sans);
+}
+
+code, pre {
+  font-family: var(--font-geist-mono);
+}

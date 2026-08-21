@@ -9,6 +9,7 @@ import { useAtom } from 'jotai';
 import { pinsAtom, selectedPinAtom } from '@/store/atoms';
 import clsx from 'clsx';
 import { useUserData } from '@/hooks/useUserData';
+import { GeistMono } from 'geist/font/mono';
 
 export default function IntervenantDatePicker({ pin }) {
   const [selectedIntervenant, setSelectedIntervenant] = useState(
@@ -26,7 +27,6 @@ export default function IntervenantDatePicker({ pin }) {
     pin?.due_date ? new Date(pin.due_date) : null
   );
 
-  // Track previous pin id to detect actual pin switches (not field updates)
   const prevPinIdRef             = useRef(pin?.id);
   const previousIntervenantIdRef = useRef(pin?.assigned_to?.id ?? null);
   const isFirstMountRef          = useRef(true);
@@ -39,10 +39,8 @@ export default function IntervenantDatePicker({ pin }) {
     if (pin?.project_id) getAllIntervenants();
   }, [pin?.project_id]);
 
-  // Only reset local state when the pin ID actually changes (drawer switches to another pin)
-  // NOT when fields like assigned_to or due_date update — those are handled optimistically below
   useEffect(() => {
-    if (pin?.id === prevPinIdRef.current) return;  // same pin, skip
+    if (pin?.id === prevPinIdRef.current) return;
     prevPinIdRef.current = pin?.id;
 
     isInitializingRef.current = true;
@@ -124,7 +122,6 @@ export default function IntervenantDatePicker({ pin }) {
         ? null
         : { id: intervenant.id, name: intervenant.name };
 
-      // Update pinsAtom — no setSelectedPin to avoid re-render cascade
       setPins(prev => prev.map(p =>
         p.id === selectedPin.id ? { ...p, assigned_to: assignedObj } : p
       ));
@@ -132,7 +129,6 @@ export default function IntervenantDatePicker({ pin }) {
     if (error) console.error('updateAssignedIntervenant error:', error);
   };
 
-  // Fire only on real user-driven intervenant changes
   useEffect(() => {
     if (isFirstMountRef.current) { isFirstMountRef.current = false; return; }
     if (isInitializingRef.current) { isInitializingRef.current = false; return; }
@@ -156,7 +152,6 @@ export default function IntervenantDatePicker({ pin }) {
 
     if (data) {
       setSelectedDate(date);
-      // Update pinsAtom only — no setSelectedPin to avoid re-render cascade
       setPins(prev => prev.map(p =>
         p.id === selectedPin.id ? { ...p, due_date: date } : p
       ));
@@ -167,13 +162,13 @@ export default function IntervenantDatePicker({ pin }) {
   const displayText = selectedIntervenant?.name || 'Assigner intervenant';
 
   const IconCircle = ({ children }) => (
-    <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm">
+    <div className="w-6 h-6 rounded-full bg-white border border-[#e5e5e2] flex items-center justify-center">
       {children}
     </div>
   );
 
   return (
-    <div className="flex flex-row text-sm gap-4 items-center">
+    <div className="flex flex-row text-[13px] gap-4 items-center">
       {/* Combobox */}
       <div className="w-56 relative">
         <Combobox value={selectedIntervenant} onChange={handleSelect} disabled={isGuest}>
@@ -184,43 +179,43 @@ export default function IntervenantDatePicker({ pin }) {
                   <div className="relative">
                     <Combobox.Input
                       autoFocus
-                      className="w-full border border-border/50 rounded-lg px-3 py-2 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-muted hover:bg-muted/80 text-gray-800 placeholder:text-muted-foreground transition-all"
+                      className="w-full border border-[#e5e5e2] rounded-[4px] px-3 py-2 pl-10 pr-10 focus:outline-none focus:border-[#0d0d0c] bg-[#f5f5f4] hover:bg-[#eeeeec] text-[#0d0d0c] placeholder:text-[#b8b8b3] transition-colors"
                       onChange={e => setQuery(e.target.value)}
                       onFocus={() => setQuery('')}
                       displayValue={() => query || selectedIntervenant?.name || ''}
                       placeholder="Ajouter un intervenant..."
                     />
                     <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                      <IconCircle><User2Icon size={14} className="text-gray-800" /></IconCircle>
+                      <IconCircle><User2Icon size={13} className="text-[#4a4a46]" /></IconCircle>
                     </div>
                     <button
                       type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-gray-800 transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8a8a84] hover:text-[#0d0d0c] transition-colors"
                       onClick={() => { setSelectedIntervenant(null); setQuery(''); setIsEditing(false); }}
                     >
-                      <IconCircle><XIcon size={14} className="text-gray-800" /></IconCircle>
+                      <IconCircle><XIcon size={13} className="text-[#4a4a46]" /></IconCircle>
                     </button>
                   </div>
                   {open && (
-                    <Combobox.Options className="absolute mt-2 w-full bg-card shadow-lg rounded-lg max-h-60 overflow-auto z-10 border border-border/50 py-1">
+                    <Combobox.Options className="absolute mt-2 w-full bg-white shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] max-h-60 overflow-auto z-10 border border-[#e5e5e2] py-1">
                       {filteredIntervenants.map(person => (
                         <Combobox.Option
                           key={person.id}
                           value={person}
                           className={({ active }) =>
-                            `flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors ${active ? 'bg-secondary/50' : ''}`
+                            clsx('flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors', active && 'bg-[#f5f5f4]')
                           }
                         >
                           {person.id === 0 ? (
-                            <span className="text-muted-foreground italic text-sm">Aucun intervenant</span>
+                            <span className="text-[#8a8a84] italic text-[13px]">Aucun intervenant</span>
                           ) : (
                             <>
-                              <div className="w-8 h-8 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-foreground">
+                              <div className="w-7 h-7 flex-shrink-0 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[11px] font-medium text-[#0d0d0c]">
                                 {getInitials(person.name)}
                               </div>
                               <div className="flex flex-col">
-                                <span className="font-medium text-gray-800 text-sm">{person.name}</span>
-                                <span className="text-muted-foreground text-xs">{person.email}</span>
+                                <span className="font-medium text-[#0d0d0c] text-[13px]">{person.name}</span>
+                                <span className="text-[#8a8a84] text-[11px]">{person.email}</span>
                               </div>
                             </>
                           )}
@@ -234,16 +229,16 @@ export default function IntervenantDatePicker({ pin }) {
                   as="button"
                   disabled={isGuest}
                   className={clsx(
-                    'w-full border border-border/50 rounded-lg px-3 py-2 pl-10 text-left transition-all relative text-sm font-medium',
+                    'w-full border border-[#e5e5e2] rounded-[4px] px-3 py-2 pl-10 text-left transition-colors relative text-[13px] font-medium',
                     isGuest
-                      ? 'bg-muted/70 cursor-not-allowed opacity-80 text-muted-foreground'
-                      : 'bg-muted hover:bg-muted/80 text-gray-800 cursor-pointer'
+                      ? 'bg-[#f5f5f4] cursor-not-allowed opacity-70 text-[#8a8a84]'
+                      : 'bg-[#f5f5f4] hover:bg-[#eeeeec] text-[#0d0d0c] cursor-pointer'
                   )}
                   onClick={() => { if (!isGuest) { setIsEditing(true); setTimeout(() => setQuery(''), 0); } }}
                 >
                   {displayText}
-                  <div className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-800">
-                    <IconCircle><User2Icon size={14} className="text-gray-800" /></IconCircle>
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2">
+                    <IconCircle><User2Icon size={13} className="text-[#4a4a46]" /></IconCircle>
                   </div>
                 </Combobox.Button>
               )}
@@ -260,7 +255,7 @@ export default function IntervenantDatePicker({ pin }) {
             onChange={date => { setIsPickingDate(false); updateDueDate(date); }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus
-            className="w-full border border-border/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-muted hover:bg-muted/80 text-gray-800"
+            className={clsx('w-full border border-[#e5e5e2] rounded-[4px] px-3 py-2 focus:outline-none focus:border-[#0d0d0c] bg-[#f5f5f4] hover:bg-[#eeeeec] text-[#0d0d0c]', GeistMono.className)}
             dateFormat="dd/MM/yyyy"
             placeholderText="Sélectionner une date"
           />
@@ -270,18 +265,19 @@ export default function IntervenantDatePicker({ pin }) {
               type="button"
               disabled={isGuest}
               className={clsx(
-                'w-full border rounded-lg px-3 py-2 pl-10 text-left relative transition-all text-sm font-medium',
+                'w-full border rounded-[4px] px-3 py-2 pl-10 text-left relative transition-colors text-[13px] font-medium',
+                GeistMono.className,
                 isGuest
-                  ? 'bg-muted/70 cursor-not-allowed opacity-80 border-border/50 text-muted-foreground'
+                  ? 'bg-[#f5f5f4] cursor-not-allowed opacity-70 border-[#e5e5e2] text-[#8a8a84]'
                   : isOverDue
-                    ? 'border-destructive text-destructive bg-red-50 hover:bg-red-50/80 cursor-pointer'
-                    : 'border-border/50 text-gray-800 bg-muted hover:bg-muted/80 cursor-pointer'
+                    ? 'border-[#f5c6c6] text-[#9c1b1b] bg-[#fde8e8] hover:bg-[#fbdbdb] cursor-pointer'
+                    : 'border-[#e5e5e2] text-[#0d0d0c] bg-[#f5f5f4] hover:bg-[#eeeeec] cursor-pointer'
               )}
               onClick={() => { if (!isGuest) setIsPickingDate(true); }}
             >
               {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
-              <div className={clsx('absolute left-2 top-1/2 -translate-y-1/2', isOverDue ? 'text-destructive' : 'text-gray-800')}>
-                <IconCircle><CalendarIcon size={14} className="text-gray-800" /></IconCircle>
+              <div className="absolute left-2 top-1/2 -translate-y-1/2">
+                <IconCircle><CalendarIcon size={13} className={isOverDue ? 'text-[#dc2626]' : 'text-[#4a4a46]'} /></IconCircle>
               </div>
             </button>
 
@@ -290,11 +286,11 @@ export default function IntervenantDatePicker({ pin }) {
                 type="button"
                 className={clsx(
                   'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
-                  isOverDue ? 'text-destructive hover:text-destructive/80 bg-red-50' : 'text-muted-foreground hover:text-destructive'
+                  isOverDue ? 'text-[#dc2626] hover:text-[#9c1b1b]' : 'text-[#8a8a84] hover:text-[#dc2626]'
                 )}
                 onClick={e => { e.stopPropagation(); updateDueDate(null); }}
               >
-                <IconCircle><XIcon size={14} className="text-gray-800" /></IconCircle>
+                <IconCircle><XIcon size={13} className="text-[#4a4a46]" /></IconCircle>
               </button>
             )}
           </div>

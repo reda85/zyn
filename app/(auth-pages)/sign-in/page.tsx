@@ -5,7 +5,7 @@ import { SubmitButton } from "../../../components/submit-button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import Link from "next/link";
-
+import { GeistSans } from "geist/font/sans";
 
 type SearchParams = {
   error?: string;
@@ -19,7 +19,7 @@ const translateError = (error?: string) => {
     "Invalid login credentials": "Email ou mot de passe incorrect.",
     "Invalid email or password": "Email ou mot de passe incorrect.",
     "Email not confirmed": "Veuillez confirmer votre adresse email avant de vous connecter.",
-    "Email not found": "Cet email n’existe pas dans notre système.",
+    "Email not found": "Cet email n'existe pas dans notre système.",
     "User not found": "Cet utilisateur n'existe pas.",
     "Password should be at least 6 characters":
       "Le mot de passe doit contenir au moins 6 caractères.",
@@ -30,89 +30,85 @@ const translateError = (error?: string) => {
     "Rate limit exceeded": "Trop de tentatives. Veuillez réessayer dans quelques instants.",
     "Over request limit": "Vous avez réalisé trop de demandes. Veuillez patienter.",
     "Service unavailable":
-      "Le service d’authentification est momentanément indisponible.",
+      "Le service d'authentification est momentanément indisponible.",
     "Unexpected error occurred":
-      "Une erreur inattendue s’est produite. Veuillez réessayer.",
+      "Une erreur inattendue s'est produite. Veuillez réessayer.",
   };
 
-  return map[error] ?? "Une erreur s’est produite. Veuillez réessayer.";
+  return map[error] ?? "Une erreur s'est produite. Veuillez réessayer.";
 };
 
 export default async function Login({
   searchParams,
 }: {
   searchParams: SearchParams;
-})  {
- // const searchParams = await props.searchParams;
+}) {
   return (
-    <div className="flex min-h-screen w-screen overflow-hidden bg-background font-sans">
+    <div className={`flex min-h-screen w-screen overflow-hidden bg-[#fafaf9] ${GeistSans.className}`}>
 
-      {/* 1. BRANDING/LOGO SIDE (Left Half) */}
-      <div className="hidden lg:flex flex-col w-1/2 bg-muted/30 items-center justify-center p-16 border-r border-border relative overflow-hidden">
-        {/* Background effects */}
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-40 pointer-events-none"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl mix-blend-multiply animate-blob"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000"></div>
-
+      {/* 1. BRANDING SIDE (Left Half) */}
+      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-[#e5e5e2] relative overflow-hidden">
         <div className="text-center relative z-10 max-w-lg">
-          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/20">
-            <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
+          <div className="w-16 h-16 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center mx-auto mb-8">
+            <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={40} height={40} />
           </div>
-          <h2 className="text-5xl font-bold text-foreground leading-tight font-heading mb-6">
+          <h2 className="text-[40px] font-medium text-[#050505] leading-tight tracking-[-0.02em] mb-6">
             Suivez vos chantiers en toute simplicité
           </h2>
-          <p className="text-muted-foreground text-xl leading-relaxed font-sans">
+          <p className="text-[#666660] text-[17px] leading-relaxed">
             Connectez-vous pour accéder à votre tableau de bord et gérer vos projets efficacement.
           </p>
         </div>
       </div>
 
       {/* 2. SIGN-IN FORM SIDE (Right Half) */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-background relative">
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#fafaf9] relative">
         <div className="w-full max-w-md p-8 m-8">
           {/* Logo for smaller screens */}
           <div className="mb-8 lg:hidden flex justify-center">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={24} height={24} />
+            <div className="w-11 h-11 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center">
+              <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={22} height={22} />
             </div>
           </div>
 
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold text-foreground mb-3 font-heading">Bienvenue à Zaynspace</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-[24px] font-medium text-[#050505] mb-3 tracking-[-0.011em]">Bienvenue à Zaynspace</h1>
+            <p className="text-[#8a8a84] text-[13px]">
               Vous n'avez pas de compte ?{" "}
               <Link
-                className="text-primary font-medium hover:text-primary/80 transition-colors underline underline-offset-4"
+                className="text-[#2f5ee0] font-medium hover:text-[#264dc2] transition-colors underline underline-offset-4"
                 href="/sign-up"
               >
                 Se connecter
               </Link>
             </p>
           </div>
- {searchParams?.error && (
-            <div className="mb-6 w-full bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+
+          {searchParams?.error && (
+            <div className="mb-6 w-full bg-[#fde8e8] border border-[#f5c6c6] text-[#9c1b1b] px-4 py-3 rounded-[4px] text-[13px]">
               {translateError(searchParams.error)}
             </div>
           )}
+
           <form className="space-y-6">
             <div className="space-y-4">
               {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-foreground">Email</Label>
+                <Label htmlFor="email" className="text-[13px] font-medium text-[#0d0d0c]">Email</Label>
                 <Input
                   name="email"
                   placeholder="you@example.com"
                   required
-                  className="w-full bg-background border-input focus:ring-primary"
+                  className="w-full h-9 bg-white border-[#e5e5e2] rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] focus:ring-0"
                 />
               </div>
 
               {/* Password Field */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-sm font-medium text-foreground">Mot de passe</Label>
+                  <Label htmlFor="password" className="text-[13px] font-medium text-[#0d0d0c]">Mot de passe</Label>
                   <Link
-                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    className="text-[12px] text-[#8a8a84] hover:text-[#2f5ee0] transition-colors"
                     href="/forgot-password"
                   >
                     Mot de passe oublié ?
@@ -123,7 +119,7 @@ export default async function Login({
                   name="password"
                   placeholder="Votre mot de passe"
                   required
-                  className="w-full bg-background border-input focus:ring-primary"
+                  className="w-full h-9 bg-white border-[#e5e5e2] rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] focus:ring-0"
                 />
               </div>
             </div>
@@ -132,18 +128,17 @@ export default async function Login({
             <SubmitButton
               pendingText="Connexion..."
               formAction={signInAction}
-              className="w-full bg-primary text-primary-foreground font-medium py-3 px-4 rounded-lg hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95"
+              className="w-full bg-[#0d0d0c] text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-[#1a1a18] transition-colors"
             >
               Se connecter
             </SubmitButton>
 
             {/* Form Message */}
- {searchParams?.error && (
-  <FormMessage
-    message={{ error: searchParams.error }}
-  />
-)}
-
+            {searchParams?.error && (
+              <FormMessage
+                message={{ error: searchParams.error }}
+              />
+            )}
           </form>
         </div>
       </div>
