@@ -9,6 +9,8 @@ import { pinsAtom } from '@/store/atoms';
 import dayjs from 'dayjs';
 import isToday from 'dayjs/plugin/isToday';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import { GeistSans } from 'geist/font/sans';
+import clsx from 'clsx';
 
 import CategoryFilter from './CategoryFilter';
 import CreatedByMeFilter from './CreatedByMeFilter';
@@ -39,7 +41,7 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
     overdue: false,
     projectPlan: false,
     tag: false,
-    showArchived: false, // ← hidden by default
+    showArchived: false,
   });
 
   const [categoryTags, setCategoryTags] = useState([]);
@@ -49,7 +51,7 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
   const applyFilters = () => {
     let filtered = [...originalPins];
 
-     if (!filters.showArchived) {
+    if (!filters.showArchived) {
       filtered = filtered.filter((pin) => !pin.isArchived);
     }
 
@@ -137,19 +139,21 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
-   const archivedCount = pins.filter((p) => p.isArchived).length;
+  const archivedCount = pins.filter((p) => p.isArchived).length;
 
   return (
     <>
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-2 py-2 bg-stone-100 rounded-md shadow hover:bg-stone-200 border border-gray-300"
+        className={clsx(
+          'flex items-center gap-1.5 px-2.5 py-[7px] rounded-[4px] border transition-colors',
+          GeistSans.className,
+          'bg-white text-[#4a4a46] border-[#e5e5e2] hover:bg-[#f5f5f4]'
+        )}
       >
-        <div className="flex flex-row items-center gap-2">
-          <ListFilterIcon className="h-5 w-5" />
-          <span className="text-xs font-semibold">Filtres</span>
-        </div>
+        <ListFilterIcon className="h-4 w-4" />
+        <span className="text-[13px] font-medium">Filtres</span>
       </button>
 
       {open &&
@@ -157,15 +161,18 @@ export default function ListFilterPanel({ pins, setPins, originalPins, setOrigin
           <div
             ref={panelRef}
             style={{ top: position.top, left: position.left }}
-            className="absolute z-50 w-[24rem] max-w-[calc(100vw-2rem)] bg-white border border-gray-200 shadow-lg py-4 rounded-md"
+            className={clsx(
+              'absolute z-50 w-[24rem] max-w-[calc(100vw-2rem)] bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] py-4 rounded-[4px]',
+              GeistSans.className
+            )}
           >
             <div className="flex justify-between items-center mb-3 px-4">
-              <h3 className="text-sm font-semibold">Filtres</h3>
+              <h3 className="text-[13px] font-medium text-[#050505]">Filtres</h3>
               <button
                 onClick={() => setOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"
               >
-                <XMarkIcon className="h-5 w-5" />
+                <XMarkIcon className="h-4 w-4 text-[#8a8a84]" />
               </button>
             </div>
 

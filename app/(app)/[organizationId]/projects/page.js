@@ -203,8 +203,8 @@ export default function ProjectsPage({ params }) {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Projets</h1>
-            <p className="text-[12px] text-[#8a8a84] mt-0.5">
-              <span className={GeistMono.className}>{projects.length}</span> projet
+            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+              {projects.length} projet
               {projects.length !== 1 ? 's' : ''} au total
             </p>
           </div>

@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FolderKanban, Users, BarChart3, Settings, ChevronsUpDown, Check } from 'lucide-react'
+import { FolderKanban, Users, BarChart3, Settings, ChevronsUpDown, Check, LogOut } from 'lucide-react'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
 import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
+import { signOutAction } from '@/app/actions'
 import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
@@ -37,6 +38,10 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
       setSelectedOrganization(org)
       router.push(`/${org.id}/projects`)
     }
+  }
+
+  const handleSignOut = async () => {
+    await signOutAction()
   }
 
   const getInitials = (fullName) => {
@@ -134,23 +139,33 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
         })}
       </nav>
 
-      {/* ── Profile ── */}
+      {/* ── Profile + Sign out ── */}
       <div className="px-3 pb-4">
         <div className="h-px bg-[#eeeeec] mb-3" />
-        <Link
-          href={`/${organizationId}/profile`}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-[4px] hover:bg-[#f5f5f4] transition-colors group"
-        >
-          <div className="h-7 w-7 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[10px] font-medium text-[#0d0d0c] flex-shrink-0">
-            {getInitials(profile?.full_name)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-[#0d0d0c] truncate leading-tight">
-              {profile?.full_name || user?.email || 'Utilisateur'}
-            </p>
-            <p className="text-[11px] text-[#8a8a84] leading-tight">Mon profil</p>
-          </div>
-        </Link>
+        <div className="flex items-center gap-1 group">
+          <Link
+            href={`/${organizationId}/profile`}
+            className="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 rounded-[4px] hover:bg-[#f5f5f4] transition-colors"
+          >
+            <div className="h-7 w-7 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[10px] font-medium text-[#0d0d0c] flex-shrink-0">
+              {getInitials(profile?.full_name)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-medium text-[#0d0d0c] truncate leading-tight">
+                {profile?.full_name || user?.email || 'Utilisateur'}
+              </p>
+              <p className="text-[11px] text-[#8a8a84] leading-tight">Mon profil</p>
+            </div>
+          </Link>
+
+          <button
+            onClick={handleSignOut}
+            title="Se déconnecter"
+            className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-[3px] text-[#8a8a84] hover:bg-[#fde8e8] hover:text-[#9c1b1b] transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </aside>
   )

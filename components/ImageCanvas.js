@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import {
   categoriesAtom, filteredPinsAtom, focusOnPinAtom,
@@ -576,26 +578,61 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
           userSelect: 'none',
         }}
       >
-        {/* Controls */}
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5">
-          <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden border border-[#e5e5e2]">
-            <button onClick={zoomOut} className="p-2.5 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors border-r border-[#e5e5e2]">
-              <ZoomOut className="h-4 w-4 text-[#4a4a46]" />
-            </button>
-            <button onClick={zoomIn} className="p-2.5 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors">
-              <ZoomIn className="h-4 w-4 text-[#4a4a46]" />
-            </button>
-          </div>
+                {/* Controls */}
+        <div className="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-3">
+
+          {/* Pin mode toggle group */}
           {!isGuest && (
-            <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden border border-[#e5e5e2]">
-              <button onClick={() => setPinMode(false)} className={`p-2.5 transition-colors border-r border-[#e5e5e2] ${!pinMode ? 'bg-[#2f5ee0] text-white' : 'hover:bg-[#f5f5f4] text-[#4a4a46]'}`}>
-                <PointerIcon className="h-4 w-4" />
+            <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-[#e5e5e2] overflow-hidden">
+              <button
+                onClick={() => setPinMode(false)}
+                title="Mode déplacement"
+                className={clsx(
+                  'p-3 transition-colors border-b border-[#e5e5e2] relative group',
+                  !pinMode ? 'bg-[#2f5ee0] text-white' : 'bg-white hover:bg-[#f5f5f4] text-[#8a8a84]'
+                )}
+              >
+                <PointerIcon className="h-[18px] w-[18px]" />
+                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-[#0d0d0c] text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  Déplacer
+                </span>
               </button>
-              <button onClick={() => setPinMode(true)} className={`p-2.5 transition-colors ${pinMode ? 'bg-[#2f5ee0] text-white' : 'hover:bg-[#f5f5f4] text-[#4a4a46]'}`}>
-                <MapPinIcon className="h-4 w-4" />
+              <button
+                onClick={() => setPinMode(true)}
+                title="Placer un pin"
+                className={clsx(
+                  'p-3 transition-colors relative group',
+                  pinMode ? 'bg-[#2f5ee0] text-white' : 'bg-white hover:bg-[#f5f5f4] text-[#8a8a84]'
+                )}
+              >
+                <MapPinIcon className="h-[18px] w-[18px]" />
+                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-[#0d0d0c] text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  Placer un pin
+                </span>
               </button>
             </div>
           )}
+
+          {/* Zoom controls */}
+          <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-[#e5e5e2] overflow-hidden">
+            <button
+              onClick={zoomIn}
+              title="Zoomer"
+              className="p-3 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors border-b border-[#e5e5e2] text-[#4a4a46]"
+            >
+              <ZoomIn className="h-[18px] w-[18px]" />
+            </button>
+            <div className={clsx('px-2 py-1.5 text-center text-[11px] font-medium text-[#8a8a84] border-b border-[#e5e5e2] select-none', GeistMono.className)}>
+              {Math.round(scale * 100)}%
+            </div>
+            <button
+              onClick={zoomOut}
+              title="Dézoomer"
+              className="p-3 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors text-[#4a4a46]"
+            >
+              <ZoomOut className="h-[18px] w-[18px]" />
+            </button>
+          </div>
         </div>
 
         {/* OSD tiled viewer */}

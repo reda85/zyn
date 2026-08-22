@@ -75,16 +75,21 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
                 </span>
               </div>
 
-              {/* Photos */}
+                           {/* Photos */}
               {pin.pins_photos?.length > 0 && (
                 <div className="flex flex-row gap-1.5 items-center flex-wrap ml-7">
-                  {pin.pins_photos.map((photo, i) => (
+                  {pin.pins_photos.slice(0, 3).map((photo, i) => (
                     <img
                       key={i}
                       src={photo.public_url}
                       className="w-12 h-12 rounded-[3px] border border-[#e5e5e2] object-cover"
                     />
                   ))}
+                  {pin.pins_photos.length > 3 && (
+                    <span className={clsx('text-[11px] font-medium text-[#8a8a84]', GeistMono.className)}>
+                      + {pin.pins_photos.length - 3} photos
+                    </span>
+                  )}
                 </div>
               )}
 
