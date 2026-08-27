@@ -3,7 +3,7 @@ import { useAtom } from 'jotai'
 import { categoriesAtom, projectPlansAtom, selectedPinAtom, selectedPlanAtom, statusesAtom, pinsAtom } from '@/store/atoms'
 import NavBar from '@/components/NavBar'
 import { selectedProjectAtom } from '@/store/atoms'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
@@ -113,6 +113,8 @@ export default function Tasks({ params }) {
   const [selectedTemplate, setSelectedTemplate]       = useState(null)
   const [availableTemplates, setAvailableTemplates]   = useState([])
   const [projectMembers, setProjectMembers]           = useState([])
+  const [loading, setLoading] = useState(true)
+  const fetchedKeyRef = useRef(null)
 
   useEffect(() => {
     const q = searchQuery.toLowerCase()
@@ -191,23 +193,37 @@ export default function Tasks({ params }) {
   }, [projectId])
 
   useEffect(() => {
-    if (!projectId || !user || !profile) return
-    const isGuest = profile?.role === 'guest'
+    if (!projectId || !user?.id || !profile?.id) return
+
+    const key = `${projectId}:${user.id}:${profile.role}`
+    if (fetchedKeyRef.current === key) return
+    fetchedKeyRef.current = key
+
     const fetchPins = async () => {
-      let query = supabase
-        .from('pdf_pins')
-        .select(
-          'id,isArchived,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number,organization_id),project_id,pins_photos(id,public_url),plans(id,name,file_url),pin_tags(tag_id,tags(*))'
-        )
-        .is('deleted_at', null)
-        .eq('project_id', projectId)
-      if (isGuest) query = query.eq('assigned_to', profile.id)
-      const { data, error } = await query
-      if (data) setAllPins(data)
-      if (error) console.error('pins fetch', error)
+      setLoading(true)
+      try {
+        const isGuest = profile.role === 'guest'
+        let query = supabase
+          .from('pdf_pins')
+          .select(
+            'id,isArchived,name,note,x,y,created_by,status_id,assigned_to(id,name),category_id,categories(name),due_date,pin_number,pdf_name,projects(id,name,project_number,organization_id),project_id,pins_photos(id,public_url),plans(id,name,file_url),pin_tags(tag_id,tags(*))'
+          )
+          .is('deleted_at', null)
+          .eq('project_id', projectId)
+        if (isGuest) query = query.eq('assigned_to', profile.id)
+
+        const { data, error } = await query
+        if (error) {
+          console.error('pins fetch', error)
+          return
+        }
+        setAllPins(data || [])
+      } finally {
+        setLoading(false)
+      }
     }
     fetchPins()
-  }, [projectId, user, profile])
+  }, [projectId, user?.id, profile?.id, profile?.role])
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -292,7 +308,6 @@ export default function Tasks({ params }) {
       }
 
       const { downloadUrl, fileName } = await response.json()
-      console.log('downloadUrl =', downloadUrl)
       if (!downloadUrl) throw new Error('URL de téléchargement manquante')
 
       const a = document.createElement('a')
@@ -535,6 +550,12 @@ export default function Tasks({ params }) {
               )}
 
               <div className="overflow-x-auto">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
+                    <div className="w-7 h-7 border-2 border-[#e5e5e2] border-t-[#0d0d0c] rounded-full animate-spin" />
+                    <p className="text-[13px] text-[#8a8a84] text-center">Chargement...</p>
+                  </div>
+                ) : (
                 <table className="w-full" style={{ borderCollapse: 'collapse' }}>
                   <thead>
                     <tr className="bg-[#f5f5f4] border-b border-[#e5e5e2]">
@@ -652,6 +673,7 @@ export default function Tasks({ params }) {
                     ))}
                   </tbody>
                 </table>
+                )}
               </div>
             </div>
           </div>

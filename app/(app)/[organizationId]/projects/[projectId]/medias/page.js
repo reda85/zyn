@@ -2,7 +2,7 @@
 import { useAtom } from 'jotai'
 import { selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
 import NavBar from '@/components/NavBar'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
@@ -32,6 +32,8 @@ export default function Medias({ params }) {
 
   const [users, setUsers] = useState([])
   const [tags, setTags] = useState([])
+  const [loading, setLoading] = useState(true)
+  const fetchedKeyRef = useRef(null)
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -47,30 +49,44 @@ export default function Medias({ params }) {
   }, [projectId])
 
   useEffect(() => {
-    if (!projectId || !user || !profile) return
+    if (!projectId || !user?.id || !profile?.id) return
+
+    const key = `${projectId}:${user.id}:${profile.role}`
+    if (fetchedKeyRef.current === key) return
+    fetchedKeyRef.current = key
+
     const fetchMedias = async () => {
-      if (profile?.role === 'guest') {
-        const { data, error } = await supabase
-          .from('pins_photos')
-          .select('*, pdf_pins!inner(*, assigned_to)')
-          .eq('project_id', projectId)
-          .eq('pdf_pins.assigned_to', profile.id)
-          .order('created_at', { ascending: false })
-        if (data) { setMedias(data); setFilteredMedias(data) }
-        if (error) console.error('Medias error', error)
-      } else {
-        const { data, error } = await supabase
-          .from('pins_photos')
-          .select('*, pdf_pins(*,assigned_to(id,name))')
-          .eq('project_id', projectId)
-          .is('deleted_at', null)
-          .order('created_at', { ascending: false })
-        if (data) { setMedias(data); setFilteredMedias(data) }
-        if (error) console.error('Medias error', error)
+      setLoading(true)
+      try {
+        const isGuest = profile.role === 'guest'
+        const query = isGuest
+          ? supabase
+              .from('pins_photos')
+              .select('*, pdf_pins!inner(*, assigned_to)')
+              .eq('project_id', projectId)
+              .eq('pdf_pins.assigned_to', profile.id)
+              .order('created_at', { ascending: false })
+          : supabase
+              .from('pins_photos')
+              .select('*, pdf_pins(*,assigned_to(id,name))')
+              .eq('project_id', projectId)
+              .is('deleted_at', null)
+              .order('created_at', { ascending: false })
+
+        const { data, error } = await query
+        if (error) {
+          console.error('Medias error', error)
+          return
+        }
+        setMedias(data || [])
+        setFilteredMedias(data || [])
+      } finally {
+        setLoading(false)
       }
     }
+
     fetchMedias()
-  }, [projectId, user, profile])
+  }, [projectId, user?.id, profile?.id, profile?.role])
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -257,24 +273,31 @@ export default function Medias({ params }) {
           )}
 
           {/* Gallery */}
-          <div className="p-5">
-            {filteredMedias.length === 0 ? (
-              <div className="py-16 text-center">
-                <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
-                <p className="text-[13px] text-[#8a8a84]">
-                  {hasActiveFilters
-                    ? 'Aucun résultat pour ces filtres'
-                    : 'Aucune photo à afficher'}
-                </p>
-              </div>
-            ) : (
-              <GroupedMediaGallery
-                media={filteredMedias}
-                selectedIds={selectedIds}
-                setSelectedIds={setSelectedIds}
-              />
-            )}
-          </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="w-7 h-7 border-2 border-[#e5e5e2] border-t-[#0d0d0c] rounded-full animate-spin" />
+              <p className="text-[13px] text-[#8a8a84] text-center">Chargement...</p>
+            </div>
+          ) : (
+            <div className="p-5">
+              {filteredMedias.length === 0 ? (
+                <div className="py-16 text-center">
+                  <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
+                  <p className="text-[13px] text-[#8a8a84]">
+                    {hasActiveFilters
+                      ? 'Aucun résultat pour ces filtres'
+                      : 'Aucune photo à afficher'}
+                  </p>
+                </div>
+              ) : (
+                <GroupedMediaGallery
+                  media={filteredMedias}
+                  selectedIds={selectedIds}
+                  setSelectedIds={setSelectedIds}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

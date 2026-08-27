@@ -11,6 +11,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import clsx from 'clsx'
+import Image from 'next/image'
 
 const PROJECT_TYPES = [
   'Architecture',
@@ -164,7 +165,7 @@ export default function ProjectDetails() {
         <div className="text-center">
           <div className="mb-6 flex justify-center">
             <div className="w-12 h-12 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center animate-pulse">
-              <span className="text-white font-medium text-xl">z</span>
+               <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
             </div>
           </div>
           <h2 className="text-[17px] font-medium text-[#050505] mb-2">Chargement...</h2>
