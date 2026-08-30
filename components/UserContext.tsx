@@ -2,6 +2,9 @@
 import { createContext, useContext } from 'react';
 import type { User } from '@supabase/supabase-js';
 
-export const UserContext = createContext<User | null>(null);
+type UserContextType = User | null | undefined;
+
+// undefined = en cours de chargement, null = non connecté, User = connecté
+export const UserContext = createContext<UserContextType>(undefined);
 
 export const useUser = () => useContext(UserContext);

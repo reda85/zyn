@@ -10,30 +10,50 @@ export function useUserData(organizationId = null) {
   const [organizations, setOrganizations] = useState([]);
   const [memberships, setMemberships] = useState([]);
   const [organization, setOrganization] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // ← starts true
+  const [isLoading, setIsLoading] = useState(true);
   const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom);
 
   useEffect(() => {
-    // user is null while UserContext is still initializing
     if (user === undefined) return;
 
-    // user is definitively null = not logged in, nothing to fetch
     if (user === null) {
       setIsLoading(false);
       return;
     }
-console.log('useUserData', user, organizationId);
+
+    console.log('useUserData', user, organizationId);
+
     const fetchUserData = async () => {
       setIsLoading(true);
       try {
-        const { data: profile, error: profileError } = await supabase
+        // 1. Chercher par auth_id
+        let { data: profile } = await supabase
           .from('members')
           .select('*')
           .eq('auth_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError) { console.error(profileError); return; }
+        // 2. Fallback : chercher par email et mettre à jour auth_id
+        if (!profile) {
+          const { data: profileByEmail } = await supabase
+            .from('members')
+            .select('*')
+            .eq('email', user.email)
+            .maybeSingle();
 
+          if (profileByEmail) {
+            await supabase
+              .from('members')
+              .update({ auth_id: user.id })
+              .eq('id', profileByEmail.id);
+            profile = { ...profileByEmail, auth_id: user.id };
+          } else {
+            console.warn('No members record found for user:', user.email);
+            return;
+          }
+        }
+
+        // 3. Récupérer les memberships
         const { data: membershipsData, error: membershipsError } = await supabase
           .from('members_organizations')
           .select(`role, organization:organizations(*, members_organizations(count))`)
@@ -46,7 +66,10 @@ console.log('useUserData', user, organizationId);
         setOrganizations(allOrgs);
 
         const targetId = organizationId ?? allOrgs[0]?.id;
-        if (!targetId) return;
+        if (!targetId) {
+          console.warn('No organization found for member:', profile.id);
+          return;
+        }
 
         const membership = membershipsData.find((m) => m.organization?.id === targetId);
         const org = allOrgs.find((o) => o.id === targetId) ?? null;
@@ -68,7 +91,7 @@ console.log('useUserData', user, organizationId);
           setSelectedOrganization(fetchedOrg);
         }
       } finally {
-        setIsLoading(false); // ← always clears, even on errors
+        setIsLoading(false);
       }
     };
 

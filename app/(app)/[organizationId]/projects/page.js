@@ -199,7 +199,7 @@ export default function ProjectsPage({ params }) {
       <Sidebar organizationId={organizationId} currentPage="projects" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
-        {/* ── Header ── */}
+               {/* ── Header ── */}
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Projets</h1>
@@ -208,13 +208,15 @@ export default function ProjectsPage({ params }) {
               {projects.length !== 1 ? 's' : ''} au total
             </p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-[#0d0d0c] text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors flex items-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            Créer un projet
-          </button>
+          {profile?.role !== 'guest' && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="bg-[#0d0d0c] text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              Créer un projet
+            </button>
+          )}
         </div>
 
         {/* ── Search + View Toggle ── */}
@@ -265,47 +267,49 @@ export default function ProjectsPage({ params }) {
                 onClick={() => handleProjectClick(proj)}
               >
                 {/* Menu */}
-                <div
-                  className="absolute top-3 right-3"
-                  ref={openMenuId === proj.id ? menuRef : null}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setOpenMenuId(openMenuId === proj.id ? null : proj.id)
-                    }}
-                    className="p-1.5 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
+                {profile?.role !== 'guest' && (
+                  <div
+                    className="absolute top-3 right-3"
+                    ref={openMenuId === proj.id ? menuRef : null}
                   >
-                    <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
-                  </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setOpenMenuId(openMenuId === proj.id ? null : proj.id)
+                      }}
+                      className="p-1.5 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
+                    </button>
 
-                  {openMenuId === proj.id && (
-                    <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          archiveProject(proj.id)
-                        }}
-                        className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
-                      >
-                        <Archive className="w-3.5 h-3.5" />
-                        Archiver
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setProjectToDelete(proj)
-                          setShowDeleteModal(true)
-                          setOpenMenuId(null)
-                        }}
-                        className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Supprimer
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    {openMenuId === proj.id && (
+                      <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            archiveProject(proj.id)
+                          }}
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                          Archiver
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setProjectToDelete(proj)
+                            setShowDeleteModal(true)
+                            setOpenMenuId(null)
+                          }}
+                          className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Supprimer
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Card content */}
                 <div className="flex items-center gap-2.5 mb-3">
@@ -405,44 +409,46 @@ export default function ProjectsPage({ params }) {
                       {getRelativeTime(proj.created_at)}
                     </td>
                     <td className="px-4 py-3">
-                      <div ref={openMenuId === proj.id ? menuRef : null} className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setOpenMenuId(openMenuId === proj.id ? null : proj.id)
-                          }}
-                          className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                          <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
-                        </button>
+                      {profile?.role !== 'guest' && (
+                        <div ref={openMenuId === proj.id ? menuRef : null} className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setOpenMenuId(openMenuId === proj.id ? null : proj.id)
+                            }}
+                            className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
+                          </button>
 
-                        {openMenuId === proj.id && (
-                          <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                archiveProject(proj.id)
-                              }}
-                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
-                            >
-                              <Archive className="w-3.5 h-3.5" />
-                              Archiver
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setProjectToDelete(proj)
-                                setShowDeleteModal(true)
-                                setOpenMenuId(null)
-                              }}
-                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              Supprimer
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                          {openMenuId === proj.id && (
+                            <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  archiveProject(proj.id)
+                                }}
+                                className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
+                              >
+                                <Archive className="w-3.5 h-3.5" />
+                                Archiver
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setProjectToDelete(proj)
+                                  setShowDeleteModal(true)
+                                  setOpenMenuId(null)
+                                }}
+                                className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Supprimer
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

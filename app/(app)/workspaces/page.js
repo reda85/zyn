@@ -9,7 +9,7 @@ export default function Workspaces({params}) {
     const {organizationId} = params;
     const { user, organization, isLoading } = useUserData(organizationId);
     const router = useRouter();
-    
+
     useEffect(() => {
         if (isLoading) return;
         if (!user?.id) return;
@@ -41,61 +41,61 @@ export default function Workspaces({params}) {
         );
     }
 
-    return <LoadingScreen message={`Redirection vers votre espace de travail...`} />;
+    return <LoadingScreen message="Redirection vers votre espace de travail..." />;
 }
 
 function LoadingScreen({ message }) {
     return (
-              <div className={clsx("flex h-screen w-full items-center justify-center bg-[#fafaf9]", GeistSans.className)}>
-                <div className="text-center">
-                  <div className="mb-6 flex justify-center">
+        <div className={clsx("flex h-screen w-full items-center justify-center bg-[#fafaf9]", GeistSans.className)}>
+            <div className="text-center">
+                <div className="mb-6 flex justify-center">
                     <div className="w-12 h-12 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center animate-pulse">
-                      <span className="text-white font-medium text-xl">z</span>
+                        <span className="text-white font-medium text-xl">z</span>
                     </div>
-                  </div>
-                  <h2 className="text-[17px] font-medium text-[#050505] mb-2">
-                    Chargement...
-                  </h2>
-                  <p className="text-[13px] text-[#8a8a84]">
-                    Veuillez patienter
-                  </p>
-                  <div className="mt-8 w-64 mx-auto">
-                    <div className="h-1 bg-[#eeeeec] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#0d0d0c] w-0 animate-[loading_1.5s_ease-in-out_infinite]"></div>
-                    </div>
-                  </div>
                 </div>
-                <style jsx>{`
-                  @keyframes loading {
-                    0% { width: 0%; margin-left: 0%; }
-                    50% { width: 75%; margin-left: 0%; }
-                    100% { width: 0%; margin-left: 100%; }
-                  }
-                `}</style>
-              </div>
+                <h2 className="text-[17px] font-medium text-[#050505] mb-2">
+                    Chargement...
+                </h2>
+                <p className="text-[13px] text-[#8a8a84]">
+                    {message}
+                </p>
+                <div className="mt-8 w-64 mx-auto">
+                    <div className="h-1 bg-[#eeeeec] rounded-full overflow-hidden">
+                        <div className="h-full bg-[#0d0d0c] w-0 animate-[loading_1.5s_ease-in-out_infinite]"></div>
+                    </div>
+                </div>
+            </div>
+            <style jsx>{`
+                @keyframes loading {
+                  0% { width: 0%; margin-left: 0%; }
+                  50% { width: 75%; margin-left: 0%; }
+                  100% { width: 0%; margin-left: 100%; }
+                }
+            `}</style>
+        </div>
     );
 }
 
 function ErrorScreen({ title, message, action }) {
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center font-sans">
+        <div className={clsx("min-h-screen bg-[#fafaf9] flex items-center justify-center", GeistSans.className)}>
             <div className="text-center max-w-md px-6">
-                <div className="mb-8 flex justify-center">
-                    <div className="w-16 h-16 bg-destructive/10 rounded-2xl flex items-center justify-center">
-                        <span className="text-destructive font-bold text-3xl font-heading">!</span>
+                <div className="mb-6 flex justify-center">
+                    <div className="w-12 h-12 bg-[#fde8e8] rounded-[4px] flex items-center justify-center">
+                        <span className="text-[#dc2626] font-medium text-xl">!</span>
                     </div>
                 </div>
-                <h2 className="text-2xl font-bold font-heading text-foreground mb-3">
+                <h2 className="text-[17px] font-medium text-[#050505] mb-2">
                     {title}
                 </h2>
-                <p className="text-muted-foreground mb-8">
+                <p className="text-[13px] text-[#8a8a84] mb-8 leading-relaxed">
                     {message}
                 </p>
                 {action && (
                     
                     <a
                         href={action.href}
-                        className="inline-flex items-center justify-center px-6 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
+                        className="inline-flex items-center justify-center px-4 py-2 rounded-[4px] bg-[#0d0d0c] text-white font-medium text-[13px] hover:bg-[#1a1a18] transition-colors"
                     >
                         {action.label}
                     </a>

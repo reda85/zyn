@@ -13,11 +13,11 @@ export default async function ForgotPassword(props: {
   const searchParams = await props.searchParams;
 
   return (
-    <div className={`flex min-h-screen w-screen overflow-hidden bg-[#fafaf9] ${GeistSans.className}`}>
+    <div className={`flex h-screen w-screen overflow-hidden bg-[#fafaf9] ${GeistSans.className}`}>
 
       {/* LEFT — Branding */}
-      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-[#e5e5e2] relative overflow-hidden">
-        <div className="text-center relative z-10 max-w-lg">
+      <div className="hidden lg:flex flex-col w-1/2 h-full bg-white items-center justify-center p-16 border-r border-[#e5e5e2] shrink-0">
+        <div className="text-center max-w-lg">
           <div className="w-16 h-16 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center mx-auto mb-8">
             <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={40} height={40} />
           </div>
@@ -31,8 +31,8 @@ export default async function ForgotPassword(props: {
       </div>
 
       {/* RIGHT — Form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#fafaf9] relative">
-        <div className="w-full max-w-md p-8 m-8">
+      <div className="flex w-full lg:w-1/2 h-full items-center justify-center overflow-y-auto">
+        <div className="w-full max-w-md px-8 py-12">
 
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden flex justify-center">
@@ -74,7 +74,7 @@ export default async function ForgotPassword(props: {
             <SubmitButton
               pendingText="Envoi en cours..."
               formAction={forgotPasswordAction}
-              className="w-full bg-[#0d0d0c] text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-[#1a1a18] transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-[#0d0d0c] text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-[#1a1a18] transition-colors"
             >
               Envoyer le lien
             </SubmitButton>

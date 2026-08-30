@@ -305,9 +305,41 @@ export default function ProjectPlans({ project, onClose }) {
                     )}
                   </div>
                 </div>
-                <div className="border border-[#e5e5e2] rounded-[4px] overflow-hidden bg-[#f5f5f4]">
-                  <Document file={publicUrl}>
-                    <Page pageNumber={1} width={800} renderTextLayer={false} renderAnnotationLayer={false} className="mx-auto" />
+                               <div className="border border-[#e5e5e2] rounded-[4px] overflow-hidden bg-[#f5f5f4]">
+                  <Document
+                    file={publicUrl}
+                    loading={
+                      <div className="flex flex-col items-center justify-center gap-2 py-16">
+                        <Loader2 className="w-5 h-5 text-[#8a8a84] animate-spin" />
+                        <p className="text-[13px] text-[#8a8a84]">Chargement du PDF…</p>
+                      </div>
+                    }
+                    error={
+                      <div className="flex flex-col items-center justify-center gap-2 py-16">
+                        <AlertCircle className="w-5 h-5 text-[#dc2626]" />
+                        <p className="text-[13px] text-[#9c1b1b]">Impossible de charger le PDF</p>
+                      </div>
+                    }
+                    noData={
+                      <div className="flex flex-col items-center justify-center gap-2 py-16">
+                        <FileText className="w-5 h-5 text-[#8a8a84]" />
+                        <p className="text-[13px] text-[#8a8a84]">Aucun fichier à afficher</p>
+                      </div>
+                    }
+                  >
+                    <Page
+                      language="fr"
+                      pageNumber={1}
+                      width={800}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                      className="mx-auto"
+                      loading={
+                        <div className="flex items-center justify-center py-16">
+                          <Loader2 className="w-5 h-5 text-[#8a8a84] animate-spin" />
+                        </div>
+                      }
+                    />
                   </Document>
                 </div>
               </div>
