@@ -34,6 +34,11 @@ export default function ProjectPlans({ project, onClose }) {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [updateState, setUpdateState] = useState({ ...EMPTY_STATE, revisionLabel: '' })
 
+  // Delete plan existant
+  const [planToDelete, setPlanToDelete] = useState(null)
+  const [showDeletePlanModal, setShowDeletePlanModal] = useState(false)
+  const [deletingPlan, setDeletingPlan] = useState(false)
+
   const [dragActive, setDragActive] = useState(false)
   const dropRef = useRef(null)
   const router = useRouter()
@@ -200,10 +205,33 @@ export default function ProjectPlans({ project, onClose }) {
     return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i]
   }
 
-  const deletePlan = async (plan) => {
-    await supabase.rpc('soft_delete_plan', { p_plan_id: plan.id })
-    await supabase.storage.from('project-plans').remove([plan.file_url])
-    setPlans((p) => p.filter((pl) => pl.id !== plan.id))
+  // ─── Delete plan (avec confirmation) ─────────────────────────────────────────
+
+  const openDeletePlanModal = (plan) => {
+    setPlanToDelete(plan)
+    setShowDeletePlanModal(true)
+  }
+
+  const closeDeletePlanModal = () => {
+    if (deletingPlan) return
+    setShowDeletePlanModal(false)
+    setPlanToDelete(null)
+  }
+
+  const confirmDeletePlan = async () => {
+    if (!planToDelete) return
+    setDeletingPlan(true)
+    try {
+      await supabase.rpc('soft_delete_plan', { p_plan_id: planToDelete.id })
+      await supabase.storage.from('project-plans').remove([planToDelete.file_url])
+      setPlans((p) => p.filter((pl) => pl.id !== planToDelete.id))
+      setShowDeletePlanModal(false)
+      setPlanToDelete(null)
+    } catch (err) {
+      console.error('Erreur suppression plan', err)
+    } finally {
+      setDeletingPlan(false)
+    }
   }
 
   const handleSaveAndClose = async () => {
@@ -299,13 +327,13 @@ export default function ProjectPlans({ project, onClose }) {
                       <RefreshCw className="w-4 h-4" />
                     </button>
                     {plans.length > 1 && (
-                      <button onClick={() => deletePlan(plan)} className="p-1.5 text-[#8a8a84] hover:text-[#dc2626] hover:bg-[#fde8e8] rounded-[3px] transition-colors" title="Supprimer">
+                      <button onClick={() => openDeletePlanModal(plan)} className="p-1.5 text-[#8a8a84] hover:text-[#dc2626] hover:bg-[#fde8e8] rounded-[3px] transition-colors" title="Supprimer">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 </div>
-                               <div className="border border-[#e5e5e2] rounded-[4px] overflow-hidden bg-[#f5f5f4]">
+                <div className="border border-[#e5e5e2] rounded-[4px] overflow-hidden bg-[#f5f5f4]">
                   <Document
                     file={publicUrl}
                     loading={
@@ -510,6 +538,49 @@ export default function ProjectPlans({ project, onClose }) {
                   {updateState.uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload...</> : <><RefreshCw className="w-3.5 h-3.5" /> Mettre à jour</>}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Delete plan (confirmation) ── */}
+      {showDeletePlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/20" onClick={closeDeletePlanModal} />
+
+          <div className="relative bg-white border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full p-6">
+            <button
+              onClick={closeDeletePlanModal}
+              disabled={deletingPlan}
+              className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <X className="w-4 h-4 text-[#8a8a84]" />
+            </button>
+
+            <h2 className="text-base font-medium text-[#050505] mb-1">
+              Supprimer le plan
+            </h2>
+            <p className="text-[13px] text-[#666660] mb-5">
+              Êtes-vous sûr de vouloir supprimer{' '}
+              <span className="font-medium text-[#0d0d0c]">"{planToDelete?.name}"</span> ?
+              Les pins associées à ce plan perdront leur positionnement. Cette action est irréversible.
+            </p>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={closeDeletePlanModal}
+                disabled={deletingPlan}
+                className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmDeletePlan}
+                disabled={deletingPlan}
+                className="px-4 py-2 text-[13px] font-medium text-white bg-[#dc2626] rounded-[4px] hover:bg-[#b91c1c] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                {deletingPlan ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Suppression...</> : 'Supprimer'}
+              </button>
             </div>
           </div>
         </div>

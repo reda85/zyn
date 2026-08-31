@@ -16,7 +16,7 @@ import Sidebar from '@/components/Sidebar'
 const roles = [
   { id: 1, name: 'Membres', value: 'membres' },
   { id: 2, name: 'guest', value: 'guest' },
-  { id: 3, name: 'Admins', value: 'admins' },
+  { id: 3, name: 'admin', value: 'admin' },
 ]
 
 function Avatar({ name, src }) {
@@ -50,12 +50,59 @@ function RoleBadge({ role }) {
   )
 }
 
+function MembersTableSkeleton() {
+  return (
+    <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
+      <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <colgroup>
+          <col style={{ width: '35%' }} />
+          <col style={{ width: '18%' }} />
+          <col style={{ width: '15%' }} />
+          <col style={{ width: '32%' }} />
+        </colgroup>
+        <thead>
+          <tr className="bg-[#f5f5f4]">
+            {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
+              <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]', GeistMono.className)}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <tr key={i} className="border-b border-[#eeeeec]">
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-full bg-[#eeeeec] animate-pulse flex-shrink-0" />
+                  <div className="min-w-0 space-y-1.5 flex-1">
+                    <div className="h-3 rounded-[2px] bg-[#eeeeec] animate-pulse" style={{ width: `${60 + (i % 3) * 15}%` }} />
+                    <div className="h-2.5 w-2/3 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+                  </div>
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-3 w-16 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-4 w-14 rounded-[3px] bg-[#eeeeec] animate-pulse" />
+              </td>
+              <td className="px-4 py-3">
+                <div className="h-3 w-28 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default function MembersPage({ params }) {
   const { organizationId } = params
   const router = useRouter()
   const [selectedRoles, setSelectedRoles] = useState([])
   const [selectedOrganization] = useAtom(selectedOrganizationAtom)
   const [members, setMembers] = useState([])
+  const [membersLoading, setMembersLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [refresh, setRefresh] = useState(false)
 
@@ -90,25 +137,30 @@ export default function MembersPage({ params }) {
 
   useEffect(() => {
     const fetchMembers = async () => {
-      const { data: rawMembers } = await supabase
-        .from('members_organizations')
-        .select('*, members(*, members_projects(project_id, project:projects!inner(id, organization_id)))')
-        .eq('organization_id', organizationId)
-        .order('created_at', { ascending: false })
+      setMembersLoading(true)
+      try {
+        const { data: rawMembers } = await supabase
+          .from('members_organizations')
+          .select('*, members(*, members_projects(project_id, project:projects!inner(id, organization_id)))')
+          .eq('organization_id', organizationId)
+          .order('created_at', { ascending: false })
 
-      const formatted = (rawMembers || []).map((m) => {
-        const allMemberProjects = m.members?.members_projects || []
-        const orgProjectCount = allMemberProjects.filter(
-          (mp) => mp.project?.organization_id === organizationId
-        ).length
-        return {
-          ...m.members,
-          role: m.role,
-          project_count: orgProjectCount,
-          invited: m?.invited ?? false,
-        }
-      })
-      setMembers(formatted)
+        const formatted = (rawMembers || []).map((m) => {
+          const allMemberProjects = m.members?.members_projects || []
+          const orgProjectCount = allMemberProjects.filter(
+            (mp) => mp.project?.organization_id === organizationId
+          ).length
+          return {
+            ...m.members,
+            role: m.role,
+            project_count: orgProjectCount,
+            invited: m?.invited ?? false,
+          }
+        })
+        setMembers(formatted)
+      } finally {
+        setMembersLoading(false)
+      }
     }
 
     const fetchProjects = async () => {
@@ -287,9 +339,13 @@ export default function MembersPage({ params }) {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Membres</h1>
-            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
-              {members.length} membre{members.length !== 1 ? 's' : ''} dans l'organisation
-            </p>
+            {membersLoading ? (
+              <div className="h-3 w-40 rounded-[2px] bg-[#eeeeec] animate-pulse mt-1.5" />
+            ) : (
+              <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+                {members.length} membre{members.length !== 1 ? 's' : ''} dans l'organisation
+              </p>
+            )}
           </div>
           <button
             onClick={openAddModal}
@@ -302,13 +358,17 @@ export default function MembersPage({ params }) {
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: 'Total seats', value: 'Unlimited' },
-            { label: 'Assigned seats', value: members.length },
-            { label: 'Available seats', value: 'Unlimited' },
+            { label: 'Total licences', value: 'Illimitées' },
+            { label: 'Licences assignées', value: members.length },
+            { label: 'Licences disponibles', value: 'Illimitées' },
           ].map((stat) => (
             <div key={stat.label} className="bg-white border border-[#e5e5e2] rounded-[4px] px-4 py-3.5">
               <p className="text-[11px] text-[#8a8a84] font-medium mb-1">{stat.label}</p>
-              <p className={clsx('text-2xl font-medium text-[#050505]', GeistMono.className)}>{stat.value}</p>
+              {membersLoading ? (
+                <div className="h-6 w-16 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+              ) : (
+                <p className={clsx('text-2xl font-medium text-[#050505]', GeistMono.className)}>{stat.value}</p>
+              )}
             </div>
           ))}
         </div>
@@ -352,74 +412,78 @@ export default function MembersPage({ params }) {
         </div>
 
         {/* ── Table ── */}
-        <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
-          <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: '35%' }} />
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '32%' }} />
-            </colgroup>
-            <thead>
-              <tr className="bg-[#f5f5f4]">
-                {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
-                  <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]', GeistMono.className)}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMembers.map((member) => (
-                <tr key={member.id} className="border-b border-[#eeeeec] hover:bg-[#f5f5f4] transition-colors group">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={member.name} src={member.avatar_url} />
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-medium text-[#0d0d0c] truncate">{member.name}</p>
-                        <p className="text-[11px] text-[#8a8a84] truncate">
-                          {member.email || <span className="italic text-[#b8b8b3]">Pas d'email</span>}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className={clsx('text-[13px] text-[#666660]', GeistMono.className)}>{member.project_count} projet{member.project_count !== 1 ? 's' : ''}</span>
-                      <button
-                        onClick={() => openManageModal(member)}
-                        className="text-[11px] text-[#8a8a84] hover:text-[#2e2e2b] underline opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        gérer
-                      </button>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3"><RoleBadge role={member.role} /></td>
-                  <td className="px-4 py-3">
-                    {member.invited ? (
-                      <span className="flex items-center gap-1.5 text-[12px] text-[#8a8a84]">
-                        <Check className="w-3.5 h-3.5 text-[#16a34a] flex-shrink-0" />
-                        Invitation envoyée
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => openInviteModal(member)}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium border border-[#e5e5e2] rounded-[3px] hover:bg-[#eeeeec] hover:border-[#d6d6d2] transition-colors text-[#4a4a46]"
-                      >
-                        <Send className="w-3 h-3" />
-                        Envoyer une invitation
-                      </button>
-                    )}
-                  </td>
+        {membersLoading ? (
+          <MembersTableSkeleton />
+        ) : (
+          <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
+            <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '35%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '32%' }} />
+              </colgroup>
+              <thead>
+                <tr className="bg-[#f5f5f4]">
+                  {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
+                    <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]', GeistMono.className)}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredMembers.map((member) => (
+                  <tr key={member.id} className="border-b border-[#eeeeec] hover:bg-[#f5f5f4] transition-colors group">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={member.name} src={member.avatar_url} />
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-medium text-[#0d0d0c] truncate">{member.name}</p>
+                          <p className="text-[11px] text-[#8a8a84] truncate">
+                            {member.email || <span className="italic text-[#b8b8b3]">Pas d'email</span>}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className={clsx('text-[13px] text-[#666660]', GeistMono.className)}>{member.project_count} projet{member.project_count !== 1 ? 's' : ''}</span>
+                        <button
+                          onClick={() => openManageModal(member)}
+                          className="text-[11px] text-[#8a8a84] hover:text-[#2e2e2b] underline opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          gérer
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3"><RoleBadge role={member.role} /></td>
+                    <td className="px-4 py-3">
+                      {member.invited ? (
+                        <span className="flex items-center gap-1.5 text-[12px] text-[#8a8a84]">
+                          <Check className="w-3.5 h-3.5 text-[#16a34a] flex-shrink-0" />
+                          Invitation envoyée
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => openInviteModal(member)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium border border-[#e5e5e2] rounded-[3px] hover:bg-[#eeeeec] hover:border-[#d6d6d2] transition-colors text-[#4a4a46]"
+                        >
+                          <Send className="w-3 h-3" />
+                          Envoyer une invitation
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          {filteredMembers.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-[13px] text-[#8a8a84]">Aucun membre trouvé</p>
-            </div>
-          )}
-        </div>
+            {filteredMembers.length === 0 && (
+              <div className="py-12 text-center">
+                <p className="text-[13px] text-[#8a8a84]">Aucun membre trouvé</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Manage Projects Modal ── */}
         <Dialog open={manageOpen} onClose={() => setManageOpen(false)} className="relative z-50">

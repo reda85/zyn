@@ -14,6 +14,38 @@ import { GeistMono } from 'geist/font/mono'
 
 const ORG_SIZES = ['1 – 5', '6 – 10', '11 – 25', '26 – 50', '51 – 100', '100+']
 
+function SettingsFormSkeleton() {
+  return (
+    <div className="bg-white border border-[#e5e5e2] rounded-[4px]">
+      {/* Logo */}
+      <div className="px-5 py-4 border-b border-[#eeeeec]">
+        <div className="h-2.5 w-10 rounded-[2px] bg-[#eeeeec] animate-pulse mb-3" />
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-[4px] bg-[#eeeeec] animate-pulse flex-shrink-0" />
+          <div className="h-3.5 w-28 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+        </div>
+      </div>
+
+      {/* Name */}
+      <div className="px-5 py-4 border-b border-[#eeeeec]">
+        <div className="h-2.5 w-32 rounded-[2px] bg-[#eeeeec] animate-pulse mb-2" />
+        <div className="h-9 w-full rounded-[4px] bg-[#f5f5f4] animate-pulse" />
+      </div>
+
+      {/* Size */}
+      <div className="px-5 py-4 border-b border-[#eeeeec]">
+        <div className="h-2.5 w-36 rounded-[2px] bg-[#eeeeec] animate-pulse mb-2" />
+        <div className="h-9 w-full rounded-[4px] bg-[#f5f5f4] animate-pulse" />
+      </div>
+
+      {/* Action */}
+      <div className="px-5 py-4 flex justify-end">
+        <div className="h-9 w-28 rounded-[4px] bg-[#eeeeec] animate-pulse" />
+      </div>
+    </div>
+  )
+}
+
 export default function OrganizationSettingsPage({ params }) {
   const { organizationId } = params
   const router = useRouter()
@@ -25,6 +57,8 @@ export default function OrganizationSettingsPage({ params }) {
   const [size, setSize] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const isFormLoading = !selectedOrganization
 
   useEffect(() => {
     if (isCheckingAccess) return
@@ -90,63 +124,67 @@ export default function OrganizationSettingsPage({ params }) {
         <div className="max-w-xl">
           <div className="mb-6">
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Paramètres</h1>
-            <p className="text-[12px] text-[#8a8a84] mt-0.5">Gérez les informations de votre organisation</p>
+            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>Gérez les informations de votre organisation</p>
           </div>
 
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px]">
-            {/* Logo */}
-            <div className="px-5 py-4 border-b border-[#eeeeec]">
-              <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-3', GeistMono.className)}>Logo</label>
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-[4px] border border-[#e5e5e2] flex items-center justify-center overflow-hidden bg-[#f5f5f4] flex-shrink-0">
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] text-[#b8b8b3] font-medium">Logo</span>
-                  )}
+          {isFormLoading ? (
+            <SettingsFormSkeleton />
+          ) : (
+            <div className="bg-white border border-[#e5e5e2] rounded-[4px]">
+              {/* Logo */}
+              <div className="px-5 py-4 border-b border-[#eeeeec]">
+                <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-3', GeistMono.className)}>Logo</label>
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-[4px] border border-[#e5e5e2] flex items-center justify-center overflow-hidden bg-[#f5f5f4] flex-shrink-0">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-[#b8b8b3] font-medium">Logo</span>
+                    )}
+                  </div>
+                  <label className="cursor-pointer flex items-center gap-1.5 text-[13px] font-medium text-[#4a4a46] hover:text-[#0d0d0c] transition-colors">
+                    <Upload className="w-3.5 h-3.5" />
+                    Changer le logo
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e.target.files[0])} />
+                  </label>
                 </div>
-                <label className="cursor-pointer flex items-center gap-1.5 text-[13px] font-medium text-[#4a4a46] hover:text-[#0d0d0c] transition-colors">
-                  <Upload className="w-3.5 h-3.5" />
-                  Changer le logo
-                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleLogoUpload(e.target.files[0])} />
-                </label>
+              </div>
+
+              {/* Name */}
+              <div className="px-5 py-4 border-b border-[#eeeeec]">
+                <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom de l'organisation</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-[4px] border border-[#e5e5e2] bg-white text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+                />
+              </div>
+
+              {/* Size */}
+              <div className="px-5 py-4 border-b border-[#eeeeec]">
+                <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Taille de l'organisation</label>
+                <select
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-[4px] border border-[#e5e5e2] bg-white text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c]"
+                >
+                  <option value="">Sélectionner</option>
+                  {ORG_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {/* Action */}
+              <div className="px-5 py-4 flex justify-end">
+                <button
+                  onClick={saveSettings}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-[4px] bg-[#0d0d0c] text-white text-[13px] font-medium hover:bg-[#1a1a18] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+                </button>
               </div>
             </div>
-
-            {/* Name */}
-            <div className="px-5 py-4 border-b border-[#eeeeec]">
-              <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom de l'organisation</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-[4px] border border-[#e5e5e2] bg-white text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
-              />
-            </div>
-
-            {/* Size */}
-            <div className="px-5 py-4 border-b border-[#eeeeec]">
-              <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Taille de l'organisation</label>
-              <select
-                value={size}
-                onChange={(e) => setSize(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-[4px] border border-[#e5e5e2] bg-white text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c]"
-              >
-                <option value="">Sélectionner</option>
-                {ORG_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-
-            {/* Action */}
-            <div className="px-5 py-4 flex justify-end">
-              <button
-                onClick={saveSettings}
-                disabled={saving}
-                className="px-4 py-2 rounded-[4px] bg-[#0d0d0c] text-white text-[13px] font-medium hover:bg-[#1a1a18] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {saving ? 'Sauvegarde…' : 'Sauvegarder'}
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

@@ -14,7 +14,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
-  const { user, profile, organization, organizations, isAdmin } = useUserData(organizationId)
+  const { user, profile, organization, organizations, isAdmin, isLoading } = useUserData(organizationId)
   const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -55,11 +55,52 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const getMemberCount = (org) => org?.members_organizations?.[0]?.count ?? 0
 
   const navLinks = [
-    { key: 'projects', href: `/${organizationId}/projects`, icon: FolderKanban, label: 'Projects', show: true },
+    { key: 'projects', href: `/${organizationId}/projects`, icon: FolderKanban, label: 'Projets', show: true },
     { key: 'members', href: `/${organizationId}/members`, icon: Users, label: 'Membres', show: isAdmin },
     { key: 'reports', href: `/${organizationId}/reports`, icon: BarChart3, label: 'Rapports', show: isAdmin },
     { key: 'settings', href: `/${organizationId}/settings`, icon: Settings, label: 'Paramètres', show: isAdmin },
   ]
+
+  if (isLoading) {
+    return (
+      <aside className={clsx('w-60 h-screen bg-white border-r border-[#e5e5e2] flex flex-col', GeistSans.className)}>
+        {/* ── Organization Selector skeleton ── */}
+        <div className="px-3 pt-4 pb-3">
+          <div className="flex items-center gap-2.5 px-2.5 py-2">
+            <div className="h-[30px] w-[30px] rounded-[4px] bg-[#eeeeec] animate-pulse flex-shrink-0" />
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="h-3 w-24 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+              <div className="h-2.5 w-16 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        <div className="h-px bg-[#eeeeec] mx-3" />
+
+        {/* ── Navigation skeleton ── */}
+        <nav className="flex-1 px-3 pt-2 space-y-0.5">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
+              <div className="h-4 w-4 rounded-[2px] bg-[#eeeeec] animate-pulse flex-shrink-0" />
+              <div className="h-3 rounded-[2px] bg-[#eeeeec] animate-pulse" style={{ width: `${60 + i * 8}px` }} />
+            </div>
+          ))}
+        </nav>
+
+        {/* ── Profile skeleton ── */}
+        <div className="px-3 pb-4">
+          <div className="h-px bg-[#eeeeec] mb-3" />
+          <div className="flex items-center gap-2.5 px-2.5 py-2">
+            <div className="h-7 w-7 rounded-full bg-[#eeeeec] animate-pulse flex-shrink-0" />
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="h-3 w-28 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+              <div className="h-2.5 w-14 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </aside>
+    )
+  }
 
   return (
     <aside className={clsx('w-60 h-screen bg-white border-r border-[#e5e5e2] flex flex-col', GeistSans.className)}>

@@ -14,6 +14,32 @@ import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 
+function TemplatesGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="bg-white border border-[#e5e5e2] rounded-[4px] overflow-hidden">
+          <div className="h-36 bg-[#f5f5f4] p-5">
+            <div className="space-y-2.5">
+              <div className="h-6 rounded-[3px] bg-[#eeeeec] animate-pulse" />
+              <div className="space-y-1.5">
+                <div className="h-1.5 bg-[#eeeeec] rounded-[2px] w-3/4 animate-pulse" />
+                <div className="h-1.5 bg-[#eeeeec] rounded-[2px] w-1/2 animate-pulse" />
+                <div className="h-1.5 bg-[#eeeeec] rounded-[2px] w-2/3 animate-pulse" />
+              </div>
+            </div>
+          </div>
+          <div className="px-4 py-3">
+            <div className="h-3.5 rounded-[2px] bg-[#eeeeec] animate-pulse mb-2.5" style={{ width: `${100 + (i % 3) * 20}px` }} />
+            <div className="h-3 w-24 rounded-[2px] bg-[#eeeeec] animate-pulse mb-2.5" />
+            <div className="h-2.5 w-20 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function ReportsPage({ params }) {
   const { organizationId } = params
   const router = useRouter()
@@ -230,10 +256,14 @@ export default function ReportsPage({ params }) {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Templates de rapports</h1>
-            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
-              {templates.length} template{templates.length !== 1 ? 's' : ''} · Personnalisez
-              l'apparence de vos rapports PDF
-            </p>
+            {isLoading ? (
+              <div className="h-3 w-56 rounded-[2px] bg-[#eeeeec] animate-pulse mt-1.5" />
+            ) : (
+              <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+                {templates.length} template{templates.length !== 1 ? 's' : ''} · Personnalisez
+                l'apparence de vos rapports PDF
+              </p>
+            )}
           </div>
           <button
             onClick={handleCreateNew}
@@ -258,12 +288,7 @@ export default function ReportsPage({ params }) {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#e5e5e2] border-t-[#0d0d0c] mx-auto mb-3" />
-              <p className="text-[13px] text-[#8a8a84]">Chargement...</p>
-            </div>
-          </div>
+          <TemplatesGridSkeleton />
         ) : filteredTemplates.length === 0 ? (
           <div className="text-center py-20">
             <FileText className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
