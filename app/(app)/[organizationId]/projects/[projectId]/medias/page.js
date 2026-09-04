@@ -16,7 +16,7 @@ import { useUserData } from '@/hooks/useUserData'
 export default function Medias({ params }) {
   const [plan, setPlan] = useAtom(selectedPlanAtom)
   const [project, setProject] = useAtom(selectedProjectAtom)
-  const { user, profile, organization } = useUserData()
+  const { user, profile, organization, isAdmin, isLoading } = useUserData()
 
   const { projectId, organizationId } = params
 
@@ -162,17 +162,20 @@ export default function Medias({ params }) {
 
   return (
     <div className={clsx(GeistSans.className, 'min-h-screen bg-[#fafaf9]')}>
-      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-5">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Médiathèque</h1>
+            {loading ? (
+               <div className="h-3 w-24 bg-[#eeeeec] rounded-[3px] animate-pulse" />
+            ) : (
             <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
               {filteredMedias.length} photo{filteredMedias.length > 1 ? 's' : ''}
               {hasActiveFilters ? ` sur ${medias.length} au total` : ''}
-            </p>
+            </p>)}
           </div>
 
           {/* Filters */}
@@ -273,31 +276,33 @@ export default function Medias({ params }) {
           )}
 
           {/* Gallery */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <div className="w-7 h-7 border-2 border-[#e5e5e2] border-t-[#0d0d0c] rounded-full animate-spin" />
-              <p className="text-[13px] text-[#8a8a84] text-center">Chargement...</p>
-            </div>
-          ) : (
-            <div className="p-5">
-              {filteredMedias.length === 0 ? (
-                <div className="py-16 text-center">
-                  <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
-                  <p className="text-[13px] text-[#8a8a84]">
-                    {hasActiveFilters
-                      ? 'Aucun résultat pour ces filtres'
-                      : 'Aucune photo à afficher'}
-                  </p>
-                </div>
-              ) : (
-                <GroupedMediaGallery
-                  media={filteredMedias}
-                  selectedIds={selectedIds}
-                  setSelectedIds={setSelectedIds}
-                />
-              )}
-            </div>
-          )}
+ {loading ? (
+  <div className="p-5 grid grid-cols-3 gap-3">
+    {Array.from({ length: 9 }).map((_, i) => (
+      <div key={i} className="animate-pulse">
+        <div className="w-full aspect-square bg-[#eeeeec] rounded-[4px]" />
+        <div className="h-2.5 bg-[#eeeeec] rounded-[3px] mt-2 w-2/3" />
+      </div>
+    ))}
+  </div>
+) : (
+  <div className="p-5">
+    {filteredMedias.length === 0 ? (
+      <div className="py-16 text-center">
+        <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
+        <p className="text-[13px] text-[#8a8a84]">
+          {hasActiveFilters ? 'Aucun résultat pour ces filtres' : 'Aucune photo à afficher'}
+        </p>
+      </div>
+    ) : (
+      <GroupedMediaGallery
+        media={filteredMedias}
+        selectedIds={selectedIds}
+        setSelectedIds={setSelectedIds}
+      />
+    )}
+  </div>
+)}
         </div>
       </div>
     </div>

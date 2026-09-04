@@ -103,7 +103,7 @@ export default function Tasks({ params }) {
   const [newTaskDescription, setNewTaskDescription] = useState('')
   const [isCreating, setIsCreating]               = useState(false)
 
-  const { user, profile } = useUserData(organizationId)
+  const { user, profile, isAdmin, isLoading } = useUserData(organizationId)
   const [isReportModalOpen, setIsReportModalOpen]     = useState(false)
   const [isGeneratingReport, setIsGeneratingReport]   = useState(false)
   const [reportFields, setReportFields] = useState({
@@ -436,15 +436,19 @@ export default function Tasks({ params }) {
     <>
       {categories && statuses && (
         <div className={clsx(GeistSans.className, 'min-h-screen bg-[#fafaf9]')}>
-          <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
+          <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
 
           <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
             <div className="flex items-start justify-between mb-5">
               <div>
                 <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Liste des tâches</h1>
-                <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
-                  {displayedPins.length} tâche{displayedPins.length > 1 ? 's' : ''} au total
-                </p>
+               <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+  {loading ? (
+    <span className="inline-block h-3 w-24 bg-[#eeeeec] rounded-[3px] animate-pulse align-middle" />
+  ) : (
+    `${displayedPins.length} tâche${displayedPins.length > 1 ? 's' : ''} au total`
+  )}
+</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -551,11 +555,35 @@ export default function Tasks({ params }) {
 
               <div className="overflow-x-auto">
                 {loading ? (
-                  <div className="flex flex-col items-center justify-center py-16 gap-3">
-                    <div className="w-7 h-7 border-2 border-[#e5e5e2] border-t-[#0d0d0c] rounded-full animate-spin" />
-                    <p className="text-[13px] text-[#8a8a84] text-center">Chargement...</p>
-                  </div>
-                ) : (
+  <table className="w-full" style={{ borderCollapse: 'collapse' }}>
+    <thead>
+      <tr className="bg-[#f5f5f4] border-b border-[#e5e5e2]">
+        <th className="px-4 py-2 w-10" />
+        {TABLE_HEADERS.map(h => (
+          <th key={h} className={clsx('px-4 py-2 text-left text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em]', GeistMono.className)}>
+            {h}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <tr key={i} className="border-b border-[#f5f5f4] animate-pulse">
+          <td className="px-4 py-3">
+            <div className="w-3.5 h-3.5 bg-[#eeeeec] rounded-[2px]" />
+          </td>
+          <td className="px-4 py-3"><div className="w-5 h-5 bg-[#eeeeec] rounded-full" /></td>
+          <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-40" /></td>
+          <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-20" /></td>
+          <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-24" /></td>
+          <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-16" /></td>
+          <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-28" /></td>
+          <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-12" /></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+) :  (
                 <table className="w-full" style={{ borderCollapse: 'collapse' }}>
                   <thead>
                     <tr className="bg-[#f5f5f4] border-b border-[#e5e5e2]">

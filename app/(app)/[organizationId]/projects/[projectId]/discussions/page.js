@@ -96,7 +96,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DiscussionsPage({ params }) {
   const { projectId, organizationId } = params;
-  const { user, profile } = useUserData();
+  const { user, profile, isAdmin, isLoading } = useUserData();
   const [project, setProject] = useAtom(selectedProjectAtom);
 
   const [groups, setGroups]                     = useState([]);
@@ -234,7 +234,7 @@ export default function DiscussionsPage({ params }) {
 
   return (
     <div className={clsx(GeistSans.className, "flex flex-col h-screen bg-[#fafaf9] overflow-hidden")}>
-      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
 
       <div className="flex flex-1 overflow-hidden">
 

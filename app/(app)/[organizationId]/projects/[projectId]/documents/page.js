@@ -526,7 +526,7 @@ function RenameFolderDialog({ folder, onClose, onRename }) {
 // ── Main page ──────────────────────────────────────────────────
 export default function DocumentsPage({ params }) {
   const { projectId, organizationId } = params;
-  const { user, profile } = useUserData();
+  const { user, profile, isLoading, isAdmin } = useUserData();
   const [project, setProject] = useAtom(selectedProjectAtom);
 
   const [folders, setFolders]           = useState([]);
@@ -646,7 +646,7 @@ export default function DocumentsPage({ params }) {
 
   return (
     <div className={clsx(GeistSans.className, "min-h-screen bg-[#fafaf9]")}>
-      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
 
@@ -654,11 +654,14 @@ export default function DocumentsPage({ params }) {
         <div className="flex items-start justify-between mb-5">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Documents</h1>
-            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
-              {search
-                ? `${filteredDocs.length} résultat${filteredDocs.length > 1 ? 's' : ''} pour "${search}"`
-                : `${subfolders.length + filteredDocs.length} élément${(subfolders.length + filteredDocs.length) > 1 ? 's' : ''} au total`}
-            </p>
+           <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+  {loading ? (
+    <span className="inline-block h-3 w-32 bg-[#eeeeec] rounded-[3px] animate-pulse align-middle" />
+  ) : search
+    ? `${filteredDocs.length} résultat${filteredDocs.length > 1 ? 's' : ''} pour "${search}"`
+    : `${subfolders.length + filteredDocs.length} élément${(subfolders.length + filteredDocs.length) > 1 ? 's' : ''} au total`
+  }
+</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -746,11 +749,20 @@ export default function DocumentsPage({ params }) {
             </div>
           )}
 
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <p className="text-[13px] text-[#8a8a84]">Chargement…</p>
-            </div>
-          ) : (
+         {loading ? (
+  <div className="p-4 flex flex-col divide-y divide-[#f5f5f4]">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="flex items-center gap-3 py-3 animate-pulse">
+        <div className="w-8 h-8 bg-[#eeeeec] rounded-[4px] flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="h-3 bg-[#eeeeec] rounded-[3px] w-48 mb-2" />
+          <div className="h-2.5 bg-[#eeeeec] rounded-[3px] w-24" />
+        </div>
+        <div className="h-2.5 bg-[#eeeeec] rounded-[3px] w-16 flex-shrink-0" />
+      </div>
+    ))}
+  </div>
+) : (
             <div className="p-4">
 
               {/* New folder inline */}

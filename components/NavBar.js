@@ -26,11 +26,11 @@ const tabSlugs = {
   Discussions: 'discussions',
 }
 
-export default function Navbar({ id, user, project, organizationId }) {
+export default function Navbar({ id, user, project, organizationId, isLoading, isAdmin }) {
   const pathname = usePathname()
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const { isAdmin } = useIsAdmin()
+  //const { isAdmin, isLoading: isAdminLoading } = useIsAdmin()
 
   const projectMenuRef = useRef(null)
   const userMenuRef = useRef(null)
@@ -78,18 +78,27 @@ export default function Navbar({ id, user, project, organizationId }) {
       {/* Logo + Dropdown (Project Menu) */}
       <div className="relative flex items-center h-full" ref={projectMenuRef}>
         <button
-          onClick={() => setProjectMenuOpen(prev => !prev)}
-          className="flex items-center gap-2.5 h-full focus:outline-none"
-        >
-          <div className="relative h-10 w-10 shrink-0">
-            <Image src="/logo.png" alt="logo" fill className="object-contain" />
-          </div>
-          <span className="text-[14px] font-medium tracking-[-0.01em] text-[#050505]">
-            {project?.name}
-          </span>
-        </button>
+  onClick={() => !isLoading && setProjectMenuOpen(prev => !prev)}
+  className="flex items-center gap-2.5 h-full focus:outline-none"
+>
+  {isLoading ? (
+    <>
+      <div className="h-10 w-10 shrink-0 bg-[#eeeeec] rounded-[4px] animate-pulse" />
+      <div className="h-3.5 w-28 bg-[#eeeeec] rounded-[3px] animate-pulse" />
+    </>
+  ) : (
+    <>
+      <div className="relative h-10 w-10 shrink-0">
+        <Image src="/logo.png" alt="logo" fill className="object-contain" />
+      </div>
+      <span className="text-[14px] font-medium tracking-[-0.01em] text-[#050505]">
+        {project?.name}
+      </span>
+    </>
+  )}
+</button>
 
-        {projectMenuOpen && (
+        {!isLoading && projectMenuOpen && (
           <div className="absolute top-[52px] left-0 w-64 bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] z-50">
             <ul className="py-1.5 text-[13px]">
               <li>
@@ -188,15 +197,19 @@ export default function Navbar({ id, user, project, organizationId }) {
             aria-expanded={userMenuOpen}
             aria-haspopup="true"
           >
-            {user?.name?.charAt(0).toUpperCase() || 'M'}
+             {isLoading ? (
+      <span className="w-3 h-3 rounded-full bg-[#d5d5d2] animate-pulse" />
+    ) : (
+      user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'
+    )}
           </button>
 
-          {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] z-50">
-              <div className="px-3.5 py-3 border-b border-[#e5e5e2]">
-                <p className="text-[13px] font-medium text-[#050505]">{user?.name || 'My Account'}</p>
-                <p className="text-[12px] text-[#666660] truncate mt-0.5">{user?.email || 'user@example.com'}</p>
-              </div>
+           {!isLoading && userMenuOpen && (
+    <div className="absolute right-0 mt-2 w-56 bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] z-50">
+      <div className="px-3.5 py-3 border-b border-[#e5e5e2]">
+        <p className="text-[13px] font-medium text-[#050505]">{user?.name || user?.email || ''}</p>
+        <p className="text-[12px] text-[#666660] truncate mt-0.5">{user?.email || ''}</p>
+      </div>
 
               <div className="py-1.5">
                 <Link

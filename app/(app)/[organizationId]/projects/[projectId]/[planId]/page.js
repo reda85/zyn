@@ -24,7 +24,10 @@ export default function ProjectDetail({ params }) {
   const [categories, setCategories] = useAtom(categoriesAtom)
   const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom)
 const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
-  const { user, profile, organization } = useUserData(organizationId);
+  const { user, profile, organization, isAdmin, isLoading } = useUserData(organizationId);
+
+  // Ajouter l'état
+const [pinsLoading, setPinsLoading] = useState(true)
 
   console.log('uuuser', user, profile, organization)
 
@@ -87,6 +90,10 @@ const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
     if ( !planId || !user || !profile || !organization) return;
 
 const fetchPins = async () => {
+
+   setPinsLoading(true)
+    setPins([])           // ← vider immédiatement les anciens pins
+    setFilteredPins([])   // ← vider aussi les pins filtrés
       console.log('Fetching pins for plan:', planId, 'and user:', user.id)
       const isGuest = profile?.role === 'guest';
 console.log('Is user a guest?', isGuest)
@@ -132,9 +139,11 @@ console.log('Is user a guest?', isGuest)
     nextLength: data?.length ?? 0,
     stack: new Error().stack
   });
+  
   return data;
 });
       }
+setPinsLoading(false)  // ← toujours déverrouiller même si erreur
     }
 
     fetchPins()
@@ -178,7 +187,7 @@ console.log('Is user a guest?', isGuest)
     <div className="h-screen flex flex-col bg-background font-sans">
       {/* Navbar with higher z-index - NO overflow constraints */}
       <div className="relative z-50">
-        <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} />
+        <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
       </div>
       
       {/* Content area - overflow only on this level */}
@@ -186,7 +195,7 @@ console.log('Is user a guest?', isGuest)
         {/* Sidebar */}
         {selectedPlan && (
           <div className="w-80 overflow-y-auto border-r border-border/40 bg-secondary/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <PinsList pins={filteredPins} plans={project.plans} user={profile} projectId={projectId} organizationId={organizationId} />
+            <PinsList pins={filteredPins} plans={project.plans} user={profile} projectId={projectId} organizationId={organizationId} isLoading={pinsLoading} />
           </div>
         )}
 
