@@ -1,165 +1,182 @@
-import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
+import { createAdminClient, findMembersByEmail } from '@/lib/supabaseAdmin'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// Rôles qu'un administrateur peut attribuer depuis l'écran Membres.
+const ASSIGNABLE_ROLES = ['admin', 'Membres', 'guest']
+const ADMIN_ROLES = ['admin', 'owner', 'super_admin']
 
+const json = (body, status = 200) => NextResponse.json(body, { status })
+
+const isAlreadyRegistered = (error) =>
+  error?.code === 'email_exists' || /already (been )?registered/i.test(error?.message || '')
+
+/**
+ * POST /api/invite
+ * { email, name, role, organizationId, memberId?, projects? }
+ *
+ * Invite une personne dans une organisation :
+ *  - nouvelle adresse            → email d'invitation (lien vers /accept-invite) ;
+ *  - compte déjà existant        → simple ajout à l'organisation, sans email ;
+ *  - invitation jamais acceptée  → l'email est renvoyé.
+ *
+ * Réservé aux administrateurs de l'organisation visée.
+ */
 export async function POST(request) {
   try {
-    const { email, name, role, organizationId, projects } = await request.json()
+    const body = await request.json().catch(() => null)
+    const email = body?.email?.toString().trim().toLowerCase()
+    const name = body?.name?.toString().trim() || null
+    // Le rôle n'est requis que si la personne n'est pas encore dans l'organisation.
+    const role = ASSIGNABLE_ROLES.includes(body?.role) ? body.role : null
+    const organizationId = body?.organizationId
+    const memberId = body?.memberId || null
+    const projects = Array.isArray(body?.projects) ? body.projects : []
 
-    const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL
-    console.log('Origin:', origin)
-    // Une seule ligne à changer
-const redirectTo = `${origin}/accept-invite`
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Adresse email invalide' }, 400)
+    if (!organizationId) return json({ error: 'Organisation manquante' }, 400)
 
-    let member
+    // ── 1. Qui appelle ? ────────────────────────────────────────────────────
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return json({ error: 'Non authentifié' }, 401)
 
-    // 1. Check existing member
-    const { data: existingMember } = await supabaseAdmin
-      .from('members')
-      .select()
-      .eq('email', email)
-      .maybeSingle()
+    const admin = createAdminClient()
 
-    if (existingMember) {
-      member = existingMember
+    const { data: caller } = await admin.from('members').select('id').eq('auth_id', user.id).maybeSingle()
+    const { data: callerMemberships } = caller
+      ? await admin.from('members_organizations').select('organization_id, role').eq('member_id', caller.id)
+      : { data: [] }
+    const canInvite = (callerMemberships ?? []).some(
+      (m) => m.role === 'super_admin' || (m.organization_id === organizationId && ADMIN_ROLES.includes(m.role))
+    )
+    if (!canInvite) return json({ error: "Seul un administrateur de l'organisation peut inviter" }, 403)
 
-      const { data: existingOrgMember } = await supabaseAdmin
-        .from('members_organizations')
-        .select()
-        .eq('member_id', existingMember.id)
-        .eq('organization_id', organizationId)
-        .maybeSingle()
-
-      // Member already invited
-      if (existingOrgMember?.invited) {
-        return Response.json(
-          { error: 'Ce membre appartient déjà à cette organisation' },
-          { status: 400 }
-        )
-      }
-
-      // Existing org member but not invited -> resend invite
-      if (existingOrgMember && !existingOrgMember.invited) {
-        const { error: inviteError } =
-          await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-            redirectTo,
-            data: {
-              name,
-              role,
-              organization_id: organizationId,
-            },
-          })
-
-        if (inviteError) throw inviteError
-
-        // Mettre à jour auth_id dans members
-  const { error: updateMemberError } = await supabaseAdmin
-    .from('members')
-    .update({ auth_id: authData.user.id, organization_id: organizationId, role })
-    .eq('id', existingMember.id)
-
-  if (updateMemberError) throw updateMemberError
-
-
-        // Update invited flag
-        const { error: updateError } = await supabaseAdmin
-          .from('members_organizations')
-          .update({ invited: true })
-          .eq('member_id', existingMember.id)
-          .eq('organization_id', organizationId)
-
-        if (updateError) throw updateError
-      }
-
-      // Existing member but no org relation yet
-      if (!existingOrgMember) {
-        const { error: orgError } = await supabaseAdmin
-          .from('members_organizations')
-          .insert({
-            member_id: member.id,
-            organization_id: organizationId,
-            role,
-            invited: true,
-          })
-
-        if (orgError) throw orgError
-
-        const { error: inviteError } =
-          await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-            redirectTo,
-            data: {
-              name,
-              role,
-              organization_id: organizationId,
-            },
-          })
-
-        if (inviteError) throw inviteError
-      }
+    // ── 2. Fiche membre visée ───────────────────────────────────────────────
+    let member = null
+    if (memberId) {
+      const { data } = await admin.from('members').select('*').eq('id', memberId).maybeSingle()
+      // La fiche doit déjà appartenir à cette organisation.
+      const { data: link } = data
+        ? await admin
+            .from('members_organizations')
+            .select('id')
+            .eq('member_id', data.id)
+            .eq('organization_id', organizationId)
+            .maybeSingle()
+        : { data: null }
+      if (!data || !link) return json({ error: 'Membre introuvable dans cette organisation' }, 404)
+      member = data
     } else {
-      // 2. New member
-      const { data: authData, error: authError } =
-        await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-          redirectTo,
-          data: {
-            name,
-            role,
-            organization_id: organizationId,
-          },
-        })
+      const candidates = await findMembersByEmail(admin, email)
+      member = candidates.find((m) => m.auth_id) ?? candidates[0] ?? null
+    }
 
-      if (authError) throw authError
+    // ── 3. Compte d'authentification ────────────────────────────────────────
+    const origin = new URL(request.url).origin
+    let authUserId = member?.auth_id ?? null
+    let emailSent = false
 
-      const { data: newMember, error: memberError } = await supabaseAdmin
+    // Compte créé par une invitation jamais acceptée (lien expiré) : on renvoie l'email.
+    let neverSignedIn = false
+    if (authUserId) {
+      const { data: existing } = await admin.auth.admin.getUserById(authUserId)
+      if (!existing?.user) authUserId = null // fiche rattachée à un compte supprimé
+      else neverSignedIn = !existing.user.last_sign_in_at
+    }
+
+    if (!authUserId || neverSignedIn) {
+      const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${origin}/accept-invite`,
+        data: { name, role, organization_id: organizationId },
+      })
+
+      if (!inviteError) {
+        authUserId = invited.user.id
+        emailSent = true
+      } else if (isAlreadyRegistered(inviteError)) {
+        // Le compte existe déjà (autre organisation, inscription directe…) :
+        // on récupère son identifiant sans envoyer d'email.
+        if (!authUserId) {
+          const { data: link, error: linkError } = await admin.auth.admin.generateLink({ type: 'magiclink', email })
+          if (linkError) throw linkError
+          authUserId = link.user.id
+        }
+      } else {
+        throw inviteError
+      }
+    }
+
+    // ── 4. Fiche membre : création ou mise à jour ───────────────────────────
+    if (member) {
+      const patch = { invited: true }
+      if (member.auth_id !== authUserId && authUserId) patch.auth_id = authUserId
+      if ((member.email || '').toLowerCase() !== email) patch.email = email
+      if (!member.status) patch.status = 'pending'
+      const { data: updated, error } = await admin.from('members').update(patch).eq('id', member.id).select().single()
+      if (error) throw error
+      member = updated
+    } else {
+      const { data: created, error } = await admin
         .from('members')
-        .insert({
-          name,
-          email,
-          status: 'pending',
-          invited: true,
-          auth_id: authData.user.id,
-          organization_id: organizationId,
-          role,
-        })
+        .insert({ name, email, status: 'pending', invited: true, auth_id: authUserId })
         .select()
         .single()
+      if (error) throw error
+      member = created
+    }
 
-      if (memberError) throw memberError
+    // ── 5. Rattachement à l'organisation ────────────────────────────────────
+    const { data: existingLink } = await admin
+      .from('members_organizations')
+      .select('id')
+      .eq('member_id', member.id)
+      .eq('organization_id', organizationId)
+      .maybeSingle()
 
-      member = newMember
-
-      const { error: orgError } = await supabaseAdmin
+    if (existingLink) {
+      const { error } = await admin.from('members_organizations').update({ invited: true }).eq('id', existingLink.id)
+      if (error) throw error
+    } else {
+      if (!role) return json({ error: 'Rôle invalide' }, 400)
+      const { error } = await admin
         .from('members_organizations')
-        .insert({
-          member_id: member.id,
-          organization_id: organizationId,
-          role,
-          invited: true,
-        })
-
-      if (orgError) throw orgError
+        .insert({ member_id: member.id, organization_id: organizationId, role, invited: true })
+      if (error) throw error
     }
 
-    // 3. Assign projects
-    if (projects && projects.length > 0) {
-      const rows = projects.map((projectId) => ({
-        member_id: member.id,
-        project_id: projectId,
-      }))
-
-      const { error: projectsError } = await supabaseAdmin
-        .from('members_projects')
-        .insert(rows)
-
-      if (projectsError) throw projectsError
+    // ── 6. Projets (de cette organisation uniquement, sans doublon) ─────────
+    if (projects.length > 0) {
+      const { data: allowed } = await admin
+        .from('projects')
+        .select('id')
+        .eq('organization_id', organizationId)
+        .in('id', projects)
+      const { data: already } = await admin.from('members_projects').select('project_id').eq('member_id', member.id)
+      const known = new Set((already ?? []).map((r) => r.project_id))
+      const rows = (allowed ?? [])
+        .filter((p) => !known.has(p.id))
+        .map((p) => ({ member_id: member.id, project_id: p.id }))
+      if (rows.length > 0) {
+        const { error } = await admin.from('members_projects').insert(rows)
+        if (error) throw error
+      }
     }
 
-    return Response.json({ success: true, member })
+    return json({
+      success: true,
+      member,
+      emailSent,
+      message: emailSent
+        ? "Invitation envoyée par email."
+        : "Cette personne a déjà un compte : elle a été ajoutée à l'organisation et peut se connecter directement.",
+    })
   } catch (error) {
     console.error('Invite API error:', error)
-    return Response.json({ error: error.message }, { status: 500 })
+    const message =
+      error?.status === 429
+        ? "Trop d'invitations envoyées. Patientez quelques minutes."
+        : error?.message || "Erreur lors de l'envoi de l'invitation"
+    return json({ error: message }, 500)
   }
 }

@@ -1,24 +1,35 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
+// Chemin interne uniquement : `/x`, jamais `//hôte` ni `@hôte` (redirection ouverte).
+const safePath = (value: string | null) =>
+  value && /^\/(?!\/)[^\\]*$/.test(value) ? value : null;
+
+/**
+ * Retour des liens de confirmation (flux PKCE) : échange le code contre une session.
+ */
 export async function GET(request: Request) {
-  // The `/auth/callback` route is required for the server-side auth flow implemented
-  // by the SSR package. It exchanges an auth code for the user's session.
-  // https://supabase.com/docs/guides/auth/server-side/nextjs
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
-  const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString();
+  const code = requestUrl.searchParams.get("code");
+  const redirectTo = safePath(requestUrl.searchParams.get("redirect_to"));
+
+  const fail = (message: string) =>
+    NextResponse.redirect(`${origin}/sign-in?error=${encodeURIComponent(message)}`);
+
+  // Lien expiré ou déjà utilisé : Supabase renvoie l'erreur dans l'URL.
+  if (requestUrl.searchParams.get("error") || requestUrl.searchParams.get("error_code")) {
+    return fail("Token expired");
+  }
 
   if (code) {
     const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("[auth/callback]", error.message);
+      return fail("Token expired");
+    }
   }
 
-  if (redirectTo) {
-    return NextResponse.redirect(`${origin}${redirectTo}`);
-  }
-
-  // URL to redirect to after sign up process completes
-  return NextResponse.redirect(`${origin}/workspaces`);
+  return NextResponse.redirect(`${origin}${redirectTo ?? "/workspaces"}`);
 }

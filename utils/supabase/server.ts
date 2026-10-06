@@ -5,12 +5,13 @@ import { getCookieDomain } from "@/utils/supabase/cookie-domain";
 export const createClient = async () => {
   const cookieStore = await cookies();
   const host = (await headers()).get("host") || "";
-  const domainOption = getCookieDomain(host);
+  const cookieOptions = getCookieDomain(host);
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions,
       cookies: {
         getAll() {
           return cookieStore.getAll();
@@ -18,16 +19,23 @@ export const createClient = async () => {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, {
-                ...options,
-                ...domainOption, // Same domain logic as middleware
-              });
+              cookieStore.set(name, value, { ...options, ...cookieOptions });
             });
           } catch {
-            // Called from a Server Component — middleware handles the refresh
+            // Appelé depuis un Server Component : le middleware se charge du rafraîchissement.
           }
         },
       },
     }
   );
+};
+
+/** Origine publique de la requête courante (`https://app.zaynspace.com`). */
+export const getRequestOrigin = async () => {
+  const h = await headers();
+  const origin = h.get("origin");
+  if (origin) return origin;
+  const host = h.get("x-forwarded-host") || h.get("host") || "";
+  const proto = h.get("x-forwarded-proto") || (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
 };

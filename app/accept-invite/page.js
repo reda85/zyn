@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
+import { activateMembershipAction } from '@/app/actions'
 import { Lexend } from 'next/font/google'
 import clsx from 'clsx'
 import { Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
@@ -23,7 +24,6 @@ function AcceptInviteContent() {
 
   useEffect(() => {
     const hash = window.location.hash
-    console.log('[accept-invite] hash:', hash)
 
     const hashParams = new URLSearchParams(hash.substring(1))
     const accessToken = hashParams.get('access_token')
@@ -31,8 +31,6 @@ function AcceptInviteContent() {
     const errorCode = hashParams.get('error_code')
     const errorDesc = hashParams.get('error_description')
 
-    console.log('[accept-invite] access_token:', accessToken ? 'present' : 'null')
-    console.log('[accept-invite] error:', errorCode, errorDesc)
 
     if (errorCode || errorDesc) {
       setLinkExpired(true)
@@ -51,13 +49,14 @@ function AcceptInviteContent() {
     // Établir la session depuis les tokens du hash directement
     supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
       .then(({ data, error: sessionError }) => {
-        console.log('[accept-invite] setSession result:', data?.user?.email, sessionError)
         if (sessionError || !data?.session?.user) {
           setLinkExpired(true)
           setError("Session invalide. Le lien a peut-être déjà été utilisé.")
           setChecking(false)
           return
         }
+        // Les jetons ne doivent pas rester dans l'URL (historique, copier-coller).
+        window.history.replaceState(null, '', window.location.pathname)
         setUserEmail(data.session.user.email)
         setOrganizationId(data.session.user.user_metadata?.organization_id ?? null)
         setChecking(false)
@@ -82,16 +81,16 @@ function AcceptInviteContent() {
       const { error: updateError } = await supabase.auth.updateUser({ password })
       if (updateError) throw updateError
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from('members').update({ status: 'active' }).eq('email', user.email)
-      }
+      // Rattachement du compte à la fiche membre et activation : côté serveur.
+      const { ok, organizationId: activatedOrgId } = await activateMembershipAction()
+      if (!ok) console.warn('[accept-invite] aucune fiche membre à activer pour ce compte')
 
       setSuccess(true)
-      const orgId = organizationId ?? user?.user_metadata?.organization_id
+      const orgId = activatedOrgId ?? organizationId
+      // Rechargement complet : le serveur relit la session fraîchement créée.
       setTimeout(() => {
-        router.push(orgId ? `/${orgId}/projects` : '/workspaces')
-      }, 2000)
+        window.location.assign(orgId ? `/${orgId}/projects` : '/workspaces')
+      }, 1500)
     } catch (err) {
       setError(err.message || 'Une erreur est survenue')
     } finally {
