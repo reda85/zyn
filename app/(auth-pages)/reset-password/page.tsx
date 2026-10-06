@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
+import { activateMembershipAction } from '@/app/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { GeistSans } from 'geist/font/sans'
@@ -10,44 +10,79 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export default function ResetPasswordPage() {
-  const router = useRouter()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
+  const [linkError, setLinkError] = useState('')
 
+  // La session de réinitialisation doit venir DU LIEN reçu par email, jamais
+  // d'une session déjà ouverte dans ce navigateur : sinon on changerait le mot
+  // de passe du compte connecté ici, qui n'est pas forcément le bon.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
+    let cancelled = false
+    const expired = "Ce lien de réinitialisation a expiré ou a déjà été utilisé. Demandez-en un nouveau."
 
-    if (params.get('error_code')) {
-      router.push('/forgot-password')
-      return
+    const establishSession = async () => {
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const query = new URLSearchParams(window.location.search)
+
+      if (hash.get('error') || hash.get('error_code') || query.get('error') || query.get('error_code')) {
+        return expired
+      }
+
+      // 1. Lien « implicite » : les jetons sont dans l'URL, valable sur tout appareil.
+      const accessToken = hash.get('access_token')
+      const refreshToken = hash.get('refresh_token')
+      if (accessToken && refreshToken) {
+        if (hash.get('type') && hash.get('type') !== 'recovery') return expired
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        window.history.replaceState(null, '', window.location.pathname)
+        return sessionError || !data.session ? expired : null
+      }
+
+      // 2. Ancien lien « PKCE » (?code=…) : le client l'échange à l'initialisation,
+      //    ce qui ne réussit que dans le navigateur qui a fait la demande.
+      if (query.get('code')) {
+        const { data } = await supabase.auth.getSession()
+        window.history.replaceState(null, '', window.location.pathname)
+        return data.session
+          ? null
+          : "Ce lien doit être ouvert dans le navigateur où la demande a été faite, ou il a expiré. Demandez-en un nouveau."
+      }
+
+      return "Ouvrez cette page depuis le lien reçu par email."
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
-        setReady(true)
-      }
-      if (event === 'INITIAL_SESSION' && !session) {
-        router.push('/forgot-password')
-      }
+    establishSession().then((problem) => {
+      if (cancelled) return
+      if (problem) setLinkError(problem)
+      else setReady(true)
     })
-
-    return () => subscription.unsubscribe()
-  }, [router])
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
     if (!password || !confirmPassword) {
-      setError('Password and confirm password are required')
+      setError('Saisissez et confirmez votre nouveau mot de passe.')
+      return
+    }
+    if (password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères.')
       return
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('Les mots de passe ne correspondent pas.')
       return
     }
 
@@ -55,13 +90,38 @@ export default function ResetPasswordPage() {
     const { error: updateError } = await supabase.auth.updateUser({ password })
 
     if (updateError) {
-      setError(updateError.message)
+      setError(
+        /different from the old password/i.test(updateError.message)
+          ? "Le nouveau mot de passe doit être différent de l'ancien."
+          : "Impossible de mettre à jour le mot de passe. Demandez un nouveau lien."
+      )
       setLoading(false)
       return
     }
 
+    // Un compte invité qui passe par « mot de passe oublié » est activé au passage.
+    await activateMembershipAction().catch(() => null)
+
     setSuccess(true)
-    setTimeout(() => router.push('/sign-in'), 2000)
+    // Rechargement complet : le serveur relit la session fraîchement créée.
+    setTimeout(() => window.location.assign('/workspaces'), 1500)
+  }
+
+  if (linkError) {
+    return (
+      <div className={`flex h-screen w-screen items-center justify-center bg-[#fafaf9] px-6 ${GeistSans.className}`}>
+        <div className="max-w-sm text-center">
+          <h1 className="text-[17px] font-medium text-[#050505] mb-2">Lien invalide</h1>
+          <p className="text-[13px] text-[#666660] mb-6">{linkError}</p>
+          <Link
+            href="/forgot-password"
+            className="inline-block px-3 py-[7px] bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors"
+          >
+            Demander un nouveau lien
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (!ready) {
