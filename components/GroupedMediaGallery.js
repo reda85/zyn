@@ -2,29 +2,34 @@
 
 import React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { Lexend } from 'next/font/google';
-
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' });
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import { MapPinIcon, User, Calendar } from 'lucide-react';
+import clsx from 'clsx';
+import { photoThumbUrl } from '@/lib/images';
 
 export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds }) {
   if (!media || media.length === 0) {
-    return <div className="text-gray-500 text-center py-10">Aucun média disponible.</div>;
+    return null; // Empty state géré par la page parent
   }
 
-  // Group media by date
-  const grouped = media.reduce((acc, item) => {
+  // Regroupe par jour. `media` arrive trié du plus récent au plus ancien :
+  // l'ordre d'apparition des jours est donc déjà le bon (trier des libellés
+  // comme « 06 septembre 2026 » avec `new Date()` ne fonctionne pas).
+  const grouped = {};
+  const sortedDates = [];
+  for (const item of media) {
     const date = new Date(item.created_at).toLocaleDateString('fr-FR', {
-  day: '2-digit',
-  month: 'long',
-  year: '2-digit',
-});
-
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(item);
-    return acc;
-  }, {});
-
-  const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+    if (!grouped[date]) {
+      grouped[date] = [];
+      sortedDates.push(date);
+    }
+    grouped[date].push(item);
+  }
 
   const toggleMedia = (id) => {
     setSelectedIds((prev) => {
@@ -45,12 +50,9 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
       return newSet;
     });
   };
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(' ');    
-  }
 
   return (
-    <div className={classNames("space-y-10", lexend.variable)}>
+    <div className={clsx("space-y-10", GeistSans.className)}>
       {sortedDates.map((date) => {
         const items = grouped[date];
         const allSelected = items.every((item) => selectedIds.has(item.id));
@@ -58,78 +60,94 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
         return (
           <div key={date}>
             {/* Date Header with Group Checkbox */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-3 mb-4">
               <button
                 onClick={() => toggleAllInGroup(items)}
-                className={`w-5 h-5 rounded-full border-2 ${
-                  allSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-400'
-                } flex items-center justify-center transition`}
+                className={clsx(
+                  "w-4 h-4 rounded-[2px] border flex items-center justify-center transition-colors",
+                  allSelected
+                    ? 'bg-[#2f5ee0] border-[#2f5ee0]'
+                    : 'border-[#d6d6d2] hover:border-[#2f5ee0]'
+                )}
+                title={allSelected ? "Tout désélectionner" : "Tout sélectionner"}
               >
-                {allSelected && <CheckCircleIcon className="text-white w-4 h-4" />}
+                {allSelected && <CheckCircleIcon className="text-white w-3 h-3" />}
               </button>
-              <h3 className=" font-semibold text-gray-700"> {date} — {items.length} média{items.length > 1 ? 's' : ''}</h3>
+
+              <div className="flex items-center gap-2">
+                <h3 className="text-[15px] font-medium text-[#050505]">
+                  {date}
+                </h3>
+                <span className={clsx('text-[12px] text-[#8a8a84]', GeistMono.className)}>
+                  · {items.length} photo{items.length > 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
 
             {/* Media Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {items.map((item) => {
                 const selected = selectedIds.has(item.id);
                 return (
                   <div
                     key={item.id}
-                    className="relative group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+                    className={clsx(
+                      "relative group bg-white border rounded-[4px] overflow-hidden flex flex-col transition-all hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]",
+                      selected
+                        ? "border-[#2f5ee0] shadow-[0_0_0_3px_rgba(47,94,224,0.15)]"
+                        : "border-[#e5e5e2] hover:border-[#d6d6d2]"
+                    )}
                   >
-<div
-  key={item.id}
-  className="relative group bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col"
->
-  {/* Header with time */}
-  <div className="text-xs text-gray-500 px-3 py-2 bg-gray-50">
-    Ajouté à : {new Date(item.created_at).toLocaleTimeString('fr-FR')}
-  </div>
+                    {/* Header with user and time */}
+                    <div className="px-3 py-2 bg-[#f5f5f4] border-b border-[#e5e5e2]">
+                      <div className="flex items-center gap-2 mb-1">
+                        <User className="w-3 h-3 text-[#8a8a84]" />
+                        <p className="text-[12px] font-medium text-[#0d0d0c] truncate">
+                          {item.pdf_pins?.assigned_to?.name || 'Non assigné'}
+                        </p>
+                      </div>
+                      <p className={clsx('text-[12px] text-[#8a8a84]', GeistMono.className)}>
+                        {new Date(item.created_at).toLocaleTimeString('fr-FR', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
 
-  {/* Media image */}
-  <div className="relative">
-    <img
-      src={item.public_url}
-      alt="media"
-      className="w-full h-48 object-cover"
-    />
+                    {/* Media image */}
+                    <div className="relative h-48">
+                      <img
+                        src={photoThumbUrl(item, { width: 640 })}
+                        alt="media"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                      />
 
-    {/* Hover / Selected checkbox */}
-    <button
-      onClick={() => toggleMedia(item.id)}
-      className={`absolute top-2 right-2 w-6 h-6 rounded-full border-2 ${
-        selected ? 'bg-blue-500 border-blue-500 opacity-100' : 'border-white opacity-0 group-hover:opacity-100'
-      } flex items-center justify-center transition`}
-    >
-      {selected && <CheckCircleIcon className="text-white w-5 h-5" />}
-    </button>
-  </div>
+                      {/* Overlay gradient on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-  {/* Footer with pin name */}
-  <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 border-t border-gray-200 mt-auto">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-4 w-4 text-gray-500"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M16 7a4 4 0 00-8 0c0 1.657 2 6 4 6s4-4.343 4-6z"
-      />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19v-3" />
-    </svg>
-    <span className="truncate">
-      {item.pdf_pins?.name ?? 'Sans nom'}
-    </span>
-  </div>
-</div>
+                      {/* Checkbox */}
+                      <button
+                        onClick={() => toggleMedia(item.id)}
+                        className={clsx(
+                          "absolute top-2 right-2 w-6 h-6 rounded-full border flex items-center justify-center transition-all shadow-[0_1px_2px_rgba(15,15,15,0.08)]",
+                          selected
+                            ? 'bg-[#2f5ee0] border-[#2f5ee0] opacity-100 scale-110'
+                            : 'border-white bg-white/30 backdrop-blur-sm opacity-0 group-hover:opacity-100'
+                        )}
+                      >
+                        {selected && <CheckCircleIcon className="text-white w-4 h-4" />}
+                      </button>
+                    </div>
 
+                    {/* Footer with pin name */}
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-[#e5e5e2] mt-auto">
+                      <MapPinIcon className="h-4 w-4 text-[#8a8a84] flex-shrink-0" />
+                      <span className="text-[13px] text-[#0d0d0c] font-medium truncate">
+                        {item.pdf_pins?.name || 'Sans nom'}
+                      </span>
+                    </div>
                   </div>
                 );
               })}

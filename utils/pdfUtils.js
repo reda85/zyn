@@ -1,80 +1,89 @@
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import { createCanvas, loadImage } from "canvas"; 
+// REMOVED: import fetch from "node-fetch"; // Global fetch is available on Vercel Node runtime
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.js";
+
+// --- START: VERCEL-COMPATIBLE WORKER FIX ---
+// Use the path resolved by Node's require in a serverless context
+const pdfWorkerPath = require.resolve("pdfjs-dist/legacy/build/pdf.worker.js");
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerPath;
+
+
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(value, max));
-
 }
 
-function drawPin(ctx, x, y) {
-  // Halo
+export function drawPin(ctx, x, y) {
   ctx.beginPath();
   ctx.arc(x, y, 12, 0, 2 * Math.PI);
-  ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+  ctx.fillStyle = "rgba(255,0,0,0.3)";
   ctx.fill();
 
-  // Pin
   ctx.beginPath();
   ctx.arc(x, y, 6, 0, 2 * Math.PI);
-  ctx.fillStyle = '#e63946';
+  ctx.fillStyle = "#e63946";
   ctx.fill();
 
-  // Centre blanc
   ctx.beginPath();
   ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = "#fff";
   ctx.fill();
 }
 
+export async function getZoomedInPinImage(pdfUrl, pageNum, x, y, width, height, zoom = 2) {
+  // 1) Fetch remote PDF file
+  const res = await fetch(pdfUrl);
+  if (!res.ok) throw new Error(`Failed to fetch PDF at ${pdfUrl}`);
+  const pdfBytes = await res.arrayBuffer();
 
-export async function getZoomedInPinImage(pdfData, pageNum, x, y, width, height, zoom = 2) {
-  const loadingTask = pdfjsLib.getDocument(pdfData);
+  // 2) Load PDF
+  const loadingTask = pdfjs.getDocument({ data: pdfBytes });
   const pdf = await loadingTask.promise;
+
+  if (pageNum > pdf.numPages) {
+    throw new Error(`Page ${pageNum} exceeds ${pdf.numPages}`);
+  }
+
   const page = await pdf.getPage(pageNum);
-  const viewport = page.getViewport({ scale: 1 });
-  const renderScale = 2;
-  const renderViewport = page.getViewport({ scale: renderScale });
 
-  const canvas = document.createElement('canvas');
-  canvas.width = renderViewport.width;
-  canvas.height = renderViewport.height;
-  const context = canvas.getContext('2d');
+  // Render at scale 2 so we get HD image
+  const viewport = page.getViewport({ scale: 2 });
 
-  await page.render({ canvasContext: context, viewport: renderViewport }).promise;
+  // 3) Render PDF page to a full canvas
+  const fullCanvas = createCanvas(viewport.width, viewport.height);
+  const fullCtx = fullCanvas.getContext("2d");
 
-  const scale = renderScale;
-  const cropWidth = width * scale;
-  const cropHeight = height * scale;
+  await page.render({
+    canvasContext: fullCtx,
+    viewport
+  }).promise;
 
-  // Centrer le crop autour du point PDF
-  let cropX = (x - width / 2) * scale;
-  //let cropY = (viewport.height - y - height / 2) * scale;
-let cropY = (y - height / 2) * scale;
-  // Empêcher le crop de sortir du canvas
-  cropX = clamp(cropX, 0, canvas.width - cropWidth);
-  cropY = clamp(cropY, 0, canvas.height - cropHeight);
+  // 4) Crop around the pin
+  const absX = x * viewport.width;
+  const absY = y * viewport.height;
 
-  console.log("PDF Point:", x, y);
-  console.log("Viewport:", viewport.width, viewport.height);
-  console.log("Crop (x, y, w, h):", cropX, cropY, cropWidth, cropHeight);
+  const cropX = clamp(absX - width / 2, 0, viewport.width - width);
+  const cropY = clamp(absY - height / 2, 0, viewport.height - height);
 
-  const zoomedCanvas = document.createElement('canvas');
-  zoomedCanvas.width = cropWidth * zoom;
-  zoomedCanvas.height = cropHeight * zoom;
-  const zoomedContext = zoomedCanvas.getContext('2d');
+  // 5) Create zoomed canvas
+  const zoomedCanvas = createCanvas(width * zoom, height * zoom);
+  const zoomedCtx = zoomedCanvas.getContext("2d");
 
-  zoomedContext.drawImage(
-    canvas,
-    cropX, cropY, cropWidth, cropHeight,
-    0, 0, zoomedCanvas.width, zoomedCanvas.height
+  zoomedCtx.drawImage(
+    fullCanvas,
+    cropX, cropY,
+    width, height,
+    0, 0,
+    width * zoom,
+    height * zoom
   );
 
-  const pinX = zoomedCanvas.width / 2;
-  const pinY = zoomedCanvas.height / 2;
+  // 6) Draw pin on the zoomed snapshot
+  const pinX = (absX - cropX) * zoom;
+  const pinY = (absY - cropY) * zoom;
+  drawPin(zoomedCtx, pinX, pinY);
 
-drawPin(zoomedContext, pinX, pinY);
-
-
-  return zoomedCanvas.toDataURL('image/png');
+  // 7) Return PNG data URL (PDF safe)
+  return zoomedCanvas.toDataURL("image/png");
 }

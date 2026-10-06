@@ -1,3 +1,4 @@
+import { useProjectData } from "@/providers/ProjectProvider";
 import { CheckCheckIcon, CheckIcon, DropletsIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon } from "lucide-react";
 
 function classNames(...classes) {
@@ -27,8 +28,9 @@ const statusColors = {
 }
 
 export default function GhostPin({  }) {
+    const { statuses } = useProjectData()
     return (
-        <div className={classNames(" rounded-full p-1 ", statusColors['En cours'])}>
+        <div className=" rounded-full p-1 " style={{backgroundColor : statuses.find(s => s.order === 0)?.color || '#ccc'}}>
             {CategoryIcon('unknown','En cours')}
         </div>
     )

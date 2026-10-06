@@ -1,0 +1,801 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Send, Plus, Users, X, Search, UserPlus, MessageSquare, Image as ImageIcon, Link as LinkIcon, MapPin, FileText, MapPinIcon } from 'lucide-react';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import NavBar from '@/components/NavBar';
+import { useProjectData } from '@/providers/ProjectProvider';
+import { categoriesPinIcons } from '@/utils/categories';
+import { useUserData } from '@/hooks/useUserData';
+import { supabase } from '@/utils/supabase/client';
+import clsx from 'clsx';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+// Muted variants of the system's status hues, kept distinct per group/user via hash
+const AVATAR_COLORS = [
+  '#5b8def','#3b70e8','#0f7a3a',
+  '#8a5a00','#9c1b1b','#1e3a8a','#264dc2',
+];
+
+const avatarColor = (id = '') => {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = id.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+};
+
+const initials = (name = '') => {
+  const p = name.trim().split(' ').filter(Boolean);
+  if (!p.length) return '?';
+  return p.length === 1 ? p[0][0].toUpperCase() : (p[0][0] + p[p.length-1][0]).toUpperCase();
+};
+
+const fmtTime = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date();
+  return d.toDateString() === now.toDateString()
+    ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+};
+
+const fmtFull = (iso) => iso
+  ? new Date(iso).toLocaleString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+  : '';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LINKED ITEM COMPONENT
+// ─────────────────────────────────────────────────────────────────────────────
+function LinkedItem({ item, isOwn, organizationId, projectId }) {
+  const { categories, statuses } = useProjectData();
+  const [pinData, setPinData] = useState(null);
+
+  useEffect(() => {
+    if (item.item_type !== 'pin') return;
+    const fetchPin = async () => {
+      const { data } = await supabase.from('pdf_pins').select('category_id, status_id').eq('id', item.item_id).single();
+      if (data) setPinData(data);
+    };
+    fetchPin();
+  }, [item.item_id, item.item_type]);
+
+  const handleClick = () => {
+    if (item.item_type === 'pin') window.open(`/${organizationId}/projects/${projectId}/tasks#pin-${item.item_id}`, '_blank');
+    else if (item.item_type === 'plan') window.open(`/${organizationId}/projects/${projectId}/${item.item_id}`, '_blank');
+  };
+
+  if (item.item_type === 'plan') {
+    return (
+      <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-[3px] cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-[#eeeeec] text-[#4a4a46]')}>
+        <MapPinIcon className="w-4 h-4 shrink-0" />
+        <span>{item.label ?? item.item_id}</span>
+      </div>
+    );
+  }
+
+  if (!pinData) return null;
+  const statusColor = statuses.find(s => s.id === pinData.status_id)?.color || '#8a8a84';
+  const catIconKey = categories.find(c => c.id === pinData.category_id)?.icon || 'unassigned';
+  const CategoryIcon = categoriesPinIcons[catIconKey];
+
+  return (
+    <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-[3px] cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-[#eeeeec] text-[#4a4a46]')}>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: statusColor }}>
+        <div className="w-4 h-4 flex items-center justify-center text-white [&>svg]:w-3 [&>svg]:h-3">
+          {CategoryIcon}
+        </div>
+      </div>
+      <span>{item.label ?? item.item_id}</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+const MESSAGES_PAGE_SIZE = 50;
+const MESSAGE_SELECT = '*, members(auth_id, name, avatar_url), discussions_attachments(*), discussions_linked_items(*)';
+
+// ─────────────────────────────────────────────────────────────────────────────
+export default function DiscussionsPage({ params }) {
+  const { projectId, organizationId } = params;
+  const { user, profile, isAdmin } = useUserData(organizationId);
+  const { project } = useProjectData();
+
+  const [groups, setGroups]                     = useState([]);
+  const [activeGroup, setActiveGroup]           = useState(null);
+  const [messages, setMessages]                 = useState([]);
+  const [unread, setUnread]                     = useState({});
+  const [lastMsgs, setLastMsgs]                 = useState({});
+  const [input, setInput]                       = useState('');
+  const [sending, setSending]                   = useState(false);
+  const [loadingGroups, setLoadingGroups]       = useState(true);
+  const [loadingMessages, setLoadingMessages]   = useState(false);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [loadingOlder, setLoadingOlder]         = useState(false);
+  const messagesBoxRef = useRef(null);
+  const [showCreate, setShowCreate]             = useState(false);
+  const [showMembers, setShowMembers]           = useState(false);
+  const [pendingImages, setPendingImages]       = useState([]);
+  const [pendingLinked, setPendingLinked]       = useState([]);
+  const [showLinkModal, setShowLinkModal]       = useState(false);
+  const fileInputRef   = useRef(null);
+  const bottomRef      = useRef(null);
+  const channelRef     = useRef(null);
+  const inputRef       = useRef(null);
+  const channelsUnreadRef = useRef([]);
+
+
+  const loadGroups = useCallback(async () => {
+    if (!projectId || !user) return;
+    setLoadingGroups(true);
+    try {
+      const { data } = await supabase
+        .from('discussions_groups')
+        .select('*, discussions_members!inner(user_id, role, last_read_at), discussions_messages(id, created_at, content)')
+        .eq('project_id', projectId)
+        .eq('discussions_members.user_id', user.id)
+        .eq('is_active', true)
+        .eq('discussions_messages.is_deleted', false)
+        // Seul le dernier message de chaque groupe sert à l'aperçu : on ne charge que lui.
+        .order('created_at', { referencedTable: 'discussions_messages', ascending: false })
+        .limit(1, { referencedTable: 'discussions_messages' })
+        .order('updated_at', { ascending: false });
+      const gs = data ?? [];
+      setGroups(gs);
+      const lm = {};
+      gs.forEach(g => { const last = g.discussions_messages?.[0]; if (last) lm[g.id] = last; });
+      setLastMsgs(lm);
+      const counts = {};
+      await Promise.all(gs.map(async g => { const { data: n } = await supabase.rpc('get_discussion_unread', { p_group_id: g.id }); counts[g.id] = n ?? 0; }));
+      setUnread(counts);
+      channelsUnreadRef.current.forEach(ch => supabase.removeChannel(ch));
+      channelsUnreadRef.current = gs.map(g =>
+        supabase.channel(`unread_web:${g.id}`)
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'discussions_messages', filter: `group_id=eq.${g.id}` },
+            (payload) => {
+              setLastMsgs(prev => ({ ...prev, [g.id]: { content: payload.new.content, created_at: payload.new.created_at } }));
+              if (payload.new.user_id !== user?.id) setUnread(prev => ({ ...prev, [g.id]: (prev[g.id] ?? 0) + 1 }));
+            })
+          .subscribe()
+      );
+    } finally { setLoadingGroups(false); }
+  }, [projectId, user?.id]);
+
+  useEffect(() => { loadGroups(); }, [loadGroups]);
+  useEffect(() => () => channelsUnreadRef.current.forEach(ch => supabase.removeChannel(ch)), []);
+
+  const selectGroup = useCallback(async (group) => {
+    setActiveGroup(group); setShowMembers(false); setPendingImages([]); setPendingLinked([]);
+    setLoadingMessages(true);
+    try {
+      // Les 50 messages les plus récents, réaffichés dans l'ordre chronologique.
+      const { data } = await supabase
+        .from('discussions_messages')
+        .select(MESSAGE_SELECT)
+        .eq('group_id', group.id).eq('is_deleted', false)
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .limit(MESSAGES_PAGE_SIZE);
+      const latest = data ?? [];
+      setMessages(latest.slice().reverse());
+      setHasOlderMessages(latest.length === MESSAGES_PAGE_SIZE);
+      await supabase.rpc('mark_discussion_read', { p_group_id: group.id });
+      setUnread(prev => ({ ...prev, [group.id]: 0 }));
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'instant' }), 80);
+    } finally { setLoadingMessages(false); }
+  }, []);
+
+  // Remonter dans l'historique : charge la page précédant le plus ancien message affiché.
+  const loadOlderMessages = useCallback(async () => {
+    const oldest = messages[0];
+    if (!activeGroup || !oldest || loadingOlder || !hasOlderMessages) return;
+    setLoadingOlder(true);
+    const box = messagesBoxRef.current;
+    const previousHeight = box?.scrollHeight ?? 0;
+    try {
+      const { data } = await supabase
+        .from('discussions_messages')
+        .select(MESSAGE_SELECT)
+        .eq('group_id', activeGroup.id).eq('is_deleted', false)
+        .lt('created_at', oldest.created_at)
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .limit(MESSAGES_PAGE_SIZE);
+      const older = (data ?? []).slice().reverse();
+      setHasOlderMessages(older.length === MESSAGES_PAGE_SIZE);
+      if (older.length) {
+        setMessages(prev => {
+          const known = new Set(prev.map(m => m.id));
+          return [...older.filter(m => !known.has(m.id)), ...prev];
+        });
+        // Garde le message lu à la même place malgré l'insertion au-dessus.
+        requestAnimationFrame(() => { if (box) box.scrollTop += box.scrollHeight - previousHeight; });
+      }
+    } finally { setLoadingOlder(false); }
+  }, [activeGroup, messages, loadingOlder, hasOlderMessages]);
+
+  useEffect(() => {
+    if (!activeGroup) return;
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    channelRef.current = supabase.channel(`chat_web:${activeGroup.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'discussions_messages', filter: `group_id=eq.${activeGroup.id}` },
+        async (payload) => {
+          setMessages(prev => { if (prev.find(m => m.id === payload.new.id)) return prev; return [...prev, { ...payload.new, members: null, discussions_attachments: [], discussions_linked_items: [] }]; });
+          const { data } = await supabase.from('discussions_messages').select(MESSAGE_SELECT).eq('id', payload.new.id).single();
+          if (data) setMessages(prev => prev.map(m => m.id === data.id ? data : m));
+          await supabase.rpc('mark_discussion_read', { p_group_id: activeGroup.id });
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
+        })
+      .subscribe();
+    return () => { if (channelRef.current) supabase.removeChannel(channelRef.current); };
+  }, [activeGroup?.id]);
+
+  const handleSend = async () => {
+    if ((!input.trim() && pendingImages.length === 0 && pendingLinked.length === 0) || !activeGroup || sending) return;
+    setSending(true);
+    const content = input.trim(), images = [...pendingImages], linked = [...pendingLinked];
+    setInput(''); setPendingImages([]); setPendingLinked([]);
+    try {
+      const { data: msg, error: msgErr } = await supabase.from('discussions_messages').insert({ group_id: activeGroup.id, user_id: user.id, content: content || null }).select().single();
+      if (msgErr) throw msgErr;
+      if (images.length > 0) {
+        await Promise.all(images.map(async ({ file }) => {
+          const ext = file.name.split('.').pop();
+          const path = `${user.id}/${msg.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${ext}`;
+          const { error: uploadErr } = await supabase.storage.from('discussions').upload(path, file);
+          if (!uploadErr) {
+            const { data: publicUrl } = supabase.storage.from('discussions').getPublicUrl(path);
+            await supabase.from('discussions_attachments').insert({ message_id: msg.id, file_url: path, file_name: file.name, file_type: 'image', file_size: file.size, public_url: publicUrl.publicUrl });
+          }
+        }));
+      }
+      if (linked.length > 0) await supabase.from('discussions_linked_items').insert(linked.map(l => ({ message_id: msg.id, item_type: l.item_type, item_id: l.item_id, label: l.label })));
+    } catch (e) { console.error('Send failed:', e); setInput(content); setPendingImages(images); setPendingLinked(linked); }
+    finally { setSending(false); inputRef.current?.focus(); }
+  };
+
+  const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = () => setPendingImages(prev => [...prev, { file, preview: reader.result }]);
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
+
+  return (
+    <div className={clsx(GeistSans.className, "flex flex-col h-screen bg-[#fafaf9] overflow-hidden")}>
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
+
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── SIDEBAR ── */}
+        <aside className="w-64 shrink-0 bg-white border-r border-[#e5e5e2] flex flex-col">
+
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#eeeeec]">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={15} className="text-[#8a8a84]" />
+              <span className="text-[13px] font-medium text-[#050505]">Discussions</span>
+              {totalUnread > 0 && (
+                <span className={clsx('bg-[#dc2626] text-white text-[9px] font-medium px-1.5 py-0.5 rounded-[3px] min-w-[18px] text-center', GeistMono.className)}>
+                  {totalUnread}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-1 px-2 py-1.5 bg-[#0d0d0c] text-white rounded-[4px] text-[12px] font-medium hover:bg-[#1a1a18] transition-colors"
+            >
+              <Plus size={13} strokeWidth={2.5} />
+              Nouveau
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {loadingGroups ? (
+              <div className="flex flex-col gap-1 p-3">
+                {[1,2,3].map(i => <div key={i} className="h-14 rounded-[4px] bg-[#eeeeec] animate-pulse" />)}
+              </div>
+            ) : groups.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-12 px-4 text-center">
+                <MessageSquare size={28} className="text-[#eeeeec]" />
+                <p className="text-[12px] text-[#8a8a84]">Aucune discussion</p>
+                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-[#0d0d0c] text-white px-3 py-1.5 rounded-[4px] font-medium hover:bg-[#1a1a18] transition-colors">
+                  Créer un groupe
+                </button>
+              </div>
+            ) : groups.map(g => {
+              const count = unread[g.id] ?? 0;
+              const lm = lastMsgs[g.id];
+              const isActive = activeGroup?.id === g.id;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => selectGroup(g)}
+                  className={clsx(
+                    "w-full flex items-center gap-2.5 px-3 py-3 text-left transition-colors border-l-2",
+                    isActive ? 'bg-[#f5f5f4] border-[#0d0d0c]' : 'border-transparent hover:bg-[#f5f5f4]'
+                  )}
+                >
+                  <div className="w-9 h-9 rounded-[4px] shrink-0 flex items-center justify-center text-white font-medium text-[11px]" style={{ backgroundColor: avatarColor(g.id) }}>
+                    {initials(g.name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[13px] font-medium text-[#0d0d0c] truncate">{g.name}</span>
+                      {lm && <span className={clsx('text-[10px] text-[#8a8a84] shrink-0', GeistMono.className)}>{fmtTime(lm.created_at)}</span>}
+                    </div>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <span className="text-[11px] text-[#8a8a84] truncate max-w-[130px]">
+                        {lm?.content ?? <em className="not-italic">Aucun message</em>}
+                      </span>
+                      {count > 0 && (
+                        <span className={clsx('bg-[#dc2626] text-white text-[9px] font-medium px-1.5 py-0.5 rounded-[3px] min-w-[16px] text-center shrink-0', GeistMono.className)}>
+                          {count > 99 ? '99+' : count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* ── CHAT AREA ── */}
+        <main className="flex-1 flex flex-col overflow-hidden bg-[#fafaf9]">
+          {!activeGroup ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 p-10">
+              <MessageSquare size={32} className="text-[#eeeeec]" />
+              <div className="text-center">
+                <p className="text-[13px] font-medium text-[#4a4a46] mb-1">Sélectionnez une discussion</p>
+                <p className="text-[12px] text-[#8a8a84]">Choisissez un groupe ou créez-en un nouveau.</p>
+              </div>
+              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors">
+                <Plus size={13} />
+                Nouveau groupe
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Chat header */}
+              <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-[#e5e5e2]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[4px] flex items-center justify-center text-white font-medium text-[11px]" style={{ backgroundColor: avatarColor(activeGroup.id) }}>
+                    {initials(activeGroup.name)}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-medium text-[#050505]">{activeGroup.name}</p>
+                    {activeGroup.description && <p className="text-[11px] text-[#8a8a84]">{activeGroup.description}</p>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowMembers(v => !v)}
+                  className={clsx(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[12px] font-medium transition-colors",
+                    showMembers ? 'bg-[#0d0d0c] text-white' : 'bg-white border border-[#e5e5e2] text-[#4a4a46] hover:bg-[#f5f5f4]'
+                  )}
+                >
+                  <Users size={13} />
+                  Membres
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div
+                  ref={messagesBoxRef}
+                  onScroll={(e) => { if (e.currentTarget.scrollTop < 80) loadOlderMessages(); }}
+                  className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-1"
+                >
+                  {loadingMessages ? (
+                    <div className="flex flex-col gap-3">
+                      {[1,2,3,4].map(i => (
+                        <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+                          <div className="h-10 w-44 rounded-[4px] bg-[#eeeeec] animate-pulse" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
+                      <MessageSquare size={24} className="text-[#eeeeec]" />
+                      <p className="text-[12px] text-[#8a8a84]">Aucun message. Commencez la conversation !</p>
+                    </div>
+                  ) : (
+                    <>
+                      {hasOlderMessages && (
+                        <button
+                          onClick={loadOlderMessages}
+                          disabled={loadingOlder}
+                          className="self-center mb-2 px-3 py-1 text-[11px] text-[#666660] hover:text-[#0d0d0c] disabled:opacity-50 transition-colors"
+                        >
+                          {loadingOlder ? 'Chargement…' : 'Messages précédents'}
+                        </button>
+                      )}
+                      {messages.map((msg, idx) => {
+                        const isOwn     = msg.user_id === user?.id;
+                        const msgProfile = msg.members;
+                        const prevMsg   = messages[idx - 1];
+                        const showMeta  = !isOwn && prevMsg?.user_id !== msg.user_id;
+                        const images    = (msg.discussions_attachments ?? []).filter(a => a.file_type === 'image');
+                        const linked    = msg.discussions_linked_items ?? [];
+
+                        return (
+                          <div key={msg.id} className={`flex items-end gap-2 ${isOwn ? 'flex-row-reverse' : ''} mb-0.5`}>
+                            {!isOwn && (
+                              showMeta
+                                ? <div className="w-6 h-6 rounded-[3px] shrink-0 flex items-center justify-center text-white font-medium text-[10px] mb-0.5" style={{ backgroundColor: avatarColor(msg.user_id) }}>
+                                    {initials(msgProfile?.name ?? '?')}
+                                  </div>
+                                : <div className="w-6 shrink-0" />
+                            )}
+                            <div className={`flex flex-col max-w-[60%] ${isOwn ? 'items-end' : 'items-start'}`}>
+                              {showMeta && (
+                                <span className="text-[11px] font-medium text-[#8a8a84] mb-1 px-1">{msgProfile?.name ?? 'Inconnu'}</span>
+                              )}
+                              <div className={clsx(
+                                "px-3 py-2 rounded-[4px] text-[13px] leading-relaxed",
+                                isOwn
+                                  ? 'bg-[#0d0d0c] text-white rounded-br-[2px]'
+                                  : 'bg-white text-[#0d0d0c] border border-[#e5e5e2] rounded-bl-[2px]'
+                              )}>
+                                {msg.content && <p className="break-words">{msg.content}</p>}
+                                {images.map((att, i) => (
+                                  <img key={i} src={att.public_url} alt={att.file_name}
+                                    className="mt-2 rounded-[4px] max-w-xs border border-[#e5e5e2] cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => window.open(att.public_url, '_blank')} />
+                                ))}
+                                {linked.map((l, i) => (
+                                  <LinkedItem key={i} item={l} isOwn={isOwn} organizationId={organizationId} projectId={projectId} />
+                                ))}
+                                <span className={clsx('block text-[10px] mt-1', GeistMono.className, isOwn ? 'text-[#8a8a84] text-right' : 'text-[#b8b8b3]')}>
+                                  {fmtFull(msg.created_at)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={bottomRef} />
+                    </>
+                  )}
+                </div>
+
+                {/* Input bar */}
+                <div className="flex flex-col bg-white border-t border-[#e5e5e2]">
+                  {(pendingImages.length > 0 || pendingLinked.length > 0) && (
+                    <div className="px-4 py-2.5 border-b border-[#eeeeec] flex flex-wrap gap-2">
+                      {pendingImages.map((img, i) => (
+                        <div key={i} className="relative group">
+                          <img src={img.preview} alt="preview" className="w-14 h-14 rounded-[4px] object-cover border border-[#e5e5e2]" />
+                          <button onClick={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))}
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#dc2626] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ))}
+                      {pendingLinked.map((l, i) => (
+                        <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 bg-[#eeeeec] border border-[#e5e5e2] text-[#4a4a46] rounded-[3px] text-[11px] font-medium group relative">
+                          <span>{l.item_type === 'pin' ? '📌' : '🗺'}</span>
+                          <span className="max-w-[100px] truncate">{l.label}</span>
+                          <button onClick={() => setPendingLinked(prev => prev.filter((_, idx) => idx !== i))}
+                            className="ml-1 w-3.5 h-3.5 rounded-full bg-[#dc2626] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <X size={8} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-end gap-2 px-4 py-3">
+                    <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
+                    <button onClick={() => fileInputRef.current?.click()}
+                      className="w-8 h-8 rounded-[4px] border border-[#e5e5e2] bg-white hover:bg-[#f5f5f4] text-[#8a8a84] hover:text-[#0d0d0c] flex items-center justify-center shrink-0 transition-colors">
+                      <ImageIcon size={15} />
+                    </button>
+                    <button onClick={() => setShowLinkModal(true)}
+                      className="w-8 h-8 rounded-[4px] border border-[#e5e5e2] bg-white hover:bg-[#f5f5f4] text-[#8a8a84] hover:text-[#0d0d0c] flex items-center justify-center shrink-0 transition-colors">
+                      <LinkIcon size={15} />
+                    </button>
+                    <textarea
+                      ref={inputRef}
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Écrivez un message…"
+                      rows={1}
+                      className="flex-1 resize-none bg-[#f5f5f4] border border-[#e5e5e2] rounded-[4px] px-3 py-2 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] outline-none focus:border-[#0d0d0c] transition-colors max-h-28 overflow-y-auto"
+                    />
+                    <button
+                      onClick={handleSend}
+                      disabled={(!input.trim() && pendingImages.length === 0 && pendingLinked.length === 0) || sending}
+                      className="w-8 h-8 rounded-[4px] bg-[#0d0d0c] hover:bg-[#1a1a18] disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
+                    >
+                      <Send size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+
+        {showMembers && activeGroup && (
+          <MembersPanel group={activeGroup} projectId={projectId} currentUserId={user?.id} onClose={() => setShowMembers(false)} />
+        )}
+
+        {showCreate && (
+          <CreateGroupModal projectId={projectId} onClose={() => setShowCreate(false)} onCreated={(g) => { setShowCreate(false); loadGroups().then(() => selectGroup(g)); }} />
+        )}
+
+        {showLinkModal && (
+          <LinkItemModal projectId={projectId} organizationId={organizationId}
+            onLink={(item) => { setPendingLinked(prev => [...prev, item]); setShowLinkModal(false); }}
+            onClose={() => setShowLinkModal(false)} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LINK ITEM MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
+  const [activeTab, setActiveTab] = useState('pin');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchItems = async () => {
+      setLoading(true);
+      try {
+        if (activeTab === 'pin') {
+          const { data } = await supabase.from('pdf_pins').select('id, name, pin_number, projects(project_number), pdf_name').eq('project_id', projectId).is('deleted_at', null).order('pin_number', { ascending: false }).limit(50);
+          setItems((data ?? []).map(p => ({ id: p.id, label: `${p.projects?.project_number}-${p.pin_number}: ${p.name || 'Pin sans nom'}`, sublabel: p.pdf_name || '', type: 'pin' })));
+        } else {
+          const { data } = await supabase.from('plans').select('id, name').eq('project_id', projectId).is('deleted_at', null).order('created_at', { ascending: false }).limit(50);
+          setItems((data ?? []).map(p => ({ id: p.id, label: p.name, type: 'plan' })));
+        }
+      } finally { setLoading(false); }
+    };
+    fetchItems();
+  }, [projectId, activeTab]);
+
+  const filtered = items.filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-[6px] border border-[#e5e5e2] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#eeeeec]">
+          <h3 className="text-base font-medium text-[#050505]">Lier un élément</h3>
+          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"><X size={16} className="text-[#8a8a84]" /></button>
+        </div>
+
+        <div className="px-5 pt-4 pb-3">
+          <div className="flex items-center gap-1 rounded-[4px] bg-[#eeeeec] p-0.5 w-fit">
+            {[
+              { id: 'pin', label: 'Tâches / Pins', icon: <MapPin size={13} /> },
+              { id: 'plan', label: 'Plans', icon: <FileText size={13} /> },
+            ].map(t => (
+              <button key={t.id} onClick={() => setActiveTab(t.id)}
+                className={clsx(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-[12px] font-medium transition-all',
+                  activeTab === t.id ? 'bg-white text-[#050505] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]' : 'text-[#666660] hover:text-[#0d0d0c]'
+                )}>
+                {t.icon}{t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-5 pb-3">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
+            <input type="text" placeholder={`Rechercher ${activeTab === 'pin' ? 'une tâche' : 'un plan'}…`} value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-[7px] text-[13px] bg-white border border-[#e5e5e2] rounded-[4px] outline-none focus:border-[#0d0d0c] transition-colors placeholder:text-[#b8b8b3]"
+              autoFocus />
+          </div>
+        </div>
+
+        <div className="max-h-72 overflow-y-auto border-t border-[#eeeeec]">
+          {loading ? (
+            <div className="p-8 flex justify-center"><div className="w-5 h-5 border-2 border-[#e5e5e2] border-t-[#0d0d0c] rounded-full animate-spin" /></div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center"><p className="text-[12px] text-[#8a8a84]">Aucun élément trouvé</p></div>
+          ) : filtered.map(item => (
+            <button key={item.id} onClick={() => { onLink({ item_type: item.type, item_id: item.id, label: item.label }); onClose(); }}
+              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-[#f5f5f4] transition-colors text-left border-b border-[#eeeeec] last:border-0">
+              <div className="w-7 h-7 rounded-[3px] shrink-0 flex items-center justify-center bg-[#eeeeec] border border-[#e5e5e2] text-[#666660]">
+                {item.type === 'pin' ? <MapPin size={13} /> : <FileText size={13} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-medium text-[#0d0d0c] truncate">{item.label}</p>
+                {item.sublabel && <p className="text-[11px] text-[#8a8a84] truncate">{item.sublabel}</p>}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEMBERS PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+function MembersPanel({ group, projectId, currentUserId, onClose }) {
+  const [members, setMembers]             = useState([]);
+  const [searchQuery, setSearchQuery]     = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching]         = useState(false);
+  const [isAdmin, setIsAdmin]             = useState(false);
+  const timer = useRef(null);
+
+  const loadMembers = useCallback(async () => {
+    const { data } = await supabase.from('discussions_members').select('*, members(auth_id, name, email, avatar_url)').eq('group_id', group.id);
+    setMembers(data ?? []);
+    setIsAdmin(data?.find(m => m.user_id === currentUserId)?.role === 'admin');
+  }, [group.id, currentUserId]);
+
+  useEffect(() => { loadMembers(); }, [loadMembers]);
+
+  useEffect(() => {
+    clearTimeout(timer.current);
+    if (!searchQuery.trim()) { setSearchResults([]); return; }
+    timer.current = setTimeout(async () => {
+      setSearching(true);
+      const { data: ex } = await supabase.from('discussions_members').select('user_id').eq('group_id', group.id);
+      const excludeIds = (ex ?? []).map(m => m.user_id);
+      const { data } = await supabase.from('members_projects').select('member_id, members(id, auth_id, name, email, avatar_url)').eq('project_id', projectId).limit(50);
+      let results = (data ?? []).map(r => ({ auth_id: r.members?.auth_id, name: r.members?.name, email: r.members?.email })).filter(u => u.auth_id && !excludeIds.includes(u.auth_id));
+      const q = searchQuery.toLowerCase();
+      results = results.filter(u => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q));
+      setSearchResults(results);
+      setSearching(false);
+    }, 300);
+  }, [searchQuery]);
+
+  const addMember = async (authId) => {
+    await supabase.from('discussions_members').insert({ group_id: group.id, user_id: authId, role: 'member' });
+    setSearchResults(p => p.filter(u => u.auth_id !== authId));
+    setSearchQuery('');
+    loadMembers();
+  };
+
+  const removeMember = async (userId) => {
+    await supabase.from('discussions_members').delete().eq('group_id', group.id).eq('user_id', userId);
+    setMembers(p => p.filter(m => m.user_id !== userId));
+  };
+
+  return (
+    <aside className="w-56 shrink-0 bg-white border-l border-[#e5e5e2] flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#eeeeec]">
+        <span className="text-[13px] font-medium text-[#050505]">Membres</span>
+        <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"><X size={15} className="text-[#8a8a84]" /></button>
+      </div>
+
+      {isAdmin && (
+        <div className="px-3 py-3 border-b border-[#eeeeec]">
+          <div className="flex items-center gap-2 bg-[#f5f5f4] border border-[#e5e5e2] rounded-[4px] px-2.5 py-1.5">
+            <Search size={13} className="text-[#8a8a84]" />
+            <input className="flex-1 bg-transparent text-[12px] text-[#0d0d0c] outline-none placeholder:text-[#b8b8b3]" placeholder="Inviter…"
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            {searching && <div className="w-3 h-3 border-2 border-[#e5e5e2] border-t-[#0d0d0c] rounded-full animate-spin" />}
+          </div>
+          {searchResults.length > 0 && (
+            <div className="mt-2 flex flex-col gap-1 max-h-36 overflow-y-auto">
+              {searchResults.map(u => (
+                <div key={u.auth_id} className="flex items-center gap-2 p-2 rounded-[4px] bg-[#f5f5f4] border border-[#e5e5e2]">
+                  <div className="w-6 h-6 rounded-[3px] shrink-0 flex items-center justify-center text-white font-medium text-[9px]" style={{ backgroundColor: avatarColor(u.auth_id) }}>
+                    {initials(u.name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-medium text-[#0d0d0c] truncate">{u.name}</p>
+                    <p className="text-[10px] text-[#8a8a84] truncate">{u.email}</p>
+                  </div>
+                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-[3px] bg-[#0d0d0c] hover:bg-[#1a1a18] text-white flex items-center justify-center transition-colors shrink-0">
+                    <UserPlus size={11} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto">
+        <div className={clsx('px-4 py-2 text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em]', GeistMono.className)}>
+          {members.length} membre{members.length !== 1 ? 's' : ''}
+        </div>
+        {members.map(m => {
+          const p = m.members ?? {};
+          const isSelf = m.user_id === currentUserId;
+          return (
+            <div key={m.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-[#f5f5f4] group">
+              <div className="w-7 h-7 rounded-[3px] shrink-0 flex items-center justify-center text-white font-medium text-[10px]" style={{ backgroundColor: avatarColor(m.user_id) }}>
+                {initials(p.name)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[12px] font-medium text-[#0d0d0c] truncate">{p.name ?? 'Inconnu'}</span>
+                  {m.role === 'admin' && <span title="Admin" className="text-[10px]">👑</span>}
+                  {isSelf && <span className="text-[9px] bg-[#eeeeec] text-[#666660] font-medium px-1.5 py-0.5 rounded-[3px] border border-[#e5e5e2]">Vous</span>}
+                </div>
+                <p className="text-[10px] text-[#8a8a84] truncate">{p.email}</p>
+              </div>
+              {isAdmin && !isSelf && (
+                <button onClick={() => removeMember(m.user_id)}
+                  className="w-5 h-5 rounded-[3px] opacity-0 group-hover:opacity-100 hover:bg-[#fde8e8] hover:text-[#dc2626] text-[#8a8a84] flex items-center justify-center transition-all">
+                  <X size={11} />
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CREATE GROUP MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function CreateGroupModal({ projectId, onClose, onCreated }) {
+  const [name, setName]         = useState('');
+  const [desc, setDesc]         = useState('');
+  const [creating, setCreating] = useState(false);
+  const [error, setError]       = useState('');
+
+  const handleCreate = async () => {
+    if (!name.trim()) { setError('Le nom est requis.'); return; }
+    setCreating(true); setError('');
+    try {
+      const { data, error: err } = await supabase.rpc('create_discussion_group', { p_project_id: projectId, p_name: name.trim(), p_description: desc.trim() || null });
+      if (err) throw err;
+      onCreated(data);
+    } catch (e) { setError(e.message); setCreating(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white rounded-[6px] w-[400px] max-w-[95vw] border border-[#e5e5e2] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#eeeeec]">
+          <h2 className="text-base font-medium text-[#050505]">Nouveau groupe</h2>
+          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"><X size={16} className="text-[#8a8a84]" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <div>
+            <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom du groupe *</label>
+            <input autoFocus
+              className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
+              placeholder="Ex : Équipe technique"
+              value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreate()} />
+          </div>
+          <div>
+            <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Description <span className="normal-case font-normal text-[#b8b8b3]">(optionnel)</span></label>
+            <textarea
+              className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors resize-none"
+              placeholder="À quoi sert ce groupe ?"
+              value={desc} onChange={e => setDesc(e.target.value)} rows={3} />
+          </div>
+          {error && <p className="text-[12px] text-[#9c1b1b] bg-[#fde8e8] border border-[#f5c6c6] px-3 py-2 rounded-[4px]">{error}</p>}
+        </div>
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-[#eeeeec]">
+          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors">Annuler</button>
+          <button onClick={handleCreate} disabled={creating || !name.trim()}
+            className="px-4 py-2 text-[13px] font-medium text-white bg-[#0d0d0c] hover:bg-[#1a1a18] disabled:opacity-40 rounded-[4px] transition-colors">
+            {creating ? 'Création…' : 'Créer le groupe'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
