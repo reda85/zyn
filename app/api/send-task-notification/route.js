@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import TaskAssignmentEmail from '../../../components/emails/TaskAssignementEmail'
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createTokenClient } from '@supabase/supabase-js'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -15,8 +16,15 @@ const resend = new Resend(process.env.RESEND_API_KEY)
  */
 export async function POST(req) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Le site s'authentifie par cookie, l'application mobile par jeton « Bearer ».
+    const bearer = (req.headers.get('authorization') || '').match(/^Bearer\s+(.+)$/i)?.[1]
+    const supabase = bearer
+      ? createTokenClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+          global: { headers: { Authorization: `Bearer ${bearer}` } },
+          auth: { persistSession: false, autoRefreshToken: false },
+        })
+      : await createClient()
+    const { data: { user } } = bearer ? await supabase.auth.getUser(bearer) : await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
     const body = await req.json().catch(() => null)
