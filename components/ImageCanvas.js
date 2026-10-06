@@ -3,17 +3,15 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import clsx from 'clsx';
 import { useAtom } from 'jotai';
-import {
-  categoriesAtom, filteredPinsAtom, focusOnPinAtom,
-  pinsAtom, selectedPinAtom, selectedPlanAtom, selectedProjectAtom, statusesAtom,
-} from '@/store/atoms';
-import DrawerHeader from './DrawerHeader';
-import DrawerFooter from './DrawerFooter';
-import DrawerBody from './DrawerBody';
+import { focusOnPinAtom } from '@/store/atoms';
+import PinDrawer from './PinDrawer';
 import MapPin from './MapPin';
 import { ZoomIn, ZoomOut, PointerIcon, MapPinIcon } from 'lucide-react';
 import GhostPin from './GhostPin';
 import { supabase } from '@/utils/supabase/client';
+import { useProjectData } from '@/providers/ProjectProvider';
+import { usePinsCache, useSelectedPin } from '@/hooks/usePins';
+import { insertPin } from '@/lib/data/pins';
 
 const RENDER_SCALE = 3;
 const SUPABASE_STORAGE = `https://zvebdabtofcusfdaacrq.supabase.co/storage/v1/object/public/project-plans`;
@@ -26,15 +24,12 @@ function getDistance(touches) {
   return Math.sqrt((t2.clientX - t1.clientX) ** 2 + (t2.clientY - t1.clientY) ** 2);
 }
 
-export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, organizationId }) {
-  // ── Atoms ────────────────────────────────────────────────────────────────
-  const [, setSelectedPlan]                 = useAtom(selectedPlanAtom);
-  const [, setSelectedProject]              = useAtom(selectedProjectAtom);
-  const [selectedPin, setSelectedPin]       = useAtom(selectedPinAtom);
-  const [categories]                        = useAtom(categoriesAtom);
-  const [statuses]                          = useAtom(statusesAtom);
-  const [allPins, setAllPins]               = useAtom(pinsAtom);
-  const [pins]                              = useAtom(filteredPinsAtom);
+export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, organizationId }) {
+  // ── Données partagées ─────────────────────────────────────────────────────
+  // `pins` : pins du plan déjà filtrés, fournis par la page.
+  const { categories, statuses }            = useProjectData();
+  const [selectedPin, setSelectedPin]       = useSelectedPin();
+  const { patchPin, addPin }                = usePinsCache();
   const [focusOnPinOnce, setFocusOnPinOnce] = useAtom(focusOnPinAtom);
 
   const useOSD = Boolean(plan?.tiles_path);
@@ -48,8 +43,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   const [dragging, setDragging]             = useState(false);
   const [hoveredPinId, setHoveredPinId]     = useState(null);
   const [ghostPinPos, setGhostPinPos]       = useState(null);
-  const [newComment, setNewComment]         = useState(null);
-  const [photoUploadTrigger, setPhotoUploadTrigger] = useState(0);
   const [draggingPin, setDraggingPin]       = useState(null);
   const [pinDragStart, setPinDragStart]     = useState(null);
   const [isDragging, setIsDragging]         = useState(false);
@@ -76,7 +69,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
   const pinsRef            = useRef(pins);
 
   const isGuest = !user || !user.id;
-  console.log('uuuser ImageCanvas', user, isGuest)
 
   useEffect(() => { pinModeRef.current  = pinMode;   }, [pinMode]);
   useEffect(() => { isDraggingRef.current = isDragging; }, [isDragging]);
@@ -356,8 +348,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
         const px2 = v.viewport.viewportToViewerElementCoordinates(vp2);
         dragEl.style.transform = `translate(${px2.x}px, ${px2.y}px) translate(-50%, -50%)`;
       }
-      setAllPins(prev => prev.map(p => p.id === id ? { ...p, x: newX, y: newY } : p));
-      setSelectedPin(prev => prev?.id === id ? { ...prev, x: newX, y: newY } : prev);
+      patchPin(id, { x: newX, y: newY });
     } else {
       const { width, height } = baseImageSizeRef.current;
       const newX = Math.max(0, Math.min(1, pinDragStart.pinX + (e.clientX - pinDragStart.mouseX) / scaleRef.current / (width * RENDER_SCALE)));
@@ -368,10 +359,9 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
         const tw = width * RENDER_SCALE, th = height * RENDER_SCALE;
         el.style.transform = `translate(${newX * tw * scaleRef.current + offsetRef.current.x}px, ${newY * th * scaleRef.current + offsetRef.current.y}px) translate(-50%,-50%)`;
       }
-      setAllPins(prev => prev.map(p => p.id === id ? { ...p, x: newX, y: newY } : p));
-      setSelectedPin(prev => prev?.id === id ? { ...prev, x: newX, y: newY } : prev);
+      patchPin(id, { x: newX, y: newY });
     }
-  }, [pinDragStart, useOSD, viewportToPin]);
+  }, [pinDragStart, useOSD, viewportToPin, patchPin]);
 
   const handlePinMouseUp = useCallback(async () => {
     if (pinDragStart && !pinDragStart.hasMoved) {
@@ -417,7 +407,9 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
 
   useEffect(() => {
     if (!focusOnPinOnce) return;
-    const pin = pins.find(p => p.id === focusOnPinOnce);
+    // L'atom peut contenir un pin (« voir sur le plan ») ou un identifiant (snippet).
+    const targetId = typeof focusOnPinOnce === 'object' ? focusOnPinOnce.id : focusOnPinOnce;
+    const pin = pins.find(p => p.id === targetId);
     if (!pin) return;
     setSelectedPin(pin); focusOnPin(pin); setFocusOnPinOnce(null);
   }, [focusOnPinOnce, pins]);
@@ -462,13 +454,15 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
       updated_by: user?.id || null, updated_at: new Date().toISOString(),
 
     };
-    const { data, error } = await supabase.from('pdf_pins').insert(newPin).select('*,projects(*),plans(*)').single();
-    if (data) {
-      setSelectedPin(data);
-      setAllPins(prev => [...prev, data]);
+    try {
+      const created = await insertPin(newPin);
+      addPin(created);
+      setSelectedPin(created);
       setPinMode(false);
+    } catch (error) {
+      console.error('handlePinAdd', error);
+      alert("Impossible de créer le pin. Réessayez.");
     }
-    if (error) console.error('handlePinAdd', error);
   };
 
   // ── Plain-image pins ──────────────────────────────────────────────────────
@@ -506,7 +500,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
           onClick={e => {
             if (isDragging || pinDragStart?.hasMoved || draggingPin) { e.stopPropagation(); return; }
             e.stopPropagation();
-            setSelectedPin({ ...pins.find(p => p.id === pin.id), index: idx });
+            setSelectedPin(pin);
           }}
         >
           <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id} />
@@ -542,7 +536,7 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
           onClick={e => {
             e.stopPropagation();
             if (isDraggingRef.current) return;
-            setSelectedPin({ ...pins.find(p => p.id === pin.id), index: idx });
+            setSelectedPin(pin);
           }}
         >
           <MapPin pin={pin} hovered={hoveredPinId === pin.id} dragging={draggingPin === pin.id} />
@@ -550,8 +544,6 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
       );
     });
   }, [pins, selectedPin?.id, hoveredPinId, pinMode, draggingPin, imageLoaded, useOSD]);
-
-  const closeDrawer = () => setSelectedPin(null);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -696,20 +688,8 @@ export default function ImageCanvas({ imageUrl, onPinAdd, project, plan, user, o
         </div>
       )}
 
-      {/* Right drawer */}
-      {selectedPin && (
-        <div className={`${GeistSans.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col overflow-hidden`}>
-          <div className="px-5 py-4 border-b border-[#eeeeec] shrink-0">
-            <DrawerHeader organization_id={organizationId} pin={selectedPin} onClose={closeDrawer} onPhotoUploaded={() => setPhotoUploadTrigger(p => p + 1)} />
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            <DrawerBody organization_id={organizationId} pin={selectedPin} onClose={closeDrawer} newComment={newComment} photoUploadTrigger={photoUploadTrigger} />
-          </div>
-          <div className="px-5 py-4 border-t border-[#eeeeec] shrink-0">
-            <DrawerFooter organization_id={organizationId} pin={selectedPin} submit={closeDrawer} onCommentAdded={setNewComment} />
-          </div>
-        </div>
-      )}
+      {/* Tiroir du pin sélectionné */}
+      <PinDrawer organization_id={organizationId} />
     </>
   );
 }

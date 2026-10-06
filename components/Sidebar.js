@@ -3,11 +3,8 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FolderKanban, Users, BarChart3, Settings, ChevronsUpDown, Check, LogOut } from 'lucide-react'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
-import { useAtom } from 'jotai'
-import { selectedOrganizationAtom } from '@/store/atoms'
 import { signOutAction } from '@/app/actions'
 import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
@@ -15,7 +12,6 @@ import { GeistMono } from 'geist/font/mono'
 
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const { user, profile, organization, organizations, isAdmin, isLoading } = useUserData(organizationId)
-  const [, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
@@ -35,7 +31,6 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const handleOrgChange = (org) => {
     setDropdownOpen(false)
     if (org.id !== organizationId) {
-      setSelectedOrganization(org)
       router.push(`/${org.id}/projects`)
     }
   }

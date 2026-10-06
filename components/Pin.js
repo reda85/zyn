@@ -1,5 +1,4 @@
-import { categoriesAtom, statusesAtom } from "@/store/atoms";
-import { useAtom } from "jotai";
+import { useProjectData } from "@/providers/ProjectProvider";
 import { CheckIcon, DropletsIcon, DoorClosedIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon, SnowflakeIcon, FolderIcon, AirVentIcon, AlarmSmokeIcon, CheckCircleIcon, PackageIcon, BrickWallIcon, BrushIcon, ConstructionIcon, DropletOffIcon, DoorOpenIcon, TrendingUpIcon, FlameIcon, TrendingDownIcon, WifiIcon, ArchiveIcon,
     AccessibilityIcon,
     AsteriskIcon,
@@ -53,8 +52,7 @@ const categoriesIcons = {
 }
 
 export default function Pin({ pin }) {
-    const [statuses] = useAtom(statusesAtom)
-    const [categories] = useAtom(categoriesAtom)
+    const { statuses, categories } = useProjectData()
 
     const isArchived = pin?.isArchived ?? false;
     const statusColor = isArchived

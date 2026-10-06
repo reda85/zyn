@@ -2,18 +2,17 @@ import { useEffect, useState, useRef } from 'react'
 import { Listbox, Transition, Portal } from '@headlessui/react'
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { supabase } from '@/utils/supabase/client'
-import { useAtom } from 'jotai'
-import { categoriesAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
+import { useProjectData } from '@/providers/ProjectProvider'
+import { usePinsCache } from '@/hooks/usePins'
 import { categoriesIcons } from '@/utils/categories'
 import clsx from 'clsx'
 import { useUserData } from '@/hooks/useUserData'
 import { CheckIcon } from 'lucide-react'
 
 export default function CategoryComboBox({ pin, organization_id }) {
-  const [categories] = useAtom(categoriesAtom)
+  const { categories } = useProjectData()
   const [selected, setSelected] = useState(null)
-  const [pins, setPins] = useAtom(pinsAtom)
-  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
+  const { patchPin } = usePinsCache()
   const { profile } = useUserData(organization_id)
 
   const isGuest = profile?.role === 'guest'
@@ -29,7 +28,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
         categories.find(c => c.id === pin.category_id) || categories[0] || null
       )
     }
-  }, [categories, pin])
+  }, [categories, pin.id, pin.category_id])
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
@@ -41,24 +40,16 @@ export default function CategoryComboBox({ pin, organization_id }) {
   const handleUpdateCategory = async (category) => {
     if (!category?.name || isGuest) return
 
-    const { data } = await supabase
+    const { error } = await supabase
       .from('pdf_pins')
       .update({ category_id: category.id, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
-      .select('*')
-      .single()
 
-    if (data) {
-      if (selectedPin) {
-        setSelectedPin({ ...selectedPin, category_id: data.category_id })
-      }
-      setPins(prevPins => {
-        if (!prevPins?.length) return prevPins
-        return prevPins.map(p =>
-          p.id === pin.id ? { ...p, category_id: data.category_id } : p
-        )
-      })
+    if (error) {
+      console.error('update category failed', error)
+      return
     }
+    patchPin(pin.id, { category_id: category.id, categories: { name: category.name } })
   }
 
   return (

@@ -90,7 +90,7 @@ function AcceptInviteContent() {
       setSuccess(true)
       const orgId = organizationId ?? user?.user_metadata?.organization_id
       setTimeout(() => {
-        router.push(orgId ? `/${orgId}/projects` : '/projects')
+        router.push(orgId ? `/${orgId}/projects` : '/workspaces')
       }, 2000)
     } catch (err) {
       setError(err.message || 'Une erreur est survenue')

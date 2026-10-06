@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useAtom } from 'jotai';
-import { selectedProjectAtom } from '@/store/atoms';
+import { useProjectData } from '@/providers/ProjectProvider';
 import NavBar from '@/components/NavBar';
 import { supabase } from '@/utils/supabase/client';
 import {
@@ -526,8 +525,8 @@ function RenameFolderDialog({ folder, onClose, onRename }) {
 // ── Main page ──────────────────────────────────────────────────
 export default function DocumentsPage({ params }) {
   const { projectId, organizationId } = params;
-  const { user, profile, isLoading, isAdmin } = useUserData();
-  const [project, setProject] = useAtom(selectedProjectAtom);
+  const { user, profile, isAdmin } = useUserData(organizationId);
+  const { project } = useProjectData();
 
   const [folders, setFolders]           = useState([]);
   const [documents, setDocuments]       = useState([]);
@@ -550,14 +549,6 @@ export default function DocumentsPage({ params }) {
   const [uploads, setUploads]           = useState([]);
 
   const isReady = !!user?.id;
-
-  useEffect(() => {
-    const fetchProject = async () => {
-      const { data } = await supabase.from('projects').select('id,created_at,name').eq('id', projectId).single();
-      if (data) setProject(data);
-    };
-    if (projectId) fetchProject();
-  }, [projectId]);
 
   useEffect(() => {
     if (!contextMenu) return;
@@ -646,7 +637,7 @@ export default function DocumentsPage({ params }) {
 
   return (
     <div className={clsx(GeistSans.className, "min-h-screen bg-[#fafaf9]")}>
-      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
 

@@ -1,5 +1,6 @@
-import { categoriesAtom, selectedPinAtom, statusesAtom } from "@/store/atoms";
-import { useAtom } from "jotai";
+import { selectedPinIdAtom } from "@/store/atoms";
+import { useAtomValue } from "jotai";
+import { useProjectData } from "@/providers/ProjectProvider";
 import {
   Calendar1Icon,
   UserCircleIcon,
@@ -16,9 +17,8 @@ function classNames(...classes) {
 const categoriesIcons = categoriesPinIcons;
 
 export default function MapPin({ pin, dragging = false, hovered = false }) {
-  const [selectedPin] = useAtom(selectedPinAtom);
-  const [categories] = useAtom(categoriesAtom);
-  const [statuses] = useAtom(statusesAtom);
+  const selectedPinId = useAtomValue(selectedPinIdAtom);
+  const { categories, statuses } = useProjectData();
 
   const statusColor =
     statuses.find((status) => status.id === pin?.status_id)?.color || "#ccc";
@@ -33,7 +33,7 @@ export default function MapPin({ pin, dragging = false, hovered = false }) {
   const catIconKey =
     categories.find((c) => c.id === pin.category_id)?.icon || "unassigned";
 
-  const isSelected = selectedPin?.id === pin.id;
+  const isSelected = selectedPinId === pin.id;
   const isArchived = pin?.isArchived ?? false;
 
   // Archived pins use a muted grey instead of their status color

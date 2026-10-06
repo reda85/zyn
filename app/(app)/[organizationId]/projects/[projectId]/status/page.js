@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Trash2, Plus, GripVertical, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
-import { useAtom } from 'jotai'
-import { selectedProjectAtom } from '@/store/atoms'
+import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
+import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
@@ -55,8 +55,8 @@ export default function ProjectStatuses() {
   const [loading, setLoading] = useState(true)
   const [isDragging, setIsDragging] = useState(false)
 
-  const [selectedProject] = useAtom(selectedProjectAtom)
   const { projectId } = useParams()
+  useRefreshOnLeave(qk.statuses(projectId))
   const router = useRouter()
 
   /* ---------- Helpers ---------- */

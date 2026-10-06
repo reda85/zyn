@@ -1,8 +1,8 @@
 import { useUserData } from '@/hooks/useUserData';
-import { pinsAtom, selectedPinAtom, selectedProfileAtom, statusAtom, statusesAtom } from '@/store/atoms';
+import { useProjectData } from '@/providers/ProjectProvider';
+import { usePinsCache } from '@/hooks/usePins';
 import { supabase } from '@/utils/supabase/client';
 import { CheckIcon } from '@heroicons/react/24/outline';
-import { useAtom } from 'jotai';
 import { ChevronDownIcon } from 'lucide-react';
 import { Lexend } from 'next/font/google';
 import { useState, useRef, useEffect } from 'react';
@@ -15,13 +15,12 @@ const GAP_SIZE = 8; // Tailwind's gap-2
 const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export default function StatusSelect({ pin }) {
-  const [statuses] = useAtom(statusesAtom);
+  const { statuses } = useProjectData();
   const { profile } = useUserData();
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedPin, setPin] = useAtom(selectedPinAtom);
-  const [pins, setPins] = useAtom(pinsAtom);
+  const { patchPin } = usePinsCache();
   const [selected, setSelected] = useState(
-    statuses[statuses.findIndex((s) => s.id === pin.status_id)]
+    () => statuses.find((s) => s.id === pin.status_id)
   );
   const [buttonRect, setButtonRect] = useState({ top: 0, left: 0, width: 0 });
 
@@ -56,7 +55,7 @@ export default function StatusSelect({ pin }) {
       if (fallback) setSelected(fallback);
     }
     // re-run when pin, statuses or profile changes
-  }, [pin, statuses, profile]); // safeStatuses derives from statuses/profile/selected
+  }, [pin.id, pin.status_id, statuses, isGuest]); // safeStatuses dérive de statuses/isGuest/selected
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -89,20 +88,18 @@ export default function StatusSelect({ pin }) {
       if (statusObj?.name !== 'A valider') return;
     }
 
-    const { data } = await supabase
+    const { error } = await supabase
       .from('pdf_pins')
       .update({ status_id })
-      .eq('id', pin.id)
-      .select('*')
-      .single();
+      .eq('id', pin.id);
 
-    if (data) {
-      const newSelected = safeStatuses.find((s) => s.id === status_id) || statuses.find((s) => s.id === status_id);
-      setSelected(newSelected);
-      console.log('setPins13')
-      setPin({ ...pin, status_id });
-      setPins(pins.map((p) => (p.id === pin.id ? { ...p, status_id: status_id } : p)));
+    if (error) {
+      console.error('update status failed', error);
+      // Revenir à la valeur enregistrée
+      setSelected(statuses.find((s) => s.id === pin.status_id));
+      return;
     }
+    patchPin(pin.id, { status_id });
   };
 
   const handleToggle = () => {

@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Tag } from 'lucide-react';
-import { useAtom } from 'jotai';
-import { organizationsAtom, selectedPinAtom } from '@/store/atoms';
 import { supabase } from '@/utils/supabase/client';
 import { useUserData } from '@/hooks/useUserData';
 import { GeistMono } from 'geist/font/mono';
 import clsx from 'clsx';
 
-export default function TagEditor({ onChange, disabled = false }) {
+export default function TagEditor({ pin: selectedPin, onChange, disabled = false }) {
   const [input, setInput] = useState('');
-  const [selectedPin] = useAtom(selectedPinAtom);
   const [currentTags, setCurrentTags] = useState([]);
   const [availableTags, setAvailableTags] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);

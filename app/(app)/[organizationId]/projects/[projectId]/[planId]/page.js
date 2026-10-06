@@ -1,225 +1,90 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useMemo } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/utils/supabase/client'
-import PdfCanvas from '@/components/PdfCanvas';
-import ImageCanvas from '@/components/ImageCanvas';
-import PinsList from '@/components/PinsList';
-import NavBar from '@/components/NavBar';
-import { useAtom } from 'jotai';
-import { categoriesAtom, filteredPinsAtom, pinsAtom, projectPlansAtom, selectedPlanAtom, statusesAtom } from '@/store/atoms';
-import { useUser } from '@/components/UserContext';
-import { useUserData } from '@/hooks/useUserData';
-import Image from 'next/image';
-import { GeistSans } from 'geist/font/sans';
-import clsx from 'clsx';
+import ImageCanvas from '@/components/ImageCanvas'
+import PinsList from '@/components/PinsList'
+import NavBar from '@/components/NavBar'
+import FullScreenLoader, { FullScreenMessage } from '@/components/FullScreenLoader'
+import { useUserData } from '@/hooks/useUserData'
+import { usePlanPins } from '@/hooks/usePins'
+import { usePinFilters } from '@/hooks/usePinFilters'
+import { useProjectData } from '@/providers/ProjectProvider'
+import { matchesPinFilters } from '@/lib/data/pinFilters'
 
-export default function ProjectDetail({ params }) {
-  const { projectId, planId, organizationId } = params;
-  const [project, setProject] = useState(null)
-  //const [plan, setPlan] = useState(null)
-  const [pins, setPins] = useAtom(pinsAtom)
-  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
-  const [statuses, setStatuses] = useAtom(statusesAtom)
-  const [categories, setCategories] = useAtom(categoriesAtom)
-  const [filteredPins, setFilteredPins] = useAtom(filteredPinsAtom)
-const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom)
-  const { user, profile, organization, isAdmin, isLoading } = useUserData(organizationId);
+const EMPTY = []
 
-  // Ajouter l'état
-const [pinsLoading, setPinsLoading] = useState(true)
+export default function PlanPage({ params }) {
+  const { projectId, planId, organizationId } = params
+  const { profile, isAdmin } = useUserData(organizationId)
+  const { project, plans, currentPlan, isLoading: projectLoading, notFound } = useProjectData()
 
-  console.log('uuuser', user, profile, organization)
+  const { data: pins = EMPTY, isPending: pinsLoading } = usePlanPins(planId)
+  const { filters } = usePinFilters()
 
-  useEffect(() => {
-    const fetchStatuses = async () => {
-      const { data } = await supabase.from('Status').select('*').eq('project_id', projectId).order('order', { ascending: true })
-      setStatuses(data || [])
-    }
-
-    fetchStatuses()
-  }, [projectId])
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const { data } = await supabase.from('categories').select('*').eq('project_id', projectId).order('order', { ascending: true })
-      setCategories(data || [])
-    }
-
-    fetchCategories()
-  }, [projectId])
-
-  useEffect(() => {
-  const fetchProject = async () => {
-    const { data } = await supabase
-      .from('projects')
-      .select('id,created_at,name,plans(*)')
-      .eq('id', projectId)
-      .is('plans.deleted_at',null)
-      .single()
-    setProject(data)
-    setProjectPlans(data.plans)
-  }
-
-  const fetchPlan = async () => {
-    setSelectedPlan(null)   // 🔥 CLEAR stale plan FIRST
-   // setPins([])
-
-    const { data } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('id', planId)
-      .is('deleted_at', null)
-      .single()
-
-    setSelectedPlan(data)
-  }
-
-  fetchProject()
-  fetchPlan()
-}, [projectId, planId])
-
-
-
-
-
-
-
-
- useEffect(() => {
-    if ( !planId || !user || !profile || !organization) return;
-
-const fetchPins = async () => {
-
-   setPinsLoading(true)
-    setPins([])           // ← vider immédiatement les anciens pins
-    setFilteredPins([])   // ← vider aussi les pins filtrés
-      console.log('Fetching pins for plan:', planId, 'and user:', user.id)
-      const isGuest = profile?.role === 'guest';
-console.log('Is user a guest?', isGuest)
-      // 1. Conditionally set the JOIN type
-      const assignedToSelect = isGuest 
-          ? 'assigned_to!inner(id,name,auth_id)' // INNER JOIN required for guest filter
-          : 'assigned_to(id,name,auth_id)';    // LEFT JOIN for everyone else (includes unassigned pins)
-          
-      // Base Query Builder
-      let query = supabase
-        .from('pdf_pins')
-        .select(`
-          *,
-          projects(id,name,project_number,organization_id),
-          pins_photos(*),
-         pin_tags(tag_id,tags(*)),
-          categories(name),
-          ${assignedToSelect} // Use the conditional select string
-        `)
-        .eq('plan_id', planId)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: true })
-
-      // 2. CONDITIONAL FILTERING
-      if (isGuest) {
-        // Apply the filter only when it's a guest
-        query = query.filter(
-          'assigned_to.auth_id', 
-          'eq', 
-          user?.id 
-        );
-      }
-      
-      const { data, error } = await query; // Execute the final query
-
-      // ... rest of the error and data handling ...
-      
-      if (data) { 
-        console.log('pins', data); 
-        setPins(prev => {
-  console.log('🧩 setPins called', {
-    prevLength: prev.length,
-    nextLength: data?.length ?? 0,
-    stack: new Error().stack
-  });
-  
-  return data;
-});
-      }
-setPinsLoading(false)  // ← toujours déverrouiller même si erreur
-    }
-
-    fetchPins()
-  }, [ selectedPlan?.id,profile,planId]) // Dependencies remain correct
-
-  useEffect(() => {
-    console.log('pins', pins)
-  }, [pins])
-
-  if (!project || !selectedPlan) return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-[#fafaf9]", GeistSans.className)}>
-        <div className="text-center">
-          <div className="mb-6 flex justify-center">
-            <div className="w-12 h-12 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center animate-pulse">
-              <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
-            </div>
-          </div>
-          <h2 className="text-[17px] font-medium text-[#050505] mb-2">
-            Chargement...
-          </h2>
-          <p className="text-[13px] text-[#8a8a84]">
-            Veuillez patienter
-          </p>
-          <div className="mt-8 w-64 mx-auto">
-            <div className="h-1 bg-[#eeeeec] rounded-full overflow-hidden">
-              <div className="h-full bg-[#0d0d0c] w-0 animate-[loading_1.5s_ease-in-out_infinite]"></div>
-            </div>
-          </div>
-        </div>
-        <style jsx>{`
-          @keyframes loading {
-            0% { width: 0%; margin-left: 0%; }
-            50% { width: 75%; margin-left: 0%; }
-            100% { width: 0%; margin-left: 100%; }
-          }
-        `}</style>
-      </div>
+  // Liste dérivée : calculée, jamais stockée. Elle ne peut pas se désynchroniser.
+  const filteredPins = useMemo(
+    () => pins.filter((pin) => matchesPinFilters(pin, filters, { profileId: profile?.id })),
+    [pins, filters, profile?.id]
   )
+
+  if (projectLoading) return <FullScreenLoader />
+
+  if (notFound || !project) {
+    return (
+      <FullScreenMessage title="Projet introuvable" message="Ce projet n'existe pas ou vous n'y avez pas accès.">
+        <Link href={`/${organizationId}/projects`} className="text-[13px] font-medium text-[#0d0d0c] underline">
+          Retour aux projets
+        </Link>
+      </FullScreenMessage>
+    )
+  }
+
+  if (!currentPlan) {
+    return (
+      <FullScreenMessage title="Plan introuvable" message="Ce plan a été supprimé ou n'appartient pas à ce projet.">
+        <Link
+          href={`/${organizationId}/projects/${projectId}`}
+          className="text-[13px] font-medium text-[#0d0d0c] underline"
+        >
+          Ouvrir le projet
+        </Link>
+      </FullScreenMessage>
+    )
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background font-sans">
-      {/* Navbar with higher z-index - NO overflow constraints */}
       <div className="relative z-50">
-        <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
+        <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
       </div>
-      
-      {/* Content area - overflow only on this level */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        {selectedPlan && (
-          <div className="w-80 overflow-y-auto border-r border-border/40 bg-secondary/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <PinsList pins={filteredPins} plans={project.plans} user={profile} projectId={projectId} organizationId={organizationId} isLoading={pinsLoading} />
-          </div>
-        )}
 
-        {/* Main content */}
-        <div className="flex-1 overflow-auto">
-          {/*selectedPlan?.file_url && (
-          <PdfCanvas
-            fileUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.file_url).data.publicUrl}
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-80 overflow-y-auto border-r border-border/40 bg-secondary/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <PinsList
             pins={filteredPins}
-            project={project}
-            plan={selectedPlan}
-            user={profile}
+            allPins={pins}
+            plans={plans}
+            currentPlan={currentPlan}
+            projectId={projectId}
+            organizationId={organizationId}
+            isLoading={pinsLoading}
           />
-          )*/}
-        {selectedPlan?.png_url && (
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          {currentPlan.png_url && (
             <ImageCanvas
-              imageUrl={supabase.storage.from('project-plans').getPublicUrl(selectedPlan.png_url).data.publicUrl}
-              pins={pins}
+              key={currentPlan.id}
+              imageUrl={supabase.storage.from('project-plans').getPublicUrl(currentPlan.png_url).data.publicUrl}
+              pins={filteredPins}
               project={project}
-              plan={selectedPlan}
+              plan={currentPlan}
               user={profile}
               organizationId={organizationId}
             />
-          )} 
+          )}
         </div>
       </div>
     </div>

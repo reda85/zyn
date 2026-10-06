@@ -1,5 +1,4 @@
-import { statusesAtom } from "@/store/atoms";
-import { useAtom } from "jotai";
+import { useProjectData } from "@/providers/ProjectProvider";
 import { CheckCheckIcon, CheckIcon, DropletsIcon, FireExtinguisherIcon, GripIcon, PaintRoller, ZapIcon } from "lucide-react";
 
 function classNames(...classes) {
@@ -29,7 +28,7 @@ const statusColors = {
 }
 
 export default function GhostPin({  }) {
-    const [statuses] = useAtom(statusesAtom)
+    const { statuses } = useProjectData()
     return (
         <div className=" rounded-full p-1 " style={{backgroundColor : statuses.find(s => s.order === 0)?.color || '#ccc'}}>
             {CategoryIcon('unknown','En cours')}

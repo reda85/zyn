@@ -6,8 +6,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Calendar, X } from 'lucide-react';
 import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
+import { DATE_PRESETS, dateRangeToken, dateTokenLabel } from '@/lib/data/pinFilters';
 
-const suggestions = ['Aujourd\'hui', 'Cette semaine', 'Ce mois-ci'];
+// `tags` contient des jetons : 'today' | 'week' | 'month' | 'AAAA-MM-JJ..AAAA-MM-JJ'.
+const suggestions = Object.keys(DATE_PRESETS);
 
 export default function DateFilter({ active, onToggle, tags, setTags }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -22,9 +24,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
 
   const addCustomDateRange = () => {
     if (startDate) {
-      const dateStr = endDate
-        ? `${startDate.toLocaleDateString('fr-FR')} - ${endDate.toLocaleDateString('fr-FR')}`
-        : startDate.toLocaleDateString('fr-FR');
+      const dateStr = dateRangeToken(startDate, endDate);
 
       if (!tags.includes(dateStr)) {
         setTags([...tags, dateStr]);
@@ -72,7 +72,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
                   key={idx}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-[#e6eeff] text-[#1e3a8a] rounded-[3px] border border-[#c5d6fb] font-medium"
                 >
-                  {tag}
+                  {dateTokenLabel(tag)}
                   <button
                     onClick={() => removeTag(tag)}
                     className="hover:bg-[#dbe7fe] rounded-[2px] p-0.5 transition-colors text-[#264dc2]"
@@ -95,7 +95,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
                   onClick={() => addTag(s)}
                   className="px-2.5 py-1.5 text-[13px] bg-white text-[#0d0d0c] rounded-[4px] border border-[#e5e5e2] hover:bg-[#f5f5f4] hover:border-[#d6d6d2] transition-colors font-medium"
                 >
-                  {s}
+                  {DATE_PRESETS[s]}
                 </button>
               ))}
 

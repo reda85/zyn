@@ -1,15 +1,19 @@
 'use client';
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
-import { useAtom } from 'jotai';
-import { projectPlansAtom } from '@/store/atoms';
+import { useProjectData } from '@/providers/ProjectProvider';
 import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 
 export default function ProjectPlanFilter({ active, onToggle, selectedPlans, setSelectedPlans }) {
   const [input, setInput] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [projectPlans, setProjectPlans] = useAtom(projectPlansAtom);
+  // `selectedPlans` contient des identifiants de plans.
+  const { plans: projectPlans } = useProjectData();
+  const nameOf = (id) => projectPlans.find((p) => p.id === id)?.name ?? '…';
+  const suggestions = projectPlans.filter(
+    (p) => (p.name || '').toLowerCase().includes(input.toLowerCase()) && !selectedPlans.includes(p.id)
+  );
 
   const addPlan = (plan) => {
     if (!selectedPlans.includes(plan)) setSelectedPlans([...selectedPlans, plan]);
@@ -52,7 +56,7 @@ export default function ProjectPlanFilter({ active, onToggle, selectedPlans, set
                 key={idx}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-[#e6eeff] text-[#1e3a8a] rounded-[3px] border border-[#c5d6fb] font-medium"
               >
-                {plan}
+                {nameOf(plan)}
                 <button
                   onClick={() => removePlan(plan)}
                   className="hover:bg-[#dbe7fe] rounded-[2px] p-0.5 transition-colors text-[#264dc2]"
@@ -69,8 +73,8 @@ export default function ProjectPlanFilter({ active, onToggle, selectedPlans, set
               onFocus={() => setShowDropdown(true)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && input.trim()) {
-                  addPlan(input.trim());
+                if (e.key === 'Enter' && input.trim() && suggestions.length > 0) {
+                  addPlan(suggestions[0].id);
                 }
               }}
               placeholder="Ajouter un plan de projet..."
@@ -80,18 +84,16 @@ export default function ProjectPlanFilter({ active, onToggle, selectedPlans, set
 
           {showDropdown && projectPlans && projectPlans.length > 0 && (
             <div className="absolute z-40 mt-1 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] w-60 max-h-48 overflow-y-auto">
-              {projectPlans
-                .filter((p) => p.name.toLowerCase().includes(input.toLowerCase()) && !selectedPlans.includes(p.name))
-                .map((p) => (
+              {suggestions.map((p) => (
                   <div
                     key={p.id}
                     className="px-3 py-2.5 hover:bg-[#f5f5f4] cursor-pointer text-[13px] text-[#0d0d0c] font-medium transition-colors first:rounded-t-[4px] last:rounded-b-[4px]"
-                    onMouseDown={() => addPlan(p.name)}
+                    onMouseDown={() => addPlan(p.id)}
                   >
                     {p.name}
                   </div>
                 ))}
-              {projectPlans.filter((p) => p.name.toLowerCase().includes(input.toLowerCase()) && !selectedPlans.includes(p.name)).length === 0 && (
+              {suggestions.length === 0 && (
                 <div className="px-3 py-3 text-[13px] text-[#8a8a84] text-center">
                   Aucun plan de projet trouvé
                 </div>

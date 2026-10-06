@@ -5,8 +5,7 @@ import { Send, Plus, Users, X, Search, UserPlus, MessageSquare, Image as ImageIc
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import NavBar from '@/components/NavBar';
-import { useAtom } from 'jotai';
-import { selectedProjectAtom, categoriesAtom, statusesAtom } from '@/store/atoms';
+import { useProjectData } from '@/providers/ProjectProvider';
 import { categoriesPinIcons } from '@/utils/categories';
 import { useUserData } from '@/hooks/useUserData';
 import { supabase } from '@/utils/supabase/client';
@@ -47,8 +46,7 @@ const fmtFull = (iso) => iso
 // LINKED ITEM COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 function LinkedItem({ item, isOwn, organizationId, projectId }) {
-  const [categories] = useAtom(categoriesAtom);
-  const [statuses] = useAtom(statusesAtom);
+  const { categories, statuses } = useProjectData();
   const [pinData, setPinData] = useState(null);
 
   useEffect(() => {
@@ -94,10 +92,14 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
+const MESSAGES_PAGE_SIZE = 50;
+const MESSAGE_SELECT = '*, members(auth_id, name, avatar_url), discussions_attachments(*), discussions_linked_items(*)';
+
+// ─────────────────────────────────────────────────────────────────────────────
 export default function DiscussionsPage({ params }) {
   const { projectId, organizationId } = params;
-  const { user, profile, isAdmin, isLoading } = useUserData();
-  const [project, setProject] = useAtom(selectedProjectAtom);
+  const { user, profile, isAdmin } = useUserData(organizationId);
+  const { project } = useProjectData();
 
   const [groups, setGroups]                     = useState([]);
   const [activeGroup, setActiveGroup]           = useState(null);
@@ -108,6 +110,9 @@ export default function DiscussionsPage({ params }) {
   const [sending, setSending]                   = useState(false);
   const [loadingGroups, setLoadingGroups]       = useState(true);
   const [loadingMessages, setLoadingMessages]   = useState(false);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [loadingOlder, setLoadingOlder]         = useState(false);
+  const messagesBoxRef = useRef(null);
   const [showCreate, setShowCreate]             = useState(false);
   const [showMembers, setShowMembers]           = useState(false);
   const [pendingImages, setPendingImages]       = useState([]);
@@ -119,13 +124,6 @@ export default function DiscussionsPage({ params }) {
   const inputRef       = useRef(null);
   const channelsUnreadRef = useRef([]);
 
-  useEffect(() => {
-    const fetchProject = async () => {
-      const { data } = await supabase.from('projects').select('id,created_at,name,plans(id,name)').is('plans.deleted_at', null).eq('id', projectId).single();
-      if (data) setProject(data);
-    };
-    if (projectId) fetchProject();
-  }, [projectId]);
 
   const loadGroups = useCallback(async () => {
     if (!projectId || !user) return;
@@ -137,11 +135,15 @@ export default function DiscussionsPage({ params }) {
         .eq('project_id', projectId)
         .eq('discussions_members.user_id', user.id)
         .eq('is_active', true)
+        .eq('discussions_messages.is_deleted', false)
+        // Seul le dernier message de chaque groupe sert à l'aperçu : on ne charge que lui.
+        .order('created_at', { referencedTable: 'discussions_messages', ascending: false })
+        .limit(1, { referencedTable: 'discussions_messages' })
         .order('updated_at', { ascending: false });
       const gs = data ?? [];
       setGroups(gs);
       const lm = {};
-      gs.forEach(g => { const arr = g.discussions_messages ?? []; if (arr.length) lm[g.id] = arr[arr.length - 1]; });
+      gs.forEach(g => { const last = g.discussions_messages?.[0]; if (last) lm[g.id] = last; });
       setLastMsgs(lm);
       const counts = {};
       await Promise.all(gs.map(async g => { const { data: n } = await supabase.rpc('get_discussion_unread', { p_group_id: g.id }); counts[g.id] = n ?? 0; }));
@@ -166,16 +168,49 @@ export default function DiscussionsPage({ params }) {
     setActiveGroup(group); setShowMembers(false); setPendingImages([]); setPendingLinked([]);
     setLoadingMessages(true);
     try {
+      // Les 50 messages les plus récents, réaffichés dans l'ordre chronologique.
       const { data } = await supabase
         .from('discussions_messages')
-        .select('*, members(auth_id, name, avatar_url), discussions_attachments(*), discussions_linked_items(*)')
-        .eq('group_id', group.id).eq('is_deleted', false).order('created_at', { ascending: true }).limit(50);
-      setMessages(data ?? []);
+        .select(MESSAGE_SELECT)
+        .eq('group_id', group.id).eq('is_deleted', false)
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .limit(MESSAGES_PAGE_SIZE);
+      const latest = data ?? [];
+      setMessages(latest.slice().reverse());
+      setHasOlderMessages(latest.length === MESSAGES_PAGE_SIZE);
       await supabase.rpc('mark_discussion_read', { p_group_id: group.id });
       setUnread(prev => ({ ...prev, [group.id]: 0 }));
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'instant' }), 80);
     } finally { setLoadingMessages(false); }
   }, []);
+
+  // Remonter dans l'historique : charge la page précédant le plus ancien message affiché.
+  const loadOlderMessages = useCallback(async () => {
+    const oldest = messages[0];
+    if (!activeGroup || !oldest || loadingOlder || !hasOlderMessages) return;
+    setLoadingOlder(true);
+    const box = messagesBoxRef.current;
+    const previousHeight = box?.scrollHeight ?? 0;
+    try {
+      const { data } = await supabase
+        .from('discussions_messages')
+        .select(MESSAGE_SELECT)
+        .eq('group_id', activeGroup.id).eq('is_deleted', false)
+        .lt('created_at', oldest.created_at)
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .limit(MESSAGES_PAGE_SIZE);
+      const older = (data ?? []).slice().reverse();
+      setHasOlderMessages(older.length === MESSAGES_PAGE_SIZE);
+      if (older.length) {
+        setMessages(prev => {
+          const known = new Set(prev.map(m => m.id));
+          return [...older.filter(m => !known.has(m.id)), ...prev];
+        });
+        // Garde le message lu à la même place malgré l'insertion au-dessus.
+        requestAnimationFrame(() => { if (box) box.scrollTop += box.scrollHeight - previousHeight; });
+      }
+    } finally { setLoadingOlder(false); }
+  }, [activeGroup, messages, loadingOlder, hasOlderMessages]);
 
   useEffect(() => {
     if (!activeGroup) return;
@@ -184,7 +219,7 @@ export default function DiscussionsPage({ params }) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'discussions_messages', filter: `group_id=eq.${activeGroup.id}` },
         async (payload) => {
           setMessages(prev => { if (prev.find(m => m.id === payload.new.id)) return prev; return [...prev, { ...payload.new, members: null, discussions_attachments: [], discussions_linked_items: [] }]; });
-          const { data } = await supabase.from('discussions_messages').select('*, members(auth_id, name, avatar_url), discussions_attachments(*), discussions_linked_items(*)').eq('id', payload.new.id).single();
+          const { data } = await supabase.from('discussions_messages').select(MESSAGE_SELECT).eq('id', payload.new.id).single();
           if (data) setMessages(prev => prev.map(m => m.id === data.id ? data : m));
           await supabase.rpc('mark_discussion_read', { p_group_id: activeGroup.id });
           setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 80);
@@ -234,7 +269,7 @@ export default function DiscussionsPage({ params }) {
 
   return (
     <div className={clsx(GeistSans.className, "flex flex-col h-screen bg-[#fafaf9] overflow-hidden")}>
-      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="flex flex-1 overflow-hidden">
 
@@ -352,7 +387,11 @@ export default function DiscussionsPage({ params }) {
 
               {/* Messages */}
               <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-1">
+                <div
+                  ref={messagesBoxRef}
+                  onScroll={(e) => { if (e.currentTarget.scrollTop < 80) loadOlderMessages(); }}
+                  className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-1"
+                >
                   {loadingMessages ? (
                     <div className="flex flex-col gap-3">
                       {[1,2,3,4].map(i => (
@@ -368,6 +407,15 @@ export default function DiscussionsPage({ params }) {
                     </div>
                   ) : (
                     <>
+                      {hasOlderMessages && (
+                        <button
+                          onClick={loadOlderMessages}
+                          disabled={loadingOlder}
+                          className="self-center mb-2 px-3 py-1 text-[11px] text-[#666660] hover:text-[#0d0d0c] disabled:opacity-50 transition-colors"
+                        >
+                          {loadingOlder ? 'Chargement…' : 'Messages précédents'}
+                        </button>
+                      )}
                       {messages.map((msg, idx) => {
                         const isOwn     = msg.user_id === user?.id;
                         const msgProfile = msg.members;

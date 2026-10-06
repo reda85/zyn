@@ -5,8 +5,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import { supabase } from '@/utils/supabase/client';
-import { useAtom } from 'jotai';
-import { pinsAtom, selectedPinAtom } from '@/store/atoms';
+import { usePinsCache } from '@/hooks/usePins';
+import { BACKEND_URL } from '@/lib/config';
 import clsx from 'clsx';
 import { useUserData } from '@/hooks/useUserData';
 import { GeistMono } from 'geist/font/mono';
@@ -19,9 +19,9 @@ export default function IntervenantDatePicker({ pin }) {
   const [isEditing, setIsEditing]       = useState(false);
   const [isPickingDate, setIsPickingDate] = useState(false);
   const [allOptions, setAllOptions]     = useState([{ id: 0, name: 'Aucun intervenant', email: '' }]);
-  const [, setPins]                     = useAtom(pinsAtom);
-  const [selectedPin, setSelectedPin]   = useAtom(selectedPinAtom);
-  const { user, profile }               = useUserData();
+  const { patchPin }                    = usePinsCache();
+  const selectedPin                     = pin;
+  const { profile }                     = useUserData();
 
   const [selectedDate, setSelectedDate] = useState(
     pin?.due_date ? new Date(pin.due_date) : null
@@ -94,7 +94,7 @@ export default function IntervenantDatePicker({ pin }) {
           body: JSON.stringify({
             deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
             taskId: selectedPin.id, projectId: selectedPin.project_id,
-            assignedBy: user.name, assignedUserEmail: intervenant.email,
+            assignedBy: profile?.name, assignedUserEmail: intervenant.email,
             assignedUserName: intervenant.name, dueDate: selectedPin.due_date,
             taskName: selectedPin?.name || 'Sans nom',
           }),
@@ -102,13 +102,13 @@ export default function IntervenantDatePicker({ pin }) {
       } catch (e) { console.error('email notif error', e); }
 
       try {
-        await fetch('https://zaynbackend-production.up.railway.app/api/pins/assign', {
+        await fetch(`${BACKEND_URL}/api/pins/assign`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
             pinId: selectedPin.id, projectId: selectedPin.project_id,
-            assignedByName: user?.name || 'user',
+            assignedByName: profile?.name || 'user',
             assignedUserEmail: intervenant.email,
             assignedUserName: intervenant.name,
             assignedToUserId: intervenant.auth_id,
@@ -120,11 +120,9 @@ export default function IntervenantDatePicker({ pin }) {
 
       const assignedObj = intervenant?.id === 0
         ? null
-        : { id: intervenant.id, name: intervenant.name };
+        : { id: intervenant.id, name: intervenant.name, email: intervenant.email, auth_id: intervenant.auth_id };
 
-      setPins(prev => prev.map(p =>
-        p.id === selectedPin.id ? { ...p, assigned_to: assignedObj } : p
-      ));
+      patchPin(selectedPin.id, { assigned_to: assignedObj });
     }
     if (error) console.error('updateAssignedIntervenant error:', error);
   };
@@ -152,9 +150,7 @@ export default function IntervenantDatePicker({ pin }) {
 
     if (data) {
       setSelectedDate(date);
-      setPins(prev => prev.map(p =>
-        p.id === selectedPin.id ? { ...p, due_date: date } : p
-      ));
+      patchPin(selectedPin.id, { due_date: data.due_date });
     }
     if (error) console.error('updateDueDate error:', error);
   };

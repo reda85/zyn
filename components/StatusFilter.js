@@ -1,16 +1,13 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
-import { supabase } from '@/utils/supabase/client';
-import { useAtom } from 'jotai';
-import { statusesAtom } from '@/store/atoms';
+import { useProjectData } from '@/providers/ProjectProvider';
 import { CheckCircle2 } from 'lucide-react';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import clsx from 'clsx';
 
 export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
-  const [statuses] = useAtom(statusesAtom);
+  const { statuses } = useProjectData();
 
   const toggleStatus = (statusId) => {
     setActiveStatuses((prev) =>

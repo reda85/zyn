@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { X, ZoomIn, ZoomOut, MapPin, Check } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
+import { pinSelect } from '@/lib/data/pins'
 
 
 const SUPABASE_STORAGE = `https://zvebdabtofcusfdaacrq.supabase.co/storage/v1/object/public/project-plans`
@@ -195,7 +196,7 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
        
       })
       .eq('id', pin.id)
-      .select('*,projects(*),plans(*)')
+      .select(pinSelect({ withPhotos: true }))
       .single()
 
     setSaving(false)

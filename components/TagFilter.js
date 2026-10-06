@@ -1,27 +1,14 @@
 'use client';
 import { Switch } from '@headlessui/react';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabase/client';
+import { useState } from 'react';
+import { useProjectTags } from '@/hooks/useProjectTags';
 import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 
 export default function TagFilter({ active, onToggle, tags, setTags, projectId }) {
   const [input, setInput] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [availableTags, setAvailableTags] = useState([]);
-
-  useEffect(() => {
-    const fetchTags = async () => {
-      if (!projectId) return;
-      const { data } = await supabase
-        .from('tags')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('order', { ascending: true });
-      if (data) setAvailableTags(data);
-    };
-    fetchTags();
-  }, [projectId]);
+  const { data: availableTags = [] } = useProjectTags(projectId);
 
   const addTag = (tagId) => {
     if (!tags.includes(tagId)) setTags([...tags, tagId]);
