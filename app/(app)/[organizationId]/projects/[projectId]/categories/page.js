@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { Input } from '@/components/ui/input'
 import { IconPicker } from '@/components/IconPicker'
 import { Button } from '@/components/ui/button'
