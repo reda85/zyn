@@ -1,8 +1,7 @@
 import { Textarea } from '@headlessui/react';
 import StatusSelect from './StatusSelect';
 import IntervenantDatePicker from './IntervenantDatePicker';
-import { useAtom } from 'jotai';
-import { pinsAtom, selectedPinAtom } from '@/store/atoms';
+import { usePinsCache } from '@/hooks/usePins';
 import { useEffect, useState } from 'react';
 import Pin from './Pin';
 import CategoryComboBox from './CategoryComboBox';
@@ -14,14 +13,11 @@ import { GeistMono } from 'geist/font/mono';
 import clsx from 'clsx';
 
 export default function DrawerBody({ pin, newComment, photoUploadTrigger, organization_id }) {
-  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom);
-  const [pins, setPins] = useAtom(pinsAtom);
+  const { patchPin } = usePinsCache();
   const [name, setName] = useState(pin.name);
   const [note, setNote] = useState(pin.note);
   const [refreshKey, setRefreshKey] = useState(0);
-  const { user, profile, organization } = useUserData(organization_id);
-
-  console.log('uuuser DrawerBody', user, profile, organization, organization_id)
+  const { profile } = useUserData(organization_id);
 
   const isGuest = profile?.role === 'guest';
 
@@ -31,51 +27,31 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
     }
   }, [photoUploadTrigger]);
 
+  // Resynchronise les champs quand on change de pin ou que sa valeur change ailleurs.
   useEffect(() => {
     setName(pin.name);
     setNote(pin.note);
-    console.log('DrawerBody pin updated', pin);
-  }, [pin]);
+  }, [pin.id, pin.name, pin.note]);
 
-  const handleUpdateName = async () => {
-    if (!name || isGuest) return;
-    const { data } = await supabase
+  const saveField = async (field, value) => {
+    if (!value || isGuest || value === pin[field]) return;
+    const { error } = await supabase
       .from('pdf_pins')
-      .update({ name, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
-      .eq('id', pin.id)
-      .select('*')
-      .single();
-    if (data) {
-      setName(data.name);
-      setSelectedPin({ ...selectedPin, name: data.name });
-      setPins(pins.map((p) => p.id === pin.id ? { ...p, name: data.name } : p));
+      .update({ [field]: value, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
+      .eq('id', pin.id);
+    if (error) {
+      console.error(`update ${field} failed`, error);
+      return;
     }
+    patchPin(pin.id, { [field]: value });
   };
 
-  const handleUpdateNote = async () => {
-    if (!note || isGuest) return;
-    const { data } = await supabase
-      .from('pdf_pins')
-      .update({ note, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
-      .eq('id', pin.id)
-      .select('*')
-      .single();
-    if (data) {
-      setNote(data.note);
-      setSelectedPin({ ...selectedPin, note: data.note });
-      setPins(pins.map((p) => p.id === pin.id ? { ...p, note: data.note } : p));
-    }
-  };
+  const handleUpdateName = () => saveField('name', name);
+  const handleUpdateNote = () => saveField('note', note);
 
-  // Sync atoms when tags change — TagEditor handles Supabase persistence itself
+  // TagEditor persiste lui-même ; on répercute seulement dans le cache.
   const handleTagsChange = (updatedTags) => {
-    const pinTags = updatedTags.map((t) => ({ tags: t }));
-    setSelectedPin((prev) => ({ ...prev, pin_tags: pinTags, tags: updatedTags }));
-    setPins((prev) =>
-      prev.map((p) =>
-        p.id === pin.id ? { ...p, pin_tags: pinTags, tags: updatedTags } : p
-      )
-    );
+    patchPin(pin.id, { pin_tags: updatedTags.map((t) => ({ tag_id: t.id, tags: t })) });
   };
 
   return (
@@ -108,13 +84,13 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
             className="w-full resize-none text-[13px] text-[#4a4a46] placeholder:text-[13px] placeholder:text-[#b8b8b3] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[#f5f5f4]"
           />
         </div>
-        <TagEditor onChange={handleTagsChange} disabled={isGuest} />
+        <TagEditor pin={pin} onChange={handleTagsChange} disabled={isGuest} />
         <div className="flex flex-row gap-2 items-center">
-          {pin && <IntervenantDatePicker pin={selectedPin} />}
+          {pin && <IntervenantDatePicker pin={pin} />}
         </div>
       </div>
       <Timeline
-        pin={selectedPin}
+        pin={pin}
         newComment={newComment}
         refreshKey={refreshKey}
       />

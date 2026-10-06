@@ -4,17 +4,17 @@ import { EyeIcon, Paperclip, Scissors, X, Trash2, MapPin, MapPinOff, MoreVertica
 import { useRef, useState, useEffect } from 'react'
 import CategoryComboBox from './CategoryComboBox'
 import { useRouter } from 'next/navigation'
-import { useAtom } from 'jotai'
-import { focusOnPinAtom, pinsAtom, selectedPinAtom } from '@/store/atoms'
+import { useSetAtom } from 'jotai'
+import { focusOnPinAtom } from '@/store/atoms'
+import { usePinsCache } from '@/hooks/usePins'
 import { supabase } from '@/utils/supabase/client'
 import { useUserData } from '@/hooks/useUserData'
 import PlacePinModal from './PlacePinModal'
 
 
 export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organization_id }) {
-  const [, setFocusOnPin]  = useAtom(focusOnPinAtom)
-  const [pins, setPins]    = useAtom(pinsAtom)
-  const [, setSelectedPin] = useAtom(selectedPinAtom)
+  const setFocusOnPin      = useSetAtom(focusOnPinAtom)
+  const { patchPin, removePin, invalidatePins } = usePinsCache()
   const router             = useRouter()
   const fileInputRef       = useRef(null)
   const menuRef            = useRef(null)
@@ -41,14 +41,14 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
 
   // ── Navigate to canvas ────────────────────────────────────────────────────
   const goToCanvas = () => {
-    setFocusOnPin(pin)
+    setFocusOnPin(pin.id)
     router.push(`/${pin.projects?.organization_id}/projects/${pin.project_id}/${pin?.plans?.id}`)
   }
 
   const activateSnippetMode = () => {
     setFocusOnPin(pin.id)
     router.push(
-      `${pin.projects?.organization_id}/projects/${pin.project_id}/${pin?.plans?.id}/snippet/${pin.id}`
+      `/${pin.projects?.organization_id}/projects/${pin.project_id}/${pin?.plans?.id}/snippet/${pin.id}`
     )
   }
 
@@ -67,8 +67,10 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
   }
 
   const handlePlaced = (updatedPin) => {
-    setPins(prev => prev.map(p => p.id === updatedPin.id ? updatedPin : p))
-    setSelectedPin(updatedPin)
+    // Le pin a pu changer de plan : on met à jour les listes où il figure déjà
+    // et on recharge celles du plan de destination.
+    patchPin(updatedPin.id, updatedPin)
+    invalidatePins()
   }
 
   // ── Remove from plan ──────────────────────────────────────────────────────
@@ -81,9 +83,8 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
       .eq('id', pin.id)
     if (error) { console.error(error); alert('Erreur lors du retrait du plan'); return }
 
-    const updated = { ...pin, x: null, y: null, plan_id: null, pdf_name: null, plans: null }
-    setPins(prev => prev.map(p => p.id === pin.id ? updated : p))
-    setSelectedPin(updated)
+    patchPin(pin.id, { x: null, y: null, plan_id: null, pdf_name: null, plans: null })
+    invalidatePins()
   }
 
   // ── Archive ───────────────────────────────────────────────────────────────
@@ -96,9 +97,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
       .eq('id', pin.id)
     if (error) { console.error(error); alert('Erreur lors de l\'archivage'); return }
 
-    const updated = { ...pin, isArchived: newVal }
-    setPins(prev => prev.map(p => p.id === pin.id ? updated : p))
-    setSelectedPin(updated)
+    patchPin(pin.id, { isArchived: newVal })
     if (newVal) onClose()
   }
 
@@ -135,8 +134,8 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
     if (!confirm('Are you sure you want to delete this pin?')) return
     const { error } = await supabase.rpc('soft_delete_pin', { p_pin_id: pin.id })
     if (error) { console.error(error); alert('Failed to delete pin'); return }
-    setPins(prev => prev.filter(p => p.id !== pin.id))
     onClose()
+    removePin(pin.id)
   }
 
   // ── Render ────────────────────────────────────────────────────────────────

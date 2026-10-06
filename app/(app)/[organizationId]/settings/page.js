@@ -83,6 +83,8 @@ export default function OrganizationSettingsPage({ params }) {
 
     if (!error) {
       setSelectedOrganization((prev) => ({ ...prev, name, size, logo_url: logoUrl }))
+      // Recharge la session côté serveur : la barre latérale reprend le nouveau nom / logo.
+      router.refresh()
       alert('Paramètres sauvegardés avec succès!')
     } else {
       alert('Erreur lors de la sauvegarde')

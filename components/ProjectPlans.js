@@ -11,9 +11,12 @@ import {
   CheckCircle2, Loader2, Clock, RefreshCw, AlertTriangle,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { BACKEND_URL } from '@/lib/config'
+import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
+import { qk } from '@/lib/data/keys'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
-const API_URL = 'https://zaynbackend-production.up.railway.app'
+const API_URL = BACKEND_URL
 
 const EMPTY_STATE = {
   file: null, uploading: false, processing: false, progress: 0,
@@ -24,6 +27,8 @@ const EMPTY_STATE = {
 export default function ProjectPlans({ project, onClose }) {
   const [plans, setPlans] = useState([])
   const [editedNames, setEditedNames] = useState({})
+  // Plans ajoutés, renommés ou supprimés ici : le projet en cache est relu en sortant.
+  useRefreshOnLeave(qk.project(project?.id), qk.pinsRoot, ['projects'])
 
   // Upload nouveau plan
   const [showUploadModal, setShowUploadModal] = useState(false)
@@ -240,7 +245,7 @@ export default function ProjectPlans({ project, onClose }) {
     }
     setPlans((prev) => prev.map((p) => (editedNames[p.id] ? { ...p, name: editedNames[p.id] } : p)))
     setEditedNames({})
-    router.push(`${project.organization_id}/projects/${project.id}`)
+    router.push(`/${project.organization_id}/projects/${project.id}`)
   }
 
   // ─── Render ─────────────────────────────────────────────────────────────────

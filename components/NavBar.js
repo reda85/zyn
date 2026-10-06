@@ -11,10 +11,8 @@ import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
-import { useAtom } from 'jotai'
-import { selectedPlanAtom } from '@/store/atoms'
 import { signOutAction } from '@/app/actions'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { useProjectData } from '@/providers/ProjectProvider'
 
 const tabs = ['Plans', 'Tâches', 'Médias', 'Documents', 'Discussions']
 
@@ -26,17 +24,19 @@ const tabSlugs = {
   Discussions: 'discussions',
 }
 
-export default function Navbar({ id, user, project, organizationId, isLoading, isAdmin }) {
+export default function Navbar({ id, user, project: projectProp, organizationId, isLoading: isLoadingProp, isAdmin }) {
+  // Sous une page projet, le projet vient du contexte : inutile de le repasser.
+  const projectData = useProjectData()
+  const project = projectProp ?? projectData.project
+  const isLoading = isLoadingProp ?? (projectData.projectId ? !project && projectData.isLoading : false)
   const pathname = usePathname()
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  //const { isAdmin, isLoading: isAdminLoading } = useIsAdmin()
 
   const projectMenuRef = useRef(null)
   const userMenuRef = useRef(null)
 
   const router = useRouter()
-  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
 
   const currentTab = (() => {
     if (pathname === `/${organizationId}/projects/${id}` || pathname === `/${organizationId}/projects/${id}/`) {
@@ -213,7 +213,7 @@ export default function Navbar({ id, user, project, organizationId, isLoading, i
 
               <div className="py-1.5">
                 <Link
-                  href="/profile"
+                  href={`/${organizationId}/profile`}
                   className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-[#0d0d0c] hover:bg-[#f5f5f4] transition-colors"
                   onClick={() => setUserMenuOpen(false)}
                 >

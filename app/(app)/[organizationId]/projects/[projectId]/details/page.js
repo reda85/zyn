@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Upload, X, User, Loader2 } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
-import { useAtom } from 'jotai'
-import { selectedProjectAtom } from '@/store/atoms'
+import { useQueryClient } from '@tanstack/react-query'
+import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
@@ -29,7 +29,7 @@ export default function ProjectDetails() {
   const [isEditing, setIsEditing] = useState(false)
   const [uploading, setUploading] = useState({ picture: false, logo: false })
   const [uploadError, setUploadError] = useState(null)
-  const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom)
+  const queryClient = useQueryClient()
   const { projectId } = useParams()
   const router = useRouter()
   const pictureInputRef = useRef(null)
@@ -82,9 +82,9 @@ export default function ProjectDetails() {
 
       if (error) throw error
 
-      if (selectedProject?.id === projectId) {
-        setSelectedProject(project)
-      }
+      // Le nom et les logos sont affichés ailleurs (barre de navigation, liste des projets).
+      queryClient.invalidateQueries({ queryKey: qk.project(projectId) })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       setIsEditing(false)
     } catch (error) {
       console.error('Error saving project:', error)

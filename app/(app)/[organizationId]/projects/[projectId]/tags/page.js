@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Tag, ArrowLeft, Search, X } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
+import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
+import { qk } from '@/lib/data/keys'
 import { Lexend } from 'next/font/google'
 import clsx from 'clsx'
 
@@ -16,6 +18,7 @@ export default function ProjectTags() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const { projectId } = useParams()
+  useRefreshOnLeave(qk.tags(projectId), qk.pinsRoot)
   const router = useRouter()
 
   useEffect(() => {

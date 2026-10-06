@@ -8,8 +8,7 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
   const [isFocused, setIsFocused] = useState(false);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, profile } = useUserData();
-  const [newComment, setNewComment] = useState(null)
+  const { profile } = useUserData();
 
   const handleSubmit = async () => {
     if (!comment.trim() || isSubmitting) return;
@@ -17,9 +16,6 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
     setIsSubmitting(true);
 
     try {
-      console.log('comment', comment)
-      console.log('sender_id', profile.id)
-      console.log('pin_id', pin.id)
       const { data, error } = await supabase
         .from('comments')
         .insert([
@@ -32,10 +28,10 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
         ])
         .select();
 
-      if (error) { console.log(error); throw error; }
+      if (error) throw error;
 
       setComment('');
-      onCommentAdded({
+      onCommentAdded?.({
         ...data[0],
         user: profile,
         created_at: new Date().toISOString(),

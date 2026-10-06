@@ -6,26 +6,30 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { MapPinIcon, User, Calendar } from 'lucide-react';
 import clsx from 'clsx';
+import { photoThumbUrl } from '@/lib/images';
 
 export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds }) {
   if (!media || media.length === 0) {
     return null; // Empty state géré par la page parent
   }
 
-  // Group media by date
-  const grouped = media.reduce((acc, item) => {
+  // Regroupe par jour. `media` arrive trié du plus récent au plus ancien :
+  // l'ordre d'apparition des jours est donc déjà le bon (trier des libellés
+  // comme « 06 septembre 2026 » avec `new Date()` ne fonctionne pas).
+  const grouped = {};
+  const sortedDates = [];
+  for (const item of media) {
     const date = new Date(item.created_at).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
     });
-
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(item);
-    return acc;
-  }, {});
-
-  const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+    if (!grouped[date]) {
+      grouped[date] = [];
+      sortedDates.push(date);
+    }
+    grouped[date].push(item);
+  }
 
   const toggleMedia = (id) => {
     setSelectedIds((prev) => {
@@ -113,8 +117,10 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                     {/* Media image */}
                     <div className="relative h-48">
                       <img
-                        src={item.public_url}
+                        src={photoThumbUrl(item, { width: 640 })}
                         alt="media"
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
 

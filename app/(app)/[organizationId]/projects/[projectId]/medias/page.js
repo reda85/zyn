@@ -1,207 +1,153 @@
 'use client'
-import { useAtom } from 'jotai'
-import { selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
-import NavBar from '@/components/NavBar'
-import { useEffect, useState, useRef } from 'react'
-import { supabase } from '@/utils/supabase/client'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
-import GroupedMediaGallery from '@/components/GroupedMediaGallery'
+
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { Calendar, X, Image as ImageIcon, Download } from 'lucide-react'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import clsx from 'clsx'
+import dayjs from 'dayjs'
+
+import NavBar from '@/components/NavBar'
+import GroupedMediaGallery from '@/components/GroupedMediaGallery'
+import { supabase } from '@/utils/supabase/client'
 import { useUserData } from '@/hooks/useUserData'
+import { usePinScope } from '@/hooks/usePins'
+import { useUrlParams } from '@/hooks/useUrlParams'
+import { useProjectData } from '@/providers/ProjectProvider'
+import { qk } from '@/lib/data/keys'
+import { fetchMediasPage } from '@/lib/data/medias'
+import { BACKEND_URL } from '@/lib/config'
+
+const toDate = (value) => (value ? dayjs(value).toDate() : null)
+const toParam = (date) => (date ? dayjs(date).format('YYYY-MM-DD') : null)
 
 export default function Medias({ params }) {
-  const [plan, setPlan] = useAtom(selectedPlanAtom)
-  const [project, setProject] = useAtom(selectedProjectAtom)
-  const { user, profile, organization, isAdmin, isLoading } = useUserData()
-
   const { projectId, organizationId } = params
+  const { profile, isAdmin } = useUserData(organizationId)
+  const { project, plans } = useProjectData()
+  const scope = usePinScope()
 
-  const [medias, setMedias] = useState([])
-  const [filteredMedias, setFilteredMedias] = useState([])
+  // ── Filtres : dans l'URL, appliqués dans la requête ──────────────────────
+  const [searchParams, setParams] = useUrlParams()
+  const planId = searchParams.get('plan') || ''
+  const from = searchParams.get('from') || ''
+  const to = searchParams.get('to') || ''
+  const filters = useMemo(() => ({ planId, from, to }), [planId, from, to])
+  const hasActiveFilters = Boolean(planId || from || to)
+  const clearFilters = () => setParams({ plan: null, from: null, to: null })
+
+  // Le sélecteur de période garde son état pendant la saisie (début sans fin).
+  const [range, setRange] = useState([toDate(from), toDate(to)])
+  useEffect(() => setRange([toDate(from), toDate(to)]), [from, to])
+
+  const {
+    data, isPending, isError, isPlaceholderData,
+    hasNextPage, isFetchingNextPage, fetchNextPage, refetch,
+  } = useInfiniteQuery({
+    queryKey: qk.medias(projectId, scope, filters),
+    queryFn: ({ pageParam }) => fetchMediasPage({ projectId, filters, scope, cursor: pageParam }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: Boolean(projectId && scope.profileId),
+    placeholderData: keepPreviousData,
+  })
+
+  const medias = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data])
+  const total = data?.pages[0]?.count ?? medias.length
+
+  const sentinelRef = useRef(null)
+  useEffect(() => {
+    const node = sentinelRef.current
+    if (!node || !hasNextPage) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingNextPage) fetchNextPage()
+      },
+      { rootMargin: '600px' }
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // ── Sélection et rapport ─────────────────────────────────────────────────
   const [selectedIds, setSelectedIds] = useState(new Set())
-
-  const [selectedCanvas, setSelectedCanvas] = useState('')
-  const [startDate, setStartDate] = useState(null)
-  const [endDate, setEndDate] = useState(null)
-  const [selectedUsers, setSelectedUsers] = useState([])
-  const [selectedTags, setSelectedTags] = useState([])
-
-  const [users, setUsers] = useState([])
-  const [tags, setTags] = useState([])
-  const [loading, setLoading] = useState(true)
-  const fetchedKeyRef = useRef(null)
-
-  useEffect(() => {
-    const fetchProject = async () => {
-      const { data } = await supabase
-        .from('projects')
-        .select('id, created_at, name, plans(id, name)')
-        .eq('id', projectId)
-        .is('plans.deleted_at', null)
-        .single()
-      if (data) setProject(data)
-    }
-    if (projectId) fetchProject()
-  }, [projectId])
-
-  useEffect(() => {
-    if (!projectId || !user?.id || !profile?.id) return
-
-    const key = `${projectId}:${user.id}:${profile.role}`
-    if (fetchedKeyRef.current === key) return
-    fetchedKeyRef.current = key
-
-    const fetchMedias = async () => {
-      setLoading(true)
-      try {
-        const isGuest = profile.role === 'guest'
-        const query = isGuest
-          ? supabase
-              .from('pins_photos')
-              .select('*, pdf_pins!inner(*, assigned_to)')
-              .eq('project_id', projectId)
-              .eq('pdf_pins.assigned_to', profile.id)
-              .order('created_at', { ascending: false })
-          : supabase
-              .from('pins_photos')
-              .select('*, pdf_pins(*,assigned_to(id,name))')
-              .eq('project_id', projectId)
-              .is('deleted_at', null)
-              .order('created_at', { ascending: false })
-
-        const { data, error } = await query
-        if (error) {
-          console.error('Medias error', error)
-          return
-        }
-        setMedias(data || [])
-        setFilteredMedias(data || [])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchMedias()
-  }, [projectId, user?.id, profile?.id, profile?.role])
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const { data } = await supabase.from('members').select('id, name')
-      if (data) setUsers(data)
-    }
-    fetchUsers()
-  }, [])
-
-  useEffect(() => {
-    const fetchTags = async () => {
-      const { data } = await supabase.from('tags').select('id, name')
-      if (data) setTags(data)
-    }
-    fetchTags()
-  }, [])
-
-  useEffect(() => {
-    let result = [...medias]
-    if (selectedCanvas) result = result.filter((m) => m.pdf_pins?.plan_id == selectedCanvas)
-    if (startDate || endDate) {
-      result = result.filter((m) => {
-        const created = new Date(m.created_at)
-        const start = startDate || new Date(0)
-        const end = endDate || new Date()
-        return created >= start && created <= end
-      })
-    }
-    if (selectedUsers.length > 0) result = result.filter((m) => selectedUsers.includes(m.user_id))
-    if (selectedTags.length > 0) result = result.filter((m) => m.tags?.some((t) => selectedTags.includes(t.id)))
-    setFilteredMedias(result)
-  }, [medias, selectedCanvas, startDate, endDate, selectedUsers, selectedTags])
-
-  const clearFilters = () => {
-    setSelectedCanvas('')
-    setStartDate(null)
-    setEndDate(null)
-    setSelectedUsers([])
-    setSelectedTags([])
-  }
+  const [isDownloading, setIsDownloading] = useState(false)
+  useEffect(() => setSelectedIds(new Set()), [filters, projectId])
 
   const handleDownload = async () => {
-    const ids = Array.from(selectedIds).join(',')
-    const downloadUrl = `https://zaynbackend-production.up.railway.app/api/mediareport?projectId=${projectId}&selectedIds=${ids}`
-
+    if (isDownloading || selectedIds.size === 0) return
+    setIsDownloading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('Session expirée, reconnectez-vous')
 
-      const response = await fetch(downloadUrl, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+      const query = new URLSearchParams({ projectId, selectedIds: Array.from(selectedIds).join(',') })
+      const response = await fetch(`${BACKEND_URL}/api/mediareport?${query}`, {
+        headers: { Authorization: `Bearer ${session.access_token}`, Accept: 'application/json' },
       })
+      if (!response.ok) throw new Error(`Erreur API ${response.status}`)
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      // Le backend dépose le PDF dans le stockage et renvoie une URL signée.
+      const { downloadUrl, fileName } = await response.json()
+      if (!downloadUrl) throw new Error('URL de téléchargement manquante')
 
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
-      a.download = 'rapport-medias.pdf'
+      a.href = downloadUrl
+      a.download = fileName || 'rapport-medias.pdf'
+      a.target = '_blank'
       document.body.appendChild(a)
       a.click()
       a.remove()
-      window.URL.revokeObjectURL(url)
     } catch (error) {
       console.error('Failed to download PDF:', error)
+      alert(error.message || 'Impossible de générer le rapport')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
-  const hasActiveFilters =
-    selectedCanvas || startDate || endDate || selectedUsers.length > 0 || selectedTags.length > 0
-
   return (
     <div className={clsx(GeistSans.className, 'min-h-screen bg-[#fafaf9]')}>
-      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isLoading={isLoading} isAdmin={isAdmin} />
+      <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
-        {/* ── Header ── */}
         <div className="flex items-start justify-between mb-5">
           <div>
             <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Médiathèque</h1>
-            {loading ? (
-               <div className="h-3 w-24 bg-[#eeeeec] rounded-[3px] animate-pulse" />
+            {isPending ? (
+              <div className="h-3 w-24 bg-[#eeeeec] rounded-[3px] animate-pulse" />
             ) : (
-            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
-              {filteredMedias.length} photo{filteredMedias.length > 1 ? 's' : ''}
-              {hasActiveFilters ? ` sur ${medias.length} au total` : ''}
-            </p>)}
+              <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+                {total} photo{total > 1 ? 's' : ''}
+                {hasActiveFilters ? ' pour ces filtres' : ''}
+              </p>
+            )}
           </div>
 
-          {/* Filters */}
           <div className="flex items-center gap-2">
             <select
               className="rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-[7px] text-[13px] text-[#4a4a46] font-medium focus:outline-none focus:border-[#0d0d0c] transition-colors cursor-pointer"
-              value={selectedCanvas}
-              onChange={(e) => setSelectedCanvas(e.target.value)}
+              value={planId}
+              onChange={(e) => setParams({ plan: e.target.value })}
             >
               <option value="">Tous les plans</option>
-              {project?.plans?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
 
             <div className="relative">
               <DatePicker
                 selectsRange
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(update) => {
-                  const [start, end] = update
-                  setStartDate(start)
-                  setEndDate(end)
+                startDate={range[0]}
+                endDate={range[1]}
+                onChange={([start, end]) => {
+                  setRange([start, end])
+                  // On n'interroge le serveur qu'une fois la période complète (ou effacée).
+                  if ((start && end) || (!start && !end)) setParams({ from: toParam(start), to: toParam(end) })
                 }}
                 isClearable
                 placeholderText="Période"
@@ -223,40 +169,27 @@ export default function Medias({ params }) {
           </div>
         </div>
 
-        {/* ── Main card ── */}
         <div className="bg-white border border-[#e5e5e2] rounded-[4px] overflow-hidden">
-          {/* Selection bar */}
           {(hasActiveFilters || selectedIds.size > 0) && (
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#f5f5f4] border-b border-[#e5e5e2]">
               <div className="flex items-center gap-2 flex-wrap">
                 {selectedIds.size > 0 && (
                   <p className="text-[12px] font-medium text-[#050505]">
-                    {selectedIds.size} photo{selectedIds.size > 1 ? 's' : ''} sélectionnée
-                    {selectedIds.size > 1 ? 's' : ''}
+                    {selectedIds.size} photo{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}
                   </p>
                 )}
-                {selectedCanvas && (
+                {planId && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#e5e5e2] rounded-[3px] text-[11px] font-medium text-[#4a4a46]">
-                    {project?.plans?.find((p) => p.id == selectedCanvas)?.name}
-                    <button
-                      onClick={() => setSelectedCanvas('')}
-                      className="text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors"
-                    >
+                    {plans.find((p) => p.id === planId)?.name ?? 'Plan'}
+                    <button onClick={() => setParams({ plan: null })} className="text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
-                {(startDate || endDate) && (
+                {(from || to) && (
                   <span className={clsx('inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#e5e5e2] rounded-[3px] text-[11px] font-medium text-[#4a4a46]', GeistMono.className)}>
-                    {startDate?.toLocaleDateString('fr-FR')} –{' '}
-                    {endDate?.toLocaleDateString('fr-FR') || 'Maintenant'}
-                    <button
-                      onClick={() => {
-                        setStartDate(null)
-                        setEndDate(null)
-                      }}
-                      className="text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors"
-                    >
+                    {toDate(from)?.toLocaleDateString('fr-FR')} – {toDate(to)?.toLocaleDateString('fr-FR') || 'Maintenant'}
+                    <button onClick={() => setParams({ from: null, to: null })} className="text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -266,43 +199,61 @@ export default function Medias({ params }) {
               {selectedIds.size > 0 && (
                 <button
                   onClick={handleDownload}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0d0d0c] text-white rounded-[4px] text-[12px] font-medium hover:bg-[#1a1a18] transition-colors"
+                  disabled={isDownloading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0d0d0c] text-white rounded-[4px] text-[12px] font-medium hover:bg-[#1a1a18] disabled:opacity-60 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  Rapport PDF
+                  {isDownloading ? 'Génération…' : 'Rapport PDF'}
                 </button>
               )}
             </div>
           )}
 
-          {/* Gallery */}
- {loading ? (
-  <div className="p-5 grid grid-cols-3 gap-3">
-    {Array.from({ length: 9 }).map((_, i) => (
-      <div key={i} className="animate-pulse">
-        <div className="w-full aspect-square bg-[#eeeeec] rounded-[4px]" />
-        <div className="h-2.5 bg-[#eeeeec] rounded-[3px] mt-2 w-2/3" />
-      </div>
-    ))}
-  </div>
-) : (
-  <div className="p-5">
-    {filteredMedias.length === 0 ? (
-      <div className="py-16 text-center">
-        <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
-        <p className="text-[13px] text-[#8a8a84]">
-          {hasActiveFilters ? 'Aucun résultat pour ces filtres' : 'Aucune photo à afficher'}
-        </p>
-      </div>
-    ) : (
-      <GroupedMediaGallery
-        media={filteredMedias}
-        selectedIds={selectedIds}
-        setSelectedIds={setSelectedIds}
-      />
-    )}
-  </div>
-)}
+          {isPending ? (
+            <div className="p-5 grid grid-cols-3 gap-3">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="w-full aspect-square bg-[#eeeeec] rounded-[4px]" />
+                  <div className="h-2.5 bg-[#eeeeec] rounded-[3px] mt-2 w-2/3" />
+                </div>
+              ))}
+            </div>
+          ) : isError ? (
+            <div className="py-16 text-center">
+              <p className="text-[13px] text-[#9c1b1b] mb-3">Impossible de charger les photos.</p>
+              <button
+                onClick={() => refetch()}
+                className="px-3 py-1.5 text-[12px] font-medium border border-[#e5e5e2] rounded-[4px] hover:bg-[#f5f5f4] transition-colors"
+              >
+                Réessayer
+              </button>
+            </div>
+          ) : (
+            <div className={clsx('p-5 transition-opacity', isPlaceholderData && 'opacity-60')}>
+              {medias.length === 0 ? (
+                <div className="py-16 text-center">
+                  <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
+                  <p className="text-[13px] text-[#8a8a84]">
+                    {hasActiveFilters ? 'Aucun résultat pour ces filtres' : 'Aucune photo à afficher'}
+                  </p>
+                </div>
+              ) : (
+                <GroupedMediaGallery media={medias} selectedIds={selectedIds} setSelectedIds={setSelectedIds} />
+              )}
+
+              {hasNextPage && (
+                <div ref={sentinelRef} className="flex justify-center pt-8">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className={clsx('text-[12px] text-[#666660] hover:text-[#0d0d0c] disabled:opacity-50 transition-colors', GeistMono.className)}
+                  >
+                    {isFetchingNextPage ? 'Chargement…' : `Charger plus (${medias.length} sur ${total})`}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

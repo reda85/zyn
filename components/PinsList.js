@@ -1,8 +1,8 @@
 import CustomSelect from './customSelect'
-import FilterPanel from './FilterPanel'
+import PinFilterPanel from './PinFilterPanel'
 import { MapPinIcon } from '@heroicons/react/24/outline'
-import { useAtom } from 'jotai'
-import { selectedPinAtom, selectedPlanAtom } from '@/store/atoms'
+import { useSelectedPin } from '@/hooks/usePins'
+import { photoThumbUrl } from '@/lib/images'
 import Pin from './Pin'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -29,12 +29,15 @@ function PinSkeleton() {
   )
 }
 
-export default function PinsList({ pins = [], plans = [], user, projectId, organizationId, isLoading = false }) {
-  const [selectedPin, setSelectedPin] = useAtom(selectedPinAtom)
-  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
+/**
+ * @param pins     pins du plan après filtres (ceux affichés)
+ * @param allPins  tous les pins du plan (options du panneau de filtres)
+ */
+export default function PinsList({ pins = [], allPins = pins, plans = [], currentPlan = null, projectId, organizationId, isLoading = false }) {
+  const [selectedPin, setSelectedPin] = useSelectedPin()
   const router = useRouter()
 
-  const activePlan = plans.find((p) => p?.id === selectedPlan?.id) ?? plans[0] ?? null
+  const activePlan = currentPlan ?? plans[0] ?? null
 
   return (
     <div
@@ -54,7 +57,7 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
             }}
           />
         )}
-        <FilterPanel user={user} projectId={projectId} />
+        <PinFilterPanel variant="plan" projectId={projectId} pins={allPins} />
       </div>
 
       {/* Counter bar */}
@@ -86,7 +89,7 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
                   <div className="flex items-center gap-2">
                     <Pin pin={pin} />
                     <span className="text-[13px] font-medium text-[#0d0d0c] truncate flex-1">
-                      {(isSelected ? selectedPin.name : pin.name) || 'Pin sans nom'}
+                      {pin.name || 'Pin sans nom'}
                     </span>
                   </div>
 
@@ -95,8 +98,11 @@ export default function PinsList({ pins = [], plans = [], user, projectId, organ
                     <div className="flex flex-row gap-1.5 items-center flex-wrap ml-7">
                       {pin.pins_photos.slice(0, 3).map((photo, i) => (
                         <img
-                          key={i}
-                          src={photo.public_url}
+                          key={photo.id ?? i}
+                          src={photoThumbUrl(photo, { width: 96 })}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-12 rounded-[3px] border border-[#e5e5e2] object-cover"
                         />
                       ))}

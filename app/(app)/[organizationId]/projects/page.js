@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useRef, use } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/utils/supabase/client'
-import { useAtom } from 'jotai'
-import { selectedOrganizationAtom, selectedPlanAtom, selectedProjectAtom } from '@/store/atoms'
+import { qk } from '@/lib/data/keys'
 import { Plus, Search, MoreVertical, Archive, Trash2, X, LayoutGrid, List } from 'lucide-react'
 import Link from 'next/link'
 
@@ -33,13 +33,8 @@ function ProjectsGridSkeleton() {
 
 export default function ProjectsPage({ params }) {
   const { organizationId } = params
-  const [projects, setProjects] = useState([])
-  const [projectsLoading, setProjectsLoading] = useState(true)
   const [newProjectName, setNewProjectName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom)
-  const [selectedPlan, setSelectedPlan] = useAtom(selectedPlanAtom)
-  const [selectedOrganization, setSelectedOrganization] = useAtom(selectedOrganizationAtom)
   const [showModal, setShowModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [projectToDelete, setProjectToDelete] = useState(null)
@@ -47,61 +42,50 @@ export default function ProjectsPage({ params }) {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
   const router = useRouter()
-  const [refresh, setRefresh] = useState(false)
+  const queryClient = useQueryClient()
 
   const menuRef = useRef(null)
-  const fetchedKeyRef = useRef(null)
 
-  const { user, profile, organization, isAdmin } = useUserData(organizationId)
+  const { profile, organization: selectedOrganization, isAdmin } = useUserData(organizationId)
 
-  useEffect(() => {
-    if (!organization?.id || !user?.id || !profile?.id) return
+  // Les non-administrateurs ne voient que les projets auxquels ils sont rattachés.
+  const scope = useMemo(
+    () => ({ memberId: profile?.id ?? null, isAdmin }),
+    [profile?.id, isAdmin]
+  )
 
-    const key = `${organization.id}:${user.id}:${profile.id}:${isAdmin}:${refresh}`
-    if (fetchedKeyRef.current === key) return
-    fetchedKeyRef.current = key
+  const { data: projects = [], isPending: projectsLoading } = useQuery({
+    queryKey: qk.projects(organizationId, scope),
+    enabled: Boolean(organizationId && scope.memberId),
+    queryFn: async () => {
+      // Colonnes de la carte uniquement ; jointure externe sur les plans pour
+      // qu'un projet sans plan reste visible.
+      let query = supabase
+        .from('projects')
+        .select('id,name,created_at,organization_id,plans(id,created_at)')
+        .eq('organization_id', organizationId)
+        .is('plans.deleted_at', null)
+        .order('created_at', { ascending: false })
+        .order('created_at', { referencedTable: 'plans', ascending: true })
 
-    const fetchProjects = async () => {
-      setProjectsLoading(true)
-      try {
-        let query = supabase
-          .from('projects')
-          .select('*,organization_id,plans!inner(*),members_projects(*,members(*))')
-          .eq('organization_id', organization.id)
-          .is('plans.deleted_at', null)
-          .order('created_at', { ascending: false })
-
-        if (!isAdmin) {
-          const { data: memberProjects, error } = await supabase
-            .from('members_projects')
-            .select('project_id')
-            .eq('member_id', profile.id)
-          if (error) {
-            console.error('Error fetching member projects:', error)
-            setProjects([])
-            return
-          }
-
-          const projectIds = memberProjects?.map((mp) => mp.project_id) || []
-
-          if (projectIds.length === 0) {
-            setProjects([])
-            return
-          }
-
-          query = query.in('id', projectIds)
-        }
-
-        const { data, error } = await query
-        if (error) console.error('Error fetching projects:', error)
-        setProjects(data || [])
-      } finally {
-        setProjectsLoading(false)
+      if (!scope.isAdmin) {
+        const { data: memberProjects, error } = await supabase
+          .from('members_projects')
+          .select('project_id')
+          .eq('member_id', scope.memberId)
+        if (error) throw error
+        const projectIds = (memberProjects ?? []).map((mp) => mp.project_id)
+        if (projectIds.length === 0) return []
+        query = query.in('id', projectIds)
       }
-    }
 
-    fetchProjects()
-  }, [refresh, organization?.id, user?.id, profile?.id, isAdmin])
+      const { data, error } = await query
+      if (error) throw error
+      return data ?? []
+    },
+  })
+
+  const refreshProjects = () => queryClient.invalidateQueries({ queryKey: ['projects', organizationId] })
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -112,28 +96,6 @@ export default function ProjectsPage({ params }) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  useEffect(() => {
-    if (!organizationId) return
-    if (organization?.id === organizationId) return
-
-    const fetchOrg = async () => {
-      const { data, error } = await supabase
-        .from('organizations')
-        .select('*, members(count)')
-        .eq('id', organizationId)
-        .single()
-
-      if (error) {
-        console.error('Error fetching organization:', error)
-        return
-      }
-
-      setSelectedOrganization(data)
-    }
-
-    fetchOrg()
-  }, [organizationId, organization?.id])
 
   const createProject = async () => {
     if (!newProjectName.trim()) return
@@ -150,7 +112,7 @@ export default function ProjectsPage({ params }) {
       return
     }
 
-    setRefresh(!refresh)
+    refreshProjects()
     setNewProjectName('')
     setShowModal(false)
     setLoading(false)
@@ -167,7 +129,7 @@ export default function ProjectsPage({ params }) {
       return
     }
 
-    setRefresh(!refresh)
+    refreshProjects()
     setOpenMenuId(null)
   }
 
@@ -182,19 +144,19 @@ export default function ProjectsPage({ params }) {
       return
     }
 
-    setRefresh(!refresh)
+    refreshProjects()
     setShowDeleteModal(false)
     setProjectToDelete(null)
   }
 
   const handleProjectClick = (proj) => {
-    if (!proj.plans?.length) {
-      alert('Aucun plan trouvé pour ce projet.')
-      return
-    }
-    setSelectedProject(proj)
-    setSelectedPlan(proj.plans[0])
-    router.push(`/${organizationId}/projects/${proj.id}/${proj?.plans[0]?.id}`)
+    // Sans plan, on ouvre la gestion des plans pour en importer un.
+    const firstPlan = proj.plans?.[0]
+    router.push(
+      firstPlan
+        ? `/${organizationId}/projects/${proj.id}/${firstPlan.id}`
+        : `/${organizationId}/projects/${proj.id}/sources`
+    )
   }
 
   const getRelativeTime = (dateStr) => {

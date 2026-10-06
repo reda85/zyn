@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
 import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
 import { Upload, User } from 'lucide-react'
@@ -52,6 +53,7 @@ function ProfileFormSkeleton() {
 
 export default function UserSettingsPage({ params }) {
   const { organizationId } = params
+  const router = useRouter()
   const [selectedOrganization] = useAtom(selectedOrganizationAtom)
 
   const [name, setName] = useState('')
@@ -71,19 +73,24 @@ export default function UserSettingsPage({ params }) {
   }, [profile])
 
   const saveProfile = async () => {
-    if (!user) return
+    if (!profile?.id) return
     setSaving(true)
 
-    await supabase
+    // La ligne `members` a son propre identifiant (≠ identifiant d'authentification).
+    const { error } = await supabase
       .from('members')
-      .upsert({
-        id: user.id,
-        name,
-        job_function: jobFunction,
-        avatar_url: avatarUrl,
-      })
+      .update({ name, job_description: jobFunction, avatar_url: avatarUrl })
+      .eq('id', profile.id)
 
     setSaving(false)
+
+    if (error) {
+      console.error('saveProfile', error)
+      alert("Erreur lors de l'enregistrement du profil")
+      return
+    }
+    // Recharge la session côté serveur : le nouveau profil est repris partout.
+    router.refresh()
   }
 
   const handleAvatarUpload = async (file) => {

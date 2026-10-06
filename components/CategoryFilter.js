@@ -1,14 +1,18 @@
 'use client';
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
-import { useAtom } from 'jotai';
-import { categoriesAtom } from '@/store/atoms';
+import { useProjectData } from '@/providers/ProjectProvider';
 import clsx from 'clsx';
 
 export default function CategoryFilter({ active, onToggle, tags, setTags }) {
   const [input, setInput] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [categories] = useAtom(categoriesAtom);
+  // `tags` contient des identifiants de catégories.
+  const { categories } = useProjectData();
+  const nameOf = (id) => categories.find((c) => c.id === id)?.name ?? '…';
+  const suggestions = categories.filter(
+    (c) => c.name.toLowerCase().includes(input.toLowerCase()) && !tags.includes(c.id)
+  );
 
   const addTag = (tag) => {
     if (!tags.includes(tag)) setTags([...tags, tag]);
@@ -51,7 +55,7 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
                 key={idx}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-[#e6eeff] text-[#1e3a8a] rounded-[3px] border border-[#c5d6fb] font-medium"
               >
-                {tag}
+                {nameOf(tag)}
                 <button
                   onClick={() => removeTag(tag)}
                   className="hover:bg-[#dbe7fe] rounded-[2px] p-0.5 transition-colors text-[#264dc2]"
@@ -68,8 +72,8 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
               onFocus={() => setShowDropdown(true)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && input.trim()) {
-                  addTag(input.trim());
+                if (e.key === 'Enter' && input.trim() && suggestions.length > 0) {
+                  addTag(suggestions[0].id);
                 }
               }}
               placeholder="Ajouter une catégorie..."
@@ -79,18 +83,16 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
 
           {showDropdown && categories && categories.length > 0 && (
             <div className="absolute z-40 mt-1 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] w-60 max-h-48 overflow-y-auto">
-              {categories
-                .filter((s) => s.name.toLowerCase().includes(input.toLowerCase()) && !tags.includes(s.name))
-                .map((s) => (
+              {suggestions.map((s) => (
                   <div
                     key={s.id}
                     className="px-3 py-2.5 hover:bg-[#f5f5f4] cursor-pointer text-[13px] text-[#0d0d0c] font-medium transition-colors first:rounded-t-[4px] last:rounded-b-[4px]"
-                    onMouseDown={() => addTag(s.name)}
+                    onMouseDown={() => addTag(s.id)}
                   >
                     {s.name}
                   </div>
                 ))}
-              {categories.filter((s) => s.name.toLowerCase().includes(input.toLowerCase()) && !tags.includes(s.name)).length === 0 && (
+              {suggestions.length === 0 && (
                 <div className="px-3 py-3 text-[13px] text-[#8a8a84] text-center">
                   Aucune catégorie trouvée
                 </div>

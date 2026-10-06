@@ -7,8 +7,8 @@ import { IconPicker } from '@/components/IconPicker'
 import { Button } from '@/components/ui/button'
 import { Trash2, Plus, Folder, GripVertical, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
-import { useAtom } from 'jotai'
-import { selectedProjectAtom } from '@/store/atoms'
+import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
+import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
 import { GeistSans } from 'geist/font/sans'
 import clsx from 'clsx'
@@ -35,8 +35,8 @@ const StrictModeDroppable = ({ children, ...props }) => {
 export default function ProjectCategories() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedProject, setSelectedProject] = useAtom(selectedProjectAtom)
   const { projectId } = useParams()
+  useRefreshOnLeave(qk.categories(projectId), qk.pinsRoot)
   const router = useRouter()
 
   useEffect(() => {

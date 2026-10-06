@@ -119,9 +119,14 @@ export default function Timeline({ pin, newComment, refreshKey }) {
   const [showAllEvents, setShowAllEvents] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
 
+  // Recharge quand on change de pin ou qu'un champ historisé change (statut,
+  // catégorie, intervenant…), mais pas à chaque déplacement du pin sur le plan.
   useEffect(() => {
-    if (pin) getTimeline(pin.id)
-  }, [pin])
+    if (pin?.id) getTimeline(pin.id)
+  }, [
+    pin?.id, pin?.status_id, pin?.category_id, pin?.assigned_to?.id,
+    pin?.due_date, pin?.name, pin?.note, pin?.isArchived,
+  ])
 
   useEffect(() => {
     if (refreshKey > 0 && pin) getTimeline(pin.id)
