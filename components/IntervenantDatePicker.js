@@ -6,7 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 import { supabase } from '@/utils/supabase/client';
 import { usePinsCache } from '@/hooks/usePins';
-import { BACKEND_URL } from '@/lib/config';
+import { backendFetch } from '@/lib/backend';
 import clsx from 'clsx';
 import { useUserData } from '@/hooks/useUserData';
 import { GeistMono } from 'geist/font/mono';
@@ -87,12 +87,18 @@ export default function IntervenantDatePicker({ pin }) {
       .single();
 
     if (data) {
+      // Lien direct vers la tâche dans la liste des tâches du projet.
+      const organizationId = selectedPin.projects?.organization_id;
+      const taskLink = organizationId
+        ? `${window.location.origin}/${organizationId}/projects/${selectedPin.project_id}/tasks#pin-${selectedPin.id}`
+        : window.location.origin;
+
       try {
         await fetch('/api/send-task-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
+            deepLink: taskLink,
             taskId: selectedPin.id, projectId: selectedPin.project_id,
             assignedBy: profile?.name, assignedUserEmail: intervenant.email,
             assignedUserName: intervenant.name, dueDate: selectedPin.due_date,
@@ -102,11 +108,11 @@ export default function IntervenantDatePicker({ pin }) {
       } catch (e) { console.error('email notif error', e); }
 
       try {
-        await fetch(`${BACKEND_URL}/api/pins/assign`, {
+        await backendFetch('/api/pins/assign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            deepLink: `https://zaynspace.com/task/${selectedPin.id}`,
+            deepLink: taskLink,
             pinId: selectedPin.id, projectId: selectedPin.project_id,
             assignedByName: profile?.name || 'user',
             assignedUserEmail: intervenant.email,

@@ -22,12 +22,15 @@ export type Session = {
 async function linkMemberByEmail(supabase: any, user: User) {
   if (!user.email) return null;
 
-  const { data: byEmail } = await supabase
+  // Comparaison insensible à la casse : Supabase Auth normalise l'email en
+  // minuscules, alors que la ligne `members` a pu être saisie avec des majuscules.
+  const email = user.email.toLowerCase();
+  const { data: candidates } = await supabase
     .from("members")
     .select("*")
-    .eq("email", user.email)
-    .is("auth_id", null)
-    .maybeSingle();
+    .ilike("email", email.replace(/[\\%_]/g, (c) => `\\${c}`))
+    .is("auth_id", null);
+  const byEmail = (candidates ?? []).find((m: any) => (m.email || "").toLowerCase() === email);
 
   if (!byEmail) return null;
 

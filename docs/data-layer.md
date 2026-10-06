@@ -33,3 +33,14 @@ Les atoms Jotai (`store/atoms.js`) ne contiennent plus que de l'état d'interfac
 - `NEXT_PUBLIC_BACKEND_URL` (optionnelle) : URL du backend ; par défaut la production Railway.
 - `NEXT_PUBLIC_IMAGE_TRANSFORMS=supabase` (optionnelle) : active le redimensionnement d'images Supabase
   pour les photos sans `thumb_url`. Option facturée à l'image d'origine au-delà du quota du plan.
+
+## Authentification
+
+- **Un seul domaine de cookie** pour le middleware, le serveur et le navigateur : `getCookieDomain()`
+  (`utils/supabase/cookie-domain.ts`). Tout nouveau client Supabase doit le passer en `cookieOptions`.
+- **Liens reçus par email** (invitation, mot de passe oublié) : flux implicite, les jetons sont dans l'URL.
+  Les pages `/accept-invite` et `/reset-password` établissent la session à partir du lien uniquement,
+  jamais à partir d'une session déjà ouverte dans le navigateur.
+- **Rattachement `members.auth_id` et activation** : côté serveur (`lib/session.ts`,
+  `activateMembershipAction`), sur l'email vérifié, sans tenir compte de la casse.
+- **`/api/invite`** : réservé aux administrateurs de l'organisation visée ; rôles sur liste blanche.

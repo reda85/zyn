@@ -11,12 +11,11 @@ import {
   CheckCircle2, Loader2, Clock, RefreshCw, AlertTriangle,
 } from 'lucide-react'
 import clsx from 'clsx'
-import { BACKEND_URL } from '@/lib/config'
+import { backendFetch } from '@/lib/backend'
 import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`
-const API_URL = BACKEND_URL
 
 const EMPTY_STATE = {
   file: null, uploading: false, processing: false, progress: 0,
@@ -104,7 +103,7 @@ export default function ProjectPlans({ project, onClose }) {
       formData.append('file', uploadState.file)
       formData.append('projectId', project.id)
 
-      const response = await fetch(`${API_URL}/api/upload-pdf`, { method: 'POST', body: formData })
+      const response = await backendFetch(`/api/upload-pdf`, { method: 'POST', body: formData })
       if (!response.ok) throw new Error((await response.json()).error || 'Erreur upload')
 
       const result = await response.json()
@@ -141,7 +140,7 @@ export default function ProjectPlans({ project, onClose }) {
       formData.append('planId', updateTarget.id)
       formData.append('revisionLabel', updateState.revisionLabel)
 
-      const response = await fetch(`${API_URL}/api/update-plan`, { method: 'POST', body: formData })
+      const response = await backendFetch(`/api/update-plan`, { method: 'POST', body: formData })
       if (!response.ok) throw new Error((await response.json()).error || 'Erreur mise à jour')
 
       await response.json()
@@ -184,7 +183,7 @@ export default function ProjectPlans({ project, onClose }) {
     setTimeout(() => {
       pollRef.current = setInterval(async () => {
         try {
-          const res = await fetch(`${API_URL}/api/upload-pdf/status/${planId}`)
+          const res = await backendFetch(`/api/upload-pdf/status/${planId}`)
           const data = await res.json()
           setState((p) => ({ ...p, progress: data.processing_progress || 0, status: data.status }))
           if (data.status === 'ready' || data.status === 'failed') {

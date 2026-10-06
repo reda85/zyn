@@ -126,6 +126,7 @@ export default function MembersPage({ params }) {
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteError, setInviteError] = useState('')
   const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [inviteResult, setInviteResult] = useState(null)
 
   const { user, organization, organizations, isAdmin } = useUserData()
   const isCheckingAccess = organizations.length === 0
@@ -290,14 +291,14 @@ export default function MembersPage({ params }) {
           email: inviteEmail.toLowerCase().trim(),
           name: inviteMember.name,
           role: inviteMember.role,
-          organizationId: selectedOrganization?.id,
+          organizationId,
           memberId: inviteMember.id,
         }),
       })
       const result = await response.json()
       if (!response.ok) throw new Error(result.error || "Erreur lors de l'envoi")
+      setInviteResult(result)
 
-      await supabase.from('members_organizations').update({ invited: true }).eq('member_id', inviteMember.id)
 
       setInviteSuccess(true)
       setRefresh((x) => !x)
@@ -683,8 +684,12 @@ export default function MembersPage({ params }) {
                   <div className="w-12 h-12 bg-[#eeeeec] rounded-full flex items-center justify-center mx-auto mb-3">
                     <Check className="w-5 h-5 text-[#0d0d0c]" />
                   </div>
-                  <p className="text-[14px] font-medium text-[#050505] mb-1">Invitation envoyée</p>
-                  <p className="text-[13px] text-[#8a8a84]">Un email a été envoyé à {inviteEmail}</p>
+                  <p className="text-[14px] font-medium text-[#050505] mb-1">
+                    {inviteResult?.emailSent === false ? 'Membre ajouté' : 'Invitation envoyée'}
+                  </p>
+                  <p className="text-[13px] text-[#8a8a84]">
+                    {inviteResult?.emailSent === false ? inviteResult.message : `Un email a été envoyé à ${inviteEmail}`}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
