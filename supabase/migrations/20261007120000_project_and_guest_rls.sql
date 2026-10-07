@@ -20,7 +20,9 @@ begin;
 -- 1. Fonctions d'aide
 -- ---------------------------------------------------------------------------
 
--- Invité dans cette organisation (et aucun autre rôle plus élevé).
+-- Rôles qui peuvent modifier. Tout autre rôle (invité, rôle vide ou inconnu)
+-- est traité comme un invité : dans le doute, le moins de droits possible.
+-- Invité dans cette organisation (et aucun rôle qui modifie).
 create or replace function public.is_org_guest(org_id uuid)
 returns boolean
 language sql stable security definer set search_path = public
@@ -32,7 +34,7 @@ as $$
      and not exists (
            select 1 from members_organizations mo
            where mo.organization_id = org_id and mo.member_id = current_member_id()
-             and coalesce(mo.role, '') not in ('guest', 'Invités')
+             and mo.role in ('admin', 'owner', 'Membres')
          )
 $$;
 
@@ -81,7 +83,7 @@ as $$
             select 1 from members_organizations mo
             where mo.organization_id = p.organization_id
               and mo.member_id = current_member_id()
-              and coalesce(mo.role, '') not in ('guest', 'Invités')
+              and mo.role in ('admin', 'owner', 'Membres')
           )
           and exists (
             select 1 from members_projects mp
@@ -139,9 +141,40 @@ as $$
   select exists (
     select 1
     from discussions_messages m
-    join discussions_members dm on dm.group_id = m.group_id
     where m.id = safe_uuid((string_to_array(object_name, '/'))[2])
-      and dm.user_id = auth.uid()
+      and is_discussion_member(m.group_id, auth.uid())
+  )
+$$;
+
+-- Participer à une conversation suppose d'avoir encore accès à son projet : une
+-- personne retirée du projet ou de l'organisation ne lit plus les messages.
+-- (Pour un autre utilisateur que soi, seule l'inscription est regardée.)
+create or replace function public.is_discussion_member(p_group_id uuid, p_user_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1
+    from discussions_members dm
+    join discussions_groups g on g.id = dm.group_id
+    where dm.group_id = p_group_id
+      and dm.user_id = p_user_id
+      and (p_user_id is distinct from auth.uid() or g.project_id is null or can_access_project(g.project_id))
+  )
+$$;
+
+create or replace function public.is_discussion_admin(p_group_id uuid, p_user_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (
+    select 1
+    from discussions_members dm
+    join discussions_groups g on g.id = dm.group_id
+    where dm.group_id = p_group_id
+      and dm.user_id = p_user_id
+      and dm.role = 'admin'
+      and (p_user_id is distinct from auth.uid() or g.project_id is null or can_access_project(g.project_id))
   )
 $$;
 
@@ -322,33 +355,63 @@ grant execute on function public.create_discussion_group(uuid, text, text) to au
 -- 3. Garde-fous que les règles de lignes ne savent pas exprimer
 -- ---------------------------------------------------------------------------
 
--- Un invité ne peut changer que le statut d'un pin.
-create or replace function public.pdf_pins_guard_guest()
+-- Pins : l'auteur d'une création ou d'une modification est toujours la personne
+-- connectée (l'historique ne peut pas être attribué à quelqu'un d'autre), et un
+-- invité ne peut changer que le statut, pour un statut du même projet.
+create or replace function public.pdf_pins_guard()
 returns trigger
 language plpgsql security definer set search_path = public
 as $$
+declare
+  me uuid;
 begin
-  if auth.uid() is null or is_super_admin() then
-    return new; -- backend ou opération d'administration
+  if auth.uid() is null then
+    return new; -- backend
+  end if;
+  me := current_member_id();
+
+  if tg_op = 'INSERT' then
+    if me is not null then
+      new.created_by := me;
+      new.updated_by := me;
+    end if;
+    return new;
   end if;
 
-  if is_org_guest(project_org_id(old.project_id))
-     and (to_jsonb(new) - 'status_id' - 'updated_at' - 'updated_by')
-         is distinct from
-         (to_jsonb(old) - 'status_id' - 'updated_at' - 'updated_by')
-  then
-    raise exception 'Un invité ne peut modifier que le statut' using errcode = '42501';
+  if me is not null then
+    new.updated_by := me;
+  end if;
+  new.created_by := old.created_by; -- l'auteur d'un pin ne change pas
+
+  if is_super_admin() then
+    return new;
+  end if;
+
+  if is_org_guest(project_org_id(old.project_id)) then
+    if (to_jsonb(new) - 'status_id' - 'updated_at' - 'updated_by')
+       is distinct from
+       (to_jsonb(old) - 'status_id' - 'updated_at' - 'updated_by')
+    then
+      raise exception 'Un invité ne peut modifier que le statut' using errcode = '42501';
+    end if;
+    if new.status_id is distinct from old.status_id
+       and not exists (select 1 from "Status" st where st.id = new.status_id and st.project_id = old.project_id)
+    then
+      raise exception 'Statut inconnu dans ce projet' using errcode = '42501';
+    end if;
   end if;
 
   return new;
 end;
 $$;
-revoke all on function public.pdf_pins_guard_guest() from public, anon, authenticated;
+revoke all on function public.pdf_pins_guard() from public, anon, authenticated;
 
 drop trigger if exists trg_pdf_pins_guard_guest on public.pdf_pins;
-create trigger trg_pdf_pins_guard_guest
-  before update on public.pdf_pins
-  for each row execute function public.pdf_pins_guard_guest();
+drop function if exists public.pdf_pins_guard_guest();
+drop trigger if exists trg_pdf_pins_guard on public.pdf_pins;
+create trigger trg_pdf_pins_guard
+  before insert or update on public.pdf_pins
+  for each row execute function public.pdf_pins_guard();
 
 -- Un projet ne change pas d'organisation, et ses compteurs ne se modifient pas à la main.
 create or replace function public.projects_guard_update()
@@ -507,19 +570,34 @@ create policy pin_photos_insert on public.pins_photos for insert to authenticate
   with check (
     (sender_id is null or sender_id = (select current_member_id()))
     and (
-      exists (select 1 from pdf_pins p where p.id = pins_photos.pin_id)
+      -- le projet indiqué est celui du pin
+      exists (
+        select 1 from pdf_pins p
+        where p.id = pins_photos.pin_id
+          and (pins_photos.project_id is null or pins_photos.project_id = p.project_id)
+      )
       or (pin_id is null and can_edit_project(project_id))
     )
   );
 create policy pin_photos_update on public.pins_photos for update to authenticated
   using (
-    exists (select 1 from pdf_pins p where p.id = pins_photos.pin_id)
-    and (
-      sender_id = (select current_member_id())
-      or exists (select 1 from pdf_pins p where p.id = pins_photos.pin_id and can_edit_project(p.project_id))
+    (
+      exists (select 1 from pdf_pins p where p.id = pins_photos.pin_id)
+      and (
+        sender_id = (select current_member_id())
+        or exists (select 1 from pdf_pins p where p.id = pins_photos.pin_id and can_edit_project(p.project_id))
+      )
     )
+    or (pin_id is null and can_edit_project(project_id))
   )
-  with check (exists (select 1 from pdf_pins p where p.id = pins_photos.pin_id));
+  with check (
+    exists (
+      select 1 from pdf_pins p
+      where p.id = pins_photos.pin_id
+        and (pins_photos.project_id is null or pins_photos.project_id = p.project_id)
+    )
+    or (pin_id is null and can_edit_project(project_id))
+  );
 create policy pin_photos_delete on public.pins_photos for delete to authenticated
   using (
     is_super_admin()
@@ -528,6 +606,7 @@ create policy pin_photos_delete on public.pins_photos for delete to authenticate
       where p.id = pins_photos.pin_id
         and (is_org_admin(project_org_id(p.project_id)) or pins_photos.sender_id = (select current_member_id()))
     )
+    or (pin_id is null and can_edit_project(project_id))
   );
 
 -- comments ------------------------------------------------------------------
@@ -616,13 +695,37 @@ create policy document_versions_delete on public.document_versions for delete to
 -- La vue doit appliquer les droits de la personne qui la lit, pas ceux de son propriétaire.
 alter view public.documents_with_version set (security_invoker = true);
 
--- members_organizations : « quitter l'organisation » comparait un identifiant de membre
--- à un identifiant de connexion et ne correspondait donc jamais.
+-- members_organizations : un admin d'organisation pouvait se donner (ou donner)
+-- le rôle super_admin, donc l'accès à toutes les organisations. Seuls les rôles
+-- de l'application sont attribuables ; le rôle super_admin ne se donne qu'en base.
+drop policy if exists members_insert on public.members_organizations;
+drop policy if exists members_update on public.members_organizations;
+create policy members_insert on public.members_organizations for insert to authenticated
+  with check (
+    is_super_admin()
+    or (is_org_admin(organization_id) and role in ('admin', 'Membres', 'guest'))
+  );
+create policy members_update on public.members_organizations for update to authenticated
+  using (is_org_admin(organization_id) or is_super_admin())
+  with check (
+    is_super_admin()
+    or (is_org_admin(organization_id) and role in ('admin', 'Membres', 'guest'))
+  );
+
+-- « Quitter l'organisation » comparait un identifiant de membre à un identifiant
+-- de connexion et ne correspondait donc jamais.
 drop policy if exists members_delete on public.members_organizations;
 create policy members_delete on public.members_organizations for delete to authenticated
   using (is_org_admin(organization_id) or is_super_admin() or member_id = (select current_member_id()));
 
--- discussions : on n'ajoute à une conversation que des personnes du projet.
+-- discussions : une conversation ne peut pas être déplacée vers un projet
+-- auquel son administrateur n'a pas accès.
+drop policy if exists disc_groups_update on public.discussions_groups;
+create policy disc_groups_update on public.discussions_groups for update to authenticated
+  using (is_discussion_admin(id, auth.uid()))
+  with check (is_discussion_admin(id, auth.uid()) and can_access_project(project_id));
+
+-- On n'ajoute à une conversation que des personnes du projet.
 drop policy if exists disc_members_insert on public.discussions_members;
 create policy disc_members_insert on public.discussions_members for insert to authenticated
   with check (is_discussion_admin(group_id, auth.uid()) and discussion_user_can_join(group_id, user_id));
