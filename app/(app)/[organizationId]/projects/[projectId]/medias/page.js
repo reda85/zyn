@@ -19,7 +19,7 @@ import { useUrlParams } from '@/hooks/useUrlParams'
 import { useProjectData } from '@/providers/ProjectProvider'
 import { qk } from '@/lib/data/keys'
 import { fetchMediasPage } from '@/lib/data/medias'
-import { BACKEND_URL } from '@/lib/config'
+import { requestReport } from '@/lib/backend'
 
 const toDate = (value) => (value ? dayjs(value).toDate() : null)
 const toParam = (date) => (date ? dayjs(date).format('YYYY-MM-DD') : null)
@@ -84,14 +84,15 @@ export default function Medias({ params }) {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Session expirée, reconnectez-vous')
 
-      const query = new URLSearchParams({ projectId, selectedIds: Array.from(selectedIds).join(',') })
-      const response = await fetch(`${BACKEND_URL}/api/mediareport?${query}`, {
-        headers: { Authorization: `Bearer ${session.access_token}`, Accept: 'application/json' },
-      })
-      if (!response.ok) throw new Error(`Erreur API ${response.status}`)
-
-      // Le backend dépose le PDF dans le stockage et renvoie une URL signée.
-      const { downloadUrl, fileName } = await response.json()
+      // Le backend génère le PDF en arrière-plan, le dépose dans le stockage
+      // et renvoie une URL signée.
+      const ids = Array.from(selectedIds)
+      const query = new URLSearchParams({ projectId, selectedIds: ids.join(',') })
+      const { downloadUrl, fileName } = await requestReport(
+        '/api/mediareport',
+        { projectId, selectedIds: ids },
+        { fallbackGet: `/api/mediareport?${query}` },
+      )
       if (!downloadUrl) throw new Error('URL de téléchargement manquante')
 
       const a = document.createElement('a')
