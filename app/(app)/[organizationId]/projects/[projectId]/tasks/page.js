@@ -19,7 +19,7 @@ import { useProjectData } from '@/providers/ProjectProvider'
 import { qk } from '@/lib/data/keys'
 import { fetchPinsByIds, fetchProjectPinIds, insertPin } from '@/lib/data/pins'
 import { exportTasksToExcel, exportTasksWithMediaToExcel } from '@/lib/exportTasks'
-import { BACKEND_URL } from '@/lib/config'
+import { requestReport } from '@/lib/backend'
 
 import TaskRow, { TaskRowSkeleton } from './TaskRow'
 
@@ -214,33 +214,19 @@ export default function Tasks({ params }) {
 
       const planningImages = planningImageFiles?.length ? await uploadPlanningImages(planningImageFiles) : []
 
-      const response = await fetch(`${BACKEND_URL}/api/report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          projectId,
-          selectedIds,
-          fields: reportFields,
-          displayMode,
-          templateConfig: selectedTemplate?.config || null,
-          reportTitle,
-          participants,
-          customSections,
-          planningImages,
-          planningObservations,
-        }),
+      // Le rapport est généré en arrière-plan côté serveur ; on attend son lien.
+      const { downloadUrl, fileName } = await requestReport('/api/report', {
+        projectId,
+        selectedIds,
+        fields: reportFields,
+        displayMode,
+        templateConfig: selectedTemplate?.config || null,
+        reportTitle,
+        participants,
+        customSections,
+        planningImages,
+        planningObservations,
       })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Erreur API ${response.status}: ${errorText.substring(0, 200)}`)
-      }
-
-      const { downloadUrl, fileName } = await response.json()
       if (!downloadUrl) throw new Error('URL de téléchargement manquante')
 
       const a = document.createElement('a')
