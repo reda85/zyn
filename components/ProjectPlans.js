@@ -166,9 +166,13 @@ export default function ProjectPlans({ project, onClose }) {
     const channel = supabase.channel(`plan:${planId}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'plans', filter: `id=eq.${planId}` },
         (payload) => {
-          const { status, processing_progress } = payload.new
+          const { status, processing_progress, error_message } = payload.new
           setState((p) => ({ ...p, progress: processing_progress || 0, status }))
-          if (status === 'ready') {
+          if (status === 'ready' && error_message) {
+            // Remplacement échoué : le plan reste utilisable avec son ancienne version.
+            setState((p) => ({ ...p, processing: false, error: error_message }))
+            supabase.removeChannel(channel)
+          } else if (status === 'ready') {
             setState((p) => ({ ...p, processing: false, success: true }))
             onSuccess?.()
             supabase.removeChannel(channel)
@@ -188,7 +192,9 @@ export default function ProjectPlans({ project, onClose }) {
           setState((p) => ({ ...p, progress: data.processing_progress || 0, status: data.status }))
           if (data.status === 'ready' || data.status === 'failed') {
             clearInterval(pollRef.current)
-            if (data.status === 'ready') {
+            if (data.status === 'ready' && data.error_message) {
+              setState((p) => ({ ...p, processing: false, error: data.error_message }))
+            } else if (data.status === 'ready') {
               setState((p) => ({ ...p, processing: false, success: true }))
               onSuccess?.()
             } else {
