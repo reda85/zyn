@@ -377,7 +377,9 @@ export default function SnippetPage({ params }) {
       const finalImage = finalizeAnnotatedImage();
       const blob = await fetch(finalImage).then(r => r.blob());
       
-      const fileName = `snippet_${pin.id}_${Date.now()}.png`;
+      // Les photos sont rangées dans le dossier de leur projet : la base n'accepte
+      // un dépôt que dans un projet auquel l'utilisateur a accès.
+      const fileName = `${projectId}/snippet_${pin.id}_${Date.now()}.png`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('pinphotos')
         .upload(fileName, blob, {
@@ -390,7 +392,7 @@ export default function SnippetPage({ params }) {
         .from('pins_photos')
         .insert({
           pin_id: pin.id,
-          public_url: uploadData.path,
+          public_url: supabase.storage.from('pinphotos').getPublicUrl(uploadData.path).data.publicUrl,
           project_id: projectId,
           description: annotation || 'Snippet du plan'
           
