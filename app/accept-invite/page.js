@@ -4,10 +4,11 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
 import { activateMembershipAction } from '@/app/actions'
-import { GeistSans } from 'geist/font/sans'
+import { Lexend } from 'next/font/google'
 import clsx from 'clsx'
 import { Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 
+const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
 function AcceptInviteContent() {
   const router = useRouter()
@@ -106,7 +107,7 @@ function AcceptInviteContent() {
   }
 
   return (
-    <div className={clsx('min-h-screen bg-background flex items-center justify-center p-6', GeistSans.className)}>
+    <div className={clsx('min-h-screen bg-background flex items-center justify-center p-6', lexend.className)}>
       <div className="w-full max-w-md">
         <div className="bg-card border border-border/50 rounded-2xl shadow-xl p-8">
           {linkExpired ? (

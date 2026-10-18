@@ -3,31 +3,6 @@
 @tailwind utilities;
 
 :root {
-  /* ── Palette ZaynSpace ───────────────────────────────────────────────────
-     Gris chauds de papier calque, encre graphite, et un seul accent : le bleu
-     des tirages de plans, réservé à ce qui est actif ou sélectionné. Le rouge
-     ne sert qu'aux retards et aux actions destructives. */
-  --zs-papier: #f8f8f6;
-  --zs-encre: #1c1c1a;
-  --zs-encre-survol: #33332f;
-  --zs-mine: #5b5b56;
-  --zs-mine-clair: #8a8a84;
-  --zs-trait: #b9b9b3;
-  --zs-filet: #e4e4e0;
-  --zs-filet-fort: #d3d3ce;
-  --zs-voile: #eeeeeb;
-  --zs-survol: #f3f3f0;
-  --zs-tirage: #2c4f91;
-  --zs-tirage-fonce: #223e73;
-  --zs-tirage-clair: #cdd8ea;
-  --zs-tirage-pale: #edf1f8;
-  --zs-alerte: #a8322a;
-  --zs-alerte-clair: #ecc9c3;
-  --zs-alerte-pale: #f9ecea;
-  --zs-valide: #2f6b4a;
-  --zs-valide-clair: #c3dccd;
-  --zs-valide-pale: #ebf3ee;
-
   /* Zinc & Indigo Palette - Light */
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
@@ -111,9 +86,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv11", "ss01";
   }
-  :focus-visible { outline: 2px solid var(--zs-tirage); outline-offset: 2px; }
 }
 
 /* ===== ANIMATIONS CUSTOM ===== */

@@ -24,7 +24,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title }) => (
     title={title}
     className={clsx(
       'w-7 h-7 flex items-center justify-center rounded transition-all',
-      active ? 'bg-encre text-white' : 'hover:bg-voile text-mine',
+      active ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-100 text-neutral-600',
       disabled && 'opacity-30 cursor-not-allowed',
     )}
   >
@@ -32,7 +32,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title }) => (
   </button>
 )
 
-const Divider = () => <div className="w-px h-5 bg-filet mx-0.5" />
+const Divider = () => <div className="w-px h-5 bg-neutral-200 mx-0.5" />
 
 const HeadingDropdown = ({ editor }) => {
   const [open, setOpen] = React.useState(false)
@@ -51,7 +51,7 @@ const HeadingDropdown = ({ editor }) => {
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o) }}
-        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-voile text-[12px] text-mine"
+        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-neutral-100 text-[12px] text-neutral-600"
       >
         {current}
         <ChevronDown className="w-3 h-3" />
@@ -59,15 +59,15 @@ const HeadingDropdown = ({ editor }) => {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1 bg-white border border-filet rounded-lg shadow-lg py-1 z-20 min-w-[140px]">
+          <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 z-20 min-w-[140px]">
             {items.map(item => (
               <button
                 key={item.label}
                 type="button"
                 onClick={(e) => { e.preventDefault(); item.action(); setOpen(false) }}
                 className={clsx(
-                  'w-full px-3 py-1.5 text-left text-[12px] flex items-center gap-2 hover:bg-survol',
-                  item.active && 'bg-voile font-medium',
+                  'w-full px-3 py-1.5 text-left text-[12px] flex items-center gap-2 hover:bg-neutral-50',
+                  item.active && 'bg-neutral-100 font-medium',
                 )}
               >
                 {item.icon && <item.icon className="w-3.5 h-3.5" />}
@@ -92,7 +92,7 @@ const TableControls = ({ editor }) => {
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o) }}
-        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-voile text-[12px] bg-encre text-white"
+        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-neutral-100 text-[12px] bg-neutral-900 text-white"
       >
         Tableau
         <ChevronDown className="w-3 h-3" />
@@ -100,17 +100,17 @@ const TableControls = ({ editor }) => {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1 bg-white border border-filet rounded-lg shadow-lg py-1 z-20 min-w-[180px]">
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Colonne avant</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Colonne après</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteColumn().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-alerte-pale text-alerte">Supprimer colonne</button>
-            <div className="h-px bg-filet my-1" />
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Ligne avant</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Ligne après</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-alerte-pale text-alerte">Supprimer ligne</button>
-            <div className="h-px bg-filet my-1" />
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleHeaderRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Basculer en-tête</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-alerte-pale text-alerte flex items-center gap-2"><Trash2 className="w-3.5 h-3.5" />Supprimer le tableau</button>
+          <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 z-20 min-w-[180px]">
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-neutral-50">Colonne avant</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-neutral-50">Colonne après</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteColumn().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-red-50 text-red-600">Supprimer colonne</button>
+            <div className="h-px bg-neutral-200 my-1" />
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-neutral-50">Ligne avant</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-neutral-50">Ligne après</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-red-50 text-red-600">Supprimer ligne</button>
+            <div className="h-px bg-neutral-200 my-1" />
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleHeaderRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-neutral-50">Basculer en-tête</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-red-50 text-red-600 flex items-center gap-2"><Trash2 className="w-3.5 h-3.5" />Supprimer le tableau</button>
           </div>
         </>
       )}
@@ -161,8 +161,8 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Comme
   if (!editor) return null
 
   return (
-    <div className="border border-filet rounded-lg overflow-hidden bg-white">
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-filet bg-survol flex-wrap">
+    <div className="border border-neutral-200 rounded-lg overflow-hidden bg-white">
+      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-neutral-200 bg-neutral-50 flex-wrap">
         <HeadingDropdown editor={editor} />
         <Divider />
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()}      active={editor.isActive('bold')}      title="Gras"><Bold className="w-3.5 h-3.5" /></ToolbarButton>

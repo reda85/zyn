@@ -46,7 +46,7 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
   };
 
   return (
-    <div className="flex items-start gap-3 p-4 bg-white border-t border-voile">
+    <div className="flex items-start gap-3 p-4 bg-white border-t border-[#eeeeec]">
       <div className="flex-1 relative">
         <textarea
           rows={1}
@@ -55,7 +55,7 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
           placeholder="Ajouter un commentaire"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full resize-none border border-filet rounded-[4px] px-4 py-2 pr-16 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
+          className="w-full resize-none border border-[#e5e5e2] rounded-[4px] px-4 py-2 pr-16 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -73,9 +73,9 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
             className="absolute right-2 top-1/2 -translate-y-1/2
              flex items-center justify-center
              h-7 w-7 rounded-[3px]
-             bg-encre text-white
-             hover:bg-encre-survol
-             disabled:bg-filet-fort disabled:cursor-not-allowed
+             bg-[#0d0d0c] text-white
+             hover:bg-[#1a1a18]
+             disabled:bg-[#d6d6d2] disabled:cursor-not-allowed
              transition-colors"
           >
             {isSubmitting ? '...' : <Send size={13} />}

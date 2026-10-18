@@ -41,15 +41,15 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
 
   return (
     <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[4px]">
-        <span className="text-[13px] text-encre">
+      <div className="flex items-center justify-between bg-[#f5f5f4] border border-[#e5e5e2] p-3 rounded-[4px]">
+        <span className="text-[13px] text-[#0d0d0c]">
           Filtrer par date
         </span>
         <Switch
           checked={active}
           onChange={onToggle}
           className={clsx(
-            active ? 'bg-encre' : 'bg-filet-fort',
+            active ? 'bg-[#0d0d0c]' : 'bg-[#d6d6d2]',
             'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)]'
           )}
         >
@@ -70,12 +70,12 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
               {tags.map((tag, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-tirage-pale text-tirage-fonce rounded-[3px] border border-tirage-clair font-medium"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-[#e6eeff] text-[#1e3a8a] rounded-[3px] border border-[#c5d6fb] font-medium"
                 >
                   {dateTokenLabel(tag)}
                   <button
                     onClick={() => removeTag(tag)}
-                    className="hover:bg-tirage-pale rounded-[2px] p-0.5 transition-colors text-tirage-fonce"
+                    className="hover:bg-[#dbe7fe] rounded-[2px] p-0.5 transition-colors text-[#264dc2]"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -93,7 +93,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
                 <button
                   key={s}
                   onClick={() => addTag(s)}
-                  className="px-2.5 py-1.5 text-[13px] bg-white text-encre rounded-[4px] border border-filet hover:bg-survol hover:border-filet-fort transition-colors font-medium"
+                  className="px-2.5 py-1.5 text-[13px] bg-white text-[#0d0d0c] rounded-[4px] border border-[#e5e5e2] hover:bg-[#f5f5f4] hover:border-[#d6d6d2] transition-colors font-medium"
                 >
                   {DATE_PRESETS[s]}
                 </button>
@@ -102,7 +102,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
             {/* Bouton date personnalisée */}
             <button
               onClick={() => setShowDatePicker(!showDatePicker)}
-              className="px-2.5 py-1.5 text-[13px] bg-white text-encre rounded-[4px] border border-filet hover:bg-survol hover:border-filet-fort transition-colors font-medium flex items-center gap-1.5"
+              className="px-2.5 py-1.5 text-[13px] bg-white text-[#0d0d0c] rounded-[4px] border border-[#e5e5e2] hover:bg-[#f5f5f4] hover:border-[#d6d6d2] transition-colors font-medium flex items-center gap-1.5"
             >
               <Calendar className="w-3.5 h-3.5" />
               Date personnalisée
@@ -111,8 +111,8 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
 
           {/* Date Picker */}
           {showDatePicker && (
-            <div className="p-4 bg-white border border-filet rounded-[6px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
-              <p className="text-[13px] font-medium text-encre mb-3">
+            <div className="p-4 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
+              <p className="text-[13px] font-medium text-[#0d0d0c] mb-3">
                 Sélectionner une période
               </p>
 
@@ -139,14 +139,14 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
                       setEndDate(null);
                       setShowDatePicker(false);
                     }}
-                    className="flex-1 px-4 py-2 bg-voile text-mine rounded-[4px] text-[13px] font-medium hover:bg-filet transition-colors"
+                    className="flex-1 px-4 py-2 bg-[#eeeeec] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#e5e5e2] transition-colors"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={addCustomDateRange}
                     disabled={!startDate}
-                    className="flex-1 px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Appliquer
                   </button>

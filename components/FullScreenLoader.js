@@ -4,18 +4,18 @@ import { GeistSans } from 'geist/font/sans'
 
 export default function FullScreenLoader({ title = 'Chargement...', message = 'Veuillez patienter' }) {
   return (
-    <div className={clsx('flex h-screen w-full items-center justify-center bg-papier', GeistSans.className)}>
+    <div className={clsx('flex h-screen w-full items-center justify-center bg-[#fafaf9]', GeistSans.className)}>
       <div className="text-center">
         <div className="mb-6 flex justify-center">
-          <div className="w-12 h-12 bg-encre rounded-[4px] flex items-center justify-center animate-pulse">
+          <div className="w-12 h-12 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center animate-pulse">
             <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
           </div>
         </div>
-        <h2 className="text-[17px] font-medium text-encre mb-2">{title}</h2>
-        <p className="text-[13px] text-mine-clair">{message}</p>
+        <h2 className="text-[17px] font-medium text-[#050505] mb-2">{title}</h2>
+        <p className="text-[13px] text-[#8a8a84]">{message}</p>
         <div className="mt-8 w-64 mx-auto">
-          <div className="h-1 bg-voile rounded-full overflow-hidden">
-            <div className="h-full bg-encre w-0 animate-[loading_1.5s_ease-in-out_infinite]" />
+          <div className="h-1 bg-[#eeeeec] rounded-full overflow-hidden">
+            <div className="h-full bg-[#0d0d0c] w-0 animate-[loading_1.5s_ease-in-out_infinite]" />
           </div>
         </div>
       </div>
@@ -32,10 +32,10 @@ export default function FullScreenLoader({ title = 'Chargement...', message = 'V
 
 export function FullScreenMessage({ title, message, children }) {
   return (
-    <div className={clsx('flex h-screen w-full items-center justify-center bg-papier px-6', GeistSans.className)}>
+    <div className={clsx('flex h-screen w-full items-center justify-center bg-[#fafaf9] px-6', GeistSans.className)}>
       <div className="max-w-sm text-center">
-        <h2 className="text-[17px] font-medium text-encre mb-2">{title}</h2>
-        {message && <p className="text-[13px] text-mine mb-6">{message}</p>}
+        <h2 className="text-[17px] font-medium text-[#050505] mb-2">{title}</h2>
+        {message && <p className="text-[13px] text-[#666660] mb-6">{message}</p>}
         {children}
       </div>
     </div>
