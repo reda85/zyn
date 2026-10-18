@@ -5,10 +5,12 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { GeistSans } from "geist/font/sans";
 import {
-  Menu, X, ArrowRight, Check, MapPin, Camera, Mic, Layers, FileText, Users,
-  CalendarRange, Building2, Briefcase, HardHat,
+  Menu, X, ArrowRight, Check, Smartphone, FileText, Users, ShieldCheck, Headset,
 } from "lucide-react";
 import PlanDemo from "@/components/landing/PlanDemo";
+import Etapes from "@/components/landing/Etapes";
+import Metiers from "@/components/landing/Metiers";
+import Fonctions from "@/components/landing/Fonctions";
 
 const DEMO_URL = "https://cal.com/zaynspace/demo";
 
@@ -26,29 +28,6 @@ const NAV = [
   { label: "Pour qui", href: "#metiers" },
   { label: "Fonctionnalités", href: "#fonctionnalites" },
   { label: "Tarifs", href: "#tarifs" },
-];
-
-const ETAPES = [
-  { titre: "Importez vos plans", texte: "Déposez le PDF : chaque page devient un plan, découpé et optimisé pour le mobile. Les nouvelles versions se comparent à l'ancienne." },
-  { titre: "Relevez sur le chantier", texte: "Touchez le plan à l'endroit exact, prenez la photo, dictez la remarque en français ou en darija. Le lot et l'entreprise se choisissent en un geste." },
-  { titre: "Suivez les levées", texte: "Chaque réserve passe de « à faire » à « levée ». Les entreprises voient ce qui les concerne, vous voyez ce qui est en retard." },
-  { titre: "Envoyez le rapport", texte: "Le compte rendu de visite se génère en PDF ou en Word, avec plans, photos et statuts, à votre en-tête et au logo du client." },
-];
-
-const METIERS = [
-  { icon: Building2, titre: "Architectes", sousTitre: "Visites de chantier et OPR", points: ["Réserves posées sur le plan, depuis le chantier", "Comptes rendus à l'en-tête de l'agence", "Suivi des entreprises par lot"] },
-  { icon: Briefcase, titre: "MOD et AMO", sousTitre: "Pilotage de plusieurs opérations", points: ["Vue d'ensemble des chantiers et des retards", "Traçabilité pour la maîtrise d'ouvrage", "Rapports structurés et datés"] },
-  { icon: HardHat, titre: "Promoteurs et entreprises", sousTitre: "Qualité et non-conformités", points: ["Avancement des levées par lot", "Non-conformités par corps d'état", "Historique horodaté de chaque réserve"] },
-];
-
-const FONCTIONS = [
-  { icon: MapPin, titre: "Réserves sur plan", texte: "Chaque observation est un point sur le plan, numéroté, avec son lot, son statut, son échéance et son responsable." },
-  { icon: Camera, titre: "Photos localisées", texte: "Les photos se rattachent à la réserve avec leur position GPS, et s'annotent directement sur le téléphone." },
-  { icon: Mic, titre: "Dictée en darija et en français", texte: "Parlez au lieu de taper : la remarque s'écrit pendant que vous marchez sur le chantier." },
-  { icon: Layers, titre: "Versions de plans", texte: "Remplacez un plan par son indice suivant : les différences avec la version précédente s'affichent." },
-  { icon: FileText, titre: "Rapports PDF et Word", texte: "Modèles de rapport personnalisables : sections, ordre, galerie photo, en-tête et logo du client." },
-  { icon: CalendarRange, titre: "Planning", texte: "Un Gantt simple pour suivre les lots et les échéances, à côté des réserves." },
-  { icon: Users, titre: "Invités gratuits", texte: "Entreprises, bureaux de contrôle et clients rejoignent le projet sans licence, avec des droits limités à ce qui les concerne." },
 ];
 
 const OFFRES = [
@@ -155,15 +134,7 @@ export default function HomePage() {
             <h2 className="text-[clamp(1.8rem,1.3rem+1.6vw,2.6rem)] font-semibold tracking-[-0.03em] leading-[1.1] max-w-[22ch]">
               De la visite au rapport, sans ressaisie.
             </h2>
-            <ol className="mt-14 grid gap-px bg-filet border border-filet rounded-[12px] overflow-hidden sm:grid-cols-2 lg:grid-cols-4">
-              {ETAPES.map((e, i) => (
-                <li key={e.titre} className="bg-white p-6">
-                  <span className="text-[13px] font-medium text-tirage tabular-nums">Étape {i + 1}</span>
-                  <h3 className="mt-3 text-[17px] font-semibold tracking-[-0.01em]">{e.titre}</h3>
-                  <p className="mt-2 text-[14px] leading-[1.6] text-mine">{e.texte}</p>
-                </li>
-              ))}
-            </ol>
+            <Etapes />
           </div>
         </section>
 
@@ -173,45 +144,22 @@ export default function HomePage() {
             <h2 className="text-[clamp(1.8rem,1.3rem+1.6vw,2.6rem)] font-semibold tracking-[-0.03em] leading-[1.1] max-w-[24ch]">
               Pensé pour ceux qui contrôlent le chantier.
             </h2>
-            <div className="mt-12 grid gap-4 md:grid-cols-3">
-              {METIERS.map(({ icon: Icon, titre, sousTitre, points }) => (
-                <article key={titre} className="rounded-[12px] border border-filet bg-white p-6">
-                  <span className="h-9 w-9 rounded-[8px] bg-voile flex items-center justify-center"><Icon className="h-[18px] w-[18px] text-encre" aria-hidden="true" /></span>
-                  <h3 className="mt-5 text-[18px] font-semibold tracking-[-0.015em]">{titre}</h3>
-                  <p className="text-[14px] text-mine">{sousTitre}</p>
-                  <ul className="mt-5 space-y-2.5">
-                    {points.map((p) => (
-                      <li key={p} className="flex gap-2.5 text-[14px] leading-[1.5] text-encre"><Check className="mt-0.5 h-4 w-4 shrink-0 text-tirage" aria-hidden="true" />{p}</li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
-            </div>
+            <Metiers />
           </div>
         </section>
 
         {/* ── Fonctionnalités ── */}
         <section id="fonctionnalites" className="border-t border-filet bg-white scroll-mt-16">
-          <div className="mx-auto max-w-[1200px] px-5 sm:px-8 py-20 sm:py-24 grid lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] gap-12">
-            <div className="lg:sticky lg:top-28 self-start">
-              <h2 className="text-[clamp(1.8rem,1.3rem+1.6vw,2.6rem)] font-semibold tracking-[-0.03em] leading-[1.1]">
+          <div className="mx-auto max-w-[1200px] px-5 sm:px-8 py-20 sm:py-24">
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <h2 className="text-[clamp(1.8rem,1.3rem+1.6vw,2.6rem)] font-semibold tracking-[-0.03em] leading-[1.1] max-w-[22ch]">
                 Tout ce qu’une visite de chantier demande.
               </h2>
-              <p className="mt-5 text-[16px] leading-[1.6] text-mine max-w-[26rem]">
+              <p className="text-[16px] leading-[1.6] text-mine max-w-[26rem]">
                 Une application mobile pour le terrain, une application web pour le bureau, les mêmes données des deux côtés.
               </p>
             </div>
-            <dl className="grid sm:grid-cols-2 gap-x-10 gap-y-9">
-              {FONCTIONS.map(({ icon: Icon, titre, texte }) => (
-                <div key={titre}>
-                  <dt className="flex items-center gap-2.5 text-[16px] font-semibold tracking-[-0.01em]">
-                    <Icon className="h-[18px] w-[18px] text-tirage" aria-hidden="true" />
-                    {titre}
-                  </dt>
-                  <dd className="mt-2 text-[14px] leading-[1.6] text-mine">{texte}</dd>
-                </div>
-              ))}
-            </dl>
+            <Fonctions />
           </div>
         </section>
 
@@ -228,7 +176,7 @@ export default function HomePage() {
               {OFFRES.map((o) => (
                 <article
                   key={o.nom}
-                  className={`rounded-[12px] p-7 flex flex-col ${o.avant ? "bg-encre text-white" : "bg-white border border-filet"}`}
+                  className={`rounded-[14px] p-7 flex flex-col transition-[border-color,box-shadow] ${o.avant ? "bg-encre text-white shadow-[0_24px_60px_-28px_rgba(28,28,26,0.6)] md:-my-3 md:py-10" : "bg-white border border-filet hover:border-filet-fort hover:shadow-[0_14px_36px_-20px_rgba(28,28,26,0.35)]"}`}
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-semibold">{o.nom}</h3>
@@ -258,15 +206,53 @@ export default function HomePage() {
                 </article>
               ))}
             </div>
-            <p className="mt-8 text-[14px] text-mine">
-              Besoin d’une offre sur mesure ? <a href={DEMO_URL} className="text-tirage underline underline-offset-4 hover:text-tirage-fonce">Contactez-nous</a>.
+            <div className="mt-6 rounded-[14px] border border-filet bg-white px-6 py-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { icon: Smartphone, t: "Application mobile", d: "Relevés sur le terrain, photos et dictée" },
+                { icon: FileText, t: "Rapports PDF et Word", d: "Sans limite de nombre" },
+                { icon: Users, t: "Invités illimités", d: "Entreprises, contrôleurs, clients" },
+                { icon: ShieldCheck, t: "Loi 09-08", d: "Données personnelles protégées" },
+              ].map(({ icon: Icon, t, d }) => (
+                <div key={t} className="flex items-start gap-3">
+                  <span className="h-9 w-9 rounded-[9px] bg-tirage-pale flex items-center justify-center shrink-0">
+                    <Icon className="h-[18px] w-[18px] text-tirage" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-[14px] font-semibold text-encre">{t}</p>
+                    <p className="text-[13px] text-mine">{d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 flex items-center gap-2 text-[14px] text-mine">
+              <Headset className="h-4 w-4 text-mine-clair" aria-hidden="true" />
+              <span>Besoin d’une offre sur mesure ? <a href={DEMO_URL} className="text-tirage underline underline-offset-4 hover:text-tirage-fonce">Contactez-nous</a>.</span>
             </p>
           </div>
         </section>
 
         {/* ── Appel final ── */}
-        <section className="bg-encre text-white">
-          <div className="mx-auto max-w-[1200px] px-5 sm:px-8 py-20 sm:py-24 flex flex-wrap items-end justify-between gap-10">
+        <section className="relative bg-encre text-white overflow-hidden">
+          <svg aria-hidden="true" className="absolute inset-0 h-full w-full opacity-[0.07]">
+            <defs>
+              <pattern id="cta-grille" width="28" height="28" patternUnits="userSpaceOnUse">
+                <path d="M28 0H0V28" fill="none" stroke="white" strokeWidth="0.8" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#cta-grille)" />
+          </svg>
+          <svg aria-hidden="true" viewBox="0 0 520 320" className="absolute -right-20 -top-16 w-[520px] max-w-none opacity-[0.14] hidden lg:block">
+            <g fill="none" stroke="white" strokeLinecap="square">
+              <rect x="10" y="10" width="500" height="300" strokeWidth="6" />
+              <path d="M10 150H280M280 10V310M280 170H510M150 150V310M400 170V310" strokeWidth="3" />
+            </g>
+          </svg>
+          <div aria-hidden="true" className="absolute right-[9%] top-[18%] hidden lg:flex gap-20">
+            {["var(--zs-alerte)", "var(--zs-tirage)", "var(--zs-valide)"].map((c, i) => (
+              <span key={i} className="h-5 w-5 rounded-full border-2 border-encre" style={{ background: c, transform: `translateY(${[-40, 20, -10][i]}px)` }} />
+            ))}
+          </div>
+          <div className="relative mx-auto max-w-[1200px] px-5 sm:px-8 py-20 sm:py-28 flex flex-wrap items-end justify-between gap-10">
             <div className="max-w-[34rem]">
               <h2 className="text-[clamp(1.9rem,1.3rem+2vw,3rem)] font-semibold tracking-[-0.03em] leading-[1.05]">
                 Votre prochaine visite, rapport compris.
@@ -279,7 +265,7 @@ export default function HomePage() {
               <Link href={signUp} className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-white text-encre text-[15px] font-medium hover:bg-voile transition-colors">
                 Essai gratuit 14 jours <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <a href={DEMO_URL} className="h-12 px-5 inline-flex items-center rounded-[8px] border border-white/25 text-[15px] font-medium hover:border-white transition-colors">
+              <a href={DEMO_URL} className="h-12 px-5 inline-flex items-center rounded-[8px] border border-white/25 bg-encre text-[15px] font-medium hover:border-white transition-colors">
                 Réserver une démo
               </a>
             </div>
