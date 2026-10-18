@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
  * IntersectionObserver, ou si l'utilisateur a demandé moins de mouvement,
  * l'élément est considéré comme visible tout de suite.
  */
-export function useInView<T extends Element = HTMLDivElement>(threshold = 0.25) {
+export function useInView<T extends Element = HTMLDivElement>(threshold = 0.25, rootMargin = "0px 0px -12% 0px") {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -25,10 +25,10 @@ export function useInView<T extends Element = HTMLDivElement>(threshold = 0.25) 
           obs.disconnect();
         }
       },
-      { threshold }
+      { threshold, rootMargin }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [threshold]);
+  }, [threshold, rootMargin]);
   return { ref, inView };
 }
