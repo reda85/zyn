@@ -17,9 +17,9 @@ export default async function Signup(props: {
   // Handles displaying a final message after a successful action (like email confirmation link sent)
   if ("message" in searchParams) {
     return (
-      <div className={`flex min-h-screen w-screen overflow-hidden ${GeistSans.className} items-center justify-center bg-stone-50 p-4`}>
+      <div className={`flex min-h-screen w-screen overflow-hidden ${GeistSans.className} items-center justify-center bg-survol p-4`}>
         {/* Card for the message display */}
-        <div className="w-full max-w-lg p-8 bg-white rounded-lg shadow-xl border border-stone-200">
+        <div className="w-full max-w-lg p-8 bg-white rounded-lg shadow-xl border border-filet">
           <FormMessage message={searchParams} />
           {/* Optional: Add a link back to sign-in */}
           <Link 
@@ -39,7 +39,7 @@ export default async function Signup(props: {
     <div className={`flex min-h-screen w-screen overflow-hidden ${GeistSans.className}`}> 
       
       {/* 1. BRANDING/LOGO SIDE (Left Half) - White Background */}
-      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-stone-100">
+      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-voile">
         <div className="text-center">
           {/* Logo - Adjust size/className as needed */}
           <img 
@@ -47,20 +47,20 @@ export default async function Signup(props: {
             alt="Company Logo" 
             className="w-56 h-auto mx-auto mb-6" 
           />
-          <h2 className="text-5xl font-extrabold text-stone-900 leading-tight">
+          <h2 className="text-5xl font-extrabold text-encre leading-tight">
             Start Your Journey Today
           </h2>
-          <p className="text-stone-600 mt-4 text-lg">
+          <p className="text-mine mt-4 text-lg">
             Create an account in seconds and unlock all features.
           </p>
         </div>
       </div>
 
       {/* 2. SIGN-UP FORM SIDE (Right Half) */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-stone-50">
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-survol">
         <> 
           <form 
-            className="flex flex-col w-full max-w-md p-8 bg-white rounded-lg shadow-xl border border-stone-200 m-8"
+            className="flex flex-col w-full max-w-md p-8 bg-white rounded-lg shadow-xl border border-filet m-8"
           >
             {/* Logo for smaller screens */}
             <div className="mb-8 lg:hidden flex justify-center">
@@ -71,8 +71,8 @@ export default async function Signup(props: {
               />
             </div>
 
-            <h1 className="text-4xl font-bold text-stone-900 mb-2">Sign Up</h1>
-            <p className="text-md text-stone-600 mb-8">
+            <h1 className="text-4xl font-bold text-encre mb-2">Sign Up</h1>
+            <p className="text-md text-mine mb-8">
               Already have an account?{" "}
               <Link 
                 className="text-teal-600 font-semibold hover:text-teal-700 transition duration-150 underline" 
@@ -86,25 +86,25 @@ export default async function Signup(props: {
               
               {/* Email Field */}
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-stone-700">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-mine">Email</Label>
                 <Input 
                   name="email" 
                   placeholder="you@example.com" 
                   required 
-                  className="mt-1 block w-full border-stone-300 focus:border-teal-500 focus:ring-teal-500 rounded-md shadow-sm"
+                  className="mt-1 block w-full border-trait focus:border-teal-500 focus:ring-teal-500 rounded-md shadow-sm"
                 />
               </div>
 
               {/* Password Field */}
               <div>
-                <Label htmlFor="password" className="text-sm font-medium text-stone-700">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-mine">Password</Label>
                 <Input
                   type="password"
                   name="password"
                   placeholder="Create your password"
                   minLength={6}
                   required
-                  className="mt-1 block w-full border-stone-300 focus:border-teal-500 focus:ring-teal-500 rounded-md shadow-sm"
+                  className="mt-1 block w-full border-trait focus:border-teal-500 focus:ring-teal-500 rounded-md shadow-sm"
                 />
               </div>
 

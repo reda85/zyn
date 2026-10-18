@@ -1,6 +1,5 @@
 import CustomSelect from './customSelect'
 import PinFilterPanel from './PinFilterPanel'
-import { MapPinIcon } from '@heroicons/react/24/outline'
 import { useSelectedPin } from '@/hooks/usePins'
 import { photoThumbUrl } from '@/lib/images'
 import Pin from './Pin'
@@ -10,22 +9,19 @@ import 'dayjs/locale/fr'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 
 dayjs.extend(relativeTime)
 dayjs.locale('fr')
 
 function PinSkeleton() {
   return (
-    <div className="bg-white border border-stone-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] rounded-[4px] p-3 flex flex-col gap-2 animate-pulse">
-      {/* Status dot + name */}
-      <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded-full bg-stone-100 flex-shrink-0" />
-        <div className="h-3 bg-stone-100 rounded-[3px] flex-1" />
+    <li className="px-4 py-3 flex items-start gap-2.5 border-b border-voile animate-pulse">
+      <div className="w-5 h-5 rounded-full bg-voile flex-shrink-0" />
+      <div className="flex-1">
+        <div className="h-3 bg-voile rounded-[3px]" />
+        <div className="h-2.5 bg-voile rounded-[3px] w-20 mt-2" />
       </div>
-      {/* Date */}
-      <div className="h-2.5 bg-stone-100 rounded-[3px] w-20 ml-7" />
-    </div>
+    </li>
   )
 }
 
@@ -43,11 +39,11 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
     <div
       className={clsx(
         GeistSans.className,
-        'overflow-auto bg-stone-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+        'overflow-auto bg-white border-r border-filet [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       )}
     >
       {/* Header */}
-      <div className="flex flex-row gap-2 p-3 items-baseline">
+      <div className="flex flex-row gap-2 p-3 items-center bg-white">
         {activePlan && (
           <CustomSelect
             options={plans}
@@ -60,68 +56,72 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
         <PinFilterPanel variant="plan" projectId={projectId} pins={allPins} />
       </div>
 
-      {/* Counter bar */}
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-stone-100 border-y border-stone-200">
-        <MapPinIcon className="h-3.5 w-3.5 text-stone-500" />
-        <p className={clsx('text-stone-700 text-[11px] font-medium', GeistMono.className)}>
-          {isLoading ? '—' : `${pins.length} pins`}
+      {/* Compteur */}
+      <div className="flex items-center justify-between px-4 py-2 border-y border-filet bg-papier">
+        <p className="text-[12px] text-mine tabular-nums">
+          {isLoading ? '\u00a0' : `${pins.length} réserve${pins.length > 1 ? 's' : ''}`}
+          {!isLoading && allPins.length !== pins.length && (
+            <span className="text-mine-clair"> sur {allPins.length}</span>
+          )}
         </p>
       </div>
 
-      {/* Pins list */}
-      <div className="flex flex-col gap-2 p-3 min-h-[800px]">
+      {/* Liste : des lignes séparées par des filets, la sélection en bleu de tirage. */}
+      <ul className="bg-white min-h-[800px]">
         {isLoading
           ? Array.from({ length: 6 }).map((_, i) => <PinSkeleton key={i} />)
           : pins.map((pin) => {
               const isSelected = selectedPin?.id === pin.id
               return (
-                <div
+                <li
                   key={pin.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedPin(pin)}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedPin(pin)}
                   className={clsx(
-                    'cursor-pointer rounded-[4px] p-3 flex flex-col gap-2 transition-all',
+                    'relative cursor-pointer px-4 py-3 flex flex-col gap-2 border-b border-voile transition-colors',
                     isSelected
-                      ? 'bg-stone-100 border border-stone-200 hover:border-stone-300 hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]'
-                      : 'bg-white border border-stone-300 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]'
+                      ? 'bg-tirage-pale before:absolute before:left-0 before:inset-y-0 before:w-[2px] before:bg-tirage'
+                      : 'hover:bg-survol'
                   )}
                 >
-                  {/* Header: status + name */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2.5">
                     <Pin pin={pin} />
-                    <span className="text-[13px] font-medium text-stone-950 truncate flex-1">
-                      {pin.name || 'Pin sans nom'}
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-medium text-encre leading-snug line-clamp-2">
+                        {pin.name || 'Réserve sans titre'}
+                      </p>
+                      <p className="mt-1 flex items-center gap-2 text-[11px] text-mine-clair">
+                        {pin.pin_number != null && <span className="font-mono text-mine">#{pin.pin_number}</span>}
+                        {pin.categories?.name && <span className="truncate">{pin.categories.name}</span>}
+                        <span className="ml-auto whitespace-nowrap">{dayjs(pin.created_at).fromNow()}</span>
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Photos */}
                   {pin.pins_photos?.length > 0 && (
-                    <div className="flex flex-row gap-1.5 items-center flex-wrap ml-7">
-                      {pin.pins_photos.slice(0, 3).map((photo, i) => (
+                    <div className="flex flex-row gap-1.5 items-center ml-[30px]">
+                      {pin.pins_photos.slice(0, 4).map((photo, i) => (
                         <img
                           key={photo.id ?? i}
                           src={photoThumbUrl(photo, { width: 96 })}
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="w-12 h-12 rounded-[3px] border border-stone-200 object-cover"
+                          className="w-10 h-10 rounded-[3px] object-cover bg-voile"
                         />
                       ))}
-                      {pin.pins_photos.length > 3 && (
-                        <span className={clsx('text-[11px] font-medium text-stone-500', GeistMono.className)}>
-                          + {pin.pins_photos.length - 3} photos
-                        </span>
+                      {pin.pins_photos.length > 4 && (
+                        <span className="text-[11px] text-mine-clair tabular-nums">+{pin.pins_photos.length - 4}</span>
                       )}
                     </div>
                   )}
-
-                  {/* Date */}
-                  <p className={clsx('text-[11px] text-stone-400 ml-7', GeistMono.className)}>
-                    {dayjs(pin.created_at).fromNow()}
-                  </p>
-                </div>
+                </li>
               )
             })}
-      </div>
+      </ul>
     </div>
   )
 }

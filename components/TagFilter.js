@@ -31,13 +31,13 @@ export default function TagFilter({ active, onToggle, tags, setTags, projectId }
 
   return (
     <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="flex items-center justify-between bg-stone-100 border border-stone-200 p-3 rounded-[4px]">
-        <span className="text-[13px] text-stone-950">Filtrer par tag</span>
+      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[4px]">
+        <span className="text-[13px] text-encre">Filtrer par tag</span>
         <Switch
           checked={active}
           onChange={onToggle}
           className={clsx(
-            active ? 'bg-stone-950' : 'bg-stone-300',
+            active ? 'bg-encre' : 'bg-filet-fort',
             'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)]'
           )}
         >
@@ -56,12 +56,12 @@ export default function TagFilter({ active, onToggle, tags, setTags, projectId }
             {tags.map((tagId) => (
               <span
                 key={tagId}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-blue-50 text-blue-900 rounded-[3px] border border-blue-200 font-medium"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[13px] bg-tirage-pale text-tirage-fonce rounded-[3px] border border-tirage-clair font-medium"
               >
                 {getTagName(tagId)}
                 <button
                   onClick={() => removeTag(tagId)}
-                  className="hover:bg-blue-100 rounded-[2px] p-0.5 transition-colors text-blue-700"
+                  className="hover:bg-tirage-pale rounded-[2px] p-0.5 transition-colors text-tirage-fonce"
                 >
                   ✕
                 </button>
@@ -75,24 +75,24 @@ export default function TagFilter({ active, onToggle, tags, setTags, projectId }
               onFocus={() => setShowDropdown(true)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
               placeholder="Ajouter un tag..."
-              className="border border-stone-200 bg-white px-3 py-1.5 rounded-[4px] text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors"
+              className="border border-filet bg-white px-3 py-1.5 rounded-[4px] text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
             />
           </div>
 
           {showDropdown && (
-            <div className="absolute z-40 mt-1 bg-white border border-stone-200 rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] w-60 max-h-48 overflow-y-auto">
+            <div className="absolute z-40 mt-1 bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] w-60 max-h-48 overflow-y-auto">
               {filteredSuggestions.length > 0 ? (
                 filteredSuggestions.map((tag) => (
                   <div
                     key={tag.id}
-                    className="px-3 py-2.5 hover:bg-stone-100 cursor-pointer text-[13px] text-stone-950 font-medium transition-colors first:rounded-t-[4px] last:rounded-b-[4px]"
+                    className="px-3 py-2.5 hover:bg-survol cursor-pointer text-[13px] text-encre font-medium transition-colors first:rounded-t-[4px] last:rounded-b-[4px]"
                     onMouseDown={() => addTag(tag.id)}
                   >
                     {tag.name}
                   </div>
                 ))
               ) : (
-                <div className="px-3 py-3 text-[13px] text-stone-500 text-center">
+                <div className="px-3 py-3 text-[13px] text-mine-clair text-center">
                   Aucun tag trouvé
                 </div>
               )}

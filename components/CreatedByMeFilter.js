@@ -8,10 +8,10 @@ export default function CreatedByMeFilter({ active, onToggle }) {
 
   return (
     <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="flex items-center justify-between bg-stone-100 border border-stone-200 p-3 rounded-[4px]">
+      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[4px]">
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-stone-500" />
-          <span className="text-[13px] text-stone-950">
+          <User className="w-4 h-4 text-mine-clair" />
+          <span className="text-[13px] text-encre">
             Créés par moi
           </span>
         </div>
@@ -19,7 +19,7 @@ export default function CreatedByMeFilter({ active, onToggle }) {
           checked={active}
           onChange={onToggle}
           className={clsx(
-            active ? 'bg-stone-950' : 'bg-stone-300',
+            active ? 'bg-encre' : 'bg-filet-fort',
             'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)]'
           )}
         >

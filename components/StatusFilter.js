@@ -3,7 +3,6 @@ import { Switch } from '@headlessui/react';
 import { useProjectData } from '@/providers/ProjectProvider';
 import { CheckCircle2 } from 'lucide-react';
 import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
 import clsx from 'clsx';
 
 export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
@@ -30,25 +29,25 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
 
   return (
     <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="bg-stone-100 border border-stone-200 rounded-[4px] overflow-hidden">
+      <div className="bg-survol border border-filet rounded-[4px] overflow-hidden">
 
         {/* Header avec "Tout sélectionner" */}
-        <div className="flex items-center justify-between bg-stone-100 border-b border-stone-200 p-3">
-          <span className="text-[13px] text-stone-950">
+        <div className="flex items-center justify-between bg-voile border-b border-filet p-3">
+          <span className="text-[13px] text-encre">
             Filtrer par statut
           </span>
           <button
             onClick={toggleAll}
-            className="text-[12px] font-medium text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
+            className="text-[12px] font-medium text-tirage hover:text-tirage-fonce transition-colors flex items-center gap-1"
           >
             {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
           </button>
         </div>
 
         {/* Liste des statuts */}
-        <div className="divide-y divide-stone-200">
+        <div className="divide-y divide-filet">
           {statuses.length === 0 ? (
-            <div className="p-4 text-center text-[13px] text-stone-500">
+            <div className="p-4 text-center text-[13px] text-mine-clair">
               Aucun statut disponible
             </div>
           ) : (
@@ -68,13 +67,13 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
                     />
 
                     {/* Nom du statut */}
-                    <span className="text-[13px] font-medium text-stone-950">
+                    <span className="text-[13px] font-medium text-encre">
                       {status.name}
                     </span>
 
                     {/* Badge si actif */}
                     {isActive && (
-                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                      <CheckCircle2 className="w-4 h-4 text-tirage" />
                     )}
                   </div>
 
@@ -83,7 +82,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
                     checked={isActive}
                     onChange={() => toggleStatus(status.id)}
                     className={clsx(
-                      isActive ? 'bg-stone-950' : 'bg-stone-300',
+                      isActive ? 'bg-encre' : 'bg-filet-fort',
                       'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)]'
                     )}
                   >
@@ -102,7 +101,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
 
         {/* Footer avec compteur */}
         {statuses.length > 0 && activeStatuses.length > 0 && (
-          <div className={clsx('bg-stone-100 border-t border-stone-200 px-3 py-2 text-[11px] text-stone-500 text-center', GeistMono.className)}>
+          <div className={clsx('bg-voile border-t border-filet px-3 py-2 text-[11px] text-mine-clair text-center', 'tabular-nums')}>
             {activeStatuses.length} statut{activeStatuses.length > 1 ? 's' : ''} sélectionné{activeStatuses.length > 1 ? 's' : ''}
           </div>
         )}

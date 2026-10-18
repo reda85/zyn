@@ -96,8 +96,8 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
           'flex items-center gap-1.5 px-2.5 py-[7px] rounded-[4px] border transition-colors',
           GeistSans.className,
           activeCount > 0
-            ? 'bg-stone-950 text-white border-stone-950'
-            : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-100'
+            ? 'bg-encre text-white border-encre'
+            : 'bg-white text-mine border-filet hover:bg-survol'
         )}
       >
         <ListFilterIcon className="h-4 w-4" />
@@ -111,13 +111,13 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
             ref={panelRef}
             style={{ top: position.top, left: position.left, width }}
             className={clsx(
-              'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-stone-200 rounded-[4px]',
+              'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-filet rounded-[6px]',
               'shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)]',
               GeistSans.className
             )}
           >
-            <div className="flex justify-between items-center px-4 py-3 border-b border-stone-100">
-              <h3 className="text-[13px] font-medium text-stone-950">Filtres</h3>
+            <div className="flex justify-between items-center px-4 py-3 border-b border-voile">
+              <h3 className="text-[13px] font-medium text-encre">Filtres</h3>
               <div className="flex items-center gap-2">
                 {activeCount > 0 && (
                   <button
@@ -125,16 +125,16 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
                       resetFilters()
                       setExpanded({})
                     }}
-                    className="text-[12px] text-stone-600 hover:text-stone-950 transition-colors"
+                    className="text-[12px] text-mine hover:text-encre transition-colors"
                   >
                     Réinitialiser
                   </button>
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1 rounded-[3px] hover:bg-stone-100 transition-colors"
+                  className="p-1 rounded-[3px] hover:bg-voile transition-colors"
                 >
-                  <XMarkIcon className="h-4 w-4 text-stone-500" />
+                  <XMarkIcon className="h-4 w-4 text-mine-clair" />
                 </button>
               </div>
             </div>

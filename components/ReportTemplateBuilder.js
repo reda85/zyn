@@ -9,7 +9,6 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -62,24 +61,24 @@ const SECTION_LABELS = {
 // ── Sub-components at module level ────────────────────────────────────────────
 
 const Section = ({ title, icon: Icon, section, expandedSections, toggleSection, children }) => (
-  <div className="border-b border-stone-100">
+  <div className="border-b border-voile">
     <button
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => toggleSection(section)}
-      className="w-full flex items-center justify-between p-5 hover:bg-stone-100 transition-colors text-left group"
+      className="w-full flex items-center justify-between p-5 hover:bg-survol transition-colors text-left group"
     >
       <div className="flex items-center gap-3">
-        <div className={clsx("p-2 rounded-[4px] transition-colors", expandedSections[section] ? "bg-blue-50" : "bg-stone-100 group-hover:bg-stone-200")}>
-          <Icon className={clsx("w-4 h-4 transition-colors", expandedSections[section] ? "text-blue-600" : "text-stone-500 group-hover:text-stone-950")} />
+        <div className={clsx("p-2 rounded-[4px] transition-colors", expandedSections[section] ? "bg-tirage-pale" : "bg-voile group-hover:bg-filet")}>
+          <Icon className={clsx("w-4 h-4 transition-colors", expandedSections[section] ? "text-tirage" : "text-mine-clair group-hover:text-encre")} />
         </div>
-        <span className="text-[13px] font-medium text-stone-950">{title}</span>
+        <span className="text-[13px] font-medium text-encre">{title}</span>
       </div>
       {expandedSections[section]
-        ? <ChevronDown className="w-4 h-4 text-blue-600" />
-        : <ChevronRight className="w-4 h-4 text-stone-500 group-hover:text-stone-950 transition-colors" />}
+        ? <ChevronDown className="w-4 h-4 text-tirage" />
+        : <ChevronRight className="w-4 h-4 text-mine-clair group-hover:text-encre transition-colors" />}
     </button>
     {expandedSections[section] && (
-      <div className="px-5 pb-6 pt-2 space-y-4 bg-stone-50">{children}</div>
+      <div className="px-5 pb-6 pt-2 space-y-4 bg-papier">{children}</div>
     )}
   </div>
 )
@@ -97,12 +96,12 @@ const Toggle = ({ label, checked, onChange }) => {
   return (
     <label
       onMouseDown={(e) => e.preventDefault()}
-      className="flex items-center justify-between cursor-pointer group py-2 px-3 rounded-[4px] hover:bg-stone-100 transition-colors"
+      className="flex items-center justify-between cursor-pointer group py-2 px-3 rounded-[4px] hover:bg-voile transition-colors"
     >
-      <span className="text-[13px] text-stone-950 font-medium">{label}</span>
+      <span className="text-[13px] text-encre font-medium">{label}</span>
       <div className="relative flex-shrink-0">
         <input type="checkbox" checked={checked} onChange={handleChange} className="sr-only peer" />
-        <div className={clsx("w-9 h-5 rounded-full transition-colors", checked ? "bg-stone-950" : "bg-stone-300")}>
+        <div className={clsx("w-9 h-5 rounded-full transition-colors", checked ? "bg-encre" : "bg-filet-fort")}>
           <div className={clsx("absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-[0_1px_2px_rgba(15,15,15,0.08)]", checked && "translate-x-4")} />
         </div>
       </div>
@@ -112,11 +111,11 @@ const Toggle = ({ label, checked, onChange }) => {
 
 const SelectField = ({ label, value, onChange, options }) => (
   <div className="space-y-2">
-    <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>{label}</label>
+    <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>{label}</label>
     <select
       value={value}
       onChange={(e) => { e.stopPropagation(); onChange(e) }}
-      className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors"
+      className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
     >
       {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
     </select>
@@ -124,12 +123,12 @@ const SelectField = ({ label, value, onChange, options }) => (
 )
 
 const SectionOrderItem = ({ id, label, icon, index, total, onMoveUp, onMoveDown }) => (
-  <div className="flex items-center gap-3 bg-white border border-stone-200 rounded-[4px] px-3 py-2.5 group">
+  <div className="flex items-center gap-3 bg-white border border-filet rounded-[6px] px-3 py-2.5 group">
     <span className="text-base">{icon}</span>
-    <span className="text-[13px] font-medium text-stone-950 flex-1">{label}</span>
+    <span className="text-[13px] font-medium text-encre flex-1">{label}</span>
     <div className="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-stone-100 disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▲</button>
-      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-stone-100 disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▼</button>
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▲</button>
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▼</button>
     </div>
   </div>
 )
@@ -480,18 +479,18 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <div key="summary" className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
             <div className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              {config.summary.showPeriod && <div><div className="text-xs font-bold text-stone-600 mb-1">Période</div><div>01/01/2026 — 01/02/2026</div></div>}
+              {config.summary.showPeriod && <div><div className="text-xs font-bold text-mine mb-1">Période</div><div>01/01/2026 — 01/02/2026</div></div>}
               <div className="flex gap-4">
-                {config.summary.showTotalCount   && <div><div className="text-xs font-bold text-stone-600">Total</div><div className="text-lg font-bold mt-1">15</div></div>}
-                {config.summary.showOverdueCount && <div><div className="text-xs font-bold text-stone-600">En retard</div><div className="text-lg font-bold mt-1 text-red-600">3</div></div>}
-                {config.summary.showPlanCount    && <div><div className="text-xs font-bold text-stone-600">Plans</div><div className="text-lg font-bold mt-1">5</div></div>}
+                {config.summary.showTotalCount   && <div><div className="text-xs font-bold text-mine">Total</div><div className="text-lg font-bold mt-1">15</div></div>}
+                {config.summary.showOverdueCount && <div><div className="text-xs font-bold text-mine">En retard</div><div className="text-lg font-bold mt-1 text-alerte">3</div></div>}
+                {config.summary.showPlanCount    && <div><div className="text-xs font-bold text-mine">Plans</div><div className="text-lg font-bold mt-1">5</div></div>}
               </div>
             </div>
             {config.summary.showStatusBreakdown && (
-              <div className="mt-3 pt-3 border-t border-stone-200 flex gap-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs text-white bg-green-500">Terminé (5)</span>
+              <div className="mt-3 pt-3 border-t border-filet flex gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full text-xs text-white bg-valide">Terminé (5)</span>
                 <span className="px-3 py-1 rounded-full text-xs text-white bg-yellow-500">En cours (7)</span>
-                <span className="px-3 py-1 rounded-full text-xs text-white bg-red-500">Bloqué (3)</span>
+                <span className="px-3 py-1 rounded-full text-xs text-white bg-alerte">Bloqué (3)</span>
               </div>
             )}
           </div>
@@ -504,13 +503,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <div style={sectionTitlePreviewStyle()}>{config.planOverviews.title || 'Aperçus des plans'}</div>
             <div className="space-y-4">
               {['Plan RDC', 'Plan R+1'].map((planName, pi) => (
-                <div key={planName} className="border border-stone-200 rounded-lg overflow-hidden">
-                  <div className="relative bg-stone-100 flex items-center justify-center" style={{ height: '140px' }}>
+                <div key={planName} className="border border-filet rounded-lg overflow-hidden">
+                  <div className="relative bg-voile flex items-center justify-center" style={{ height: '140px' }}>
                     <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
                       <defs><pattern id={`grid-${pi}`} width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#94a3b8" strokeWidth="0.5"/></pattern></defs>
                       <rect width="100%" height="100%" fill={`url(#grid-${pi})`}/>
                     </svg>
-                    <Map className="w-8 h-8 text-stone-300" />
+                    <Map className="w-8 h-8 text-trait" />
                     {[
                       { top: '30%', left: '40%', color: config.primaryColor },
                       { top: '55%', left: '65%', color: config.primaryColor },
@@ -527,13 +526,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     )}
                   </div>
                   <div className="px-3 py-2 bg-white space-y-2">
-                    <div className="text-xs font-semibold text-stone-700">{planName}</div>
+                    <div className="text-xs font-semibold text-mine">{planName}</div>
                     {config.planOverviews.showLegend && (
                       <div className="grid grid-cols-2 gap-1">
                         {['Fissure cloison', 'Défaut peinture', 'Conformité porte'].map((name, li) => (
                           <div key={li} className="flex items-center gap-1.5">
                             <div className="flex items-center justify-center rounded-full text-white flex-shrink-0" style={{ backgroundColor: li === 2 ? '#ef4444' : config.primaryColor, width: '14px', height: '14px', fontSize: '7px', fontWeight: 700 }}>{li + 1}</div>
-                            <span className="text-[10px] text-stone-600 truncate">{name}</span>
+                            <span className="text-[10px] text-mine truncate">{name}</span>
                           </div>
                         ))}
                       </div>
@@ -551,11 +550,11 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <div key="planning" className="space-y-4">
             <div style={sectionTitlePreviewStyle()}>{config.planning.title || 'Pointage de planning'}</div>
 
-            <div className="border border-stone-200 rounded-lg overflow-hidden bg-stone-50 p-4">
-              <div className="aspect-[4/3] bg-white border border-dashed border-stone-300 rounded flex flex-col items-center justify-center gap-2">
-                <Calendar className="w-12 h-12 text-stone-300" />
-                <p className="text-xs text-stone-400 italic">Capture du planning MS Project</p>
-                <p className="text-[10px] text-stone-400">{config.planning.imagesPerPage === 2 ? '2 images / page' : '1 image / page'}</p>
+            <div className="border border-filet rounded-lg overflow-hidden bg-survol p-4">
+              <div className="aspect-[4/3] bg-white border border-dashed border-trait rounded flex flex-col items-center justify-center gap-2">
+                <Calendar className="w-12 h-12 text-trait" />
+                <p className="text-xs text-mine-clair italic">Capture du planning MS Project</p>
+                <p className="text-[10px] text-mine-clair">{config.planning.imagesPerPage === 2 ? '2 images / page' : '1 image / page'}</p>
               </div>
             </div>
 
@@ -571,16 +570,16 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                       return (
                         <div key={i} className="flex items-start gap-2">
                           {isBullet && <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: config.primaryColor }} />}
-                          <span className="text-sm text-stone-600">{cleanLine}</span>
+                          <span className="text-sm text-mine">{cleanLine}</span>
                         </div>
                       )
                     })}
                     {config.planning.observationsText.split('\n').filter(l => l.trim()).length > 5 && (
-                      <p className="text-xs text-stone-400 italic mt-2">… et plus</p>
+                      <p className="text-xs text-mine-clair italic mt-2">… et plus</p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-stone-400 italic">Saisissez les observations dans le panneau de configuration</p>
+                  <p className="text-xs text-mine-clair italic">Saisissez les observations dans le panneau de configuration</p>
                 )}
               </div>
             )}
@@ -594,9 +593,9 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <div style={sectionTitlePreviewStyle()}>{config.participants.title || 'Équipe projet'}</div>
             <div className={clsx(config.participants.layout === 'grid' ? 'grid grid-cols-2 gap-4' : 'space-y-3')}>
               {["Jean Dupont", "Marie Martin", "Ahmed Alami", "Sara Client"].map((name, i) => (
-                <div key={name} className="border-b border-stone-100 pb-2">
-                  <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-sm font-medium">{name}</span></div>
-                  {config.participants.showRoles && <p className="text-xs text-stone-400 ml-4">{["Chef de projet", "Architecte", "Ingénieur", "MOA"][i]}</p>}
+                <div key={name} className="border-b border-voile pb-2">
+                  <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-valide" /><span className="text-sm font-medium">{name}</span></div>
+                  {config.participants.showRoles && <p className="text-xs text-mine-clair ml-4">{["Chef de projet", "Architecte", "Ingénieur", "MOA"][i]}</p>}
                 </div>
               ))}
             </div>
@@ -611,9 +610,9 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <div className={config.signatures.layout === 'horizontal' ? 'grid grid-cols-3 gap-6' : 'space-y-6'}>
               {config.signatures.fields.filter(f => f.enabled).map((field) => (
                 <div key={field.label}>
-                  <div className="text-sm font-bold text-stone-600 mb-2">{field.label}</div>
-                  <div className="border-b-2 border-stone-300 h-12 mb-1" />
-                  <div className="text-xs text-stone-400">Date & Signature</div>
+                  <div className="text-sm font-bold text-mine mb-2">{field.label}</div>
+                  <div className="border-b-2 border-trait h-12 mb-1" />
+                  <div className="text-xs text-mine-clair">Date & Signature</div>
                 </div>
               ))}
             </div>
@@ -630,20 +629,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 {[1, 2].map((n) => (
                   <div key={n}>
                     {config.tasks.galleryShowName !== false && (
-                      <div className="text-xs font-bold text-stone-600 mb-2">Tâche d'exemple {n}</div>
+                      <div className="text-xs font-bold text-mine mb-2">Tâche d'exemple {n}</div>
                     )}
                     <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${config.tasks.photosPerRow ?? 3}, 1fr)` }}>
                       {[1, 2, 3].slice(0, config.tasks.photosPerRow ?? 3).map((p) => (
                         <div key={p} className="relative">
-                          <div className="bg-stone-200 rounded aspect-square flex items-center justify-center text-stone-400 text-[10px]">Photo {p}</div>
+                          <div className="bg-filet rounded aspect-square flex items-center justify-center text-mine-clair text-[10px]">Photo {p}</div>
                           {config.tasks.galleryShowStatus !== false && (
-                            <span className="absolute top-1 right-1 px-1 py-0.5 rounded text-[9px] text-white bg-green-500">OK</span>
+                            <span className="absolute top-1 right-1 px-1 py-0.5 rounded text-[9px] text-white bg-valide">OK</span>
                           )}
                         </div>
                       ))}
                     </div>
                     {config.tasks.galleryShowDescription && (
-                      <p className="text-xs text-stone-500 italic mt-1">Description de la tâche {n}…</p>
+                      <p className="text-xs text-mine-clair italic mt-1">Description de la tâche {n}…</p>
                     )}
                   </div>
                 ))}
@@ -655,28 +654,28 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         {config.listView.showIndex && <span className="font-bold" style={{ color: config.primaryColor }}>{n}.</span>}
-                        <span className="font-bold text-stone-800">Tâche d'exemple {n}</span>
+                        <span className="font-bold text-encre-survol">Tâche d'exemple {n}</span>
                       </div>
                       <div className="space-y-1 text-sm">
-                        {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-stone-500 w-28">Catégorie:</span><span>Structure</span></div>}
-                        {config.fields.assignedTo  && <div className="flex gap-2"><span className="font-bold text-stone-500 w-28">Assigné à:</span><span>Marie Martin</span></div>}
-                        {config.fields.dueDate     && <div className="flex gap-2"><span className="font-bold text-stone-500 w-28">Échéance:</span><span>15/02/2026</span></div>}
-                        {config.fields.description && <div className="flex gap-2"><span className="font-bold text-stone-500 w-28">Description:</span><span>Vérifier la conformité</span></div>}
+                        {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Catégorie:</span><span>Structure</span></div>}
+                        {config.fields.assignedTo  && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Assigné à:</span><span>Marie Martin</span></div>}
+                        {config.fields.dueDate     && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Échéance:</span><span>15/02/2026</span></div>}
+                        {config.fields.description && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Description:</span><span>Vérifier la conformité</span></div>}
                       </div>
                     </div>
                     {config.fields.snapshot && (
-                      <div className="flex-shrink-0 bg-stone-200 rounded flex items-center justify-center text-stone-400 text-xs" style={{
+                      <div className="flex-shrink-0 bg-filet rounded flex items-center justify-center text-mine-clair text-xs" style={{
                         width:  config.listView.snapshotSize === 'small' ? '100px' : config.listView.snapshotSize === 'medium' ? '120px' : '140px',
                         height: config.listView.snapshotSize === 'small' ? '100px' : config.listView.snapshotSize === 'medium' ? '120px' : '140px',
                         border: config.listView.snapshotBorder ? `${config.listView.snapshotBorderWidth}px solid ${config.primaryColor}` : 'none',
                       }}>Snapshot</div>
                     )}
                   </div>
-                  {config.listView.showDividers && n === 1 && <div className="h-px bg-stone-200 mt-4" />}
+                  {config.listView.showDividers && n === 1 && <div className="h-px bg-filet mt-4" />}
                 </div>
               ))
             ) : (
-              <div className="border border-stone-200 rounded-lg overflow-hidden text-sm">
+              <div className="border border-filet rounded-lg overflow-hidden text-sm">
                 <div className="grid grid-cols-12 gap-2 p-2 text-xs font-bold" style={{ backgroundColor: config.tableView.headerBackgroundColor }}>
                   {config.tableView.showIndex && <div className="col-span-1">#</div>}
                   <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche</div>
@@ -686,12 +685,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {config.fields.assignedTo && <div className="col-span-2">Assigné</div>}
                 </div>
                 {[1, 2].map((n, idx) => (
-                  <div key={n} className={clsx("grid grid-cols-12 gap-2 p-2 text-xs border-t border-stone-100", config.tableView.alternateRowColors && idx % 2 === 1 ? 'bg-stone-50' : 'bg-white')}>
+                  <div key={n} className={clsx("grid grid-cols-12 gap-2 p-2 text-xs border-t border-voile", config.tableView.alternateRowColors && idx % 2 === 1 ? 'bg-survol' : 'bg-white')}>
                     {config.tableView.showIndex && <div className="col-span-1 font-bold">{n}</div>}
                     <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche {n}</div>
                     <div className="col-span-2">PR-{n}</div>
                     {config.fields.category   && <div className="col-span-2">Structure</div>}
-                    {config.fields.status     && <div className="col-span-2"><span className="px-2 py-0.5 rounded-full text-xs text-white bg-green-500">OK</span></div>}
+                    {config.fields.status     && <div className="col-span-2"><span className="px-2 py-0.5 rounded-full text-xs text-white bg-valide">OK</span></div>}
                     {config.fields.assignedTo && <div className="col-span-2">J. Dupont</div>}
                   </div>
                 ))}
@@ -708,8 +707,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             {visibleCustomSections.map((section) => (
               <div key={section.id}>
                 <div style={sectionTitlePreviewStyle()}>{section.title}</div>
-                <div className="bg-stone-50 rounded p-4 border border-dashed border-stone-300">
-                  <p className="text-sm text-stone-400 italic text-center">
+                <div className="bg-survol rounded p-4 border border-dashed border-trait">
+                  <p className="text-sm text-mine-clair italic text-center">
                     Contenu riche à saisir lors de la génération du rapport
                     <br />
                     <span className="text-xs">(texte formaté, listes, tableaux)</span>
@@ -726,36 +725,36 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
   }
 
   return (
-    <div className={clsx("flex h-screen bg-stone-50 text-stone-950", GeistSans.className)}>
+    <div className={clsx("flex h-screen bg-papier text-encre", GeistSans.className)}>
       <style>{`@import url('${GOOGLE_FONTS_URL}');`}</style>
 
       {/* ── CONTROL PANEL ─────────────────────────────────────────────────── */}
-      <aside className="w-[420px] bg-stone-50 border-r border-stone-200 flex flex-col overflow-y-auto">
+      <aside className="w-[420px] bg-papier border-r border-filet flex flex-col overflow-y-auto">
 
-        <div className="sticky top-0 z-10 p-5 border-b border-stone-200 bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
+        <div className="sticky top-0 z-10 p-5 border-b border-filet bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
           <div className="flex items-center gap-2 mb-4">
-            <Settings className="w-4 h-4 text-blue-600" />
-            <h1 className="text-[15px] font-medium text-stone-950">Template de Rapport</h1>
+            <Settings className="w-4 h-4 text-tirage" />
+            <h1 className="text-[15px] font-medium text-encre">Template de Rapport</h1>
           </div>
           <div className="space-y-3">
             <div>
-              <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5 block', GeistMono.className)}>Titre du rapport</label>
-              <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2.5 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors font-medium" />
+              <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Titre du rapport</label>
+              <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors font-medium" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5 block', GeistMono.className)}>Couleur</label>
-                <div className="flex items-center gap-2 bg-white rounded-[4px] border border-stone-200 px-3 py-2">
+                <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Couleur</label>
+                <div className="flex items-center gap-2 bg-white rounded-[6px] border border-filet px-3 py-2">
                   <input type="color" value={config.primaryColor} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, primaryColor: e.target.value })) }} className="w-6 h-6 rounded-[3px] cursor-pointer border-0" />
-                  <span className={clsx('text-[12px] text-stone-950', GeistMono.className)}>{config.primaryColor}</span>
+                  <span className={clsx('text-[12px] text-encre', 'tabular-nums')}>{config.primaryColor}</span>
                 </div>
               </div>
               <div>
-                <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5 block', GeistMono.className)}>Police</label>
-                <select value={config.fontFamily} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, fontFamily: e.target.value })) }} className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[12px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors">
+                <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Police</label>
+                <select value={config.fontFamily} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, fontFamily: e.target.value })) }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[12px] text-encre focus:outline-none focus:border-encre transition-colors">
                   {fontOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
-                <p className="mt-1 text-[11px] text-stone-500 px-1 truncate" style={{ fontFamily: previewFont }}>AaBbCcDd 0123</p>
+                <p className="mt-1 text-[11px] text-mine-clair px-1 truncate" style={{ fontFamily: previewFont }}>AaBbCcDd 0123</p>
               </div>
             </div>
           </div>
@@ -770,24 +769,24 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <Toggle label="Date"                  checked={config.header.showDate}              onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showDate:              e.target.checked } }))} />
             <Toggle label="Logo entreprise"       checked={config.header.showLogo ?? false}     onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showLogo:              e.target.checked } }))} />
             {config.header.showLogo && (
-              <div className="pl-5 border-l-2 border-stone-100">
+              <div className="pl-5 border-l-2 border-voile">
                 <SelectField label="Taille" value={config.header.logoSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, logoSize: e.target.value } }))} options={[{ value: 'small', label: 'Petit' }, { value: 'medium', label: 'Moyen' }, { value: 'large', label: 'Grand' }]} />
               </div>
             )}
             <Toggle label="Logo client" checked={config.header.showClientLogo ?? false} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, showClientLogo: e.target.checked } }))} />
             {config.header.showClientLogo && (
-              <div className="pl-5 border-l-2 border-stone-100">
+              <div className="pl-5 border-l-2 border-voile">
                 <SelectField label="Taille" value={config.header.clientLogoSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, header: { ...p.header, clientLogoSize: e.target.value } }))} options={[{ value: 'small', label: 'Petit' }, { value: 'medium', label: 'Moyen' }, { value: 'large', label: 'Grand' }]} />
               </div>
             )}
-            <p className="text-[11px] text-stone-500 px-3">Logos chargés automatiquement depuis votre organisation et votre projet.</p>
+            <p className="text-[11px] text-mine-clair px-3">Logos chargés automatiquement depuis votre organisation et votre projet.</p>
           </S>
 
           {/* ── Résumé ── */}
           <S title="Boîte de résumé" icon={FileText} section="summary">
             <Toggle label="Activer le résumé" checked={config.summary.enabled} onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, enabled: e.target.checked } }))} />
             {config.summary.enabled && (
-              <div className="space-y-3 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-3 pl-5 border-l-2 border-voile">
                 <Toggle label="Période"                checked={config.summary.showPeriod}          onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPeriod:          e.target.checked } }))} />
                 <Toggle label="Total des tâches"       checked={config.summary.showTotalCount}      onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showTotalCount:      e.target.checked } }))} />
                 <Toggle label="Tâches en retard"       checked={config.summary.showOverdueCount}    onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showOverdueCount:    e.target.checked } }))} />
@@ -805,15 +804,15 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               onChange={(e) => setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, enabled: e.target.checked } }))}
             />
             {config.planOverviews?.enabled && (
-              <div className="space-y-3 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-3 pl-5 border-l-2 border-voile">
                 <div className="space-y-2">
-                  <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre de la section</label>
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre de la section</label>
                   <input
                     type="text"
                     value={config.planOverviews.title ?? 'Aperçus des plans'}
                     onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, title: e.target.value } })) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors"
+                    className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                   />
                 </div>
                 <Toggle
@@ -826,7 +825,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   checked={config.planOverviews.showLegend ?? true}
                   onChange={(e) => setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, showLegend: e.target.checked } }))}
                 />
-                <p className="text-[11px] text-stone-500 px-1">
+                <p className="text-[11px] text-mine-clair px-1">
                   Une page par plan — image complète du plan avec les pins numérotés et leur légende.
                 </p>
               </div>
@@ -841,15 +840,15 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               onChange={(e) => setConfig(p => ({ ...p, planning: { ...p.planning, enabled: e.target.checked } }))}
             />
             {config.planning?.enabled && (
-              <div className="space-y-3 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-3 pl-5 border-l-2 border-voile">
                 <div className="space-y-2">
-                  <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre de la section</label>
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre de la section</label>
                   <input
                     type="text"
                     value={config.planning.title ?? 'Pointage de planning'}
                     onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, title: e.target.value } })) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors"
+                    className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                   />
                 </div>
 
@@ -873,11 +872,11 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   ]}
                 />
 
-                <p className="text-[11px] text-stone-500 px-1">
+                <p className="text-[11px] text-mine-clair px-1">
                   Les captures de planning seront uploadées au moment de la génération du rapport.
                 </p>
 
-                <div className="pt-3 border-t border-stone-100 space-y-3">
+                <div className="pt-3 border-t border-voile space-y-3">
                   <Toggle
                     label="Section observations / retards"
                     checked={config.planning.showObservations ?? true}
@@ -887,27 +886,27 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {config.planning.showObservations && (
                     <>
                       <div className="space-y-2">
-                        <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre des observations</label>
+                        <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre des observations</label>
                         <input
                           type="text"
                           value={config.planning.observationsTitle ?? 'Retards et observations'}
                           onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, observationsTitle: e.target.value } })) }}
                           onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                          className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors"
+                          className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Contenu des observations</label>
+                        <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Contenu des observations</label>
                         <textarea
                           value={config.planning.observationsText ?? ''}
                           onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, observationsText: e.target.value } })) }}
                           onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }}
                           placeholder={"- Retard sur le lot Gros-Œuvre\n- Étanchéité à entamer la semaine prochaine\n- ..."}
                           rows={8}
-                          className={clsx("w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 resize-none transition-colors", GeistMono.className)}
+                          className={clsx("w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre resize-none transition-colors", 'tabular-nums')}
                         />
-                        <p className="text-[11px] text-stone-500 px-1">
+                        <p className="text-[11px] text-mine-clair px-1">
                           Une ligne par observation. Préfixez avec - ou • pour les puces.
                         </p>
                       </div>
@@ -921,8 +920,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           {/* ── Tâches ── */}
           <S title="Affichage des tâches" icon={Layout} section="tasks">
             <div className="space-y-2">
-              <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre de la section</label>
-              <input type="text" value={config.tasks.title ?? 'Tâches'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, tasks: { ...p.tasks, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors" />
+              <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre de la section</label>
+              <input type="text" value={config.tasks.title ?? 'Tâches'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, tasks: { ...p.tasks, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
             </div>
             <SelectField
               label="Mode d'affichage"
@@ -935,8 +934,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               ]}
             />
             {config.tasks.displayMode === 'photoGallery' && (
-              <div className="space-y-3 pl-4 border-l-2 border-stone-100">
-                <p className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Options galerie</p>
+              <div className="space-y-3 pl-4 border-l-2 border-voile">
+                <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Options galerie</p>
                 <SelectField
                   label="Photos par ligne"
                   value={String(config.tasks.photosPerRow ?? 3)}
@@ -954,7 +953,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Champs ── */}
           <S title="Champs à afficher" icon={Eye} section="fields">
-            <p className="text-[13px] text-stone-500">Informations à inclure dans le rapport</p>
+            <p className="text-[13px] text-mine-clair">Informations à inclure dans le rapport</p>
             {[
               { key: 'description', label: 'Description' },
               { key: 'photos',      label: 'Photos' },
@@ -991,12 +990,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Style titres de section (global) ── */}
           <S title="Style des titres de section" icon={FileText} section="sectionTitles">
-            <p className="text-[13px] text-stone-500 px-1">S'applique aux tâches, participants, signatures et sections personnalisées.</p>
+            <p className="text-[13px] text-mine-clair px-1">S'applique aux tâches, participants, signatures et sections personnalisées.</p>
             <SelectField label="Taille" value={config.sectionTitles?.titleSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
             <Toggle label="Barre d'accent (bordure gauche)" checked={config.sectionTitles?.titleAccentBar ?? true}  onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleAccentBar: e.target.checked } }))} />
             <Toggle label="Souligné"                        checked={config.sectionTitles?.titleUnderline ?? false} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleUnderline: e.target.checked } }))} />
-            <div className="rounded-[4px] bg-stone-100 border border-stone-200 p-4 space-y-2 mt-1">
-              <p className={clsx('text-[10px] text-stone-500 uppercase tracking-[0.08em] font-medium', GeistMono.className)}>Aperçu</p>
+            <div className="rounded-[4px] bg-survol border border-filet p-4 space-y-2 mt-1">
+              <p className={clsx('text-[10px] text-mine-clair font-medium', 'tabular-nums')}>Aperçu</p>
               {[config.tasks.title || 'Tâches', config.participants.title || 'Équipe projet', config.signatures.title || 'Signatures', 'Section personnalisée'].map((title) => (
                 <div key={title} style={sectionTitlePreviewStyle()}>{title}</div>
               ))}
@@ -1005,7 +1004,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Ordre des sections ── */}
           <S title="Ordre des sections" icon={List} section="sectionOrder">
-            <p className="text-[13px] text-stone-500 px-1">Définissez l'ordre d'apparition des sections dans le PDF.</p>
+            <p className="text-[13px] text-mine-clair px-1">Définissez l'ordre d'apparition des sections dans le PDF.</p>
             <div className="space-y-2 mt-1">
               {sectionOrder.map((id, index) => (
                 <SectionOrderItem key={id} id={id} label={SECTION_LABELS[id]?.label || id} icon={SECTION_LABELS[id]?.icon || '•'} index={index} total={sectionOrder.length} onMoveUp={(i) => moveSection(i, -1)} onMoveDown={(i) => moveSection(i, 1)} />
@@ -1017,43 +1016,43 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Page de garde (optionnelle)" icon={FileText} section="coverPage">
             <Toggle label="Activer la page de garde" checked={config.coverPage.enabled} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, enabled: e.target.checked } }))} />
             {config.coverPage.enabled && (
-              <div className="space-y-5 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-5 pl-5 border-l-2 border-voile">
                 <div className="space-y-3">
-                  <p className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Logo entreprise</p>
+                  <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Logo entreprise</p>
                   <Toggle label="Afficher" checked={config.coverPage.showCompanyLogo} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showCompanyLogo: e.target.checked } }))} />
                   {config.coverPage.showCompanyLogo && <SelectField label="Taille" value={config.coverPage.companyLogoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, companyLogoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />}
                 </div>
-                <div className="space-y-3 pt-4 border-t border-stone-100">
-                  <p className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Logo client</p>
+                <div className="space-y-3 pt-4 border-t border-voile">
+                  <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Logo client</p>
                   <Toggle label="Afficher" checked={config.coverPage.showClientLogo} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showClientLogo: e.target.checked } }))} />
                   {config.coverPage.showClientLogo && <SelectField label="Taille" value={config.coverPage.clientLogoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, clientLogoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />}
-                  <p className="text-[11px] text-stone-500">Chargés automatiquement depuis votre organisation et votre projet.</p>
+                  <p className="text-[11px] text-mine-clair">Chargés automatiquement depuis votre organisation et votre projet.</p>
                 </div>
-                <div className="space-y-4 pt-4 border-t border-stone-100">
-                  <p className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Style du titre</p>
+                <div className="space-y-4 pt-4 border-t border-voile">
+                  <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Style du titre</p>
                   <SelectField label="Style"              value={config.coverPage.titleStyle ?? 'bold'}           onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleStyle:         e.target.value } }))} options={[{ value: "bold", label: "Gras majuscule" }, { value: "light", label: "Léger / thin" }, { value: "boldlight", label: "Gras + léger" }]} />
                   <SelectField label="Taille"             value={config.coverPage.titleSize ?? 'large'}           onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleSize:          e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
                   <SelectField label="Alignement"         value={config.coverPage.titleAlign ?? 'left'}           onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleAlign:         e.target.value } }))} options={[{ value: "left", label: "Gauche" }, { value: "center", label: "Centré" }, { value: "right", label: "Droite" }]} />
                   <SelectField label="Espacement lettres" value={config.coverPage.titleLetterSpacing ?? 'normal'}  onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleLetterSpacing: e.target.value } }))} options={[{ value: "tight", label: "Serré" }, { value: "normal", label: "Normal" }, { value: "wide", label: "Large" }]} />
                   <Toggle label="Barre d'accent" checked={config.coverPage.titleAccentBar ?? true} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleAccentBar: e.target.checked } }))} />
                   <div className="space-y-2">
-                    <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Couleur du titre</label>
+                    <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Couleur du titre</label>
                     <div className="flex gap-2">
                       {['primary', 'custom'].map((opt) => (
-                        <button key={opt} onClick={() => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleColor: opt } }))} className={clsx("flex-1 py-1.5 rounded-[4px] text-[12px] font-medium border transition-colors", (config.coverPage.titleColor ?? 'primary') === opt ? "bg-stone-950 text-white border-stone-950" : "bg-white text-stone-950 border-stone-200 hover:bg-stone-100")}>
+                        <button key={opt} onClick={() => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleColor: opt } }))} className={clsx("flex-1 py-1.5 rounded-[4px] text-[12px] font-medium border transition-colors", (config.coverPage.titleColor ?? 'primary') === opt ? "bg-encre text-white border-encre" : "bg-white text-encre border-filet hover:bg-survol")}>
                           {opt === 'primary' ? 'Principale' : 'Personnalisée'}
                         </button>
                       ))}
                     </div>
                     {(config.coverPage.titleColor ?? 'primary') === 'custom' && (
-                      <div className="flex items-center gap-2 bg-white rounded-[4px] border border-stone-200 px-3 py-2">
+                      <div className="flex items-center gap-2 bg-white rounded-[6px] border border-filet px-3 py-2">
                         <input type="color" value={config.coverPage.titleCustomColor ?? '#000000'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleCustomColor: e.target.value } })) }} className="w-6 h-6 rounded-[3px] cursor-pointer border-0" />
-                        <span className={clsx('text-[12px]', GeistMono.className)}>{config.coverPage.titleCustomColor ?? '#000000'}</span>
+                        <span className={clsx('text-[12px]', 'tabular-nums')}>{config.coverPage.titleCustomColor ?? '#000000'}</span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="space-y-3 pt-4 border-t border-stone-100">
+                <div className="space-y-3 pt-4 border-t border-voile">
                   <Toggle label="Photo de projet"  checked={config.coverPage.showProjectPhoto} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showProjectPhoto: e.target.checked } }))} />
                   {config.coverPage.showProjectPhoto && <SelectField label="Taille photo" value={config.coverPage.projectPhotoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, projectPhotoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }, { value: "full", label: "Pleine largeur" }]} />}
                   <Toggle label="Résumé exécutif"  checked={config.coverPage.showSummary}      onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showSummary:      e.target.checked } }))} />
@@ -1080,7 +1079,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Galerie photos supplémentaire" icon={Grid} section="photoGallery">
             <Toggle label="Activer la galerie" checked={config.photoGallery.enabled} onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, enabled: e.target.checked } }))} />
             {config.photoGallery.enabled && (
-              <div className="space-y-4 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-4 pl-5 border-l-2 border-voile">
                 <SelectField label="Disposition"      value={config.photoGallery.layout}               onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, layout:       e.target.value } }))}            options={[{ value: "grid", label: "Grille" }, { value: "masonry", label: "Mosaïque" }, { value: "list", label: "Liste" }]} />
                 <SelectField label="Photos par ligne" value={String(config.photoGallery.photosPerRow)} onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, photosPerRow: parseInt(e.target.value) } }))} options={[{ value: "2", label: "2" }, { value: "3", label: "3" }, { value: "4", label: "4" }, { value: "6", label: "6" }]} />
                 <Toggle label="Légendes" checked={config.photoGallery.showCaptions} onChange={(e) => setConfig(p => ({ ...p, photoGallery: { ...p.photoGallery, showCaptions: e.target.checked } }))} />
@@ -1092,10 +1091,10 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Section participants" icon={Users} section="participants">
             <Toggle label="Activer la section" checked={config.participants.enabled} onChange={(e) => setConfig(p => ({ ...p, participants: { ...p.participants, enabled: e.target.checked } }))} />
             {config.participants.enabled && (
-              <div className="space-y-4 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-4 pl-5 border-l-2 border-voile">
                 <div className="space-y-2">
-                  <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre</label>
-                  <input type="text" value={config.participants.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, participants: { ...p.participants, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors" />
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre</label>
+                  <input type="text" value={config.participants.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, participants: { ...p.participants, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
                 </div>
                 <SelectField label="Disposition" value={config.participants.layout} onChange={(e) => setConfig(p => ({ ...p, participants: { ...p.participants, layout: e.target.value } }))} options={[{ value: "list", label: "Liste" }, { value: "grid", label: "Grille" }, { value: "table", label: "Tableau" }]} />
                 <Toggle label="Afficher les rôles"    checked={config.participants.showRoles}   onChange={(e) => setConfig(p => ({ ...p, participants: { ...p.participants, showRoles:   e.target.checked } }))} />
@@ -1109,14 +1108,14 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Section signatures" icon={FileText} section="signatures">
             <Toggle label="Activer les signatures" checked={config.signatures.enabled} onChange={(e) => setConfig(p => ({ ...p, signatures: { ...p.signatures, enabled: e.target.checked } }))} />
             {config.signatures.enabled && (
-              <div className="space-y-4 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-4 pl-5 border-l-2 border-voile">
                 <div className="space-y-2">
-                  <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre</label>
-                  <input type="text" value={config.signatures.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, signatures: { ...p.signatures, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors" />
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre</label>
+                  <input type="text" value={config.signatures.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, signatures: { ...p.signatures, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
                 </div>
                 <SelectField label="Disposition" value={config.signatures.layout} onChange={(e) => setConfig(p => ({ ...p, signatures: { ...p.signatures, layout: e.target.value } }))} options={[{ value: "horizontal", label: "Horizontale" }, { value: "vertical", label: "Verticale" }]} />
                 <div className="space-y-2">
-                  <p className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Champs</p>
+                  <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Champs</p>
                   {config.signatures.fields.map((field, index) => (
                     <Toggle key={index} label={field.label} checked={field.enabled} onChange={(e) => { const nf = config.signatures.fields.map((f, i) => i === index ? { ...f, enabled: e.target.checked } : f); setConfig(p => ({ ...p, signatures: { ...p.signatures, fields: nf } })) }} />
                   ))}
@@ -1129,13 +1128,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Pied de page" icon={AlignLeft} section="footer">
             <Toggle label="Activer le pied de page" checked={config.footer.enabled} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, enabled: e.target.checked } }))} />
             {config.footer.enabled && (
-              <div className="space-y-4 pl-5 border-l-2 border-stone-100">
+              <div className="space-y-4 pl-5 border-l-2 border-voile">
                 <Toggle label="Numéros de page"         checked={config.footer.showPageNumbers} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showPageNumbers: e.target.checked } }))} />
                 <Toggle label="Informations projet"     checked={config.footer.showProjectInfo} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showProjectInfo: e.target.checked } }))} />
                 <Toggle label="Informations entreprise" checked={config.footer.showCompanyInfo} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showCompanyInfo: e.target.checked } }))} />
                 <div className="space-y-2">
-                  <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Texte personnalisé</label>
-                  <textarea value={config.footer.customText} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, footer: { ...p.footer, customText: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }} placeholder="Ex: Confidentiel" rows={2} className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 resize-none transition-colors" />
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Texte personnalisé</label>
+                  <textarea value={config.footer.customText} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, footer: { ...p.footer, customText: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }} placeholder="Ex: Confidentiel" rows={2} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre resize-none transition-colors" />
                 </div>
               </div>
             )}
@@ -1146,7 +1145,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <S key={customSection.id} title={customSection.title || "Section personnalisée"} icon={FileText} section={`custom-${customSection.id}`}>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>Titre</label>
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre</label>
                   <input
                     type="text"
                     value={customSection.title}
@@ -1157,12 +1156,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                       setConfig(p => ({ ...p, customSections: next }))
                     }}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors"
+                    className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                   />
                 </div>
-                <div className="bg-blue-50 border border-blue-100 rounded-[4px] p-3 flex gap-2 items-start">
-                  <FileText className="w-4 h-4 text-blue-700 flex-shrink-0 mt-0.5" />
-                  <p className="text-[12px] text-blue-900">
+                <div className="bg-tirage-pale border border-tirage-pale rounded-[4px] p-3 flex gap-2 items-start">
+                  <FileText className="w-4 h-4 text-tirage-fonce flex-shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-tirage-fonce">
                     Cette section sera remplie avec un éditeur riche (texte, listes, tableaux) au moment de la génération du rapport.
                   </p>
                 </div>
@@ -1180,7 +1179,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     e.stopPropagation()
                     setConfig(p => ({ ...p, customSections: p.customSections.filter((_, i) => i !== index) }))
                   }}
-                  className="w-full px-4 py-2.5 border border-red-200 bg-red-50 rounded-[4px] text-[13px] font-medium text-red-800 hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2.5 border border-alerte-clair bg-alerte-pale rounded-[4px] text-[13px] font-medium text-alerte hover:bg-[#fbdbdb] transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />Supprimer
                 </button>
@@ -1189,11 +1188,11 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           ))}
 
           {/* ── Actions ── */}
-          <div className="p-5 space-y-3 bg-stone-50 border-t border-stone-100">
-            <button onClick={addCustomSection} className="w-full px-4 py-2.5 border-2 border-dashed border-stone-300 rounded-[4px] text-[13px] font-medium text-stone-500 hover:text-blue-600 hover:border-blue-600 transition-colors flex items-center justify-center gap-2">
+          <div className="p-5 space-y-3 bg-papier border-t border-voile">
+            <button onClick={addCustomSection} className="w-full px-4 py-2.5 border-2 border-dashed border-filet-fort rounded-[4px] text-[13px] font-medium text-mine-clair hover:text-tirage hover:border-tirage transition-colors flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" />Ajouter une section personnalisée
             </button>
-            <button onClick={saveTemplate} disabled={isSaving} className={clsx("w-full py-2.5 rounded-[4px] font-medium text-[13px] transition-colors uppercase tracking-[0.04em] flex items-center justify-center gap-2", isSaving && "opacity-50 cursor-not-allowed", saveStatus === 'success' && "bg-green-600 text-white", saveStatus === 'error' && "bg-red-600 text-white", !saveStatus && "bg-stone-950 text-white hover:bg-stone-800")}>
+            <button onClick={saveTemplate} disabled={isSaving} className={clsx("w-full py-2.5 rounded-[4px] font-medium text-[13px] transition-colors uppercase tracking-[0.04em] flex items-center justify-center gap-2", isSaving && "opacity-50 cursor-not-allowed", saveStatus === 'success' && "bg-[#16a34a] text-white", saveStatus === 'error' && "bg-alerte text-white", !saveStatus && "bg-encre text-white hover:bg-encre-survol")}>
               {isSaving ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sauvegarde...</>
                 : saveStatus === 'success' ? '✓ Template sauvegardé !'
                 : saveStatus === 'error'   ? '✗ Erreur de sauvegarde'
@@ -1204,43 +1203,43 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       </aside>
 
       {/* ── PREVIEW PANEL ─────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto bg-stone-100 p-12">
+      <main className="flex-1 overflow-y-auto bg-survol p-12">
         <div className="max-w-4xl mx-auto space-y-6">
 
-          <div className="bg-white rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04)] border border-stone-200 p-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="bg-white rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04)] border border-filet p-4 flex items-center justify-between sticky top-0 z-10">
             <div className="flex items-center gap-3">
-              <Eye className="w-4 h-4 text-blue-600" />
-              <h2 className="text-[15px] font-medium text-stone-950">Aperçu du PDF</h2>
+              <Eye className="w-4 h-4 text-tirage" />
+              <h2 className="text-[15px] font-medium text-encre">Aperçu du PDF</h2>
             </div>
             <div className="flex items-center gap-3">
-              <span className={clsx('text-[11px] px-2 py-1 rounded-[3px] bg-stone-100 font-medium text-stone-700', GeistMono.className)} style={{ fontFamily: previewFont }}>{fontOptions.find(f => f.value === config.fontFamily)?.label}</span>
-              <span className="text-[11px] text-stone-500">Modifications en temps réel</span>
+              <span className={clsx('text-[11px] px-2 py-1 rounded-[3px] bg-voile font-medium text-mine', 'tabular-nums')} style={{ fontFamily: previewFont }}>{fontOptions.find(f => f.value === config.fontFamily)?.label}</span>
+              <span className="text-[11px] text-mine-clair">Modifications en temps réel</span>
             </div>
           </div>
 
           {/* ── COVER PAGE preview ── */}
           {config.coverPage.enabled && (
-            <div className="bg-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-stone-200">
+            <div className="bg-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
               <div className="w-full aspect-[210/297] p-12 bg-white flex flex-col" style={{ fontFamily: previewFont }}>
                 <div className="flex justify-between items-start mb-12">
-                  {config.coverPage.showCompanyLogo && <div className="bg-stone-100 rounded flex items-center justify-center text-xs text-stone-400 font-medium" style={logoPlaceholderStyle(config.coverPage.companyLogoSize)}>Logo</div>}
-                  {config.coverPage.showClientLogo  && <div className="bg-stone-100 rounded flex items-center justify-center text-xs text-stone-400 font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>}
+                  {config.coverPage.showCompanyLogo && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.companyLogoSize)}>Logo</div>}
+                  {config.coverPage.showClientLogo  && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>}
                 </div>
                 <CoverTitlePreview config={config} />
                 {config.coverPage.showProjectPhoto && (
                   <div className="flex justify-center mb-8">
-                    <div className={clsx("bg-stone-100 rounded-2xl flex items-center justify-center", config.coverPage.projectPhotoSize === 'small' ? 'w-64 h-48' : config.coverPage.projectPhotoSize === 'large' ? 'w-4/5 h-72' : config.coverPage.projectPhotoSize === 'full' ? 'w-full h-80' : 'w-2/3 h-60')}>
-                      <div className="text-center"><ImageIcon className="w-10 h-10 text-stone-300 mx-auto mb-2" /><p className="text-xs text-stone-400">Photo de couverture</p></div>
+                    <div className={clsx("bg-voile rounded-2xl flex items-center justify-center", config.coverPage.projectPhotoSize === 'small' ? 'w-64 h-48' : config.coverPage.projectPhotoSize === 'large' ? 'w-4/5 h-72' : config.coverPage.projectPhotoSize === 'full' ? 'w-full h-80' : 'w-2/3 h-60')}>
+                      <div className="text-center"><ImageIcon className="w-10 h-10 text-trait mx-auto mb-2" /><p className="text-xs text-mine-clair">Photo de couverture</p></div>
                     </div>
                   </div>
                 )}
                 {config.coverPage.showSummary && (
                   <div className="p-5 rounded-xl mb-6" style={{ backgroundColor: '#f5f5f4', borderLeft: `4px solid ${config.primaryColor}` }}>
                     <p className="text-xs font-black uppercase mb-2 tracking-wider" style={{ color: config.primaryColor }}>Résumé Exécutif</p>
-                    <p className="text-stone-700 text-sm italic">"Le projet progresse conformément au planning."</p>
+                    <p className="text-mine text-sm italic">"Le projet progresse conformément au planning."</p>
                   </div>
                 )}
-                <div className="mt-auto pt-4 border-t border-stone-100 flex justify-between text-xs text-stone-400">
+                <div className="mt-auto pt-4 border-t border-voile flex justify-between text-xs text-mine-clair">
                   <span>Client Example</span><span>{new Date().toLocaleDateString('fr-FR')}</span>
                 </div>
               </div>
@@ -1248,27 +1247,27 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           )}
 
           {/* ── MAIN PAGE preview ── */}
-          <div className="bg-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-stone-200">
+          <div className="bg-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
             <div className="w-full aspect-[210/297] bg-white overflow-auto" style={{ fontFamily: previewFont }}>
               {(config.header.showOrganizationName || config.header.showProjectName || config.header.showDate || config.header.showLogo || config.header.showClientLogo) && (
-                <div className="flex justify-between items-center px-12 py-4 border-b border-stone-100 bg-white sticky top-0 z-10">
+                <div className="flex justify-between items-center px-12 py-4 border-b border-voile bg-white sticky top-0 z-10">
                   <div className="flex items-center gap-3">
-                    {config.header.showLogo && <div className="bg-stone-100 rounded flex items-center justify-center text-[10px] text-stone-400" style={logoPlaceholderStyle(config.header.logoSize ?? 'medium')}>Logo</div>}
+                    {config.header.showLogo && <div className="bg-voile rounded flex items-center justify-center text-[10px] text-mine-clair" style={logoPlaceholderStyle(config.header.logoSize ?? 'medium')}>Logo</div>}
                     <div>
                       {config.header.showOrganizationName && <div className="text-base font-bold" style={{ color: config.primaryColor }}>Votre Organisation</div>}
-                      {config.header.showProjectName      && <div className="text-sm text-stone-700">Projet Example</div>}
+                      {config.header.showProjectName      && <div className="text-sm text-mine">Projet Example</div>}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {config.header.showClientLogo && <div className="bg-stone-100 rounded flex items-center justify-center text-[10px] text-stone-400" style={logoPlaceholderStyle(config.header.clientLogoSize ?? 'medium')}>Client</div>}
-                    {config.header.showDate && <div className="text-sm text-stone-600">{new Date().toLocaleDateString('fr-FR')}</div>}
+                    {config.header.showClientLogo && <div className="bg-voile rounded flex items-center justify-center text-[10px] text-mine-clair" style={logoPlaceholderStyle(config.header.clientLogoSize ?? 'medium')}>Client</div>}
+                    {config.header.showDate && <div className="text-sm text-mine">{new Date().toLocaleDateString('fr-FR')}</div>}
                   </div>
                 </div>
               )}
               <div className="p-12 pt-6 space-y-6">
                 {sectionOrder.map((id) => renderPreviewSection(id))}
                 {config.footer.enabled && (
-                  <div className="pt-4 border-t border-stone-200 flex justify-between text-xs text-stone-400">
+                  <div className="pt-4 border-t border-filet flex justify-between text-xs text-mine-clair">
                     <div className="flex gap-4">
                       {config.footer.showProjectInfo && <span>Projet Example</span>}
                       {config.footer.showCompanyInfo && <span>Votre Organisation</span>}
@@ -1281,11 +1280,11 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-[4px] p-4 flex gap-3">
-            <FileText className="w-4 h-4 text-blue-700 flex-shrink-0 mt-0.5" />
+          <div className="bg-tirage-pale border border-tirage-pale rounded-[4px] p-4 flex gap-3">
+            <FileText className="w-4 h-4 text-tirage-fonce flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-950 text-[13px] mb-1">Comment appliquer ce template ?</h4>
-              <p className="text-[12px] text-blue-700">Une fois sauvegardé, ce template sera appliqué lors de la génération de vos prochains rapports PDF.</p>
+              <h4 className="font-medium text-[#1a2e6b] text-[13px] mb-1">Comment appliquer ce template ?</h4>
+              <p className="text-[12px] text-tirage-fonce">Une fois sauvegardé, ce template sera appliqué lors de la génération de vos prochains rapports PDF.</p>
             </div>
           </div>
         </div>
