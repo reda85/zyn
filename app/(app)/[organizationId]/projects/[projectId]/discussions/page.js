@@ -285,7 +285,7 @@ export default function DiscussionsPage({ params }) {
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1 px-2 py-1.5 bg-encre text-white rounded-[4px] text-[12px] font-medium hover:bg-encre-survol transition-colors"
+              className="flex items-center gap-1 px-2 py-1.5 bg-tirage text-white rounded-[6px] text-[12px] font-medium hover:bg-tirage-fonce transition-colors"
             >
               <Plus size={13} strokeWidth={2.5} />
               Nouveau
@@ -301,7 +301,7 @@ export default function DiscussionsPage({ params }) {
               <div className="flex flex-col items-center gap-3 py-12 px-4 text-center">
                 <MessageSquare size={28} className="text-voile" />
                 <p className="text-[12px] text-mine-clair">Aucune discussion</p>
-                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-encre text-white px-3 py-1.5 rounded-[4px] font-medium hover:bg-encre-survol transition-colors">
+                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-tirage text-white px-3 py-1.5 rounded-[6px] font-medium hover:bg-tirage-fonce transition-colors">
                   Créer un groupe
                 </button>
               </div>
@@ -352,7 +352,7 @@ export default function DiscussionsPage({ params }) {
                 <p className="text-[13px] font-medium text-mine mb-1">Sélectionnez une discussion</p>
                 <p className="text-[12px] text-mine-clair">Choisissez un groupe ou créez-en un nouveau.</p>
               </div>
-              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors">
+              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors">
                 <Plus size={13} />
                 Nouveau groupe
               </button>
@@ -510,7 +510,7 @@ export default function DiscussionsPage({ params }) {
                     <button
                       onClick={handleSend}
                       disabled={(!input.trim() && pendingImages.length === 0 && pendingLinked.length === 0) || sending}
-                      className="w-8 h-8 rounded-[4px] bg-encre hover:bg-encre-survol disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
+                      className="w-8 h-8 rounded-[6px] bg-tirage hover:bg-tirage-fonce disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
                     >
                       <Send size={14} />
                     </button>
@@ -597,7 +597,7 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-mine-clair" />
             <input type="text" placeholder={`Rechercher ${activeTab === 'pin' ? 'une tâche' : 'un plan'}…`} value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-[7px] text-[13px] bg-white border border-filet rounded-[6px] outline-none focus:border-encre transition-colors placeholder:text-trait"
+              className="w-full pl-8 pr-3 py-[7px] text-[13px] bg-white border border-filet rounded-[10px] outline-none focus:border-encre transition-colors placeholder:text-trait"
               autoFocus />
           </div>
         </div>
@@ -698,7 +698,7 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
                     <p className="text-[11px] font-medium text-encre truncate">{u.name}</p>
                     <p className="text-[10px] text-mine-clair truncate">{u.email}</p>
                   </div>
-                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-[3px] bg-encre hover:bg-encre-survol text-white flex items-center justify-center transition-colors shrink-0">
+                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-[3px] bg-tirage hover:bg-tirage-fonce text-white flex items-center justify-center transition-colors shrink-0">
                     <UserPlus size={11} />
                   </button>
                 </div>
@@ -786,9 +786,9 @@ function CreateGroupModal({ projectId, onClose, onCreated }) {
           {error && <p className="text-[12px] text-alerte bg-alerte-pale border border-alerte-clair px-3 py-2 rounded-[4px]">{error}</p>}
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
-          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">Annuler</button>
+          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors">Annuler</button>
           <button onClick={handleCreate} disabled={creating || !name.trim()}
-            className="px-4 py-2 text-[13px] font-medium text-white bg-encre hover:bg-encre-survol disabled:opacity-40 rounded-[4px] transition-colors">
+            className="px-4 py-2 text-[13px] font-medium text-white bg-tirage hover:bg-tirage-fonce disabled:opacity-40 rounded-[6px] transition-colors">
             {creating ? 'Création…' : 'Créer le groupe'}
           </button>
         </div>

@@ -15,7 +15,7 @@ const ORG_SIZES = ['1 – 5', '6 – 10', '11 – 25', '26 – 50', '51 – 100'
 
 function SettingsFormSkeleton() {
   return (
-    <div className="bg-white border border-filet rounded-[6px]">
+    <div className="bg-white border border-filet rounded-[10px]">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-voile">
         <div className="h-2.5 w-10 rounded-[2px] bg-voile animate-pulse mb-3" />
@@ -131,7 +131,7 @@ export default function OrganizationSettingsPage({ params }) {
           {isFormLoading ? (
             <SettingsFormSkeleton />
           ) : (
-            <div className="bg-white border border-filet rounded-[6px]">
+            <div className="bg-white border border-filet rounded-[10px]">
               {/* Logo */}
               <div className="px-5 py-4 border-b border-voile">
                 <label className={clsx('block text-[11px] font-medium text-mine-clair mb-3', 'tabular-nums')}>Logo</label>
@@ -179,7 +179,7 @@ export default function OrganizationSettingsPage({ params }) {
                 <button
                   onClick={saveSettings}
                   disabled={saving}
-                  className="px-4 py-2 rounded-[4px] bg-encre text-white text-[13px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-[6px] bg-tirage text-white text-[13px] font-medium hover:bg-tirage-fonce transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Sauvegarde…' : 'Sauvegarder'}
                 </button>

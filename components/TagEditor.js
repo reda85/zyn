@@ -195,7 +195,7 @@ export default function TagEditor({ pin: selectedPin, onChange, disabled = false
       {!disabled && showDropdown && (suggestions.length > 0 || input.trim()) && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden"
+          className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-filet rounded-[10px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden"
         >
           {suggestions.length > 0 && (
             <>

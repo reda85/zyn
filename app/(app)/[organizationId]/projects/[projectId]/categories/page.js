@@ -195,12 +195,12 @@ export default function ProjectCategories() {
 
         {/* Categories List */}
         {categories.length === 0 ? (
-          <div className="bg-white border border-filet rounded-[6px] p-12 text-center">
+          <div className="bg-white border border-filet rounded-[10px] p-12 text-center">
             <Folder className="w-12 h-12 text-filet-fort mx-auto mb-4" />
             <p className="text-[13px] text-mine-clair mb-4">Aucune catégorie trouvée pour ce projet.</p>
             <button
               onClick={handleAddCategory}
-              className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors inline-flex items-center gap-2"
+              className="px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors inline-flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Créer la première catégorie

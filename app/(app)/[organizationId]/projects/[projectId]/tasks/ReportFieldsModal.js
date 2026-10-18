@@ -287,12 +287,12 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
         </div>
 
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors">
             Annuler
           </button>
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             Générer PDF

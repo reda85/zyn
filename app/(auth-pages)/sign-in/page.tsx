@@ -128,7 +128,7 @@ export default async function Login({
             <SubmitButton
               pendingText="Connexion..."
               formAction={signInAction}
-              className="w-full bg-encre text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-encre-survol transition-colors"
+              className="w-full bg-tirage text-white font-medium py-2.5 px-4 rounded-[6px] text-[13px] hover:bg-tirage-fonce transition-colors"
             >
               Se connecter
             </SubmitButton>

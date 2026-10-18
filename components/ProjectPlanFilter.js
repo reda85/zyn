@@ -83,7 +83,7 @@ export default function ProjectPlanFilter({ active, onToggle, selectedPlans, set
           </div>
 
           {showDropdown && projectPlans && projectPlans.length > 0 && (
-            <div className="absolute z-40 mt-1 bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] w-60 max-h-48 overflow-y-auto">
+            <div className="absolute z-40 mt-1 bg-white border border-filet rounded-[10px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] w-60 max-h-48 overflow-y-auto">
               {suggestions.map((p) => (
                   <div
                     key={p.id}

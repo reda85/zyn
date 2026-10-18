@@ -200,7 +200,7 @@ function Dialog({ open, onClose, title, children, size = 'md' }) {
             enter="ease-out duration-150" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
             leave="ease-in duration-100" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className={`w-full ${maxW} bg-white rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col max-h-[90vh]`}>
+            <DialogPanel className={`w-full ${maxW} bg-white rounded-[10px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col max-h-[90vh]`}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-voile flex-shrink-0">
                 <DialogTitle className="text-base font-medium text-encre">{title}</DialogTitle>
                 <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
@@ -314,7 +314,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
           Annuler
         </button>
         <button onClick={handleSubmit} disabled={!file || loading}
-          className="px-4 py-2 rounded-[4px] bg-encre text-white text-[13px] font-medium hover:bg-encre-survol disabled:opacity-40 transition-colors">
+          className="px-4 py-2 rounded-[6px] bg-tirage text-white text-[13px] font-medium hover:bg-tirage-fonce disabled:opacity-40 transition-colors">
           {loading ? 'Upload…' : mode === 'new' ? 'Uploader' : 'Enregistrer'}
         </button>
       </div>
@@ -373,7 +373,7 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
           </p>
         </div>
         <button onClick={() => { onClose(); onUploadVersion(doc); }}
-          className="flex items-center gap-1.5 bg-white border border-filet text-mine text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-survol transition-colors flex-shrink-0">
+          className="flex items-center gap-1.5 bg-white border border-filet text-mine text-[12px] font-medium px-3 py-1.5 rounded-[6px] hover:bg-survol transition-colors flex-shrink-0">
           <UploadCloud size={13} />
           <span>Nouvelle version</span>
         </button>
@@ -407,7 +407,7 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
               <p className="mt-4 text-[13px] font-medium text-encre">{doc?.name}</p>
               <p className="mt-1 text-[11px] text-mine-clair">Aperçu non disponible pour ce type de fichier.</p>
               <a href={previewUrl} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 mt-4 bg-encre text-white px-4 py-2 rounded-[4px] text-[13px] font-medium no-underline hover:bg-encre-survol transition-colors">
+                className="inline-flex items-center gap-2 mt-4 bg-tirage text-white px-4 py-2 rounded-[6px] text-[13px] font-medium no-underline hover:bg-tirage-fonce transition-colors">
                 <ExternalLink size={13} />
                 <span>Ouvrir</span>
               </a>
@@ -436,13 +436,13 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
                 <p className={clsx('text-[11px] text-mine-clair mb-3', 'tabular-nums')}>{formatBytes(v.file_size)}</p>
                 <div className="flex gap-2 pt-3 border-t border-voile">
                   <button onClick={() => { setPreviewVersion(v); setTab('preview'); loadPreview(v); }}
-                    className="flex items-center gap-1.5 bg-white border border-filet text-mine text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-survol transition-colors">
+                    className="flex items-center gap-1.5 bg-white border border-filet text-mine text-[12px] font-medium px-3 py-1.5 rounded-[6px] hover:bg-survol transition-colors">
                     <Eye size={12} />
                     <span>Aperçu</span>
                   </button>
                   {!isCurrent && (
                     <button onClick={() => handleRestore(v)} disabled={!!restoringId}
-                      className="flex items-center gap-1.5 bg-white border border-filet text-mine text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-survol transition-colors disabled:opacity-50">
+                      className="flex items-center gap-1.5 bg-white border border-filet text-mine text-[12px] font-medium px-3 py-1.5 rounded-[6px] hover:bg-survol transition-colors disabled:opacity-50">
                       {restoringId === v.id
                         ? <><RotateCcw size={12} className="animate-spin" /><span>Restauration…</span></>
                         : <><RotateCcw size={12} /><span>Restaurer</span></>}
@@ -513,7 +513,7 @@ function RenameFolderDialog({ folder, onClose, onRename }) {
           Annuler
         </button>
         <button onClick={submit}
-          className="px-4 py-2 rounded-[4px] bg-encre text-white text-[13px] font-medium hover:bg-encre-survol transition-colors">
+          className="px-4 py-2 rounded-[6px] bg-tirage text-white text-[13px] font-medium hover:bg-tirage-fonce transition-colors">
           Renommer
         </button>
       </div>
@@ -673,7 +673,7 @@ export default function DocumentsPage({ params }) {
 
             <button
               onClick={() => setSortOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-filet text-mine rounded-[4px] text-[13px] font-medium hover:bg-survol transition-colors"
+              className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-filet text-mine rounded-[6px] text-[13px] font-medium hover:bg-survol transition-colors"
             >
               <ArrowUpDown size={14} />
               Trier
@@ -682,7 +682,7 @@ export default function DocumentsPage({ params }) {
             {!search && (
               <button
                 onClick={() => setNewFolderOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-filet text-mine rounded-[4px] text-[13px] font-medium hover:bg-survol transition-colors"
+                className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-filet text-mine rounded-[6px] text-[13px] font-medium hover:bg-survol transition-colors"
               >
                 <Folder size={14} />
                 Nouveau dossier
@@ -691,7 +691,7 @@ export default function DocumentsPage({ params }) {
 
             <button
               onClick={() => { setUploadMode('new'); setUploadOpen(true); }}
-              className="flex items-center gap-1.5 px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+              className="flex items-center gap-1.5 px-3 py-[7px] bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
             >
               <Plus size={14} />
               Ajouter
@@ -700,7 +700,7 @@ export default function DocumentsPage({ params }) {
         </div>
 
         {/* ── Main card ── */}
-        <div className="bg-white border border-filet rounded-[6px] overflow-hidden">
+        <div className="bg-white border border-filet rounded-[10px] overflow-hidden">
 
           {/* Upload progress */}
           {uploads.length > 0 && (
@@ -761,9 +761,9 @@ export default function DocumentsPage({ params }) {
                   <input autoFocus value={newFolderName} onChange={e => setNewFolderName(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') setNewFolderOpen(false); }}
                     placeholder="Nom du dossier…"
-                    className="flex-1 bg-white border border-filet rounded-[6px] px-3 py-1.5 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors" />
+                    className="flex-1 bg-white border border-filet rounded-[10px] px-3 py-1.5 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors" />
                   <button onClick={handleCreateFolder}
-                    className="px-3 py-1.5 bg-encre text-white text-[12px] font-medium rounded-[4px] hover:bg-encre-survol transition-colors">
+                    className="px-3 py-1.5 bg-tirage text-white text-[12px] font-medium rounded-[6px] hover:bg-tirage-fonce transition-colors">
                     Créer
                   </button>
                   <button onClick={() => setNewFolderOpen(false)}
@@ -786,12 +786,12 @@ export default function DocumentsPage({ params }) {
                   {!search && (
                     <div className="flex gap-2">
                       <button onClick={() => setNewFolderOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-filet text-mine rounded-[4px] text-[13px] font-medium hover:bg-survol transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-filet text-mine rounded-[6px] text-[13px] font-medium hover:bg-survol transition-colors">
                         <Folder size={13} />
                         Nouveau dossier
                       </button>
                       <button onClick={() => { setUploadMode('new'); setUploadOpen(true); }}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors">
                         <Plus size={13} />
                         Ajouter un document
                       </button>
@@ -882,7 +882,7 @@ export default function DocumentsPage({ params }) {
       {contextMenu && (
         <div
           id="context-menu"
-          className="fixed bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden min-w-[180px]"
+          className="fixed bg-white border border-filet rounded-[10px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden min-w-[180px]"
           style={{ left: Math.min(contextMenu.x, window.innerWidth - 196), top: Math.min(contextMenu.y, window.innerHeight - 90), zIndex: 9999 }}
         >
           <button

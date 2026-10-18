@@ -17,7 +17,7 @@ function TemplatesGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="bg-white border border-filet rounded-[6px] overflow-hidden">
+        <div key={i} className="bg-white border border-filet rounded-[10px] overflow-hidden">
           <div className="h-36 bg-survol p-5">
             <div className="space-y-2.5">
               <div className="h-6 rounded-[3px] bg-voile animate-pulse" />
@@ -237,7 +237,7 @@ export default function ReportsPage({ params }) {
       <div className={clsx(GeistSans.className, 'h-screen bg-papier')}>
         <button
           onClick={handleBackToList}
-          className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white border border-filet rounded-[6px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] hover:bg-survol transition-colors text-[13px] font-medium text-mine"
+          className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white border border-filet rounded-[10px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] hover:bg-survol transition-colors text-[13px] font-medium text-mine"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Retour
@@ -266,7 +266,7 @@ export default function ReportsPage({ params }) {
           </div>
           <button
             onClick={handleCreateNew}
-            className="bg-encre text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors flex items-center gap-1.5"
+            className="bg-tirage text-white px-4 py-2 rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Nouveau template
@@ -302,7 +302,7 @@ export default function ReportsPage({ params }) {
             {!searchQuery && (
               <button
                 onClick={handleCreateNew}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Créer un template

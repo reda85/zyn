@@ -289,7 +289,7 @@ export default function ProjectPlans({ project, onClose }) {
             </div>
           </div>
 
-          <button onClick={handleSaveAndClose} className="bg-encre text-white px-4 py-2.5 rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors flex items-center justify-center gap-2 mt-5">
+          <button onClick={handleSaveAndClose} className="bg-tirage text-white px-4 py-2.5 rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors flex items-center justify-center gap-2 mt-5">
             <Save className="w-4 h-4" /> Enregistrer et fermer
           </button>
         </div>
@@ -395,7 +395,7 @@ export default function ProjectPlans({ project, onClose }) {
       {/* ── Modal Update plan existant ── */}
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
               <div>
                 <h2 className="text-base font-medium text-encre">Mettre à jour le plan</h2>
@@ -532,12 +532,12 @@ export default function ProjectPlans({ project, onClose }) {
 
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
               <button onClick={closeUpdateModal} disabled={updateState.uploading || updateState.processing}
-                className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {updateState.success ? 'Fermer' : 'Annuler'}
               </button>
               {updateState.file && !updateState.success && !updateState.error && !updateState.processing && (
                 <button onClick={handleUpdate} disabled={updateState.uploading}
-                  className="px-4 py-2 text-[13px] font-medium bg-encre text-white rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                  className="px-4 py-2 text-[13px] font-medium bg-tirage text-white rounded-[6px] hover:bg-tirage-fonce transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                   {updateState.uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload...</> : <><RefreshCw className="w-3.5 h-3.5" /> Mettre à jour</>}
                 </button>
               )}
@@ -551,7 +551,7 @@ export default function ProjectPlans({ project, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/20" onClick={closeDeletePlanModal} />
 
-          <div className="relative bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full p-6">
+          <div className="relative bg-white border border-filet rounded-[10px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full p-6">
             <button
               onClick={closeDeletePlanModal}
               disabled={deletingPlan}
@@ -573,7 +573,7 @@ export default function ProjectPlans({ project, onClose }) {
               <button
                 onClick={closeDeletePlanModal}
                 disabled={deletingPlan}
-                className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Annuler
               </button>
@@ -597,7 +597,7 @@ function UploadModalContent({ show, state, onClose, onFileSelect, onUpload, onRe
   if (!show) return null
   return (
     <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
+      <div className="bg-white rounded-[10px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
           <div>
             <h2 className="text-base font-medium text-encre">Importer un fichier PDF</h2>
@@ -671,11 +671,11 @@ function UploadModalContent({ show, state, onClose, onFileSelect, onUpload, onRe
           )}
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
-          <button onClick={onClose} disabled={state.uploading || state.processing} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors disabled:opacity-40">
+          <button onClick={onClose} disabled={state.uploading || state.processing} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors disabled:opacity-40">
             {state.success ? 'Fermer' : state.processing ? 'Fermer' : 'Annuler'}
           </button>
           {state.file && !state.success && !state.error && !state.processing && (
-            <button onClick={onUpload} disabled={state.uploading} className="px-4 py-2 text-[13px] font-medium bg-encre text-white rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 flex items-center gap-1.5">
+            <button onClick={onUpload} disabled={state.uploading} className="px-4 py-2 text-[13px] font-medium bg-tirage text-white rounded-[6px] hover:bg-tirage-fonce transition-colors disabled:opacity-40 flex items-center gap-1.5">
               {state.uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload...</> : <><Upload className="w-3.5 h-3.5" /> Télécharger</>}
             </button>
           )}

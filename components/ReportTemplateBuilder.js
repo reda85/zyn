@@ -123,7 +123,7 @@ const SelectField = ({ label, value, onChange, options }) => (
 )
 
 const SectionOrderItem = ({ id, label, icon, index, total, onMoveUp, onMoveDown }) => (
-  <div className="flex items-center gap-3 bg-white border border-filet rounded-[6px] px-3 py-2.5 group">
+  <div className="flex items-center gap-3 bg-white border border-filet rounded-[10px] px-3 py-2.5 group">
     <span className="text-base">{icon}</span>
     <span className="text-[13px] font-medium text-encre flex-1">{label}</span>
     <div className="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
@@ -744,7 +744,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Couleur</label>
-                <div className="flex items-center gap-2 bg-white rounded-[6px] border border-filet px-3 py-2">
+                <div className="flex items-center gap-2 bg-white rounded-[10px] border border-filet px-3 py-2">
                   <input type="color" value={config.primaryColor} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, primaryColor: e.target.value })) }} className="w-6 h-6 rounded-[3px] cursor-pointer border-0" />
                   <span className={clsx('text-[12px] text-encre', 'tabular-nums')}>{config.primaryColor}</span>
                 </div>
@@ -1045,7 +1045,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                       ))}
                     </div>
                     {(config.coverPage.titleColor ?? 'primary') === 'custom' && (
-                      <div className="flex items-center gap-2 bg-white rounded-[6px] border border-filet px-3 py-2">
+                      <div className="flex items-center gap-2 bg-white rounded-[10px] border border-filet px-3 py-2">
                         <input type="color" value={config.coverPage.titleCustomColor ?? '#000000'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleCustomColor: e.target.value } })) }} className="w-6 h-6 rounded-[3px] cursor-pointer border-0" />
                         <span className={clsx('text-[12px]', 'tabular-nums')}>{config.coverPage.titleCustomColor ?? '#000000'}</span>
                       </div>
@@ -1192,7 +1192,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <button onClick={addCustomSection} className="w-full px-4 py-2.5 border-2 border-dashed border-filet-fort rounded-[4px] text-[13px] font-medium text-mine-clair hover:text-tirage hover:border-tirage transition-colors flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" />Ajouter une section personnalisée
             </button>
-            <button onClick={saveTemplate} disabled={isSaving} className={clsx("w-full py-2.5 rounded-[4px] font-medium text-[13px] transition-colors uppercase tracking-[0.04em] flex items-center justify-center gap-2", isSaving && "opacity-50 cursor-not-allowed", saveStatus === 'success' && "bg-[#16a34a] text-white", saveStatus === 'error' && "bg-alerte text-white", !saveStatus && "bg-encre text-white hover:bg-encre-survol")}>
+            <button onClick={saveTemplate} disabled={isSaving} className={clsx("w-full py-2.5 rounded-[4px] font-medium text-[13px] transition-colors uppercase tracking-[0.04em] flex items-center justify-center gap-2", isSaving && "opacity-50 cursor-not-allowed", saveStatus === 'success' && "bg-[#16a34a] text-white", saveStatus === 'error' && "bg-alerte text-white", !saveStatus && "bg-tirage text-white hover:bg-tirage-fonce")}>
               {isSaving ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sauvegarde...</>
                 : saveStatus === 'success' ? '✓ Template sauvegardé !'
                 : saveStatus === 'error'   ? '✗ Erreur de sauvegarde'

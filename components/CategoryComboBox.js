@@ -71,19 +71,23 @@ export default function CategoryComboBox({ pin, organization_id }) {
             onClick={() => { if (!isGuest) setIsOpen(prev => !prev) }}
             disabled={isGuest}
             className={clsx(
-              'group relative w-full text-[13px] rounded-[4px] py-1 pl-2 pr-8 text-left border transition-colors focus:outline-none',
+              'group relative w-full text-[13px] rounded-[6px] h-8 pl-1.5 pr-8 text-left border transition-all focus:outline-none',
               isGuest
-                ? 'border-transparent text-mine-clair cursor-not-allowed'
-                : 'border-transparent text-mine cursor-pointer hover:bg-white hover:border-filet hover:text-encre focus:border-encre'
+                ? 'bg-survol border-filet text-mine-clair cursor-not-allowed'
+                : isOpen
+                  ? 'bg-white border-tirage ring-2 ring-tirage-clair text-encre cursor-pointer'
+                  : 'bg-white border-filet-fort text-encre cursor-pointer shadow-[0_1px_1px_rgba(11,15,23,0.04)] hover:border-tirage hover:bg-tirage-pale'
             )}
           >
             <span className="flex items-center gap-2">
-              {selected?.icon && categoriesIcons[selected.icon]}
-              <span className="block truncate text-[13px]">{selected?.name}</span>
+              <span className="h-5 w-5 rounded-[5px] bg-voile text-mine flex items-center justify-center shrink-0 group-hover:bg-white group-hover:text-tirage transition-colors [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-current">
+                {selected?.icon && categoriesIcons[selected.icon]}
+              </span>
+              <span className="block truncate text-[13px] font-medium">{selected?.name}</span>
             </span>
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
+            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <ChevronUpDownIcon
-                className={clsx('h-4 w-4', isGuest ? 'hidden' : 'text-trait opacity-0 group-hover:opacity-100 transition-opacity')}
+                className={clsx('h-4 w-4 transition-colors', isGuest ? 'text-trait' : 'text-mine-clair group-hover:text-tirage')}
                 aria-hidden="true"
               />
             </span>

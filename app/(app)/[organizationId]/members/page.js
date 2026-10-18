@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
-import { Check, ChevronDown, UserPlus, Search, X, Mail, Send } from 'lucide-react'
+import { Check, ChevronDown, UserPlus, Search, X, Mail, Send, Users as UsersIcon, Shield as ShieldIcon, UserRound as UserRoundIcon } from 'lucide-react'
 import { GeistSans } from 'geist/font/sans'
 import clsx from 'clsx'
 import { Dialog, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Switch } from '@headlessui/react'
@@ -29,7 +29,7 @@ function Avatar({ name, src }) {
   }
   if (!src || imageError) {
     return (
-      <div className="h-8 w-8 rounded-full bg-voile border border-filet flex items-center justify-center text-[11px] font-medium text-mine flex-shrink-0">
+      <div className="h-8 w-8 rounded-full bg-tirage-pale flex items-center justify-center text-[11px] font-semibold text-tirage flex-shrink-0">
         {getInitials(name)}
       </div>
     )
@@ -42,8 +42,8 @@ function RoleBadge({ role }) {
   return (
     <span
       className={clsx(
-        'px-1.5 py-px inline-flex text-[12px] rounded-[3px] border',
-        role === 'admin' ? 'border-encre text-encre' : role === 'guest' ? 'border-dashed border-filet-fort text-mine' : 'border-filet text-mine'
+        'px-2 py-0.5 inline-flex text-[12px] font-medium rounded-full border',
+        role === 'admin' ? 'border-transparent bg-tirage-pale text-tirage' : role === 'guest' ? 'border-transparent bg-ambre-pale text-[#9a6200]' : 'border-transparent bg-voile text-mine'
       )}
     >
       {ROLE_LABELS[role] ?? role}
@@ -53,7 +53,7 @@ function RoleBadge({ role }) {
 
 function MembersTableSkeleton() {
   return (
-    <div className="bg-white rounded-[6px] border border-filet overflow-hidden">
+    <div className="bg-white rounded-[10px] border border-filet overflow-hidden">
       <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '35%' }} />
@@ -62,7 +62,7 @@ function MembersTableSkeleton() {
           <col style={{ width: '32%' }} />
         </colgroup>
         <thead>
-          <tr className="border-b border-filet">
+          <tr className="bg-papier border-b border-filet">
             {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
               <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-mine text-left border-b border-filet', 'tabular-nums')}>{h}</th>
             ))}
@@ -351,27 +351,30 @@ export default function MembersPage({ params }) {
           </div>
           <button
             onClick={openAddModal}
-            className="bg-encre text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors flex items-center gap-1.5"
+            className="bg-tirage text-white px-4 py-2 rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors flex items-center gap-1.5"
           >
             <UserPlus className="w-4 h-4" />
             Ajouter un membre
           </button>
         </div>
 
-        <div className="grid grid-cols-3 bg-white border border-filet rounded-[6px] mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: 'Membres', value: members.length, hint: 'dans l\u2019organisation' },
-            { label: 'Administrateurs', value: members.filter((m) => m.role === 'admin').length, hint: 'gèrent projets et membres' },
-            { label: 'Invités', value: members.filter((m) => m.role === 'guest').length, hint: 'ne voient que leurs réserves' },
-          ].map((stat, i) => (
-            <div key={stat.label} className={clsx('px-5 py-4', i > 0 && 'border-l border-filet')}>
-              <p className="text-[12px] text-mine">{stat.label}</p>
+            { label: 'Membres', value: members.length, hint: 'dans l\u2019organisation', chip: 'bg-tirage-pale text-tirage', Icon: UsersIcon },
+            { label: 'Administrateurs', value: members.filter((m) => m.role === 'admin').length, hint: 'gèrent projets et membres', chip: 'bg-valide-pale text-valide', Icon: ShieldIcon },
+            { label: 'Invités', value: members.filter((m) => m.role === 'guest').length, hint: 'ne voient que leurs réserves', chip: 'bg-ambre-pale text-[#b77400]', Icon: UserRoundIcon },
+          ].map(({ label, value, hint, chip, Icon }) => (
+            <div key={label} className="bg-white border border-filet rounded-[10px] p-4 shadow-[0_1px_2px_rgba(11,15,23,0.04)]">
+              <div className="flex items-center justify-between">
+                <p className="text-[12px] font-medium text-mine">{label}</p>
+                <span className={clsx('h-7 w-7 rounded-[8px] flex items-center justify-center', chip)}><Icon className="h-4 w-4" /></span>
+              </div>
               {membersLoading ? (
-                <div className="h-7 w-10 mt-1.5 rounded-[3px] bg-voile animate-pulse" />
+                <div className="h-8 w-10 mt-2 rounded-[4px] bg-voile animate-pulse" />
               ) : (
-                <p className="mt-1 text-[26px] leading-none font-semibold tracking-[-0.02em] text-encre tabular-nums">{stat.value}</p>
+                <p className="mt-1.5 text-[30px] leading-none font-semibold tracking-[-0.03em] text-encre tabular-nums">{value}</p>
               )}
-              <p className="mt-2 text-[12px] text-mine-clair">{stat.hint}</p>
+              <p className="mt-2 text-[12px] text-mine-clair">{hint}</p>
             </div>
           ))}
         </div>
@@ -390,7 +393,7 @@ export default function MembersPage({ params }) {
 
           <Listbox value={selectedRoles} onChange={setSelectedRoles} multiple>
             <div className="relative">
-              <ListboxButton className="flex items-center gap-1.5 px-3 py-[7px] rounded-[4px] bg-white border border-filet text-[13px] font-medium text-mine hover:bg-survol transition-colors cursor-pointer">
+              <ListboxButton className="flex items-center gap-1.5 px-3 py-[7px] rounded-[6px] bg-white border border-filet text-[13px] font-medium text-mine hover:bg-survol transition-colors cursor-pointer">
                 <span>{selectedRoles.length === 0 ? 'Tous les rôles' : selectedRoles.map((r) => r.name).join(', ')}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-mine-clair" />
               </ListboxButton>
@@ -418,7 +421,7 @@ export default function MembersPage({ params }) {
         {membersLoading ? (
           <MembersTableSkeleton />
         ) : (
-          <div className="bg-white rounded-[6px] border border-filet overflow-hidden">
+          <div className="bg-white rounded-[10px] border border-filet overflow-hidden">
             <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <colgroup>
                 <col style={{ width: '35%' }} />
@@ -427,7 +430,7 @@ export default function MembersPage({ params }) {
                 <col style={{ width: '32%' }} />
               </colgroup>
               <thead>
-                <tr className="border-b border-filet">
+                <tr className="bg-papier border-b border-filet">
                   {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
                     <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-mine text-left border-b border-filet', 'tabular-nums')}>{h}</th>
                   ))}
@@ -492,7 +495,7 @@ export default function MembersPage({ params }) {
         <Dialog open={manageOpen} onClose={() => setManageOpen(false)} className="relative z-50">
           <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6">
-            <DialogPanel className="bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6">
+            <DialogPanel className="bg-white border border-filet rounded-[10px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <DialogTitle className="text-base font-medium text-encre">Gérer les projets</DialogTitle>
@@ -537,7 +540,7 @@ export default function MembersPage({ params }) {
         <Dialog open={addOpen} onClose={() => setAddOpen(false)} className="relative z-50">
           <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6 overflow-y-auto">
-            <DialogPanel className="bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6 relative">
+            <DialogPanel className="bg-white border border-filet rounded-[10px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6 relative">
               <div className="flex items-center justify-between mb-5">
                 <DialogTitle className="text-base font-medium text-encre">Ajouter un membre</DialogTitle>
                 <button onClick={() => setAddOpen(false)} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
@@ -649,10 +652,10 @@ export default function MembersPage({ params }) {
                   )}
 
                   <div className="flex justify-end gap-2 pt-1">
-                    <button type="button" onClick={() => setAddOpen(false)} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
+                    <button type="button" onClick={() => setAddOpen(false)} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors">
                       Annuler
                     </button>
-                    <button type="button" onClick={addMember} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-encre rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                    <button type="button" onClick={addMember} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-tirage rounded-[6px] hover:bg-tirage-fonce transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                       {addLoading ? (
                         <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Ajout...</>
                       ) : (
@@ -670,7 +673,7 @@ export default function MembersPage({ params }) {
         <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} className="relative z-50">
           <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6">
-            <DialogPanel className="bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-sm p-6 relative">
+            <DialogPanel className="bg-white border border-filet rounded-[10px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-sm p-6 relative">
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <DialogTitle className="text-base font-medium text-encre">Inviter par email</DialogTitle>
@@ -717,10 +720,10 @@ export default function MembersPage({ params }) {
                   )}
 
                   <div className="flex justify-end gap-2 pt-1">
-                    <button type="button" onClick={() => setInviteOpen(false)} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
+                    <button type="button" onClick={() => setInviteOpen(false)} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors">
                       Annuler
                     </button>
-                    <button type="button" onClick={sendInvitation} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-encre rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                    <button type="button" onClick={sendInvitation} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-tirage rounded-[6px] hover:bg-tirage-fonce transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                       {inviteLoading ? (
                         <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Envoi...</>
                       ) : (

@@ -13,7 +13,7 @@ import Sidebar from '@/components/Sidebar'
 
 function ProfileFormSkeleton() {
   return (
-    <div className="bg-white border border-filet rounded-[6px]">
+    <div className="bg-white border border-filet rounded-[10px]">
       {/* Avatar */}
       <div className="px-5 py-4 border-b border-voile">
         <div className="h-2.5 w-24 rounded-[2px] bg-voile animate-pulse mb-3" />
@@ -126,7 +126,7 @@ export default function UserSettingsPage({ params }) {
           {isFormLoading ? (
             <ProfileFormSkeleton />
           ) : (
-            <div className="bg-white border border-filet rounded-[6px]">
+            <div className="bg-white border border-filet rounded-[10px]">
               {/* Avatar */}
               <div className="px-5 py-4 border-b border-voile">
                 <label className={clsx('block text-[11px] font-medium text-mine-clair mb-3', 'tabular-nums')}>
@@ -198,7 +198,7 @@ export default function UserSettingsPage({ params }) {
                 <button
                   onClick={saveProfile}
                   disabled={saving}
-                  className="px-4 py-2 rounded-[4px] bg-encre text-white text-[13px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-[6px] bg-tirage text-white text-[13px] font-medium hover:bg-tirage-fonce transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Sauvegarde…' : 'Sauvegarder'}
                 </button>

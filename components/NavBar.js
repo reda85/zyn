@@ -70,8 +70,8 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
   return (
     <nav
       className={clsx(
-        'sticky top-0 z-30 flex items-stretch gap-6 h-14 pl-5 pr-6',
-        'bg-white border-b border-filet',
+        'sticky top-0 z-30 flex items-stretch gap-6 h-14 pl-4 pr-5',
+        'bg-nuit text-white',
         GeistSans.className
       )}
     >
@@ -80,11 +80,11 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
         <Link
           href={`/${organizationId}/projects`}
           title="Tous les projets"
-          className="relative h-8 w-8 shrink-0 rounded-[4px] hover:bg-survol transition-colors"
+          className="relative h-8 w-8 shrink-0 rounded-[6px] hover:bg-nuit-2 transition-colors"
         >
-          <Image src="/logo.png" alt="ZaynSpace" fill className="object-contain p-1" />
+          <Image src="/logo_clair.png" alt="ZaynSpace" fill className="object-contain p-1" />
         </Link>
-        <span className="h-5 w-px bg-filet" aria-hidden="true" />
+        <span className="h-5 w-px bg-nuit-filet" aria-hidden="true" />
         <button
   onClick={() => !isLoading && setProjectMenuOpen(prev => !prev)}
   className="flex items-center gap-2 h-full pr-1 focus:outline-none group"
@@ -93,14 +93,14 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 >
   {isLoading ? (
     <>
-      <div className="h-3.5 w-28 bg-voile rounded-[3px] animate-pulse" />
+      <div className="h-3.5 w-28 bg-nuit-2 rounded-[3px] animate-pulse" />
     </>
   ) : (
     <>
-      <span className="text-[14px] font-semibold tracking-[-0.01em] text-encre max-w-[280px] truncate">
+      <span className="text-[14px] font-semibold tracking-[-0.01em] text-white max-w-[280px] truncate">
         {project?.name}
       </span>
-      <ChevronUpDownIcon className="h-4 w-4 text-mine-clair group-hover:text-encre transition-colors" />
+      <ChevronUpDownIcon className="h-4 w-4 text-nuit-texte group-hover:text-white transition-colors" />
     </>
   )}
 </button>
@@ -181,8 +181,8 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
               className={clsx(
                 'relative flex items-center px-2.5 text-[13px] transition-colors',
                 active
-                  ? 'text-encre font-medium after:absolute after:inset-x-2.5 after:-bottom-px after:h-[2px] after:bg-tirage'
-                  : 'text-mine hover:text-encre'
+                  ? 'text-white font-medium after:absolute after:inset-x-2.5 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-tirage'
+                  : 'text-nuit-texte hover:text-white'
               )}
             >
               {tab}
@@ -193,7 +193,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 
       {/* Right Actions */}
       <div className="ml-auto flex items-center gap-2">
-        <button className="flex h-8 w-8 items-center justify-center rounded-[4px] text-mine hover:bg-survol hover:text-encre transition-colors">
+        <button aria-label="Notifications" className="flex h-8 w-8 items-center justify-center rounded-[6px] text-nuit-texte hover:bg-nuit-2 hover:text-white transition-colors">
           <BellIcon className="h-5 w-5" />
         </button>
 
@@ -203,7 +203,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setUserMenuOpen(prev => !prev)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-voile border border-filet text-[12px] font-medium text-encre focus:outline-none  transition-shadow"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-tirage text-[12px] font-semibold text-white focus:outline-none transition-shadow"
             aria-expanded={userMenuOpen}
             aria-haspopup="true"
           >

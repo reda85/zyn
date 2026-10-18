@@ -37,16 +37,16 @@ function DueDatePicker({ pin, onUpdate }) {
         type="button"
         onClick={() => setOpen(true)}
         className={clsx(
-          'w-full border border-transparent rounded-[4px] px-2 py-1 pl-7 text-left hover:border-filet hover:bg-white relative transition-colors text-[12px]',
+          'w-full border rounded-[6px] h-8 px-2 pl-7 text-left relative transition-colors text-[12px]',
           'tabular-nums',
           isOverDue
-            ? 'text-alerte font-medium'
+            ? 'bg-alerte-pale border-alerte-clair text-alerte font-semibold hover:border-alerte'
             : selectedDate
-              ? 'text-encre'
-              : 'text-trait'
+              ? 'bg-white border-filet-fort text-encre hover:border-tirage hover:bg-tirage-pale'
+              : 'bg-white border-dashed border-filet-fort text-mine-clair hover:border-tirage hover:text-tirage'
         )}
       >
-        {selectedDate ? selectedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ajouter'}
+        {selectedDate ? selectedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ajouter une date'}
         <Calendar1Icon
           size={12}
           className={clsx(
@@ -80,8 +80,8 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
     <tr
       onClick={() => onOpen(pin)}
       className={clsx(
-        'border-b border-voile hover:bg-survol transition-colors cursor-pointer',
-        isSelected && 'bg-survol'
+        'border-b border-voile hover:bg-papier transition-colors cursor-pointer',
+        isSelected && 'bg-tirage-pale'
       )}
     >
       <td className="px-4 py-2.5">
@@ -110,10 +110,10 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
       <td className="px-4 py-2.5">
         {pin.assigned_to?.name ? (
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-voile flex items-center justify-center text-[9px] font-medium text-mine flex-shrink-0">
+            <div className="w-6 h-6 rounded-full bg-tirage-pale flex items-center justify-center text-[10px] font-semibold text-tirage flex-shrink-0">
               {pin.assigned_to.name.charAt(0).toUpperCase()}
             </div>
-            <span className="text-[13px] text-mine">{pin.assigned_to.name}</span>
+            <span className="text-[13px] text-encre">{pin.assigned_to.name}</span>
           </div>
         ) : (
           <span className="text-[13px] text-trait">—</span>
@@ -143,7 +143,7 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
               pt.tags ? (
                 <span
                   key={pt.tag_id}
-                  className="inline-flex items-center px-1.5 py-px rounded-[3px] text-[11px] border border-filet text-mine"
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-ambre-pale text-[#9a6200]"
                 >
                   {pt.tags.name}
                 </span>

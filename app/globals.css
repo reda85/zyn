@@ -4,10 +4,11 @@
 
 :root {
   /* ── Palette ZaynSpace ───────────────────────────────────────────────────
-     Gris chauds de papier calque, encre graphite, et un seul accent : le bleu
-     des tirages de plans, réservé à ce qui est actif ou sélectionné. Le rouge
-     ne sert qu'aux retards et aux actions destructives. */
-  --zs-papier: #f8f8f6;
+     Navigation bleu nuit (celle du site), surfaces claires, un bleu vif pour
+     les actions et la sélection, et des couleurs franches pour les
+     indicateurs : rouge pour les retards, vert pour les levées, ambre pour
+     les photos. */
+  --zs-papier: #f4f5f7;
   --zs-encre: #1c1c1a;
   --zs-encre-survol: #33332f;
   --zs-mine: #5b5b56;
@@ -17,16 +18,23 @@
   --zs-filet-fort: #d3d3ce;
   --zs-voile: #eeeeeb;
   --zs-survol: #f3f3f0;
-  --zs-tirage: #2c4f91;
-  --zs-tirage-fonce: #223e73;
-  --zs-tirage-clair: #cdd8ea;
-  --zs-tirage-pale: #edf1f8;
-  --zs-alerte: #a8322a;
+  --zs-tirage: #2f5ee0;
+  --zs-tirage-fonce: #2449b8;
+  --zs-tirage-clair: #c9d7fb;
+  --zs-tirage-pale: #eef3ff;
+  --zs-alerte: #d23c2c;
   --zs-alerte-clair: #ecc9c3;
-  --zs-alerte-pale: #f9ecea;
-  --zs-valide: #2f6b4a;
+  --zs-alerte-pale: #fdecea;
+  --zs-valide: #1f8a52;
   --zs-valide-clair: #c3dccd;
-  --zs-valide-pale: #ebf3ee;
+  --zs-valide-pale: #e7f6ee;
+  /* Navigation : le bleu nuit du site ZaynSpace. */
+  --zs-nuit: #0b0f17;
+  --zs-nuit-2: #161c28;
+  --zs-nuit-filet: #232b3a;
+  --zs-nuit-texte: #9aa3b5;
+  --zs-ambre: #f2a516;
+  --zs-ambre-pale: #fff4dc;
 
   /* Zinc & Indigo Palette - Light */
   --background: 0 0% 100%;

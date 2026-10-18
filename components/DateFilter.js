@@ -93,7 +93,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
                 <button
                   key={s}
                   onClick={() => addTag(s)}
-                  className="px-2.5 py-1.5 text-[13px] bg-white text-encre rounded-[4px] border border-filet hover:bg-survol hover:border-filet-fort transition-colors font-medium"
+                  className="px-2.5 py-1.5 text-[13px] bg-white text-encre rounded-[6px] border border-filet hover:bg-survol hover:border-filet-fort transition-colors font-medium"
                 >
                   {DATE_PRESETS[s]}
                 </button>
@@ -102,7 +102,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
             {/* Bouton date personnalisée */}
             <button
               onClick={() => setShowDatePicker(!showDatePicker)}
-              className="px-2.5 py-1.5 text-[13px] bg-white text-encre rounded-[4px] border border-filet hover:bg-survol hover:border-filet-fort transition-colors font-medium flex items-center gap-1.5"
+              className="px-2.5 py-1.5 text-[13px] bg-white text-encre rounded-[6px] border border-filet hover:bg-survol hover:border-filet-fort transition-colors font-medium flex items-center gap-1.5"
             >
               <Calendar className="w-3.5 h-3.5" />
               Date personnalisée
@@ -111,7 +111,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
 
           {/* Date Picker */}
           {showDatePicker && (
-            <div className="p-4 bg-white border border-filet rounded-[6px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
+            <div className="p-4 bg-white border border-filet rounded-[10px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
               <p className="text-[13px] font-medium text-encre mb-3">
                 Sélectionner une période
               </p>
@@ -146,7 +146,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
                   <button
                     onClick={addCustomDateRange}
                     disabled={!startDate}
-                    className="flex-1 px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Appliquer
                   </button>

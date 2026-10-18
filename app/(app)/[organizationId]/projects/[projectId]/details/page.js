@@ -219,7 +219,7 @@ export default function ProjectDetails() {
             <div className="flex justify-end">
               <Button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+                className="px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
               >
                 Modifier
               </Button>
@@ -236,7 +236,7 @@ export default function ProjectDetails() {
               <Button
                 onClick={handleSave}
                 disabled={saving || uploading.picture || uploading.logo}
-                className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors disabled:opacity-50"
               >
                 {saving ? 'Enregistrement...' : 'Enregistrer'}
               </Button>
@@ -244,7 +244,7 @@ export default function ProjectDetails() {
           )}
 
           {/* Project Image */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[10px] p-6">
             <label className="block text-[13px] font-medium text-encre mb-3">
               Image du projet
             </label>
@@ -315,7 +315,7 @@ export default function ProjectDetails() {
           </div>
 
           {/* Client Logo */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[10px] p-6">
             <label className="block text-[13px] font-medium text-encre mb-3">
               Logo du client
             </label>
@@ -325,7 +325,7 @@ export default function ProjectDetails() {
 
             {project.client_logo_url ? (
               <div className="relative group inline-block">
-                <div className="bg-white border border-filet rounded-[6px] p-6 flex items-center justify-center" style={{ minWidth: 200, minHeight: 120 }}>
+                <div className="bg-white border border-filet rounded-[10px] p-6 flex items-center justify-center" style={{ minWidth: 200, minHeight: 120 }}>
                   <img
                     src={project.client_logo_url}
                     alt="Logo client"
@@ -391,7 +391,7 @@ export default function ProjectDetails() {
           </div>
 
           {/* Project Name */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[10px] p-6">
             <label className="block text-[13px] font-medium text-encre mb-3">Nom du projet</label>
             {isEditing ? (
               <Input
@@ -406,7 +406,7 @@ export default function ProjectDetails() {
           </div>
 
           {/* Project Address */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[10px] p-6">
             <label className="block text-[13px] font-medium text-encre mb-3">Adresse</label>
             {isEditing ? (
               <Input
@@ -421,7 +421,7 @@ export default function ProjectDetails() {
           </div>
 
           {/* Project Type */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[10px] p-6">
             <label className="block text-[13px] font-medium text-encre mb-3">Type de projet</label>
             {isEditing ? (
               <select
@@ -440,7 +440,7 @@ export default function ProjectDetails() {
           </div>
 
           {/* Project Members */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[10px] p-6">
             <h2 className="text-[17px] font-medium text-encre mb-4">
               Membres de l'équipe
             </h2>

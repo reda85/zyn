@@ -34,6 +34,8 @@ const config: Config = {
         survol: 'var(--zs-survol)',
         tirage: { DEFAULT: 'var(--zs-tirage)', fonce: 'var(--zs-tirage-fonce)', clair: 'var(--zs-tirage-clair)', pale: 'var(--zs-tirage-pale)' },
         alerte: { DEFAULT: 'var(--zs-alerte)', clair: 'var(--zs-alerte-clair)', pale: 'var(--zs-alerte-pale)' },
+        nuit: { DEFAULT: 'var(--zs-nuit)', 2: 'var(--zs-nuit-2)', filet: 'var(--zs-nuit-filet)', texte: 'var(--zs-nuit-texte)' },
+        ambre: { DEFAULT: 'var(--zs-ambre)', pale: 'var(--zs-ambre-pale)' },
         valide: { DEFAULT: 'var(--zs-valide)', clair: 'var(--zs-valide-clair)', pale: 'var(--zs-valide-pale)' },
         'muted-foreground': 'hsl(var(--muted-foreground))', 
         border: "hsl(var(--border))",

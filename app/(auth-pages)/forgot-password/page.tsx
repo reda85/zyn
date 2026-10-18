@@ -74,7 +74,7 @@ export default async function ForgotPassword(props: {
             <SubmitButton
               pendingText="Envoi en cours..."
               formAction={forgotPasswordAction}
-              className="w-full flex items-center justify-center gap-2 bg-encre text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-encre-survol transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-tirage text-white font-medium py-2.5 px-4 rounded-[6px] text-[13px] hover:bg-tirage-fonce transition-colors"
             >
               Envoyer le lien
             </SubmitButton>

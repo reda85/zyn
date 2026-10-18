@@ -336,7 +336,7 @@ export default function Tasks({ params }) {
             {!isGuest && (
               <button
                 onClick={() => setIsAddTaskOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+                className="flex items-center gap-1.5 px-3 py-[7px] bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
               >
                 <span className="text-sm leading-none">+</span>
                 Nouvelle tâche
@@ -345,7 +345,7 @@ export default function Tasks({ params }) {
           </div>
         </div>
 
-        <div className="bg-white border border-filet rounded-[6px] overflow-hidden">
+        <div className="bg-white border border-filet rounded-[10px] overflow-hidden">
           {selectedCount > 0 && (
             <div className="flex items-center justify-between px-4 py-2.5 bg-survol border-b border-filet">
               <p className="text-[12px] font-medium text-encre">
@@ -370,7 +370,7 @@ export default function Tasks({ params }) {
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[12px] font-medium transition-colors',
                     isGeneratingReport
                       ? 'bg-trait text-white cursor-not-allowed'
-                      : 'bg-encre text-white hover:bg-encre-survol'
+                      : 'bg-tirage text-white hover:bg-tirage-fonce'
                   )}
                 >
                   {isGeneratingReport
@@ -382,7 +382,7 @@ export default function Tasks({ params }) {
                 <button
                   onClick={() => handleExport('simple')}
                   disabled={Boolean(exporting)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-mine rounded-[4px] text-[12px] font-medium border border-filet hover:bg-survol disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-mine rounded-[6px] text-[12px] font-medium border border-filet hover:bg-survol disabled:opacity-50 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {exporting === 'simple' ? 'Export…' : 'Excel'}
@@ -391,7 +391,7 @@ export default function Tasks({ params }) {
                 <button
                   onClick={() => handleExport('media')}
                   disabled={Boolean(exporting)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-mine rounded-[4px] text-[12px] font-medium border border-filet hover:bg-survol disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-mine rounded-[6px] text-[12px] font-medium border border-filet hover:bg-survol disabled:opacity-50 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {exporting === 'media' ? 'Export…' : 'Excel + Médias'}
@@ -414,7 +414,7 @@ export default function Tasks({ params }) {
           <div className={clsx('overflow-x-auto transition-opacity', isPlaceholderData && 'opacity-60')}>
             <table className="w-full" style={{ borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="border-b border-filet">
+                <tr className="bg-papier border-b border-filet">
                   <th className="px-4 py-2 w-10">
                     <input
                       type="checkbox"
@@ -445,7 +445,7 @@ export default function Tasks({ params }) {
                       <p className="text-[13px] text-alerte mb-3">Impossible de charger les tâches.</p>
                       <button
                         onClick={() => refetch()}
-                        className="px-3 py-1.5 text-[12px] font-medium border border-filet rounded-[4px] hover:bg-survol transition-colors"
+                        className="px-3 py-1.5 text-[12px] font-medium border border-filet rounded-[6px] hover:bg-survol transition-colors"
                       >
                         Réessayer
                       </button>
@@ -530,13 +530,13 @@ export default function Tasks({ params }) {
               </div>
             </div>
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
-              <button onClick={() => setIsAddTaskOpen(false)} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
+              <button onClick={() => setIsAddTaskOpen(false)} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[6px] hover:bg-survol transition-colors">
                 Annuler
               </button>
               <button
                 onClick={handleCreateTask}
                 disabled={isCreating || !newTaskName.trim()}
-                className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {isCreating ? 'Création…' : 'Créer'}
               </button>

@@ -206,7 +206,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[1100] overflow-hidden py-1">
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-filet rounded-[10px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[1100] overflow-hidden py-1">
 
                   {/* Repositionner / Placer */}
                   <button

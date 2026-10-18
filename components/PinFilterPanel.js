@@ -111,7 +111,7 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
             ref={panelRef}
             style={{ top: position.top, left: position.left, width }}
             className={clsx(
-              'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-filet rounded-[6px]',
+              'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-filet rounded-[10px]',
               'shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)]',
               GeistSans.className
             )}

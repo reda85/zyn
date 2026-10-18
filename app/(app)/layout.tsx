@@ -23,7 +23,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <form action={signOutAction}>
             <button
               type="submit"
-              className="px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+              className="px-3 py-[7px] bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
             >
               Se déconnecter
             </button>

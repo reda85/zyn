@@ -168,7 +168,7 @@ export default function Medias({ params }) {
           </div>
         </div>
 
-        <div className="bg-white border border-filet rounded-[6px] overflow-hidden">
+        <div className="bg-white border border-filet rounded-[10px] overflow-hidden">
           {(hasActiveFilters || selectedIds.size > 0) && (
             <div className="flex items-center justify-between px-4 py-2.5 bg-survol border-b border-filet">
               <div className="flex items-center gap-2 flex-wrap">
@@ -199,7 +199,7 @@ export default function Medias({ params }) {
                 <button
                   onClick={handleDownload}
                   disabled={isDownloading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-encre text-white rounded-[4px] text-[12px] font-medium hover:bg-encre-survol disabled:opacity-60 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-tirage text-white rounded-[6px] text-[12px] font-medium hover:bg-tirage-fonce disabled:opacity-60 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {isDownloading ? 'Génération…' : 'Rapport PDF'}
@@ -222,7 +222,7 @@ export default function Medias({ params }) {
               <p className="text-[13px] text-alerte mb-3">Impossible de charger les photos.</p>
               <button
                 onClick={() => refetch()}
-                className="px-3 py-1.5 text-[12px] font-medium border border-filet rounded-[4px] hover:bg-survol transition-colors"
+                className="px-3 py-1.5 text-[12px] font-medium border border-filet rounded-[6px] hover:bg-survol transition-colors"
               >
                 Réessayer
               </button>

@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
           <p className="text-[13px] text-mine mb-6">{linkError}</p>
           <Link
             href="/forgot-password"
-            className="inline-block px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+            className="inline-block px-3 py-[7px] bg-tirage text-white rounded-[6px] text-[13px] font-medium hover:bg-tirage-fonce transition-colors"
           >
             Demander un nouveau lien
           </Link>
@@ -209,7 +209,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full flex items-center justify-center gap-2 bg-encre text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-encre-survol transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-tirage text-white font-medium py-2.5 px-4 rounded-[6px] text-[13px] hover:bg-tirage-fonce transition-colors disabled:opacity-50"
             >
               {loading ? 'Mise à jour...' : 'Réinitialiser le mot de passe'}
             </button>
