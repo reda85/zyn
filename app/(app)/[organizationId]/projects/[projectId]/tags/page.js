@@ -8,10 +8,9 @@ import { supabase } from '@/utils/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
-import { Lexend } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
 import clsx from 'clsx'
 
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-lexend', display: 'swap' })
 
 export default function ProjectTags() {
   const [tags, setTags] = useState([])
@@ -115,7 +114,7 @@ export default function ProjectTags() {
   }
 
   return (
-    <div className={clsx('min-h-screen bg-background font-sans', lexend.className)}>
+    <div className={clsx('min-h-screen bg-background font-sans', GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">

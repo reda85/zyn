@@ -151,7 +151,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           {/* View on canvas — only if positioned */}
           {hasPosition && (
             <button
-              className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
+              className="hover:bg-survol rounded-[4px] p-2 text-mine-clair transition-colors"
               onClick={goToCanvas}
               title="Voir sur le plan"
             >
@@ -160,7 +160,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           )}
 
           <button
-            className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
+            className="hover:bg-survol rounded-[4px] p-2 text-mine-clair transition-colors"
             onClick={activateSnippetMode}
             title="Créer un snippet du plan"
           >
@@ -168,7 +168,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           </button>
 
           <button
-            className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
+            className="hover:bg-survol rounded-[4px] p-2 text-mine-clair transition-colors"
             onClick={onUploadClick}
             title="Joindre une photo"
           >
@@ -186,7 +186,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
 
           {!isGuest && (
             <button
-              className="hover:bg-[#fde8e8] rounded-[4px] p-2 text-[#dc2626] transition-colors"
+              className="hover:bg-alerte-pale rounded-[4px] p-2 text-mine-clair hover:text-alerte transition-colors"
               onClick={deletePin}
               title="Supprimer"
             >
@@ -198,7 +198,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           {!isGuest && (
             <div className="relative" ref={menuRef}>
               <button
-                className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
+                className="hover:bg-survol rounded-[4px] p-2 text-mine-clair transition-colors"
                 onClick={() => setMenuOpen(v => !v)}
                 title="Plus d'options"
               >
@@ -206,17 +206,17 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[1100] overflow-hidden py-1">
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[1100] overflow-hidden py-1">
 
                   {/* Repositionner / Placer */}
                   <button
                     onClick={openPlaceModal}
                     disabled={loadingPlans}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-mine hover:bg-survol transition-colors text-left"
                   >
                     {loadingPlans
-                      ? <div className="w-4 h-4 border-2 border-[#e5e5e2] border-t-[#8a8a84] rounded-full animate-spin" />
-                      : <MapPin size={16} className="text-[#8a8a84]" />
+                      ? <div className="w-4 h-4 border-2 border-filet border-t-mine-clair rounded-full animate-spin" />
+                      : <MapPin size={16} className="text-mine-clair" />
                     }
                     {hasPosition ? 'Repositionner sur le plan' : 'Placer sur un plan'}
                   </button>
@@ -225,23 +225,23 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
                   {hasPosition && (
                     <button
                       onClick={removeFromPlan}
-                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-mine hover:bg-survol transition-colors text-left"
                     >
-                      <MapPinOff size={16} className="text-[#8a8a84]" />
+                      <MapPinOff size={16} className="text-mine-clair" />
                       Retirer du plan
                     </button>
                   )}
 
-                  <div className="h-px bg-[#eeeeec] my-1" />
+                  <div className="h-px bg-voile my-1" />
 
                   {/* Archiver / Désarchiver */}
                   <button
                     onClick={toggleArchive}
-                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] text-mine hover:bg-survol transition-colors text-left"
                   >
                     {pin.isArchived
-                      ? <RotateCcw size={16} className="text-[#8a8a84]" />
-                      : <Archive size={16} className="text-[#8a8a84]" />
+                      ? <RotateCcw size={16} className="text-mine-clair" />
+                      : <Archive size={16} className="text-mine-clair" />
                     }
                     {pin.isArchived ? 'Désarchiver' : 'Archiver'}
                   </button>
@@ -252,7 +252,7 @@ export default function DrawerHeader({ pin, onClose, onPhotoUploaded, organizati
           )}
 
           <button
-            className="hover:bg-[#f5f5f4] rounded-[4px] p-2 text-[#8a8a84] transition-colors"
+            className="hover:bg-survol rounded-[4px] p-2 text-mine-clair transition-colors"
             onClick={onClose}
           >
             <X size={18} />

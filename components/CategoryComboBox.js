@@ -71,10 +71,10 @@ export default function CategoryComboBox({ pin, organization_id }) {
             onClick={() => { if (!isGuest) setIsOpen(prev => !prev) }}
             disabled={isGuest}
             className={clsx(
-              'relative w-full text-[13px] font-medium rounded-[4px] py-2 pl-3 pr-9 text-left border transition-colors focus:outline-none',
+              'group relative w-full text-[13px] rounded-[4px] py-1 pl-2 pr-8 text-left border transition-colors focus:outline-none',
               isGuest
-                ? 'bg-[#f5f5f4] border-[#eeeeec] text-[#8a8a84] cursor-not-allowed opacity-60'
-                : 'bg-[#f5f5f4] border-[#e5e5e2] text-[#0d0d0c] cursor-pointer hover:bg-[#eeeeec] hover:border-[#d6d6d2] focus:border-[#0d0d0c]'
+                ? 'border-transparent text-mine-clair cursor-not-allowed'
+                : 'border-transparent text-mine cursor-pointer hover:bg-white hover:border-filet hover:text-encre focus:border-encre'
             )}
           >
             <span className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
             </span>
             <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
               <ChevronUpDownIcon
-                className={clsx('h-4 w-4', isGuest ? 'text-[#b8b8b3]' : 'text-[#8a8a84]')}
+                className={clsx('h-4 w-4', isGuest ? 'hidden' : 'text-trait opacity-0 group-hover:opacity-100 transition-opacity')}
                 aria-hidden="true"
               />
             </span>
@@ -101,7 +101,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
                 <Portal>
                   <Listbox.Options
                     static
-                    className="absolute z-[1100] max-h-60 overflow-auto rounded-[4px] bg-white py-1 text-[13px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-[#e5e5e2] focus:outline-none"
+                    className="absolute z-[1100] max-h-60 overflow-auto rounded-[4px] bg-white py-1 text-[13px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-filet focus:outline-none"
                     style={{
                       top: buttonRect.bottom + window.scrollY + 4,
                       left: buttonRect.left + window.scrollX,
@@ -114,7 +114,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
                         className={({ active }) =>
                           clsx(
                             'relative cursor-pointer select-none py-2.5 pl-3 pr-4 transition-colors',
-                            active ? 'bg-[#f5f5f4] text-[#0d0d0c]' : 'text-[#0d0d0c]'
+                            active ? 'bg-survol text-encre' : 'text-encre'
                           )
                         }
                         value={cat}
@@ -123,7 +123,7 @@ export default function CategoryComboBox({ pin, organization_id }) {
                           <span className={clsx('flex gap-2 items-center truncate', isSelected ? 'font-medium' : 'font-normal')}>
                             {cat.icon && categoriesIcons[cat.icon]}
                             <span className="text-[13px]">{cat.name}</span>
-                            {isSelected && <CheckIcon className="ml-auto h-4 w-4 text-[#2f5ee0]" />}
+                            {isSelected && <CheckIcon className="ml-auto h-4 w-4 text-tirage" />}
                           </span>
                         )}
                       </Listbox.Option>
