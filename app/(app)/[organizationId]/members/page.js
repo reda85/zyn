@@ -7,7 +7,6 @@ import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
 import { Check, ChevronDown, UserPlus, Search, X, Mail, Send } from 'lucide-react'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 import clsx from 'clsx'
 import { Dialog, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Switch } from '@headlessui/react'
 import { useUserData } from '@/hooks/useUserData'
@@ -15,8 +14,8 @@ import Sidebar from '@/components/Sidebar'
 
 const roles = [
   { id: 1, name: 'Membres', value: 'membres' },
-  { id: 2, name: 'guest', value: 'guest' },
-  { id: 3, name: 'admin', value: 'admin' },
+  { id: 2, name: 'Invités', value: 'guest' },
+  { id: 3, name: 'Administrateurs', value: 'admin' },
 ]
 
 function Avatar({ name, src }) {
@@ -30,29 +29,31 @@ function Avatar({ name, src }) {
   }
   if (!src || imageError) {
     return (
-      <div className="h-8 w-8 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[11px] font-medium text-[#4a4a46] flex-shrink-0">
+      <div className="h-8 w-8 rounded-full bg-voile border border-filet flex items-center justify-center text-[11px] font-medium text-mine flex-shrink-0">
         {getInitials(name)}
       </div>
     )
   }
 }
 
+const ROLE_LABELS = { admin: 'Administrateur', member: 'Membre', guest: 'Invité' }
+
 function RoleBadge({ role }) {
-  const styles = {
-    Admins: 'bg-[#fde8e8] text-[#9c1b1b] border-[#f5c6c6]',
-    Membres: 'bg-[#eeeeec] text-[#4a4a46] border-[#e5e5e2]',
-    guest: 'bg-[#fef3dc] text-[#8a5a00] border-[#f5e0ab]',
-  }
   return (
-    <span className={clsx('px-2.5 py-0.5 inline-flex text-[11px] font-medium rounded-[3px] border', styles[role] || styles.Membres)}>
-      {role}
+    <span
+      className={clsx(
+        'px-1.5 py-px inline-flex text-[12px] rounded-[3px] border',
+        role === 'admin' ? 'border-encre text-encre' : role === 'guest' ? 'border-dashed border-filet-fort text-mine' : 'border-filet text-mine'
+      )}
+    >
+      {ROLE_LABELS[role] ?? role}
     </span>
   )
 }
 
 function MembersTableSkeleton() {
   return (
-    <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
+    <div className="bg-white rounded-[6px] border border-filet overflow-hidden">
       <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '35%' }} />
@@ -61,32 +62,32 @@ function MembersTableSkeleton() {
           <col style={{ width: '32%' }} />
         </colgroup>
         <thead>
-          <tr className="bg-[#f5f5f4]">
+          <tr className="border-b border-filet">
             {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
-              <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]', GeistMono.className)}>{h}</th>
+              <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-mine text-left border-b border-filet', 'tabular-nums')}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {[0, 1, 2, 3, 4].map((i) => (
-            <tr key={i} className="border-b border-[#eeeeec]">
+            <tr key={i} className="border-b border-voile">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-full bg-[#eeeeec] animate-pulse flex-shrink-0" />
+                  <div className="h-8 w-8 rounded-full bg-voile animate-pulse flex-shrink-0" />
                   <div className="min-w-0 space-y-1.5 flex-1">
-                    <div className="h-3 rounded-[2px] bg-[#eeeeec] animate-pulse" style={{ width: `${60 + (i % 3) * 15}%` }} />
-                    <div className="h-2.5 w-2/3 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+                    <div className="h-3 rounded-[2px] bg-voile animate-pulse" style={{ width: `${60 + (i % 3) * 15}%` }} />
+                    <div className="h-2.5 w-2/3 rounded-[2px] bg-voile animate-pulse" />
                   </div>
                 </div>
               </td>
               <td className="px-4 py-3">
-                <div className="h-3 w-16 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+                <div className="h-3 w-16 rounded-[2px] bg-voile animate-pulse" />
               </td>
               <td className="px-4 py-3">
-                <div className="h-4 w-14 rounded-[3px] bg-[#eeeeec] animate-pulse" />
+                <div className="h-4 w-14 rounded-[3px] bg-voile animate-pulse" />
               </td>
               <td className="px-4 py-3">
-                <div className="h-3 w-28 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+                <div className="h-3 w-28 rounded-[2px] bg-voile animate-pulse" />
               </td>
             </tr>
           ))}
@@ -323,63 +324,64 @@ export default function MembersPage({ params }) {
 
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className={clsx('flex h-screen items-center justify-center bg-[#fafaf9]', GeistSans.className)}>
+      <div className={clsx('flex h-screen items-center justify-center bg-papier', GeistSans.className)}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#e5e5e2] border-t-[#0d0d0c] mx-auto mb-3" />
-          <p className="text-[13px] text-[#8a8a84]">Vérification des accès...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-filet border-t-encre mx-auto mb-3" />
+          <p className="text-[13px] text-mine-clair">Vérification des accès...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={clsx('flex h-screen bg-[#fafaf9] overflow-hidden', GeistSans.className)}>
+    <div className={clsx('flex h-screen bg-papier overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="members" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Membres</h1>
+            <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre">Membres</h1>
             {membersLoading ? (
-              <div className="h-3 w-40 rounded-[2px] bg-[#eeeeec] animate-pulse mt-1.5" />
+              <div className="h-3 w-40 rounded-[2px] bg-voile animate-pulse mt-1.5" />
             ) : (
-              <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+              <p className={clsx('text-[12px] text-mine-clair mt-0.5', 'tabular-nums')}>
                 {members.length} membre{members.length !== 1 ? 's' : ''} dans l'organisation
               </p>
             )}
           </div>
           <button
             onClick={openAddModal}
-            className="bg-[#0d0d0c] text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors flex items-center gap-1.5"
+            className="bg-encre text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors flex items-center gap-1.5"
           >
             <UserPlus className="w-4 h-4" />
             Ajouter un membre
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 bg-white border border-filet rounded-[6px] mb-6">
           {[
-            { label: 'Total licences', value: 'Illimitées' },
-            { label: 'Licences assignées', value: members.length },
-            { label: 'Licences disponibles', value: 'Illimitées' },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white border border-[#e5e5e2] rounded-[4px] px-4 py-3.5">
-              <p className="text-[11px] text-[#8a8a84] font-medium mb-1">{stat.label}</p>
+            { label: 'Membres', value: members.length, hint: 'dans l\u2019organisation' },
+            { label: 'Administrateurs', value: members.filter((m) => m.role === 'admin').length, hint: 'gèrent projets et membres' },
+            { label: 'Invités', value: members.filter((m) => m.role === 'guest').length, hint: 'ne voient que leurs réserves' },
+          ].map((stat, i) => (
+            <div key={stat.label} className={clsx('px-5 py-4', i > 0 && 'border-l border-filet')}>
+              <p className="text-[12px] text-mine">{stat.label}</p>
               {membersLoading ? (
-                <div className="h-6 w-16 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+                <div className="h-7 w-10 mt-1.5 rounded-[3px] bg-voile animate-pulse" />
               ) : (
-                <p className={clsx('text-2xl font-medium text-[#050505]', GeistMono.className)}>{stat.value}</p>
+                <p className="mt-1 text-[26px] leading-none font-semibold tracking-[-0.02em] text-encre tabular-nums">{stat.value}</p>
               )}
+              <p className="mt-2 text-[12px] text-mine-clair">{stat.hint}</p>
             </div>
           ))}
         </div>
 
         <div className="flex items-center gap-2 mb-5">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-mine-clair" />
             <input
               type="text"
-              className="border border-[#e5e5e2] bg-white pl-8 pr-3 py-[7px] w-full rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+              className="border border-filet bg-white pl-8 pr-3 py-[7px] w-full rounded-[4px] text-[13px] focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
               placeholder="Rechercher par nom ou email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -388,21 +390,21 @@ export default function MembersPage({ params }) {
 
           <Listbox value={selectedRoles} onChange={setSelectedRoles} multiple>
             <div className="relative">
-              <ListboxButton className="flex items-center gap-1.5 px-3 py-[7px] rounded-[4px] bg-white border border-[#e5e5e2] text-[13px] font-medium text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors cursor-pointer">
+              <ListboxButton className="flex items-center gap-1.5 px-3 py-[7px] rounded-[4px] bg-white border border-filet text-[13px] font-medium text-mine hover:bg-survol transition-colors cursor-pointer">
                 <span>{selectedRoles.length === 0 ? 'Tous les rôles' : selectedRoles.map((r) => r.name).join(', ')}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#8a8a84]" />
+                <ChevronDown className="w-3.5 h-3.5 text-mine-clair" />
               </ListboxButton>
-              <ListboxOptions className="absolute mt-1 w-48 overflow-auto rounded-[4px] bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-10 py-1">
+              <ListboxOptions className="absolute mt-1 w-48 overflow-auto rounded-[4px] bg-white border border-filet shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-10 py-1">
                 {roles.map((role) => (
                   <ListboxOption
                     key={role.id}
                     value={role}
-                    className={({ active }) => clsx('relative cursor-pointer select-none py-2 pl-8 pr-3 text-[13px] transition-colors', active ? 'bg-[#f5f5f4]' : '')}
+                    className={({ active }) => clsx('relative cursor-pointer select-none py-2 pl-8 pr-3 text-[13px] transition-colors', active ? 'bg-survol' : '')}
                   >
                     {({ selected }) => (
                       <>
-                        <span className={clsx('block truncate', selected ? 'font-medium text-[#0d0d0c]' : 'text-[#4a4a46]')}>{role.name}</span>
-                        {selected && <span className="absolute inset-y-0 left-0 flex items-center pl-2.5"><Check className="w-3.5 h-3.5 text-[#2f5ee0]" /></span>}
+                        <span className={clsx('block truncate', selected ? 'font-medium text-encre' : 'text-mine')}>{role.name}</span>
+                        {selected && <span className="absolute inset-y-0 left-0 flex items-center pl-2.5"><Check className="w-3.5 h-3.5 text-tirage" /></span>}
                       </>
                     )}
                   </ListboxOption>
@@ -416,7 +418,7 @@ export default function MembersPage({ params }) {
         {membersLoading ? (
           <MembersTableSkeleton />
         ) : (
-          <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
+          <div className="bg-white rounded-[6px] border border-filet overflow-hidden">
             <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
               <colgroup>
                 <col style={{ width: '35%' }} />
@@ -425,32 +427,32 @@ export default function MembersPage({ params }) {
                 <col style={{ width: '32%' }} />
               </colgroup>
               <thead>
-                <tr className="bg-[#f5f5f4]">
+                <tr className="border-b border-filet">
                   {['Membre', 'Projets', 'Rôle', 'Invitation'].map((h) => (
-                    <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]', GeistMono.className)}>{h}</th>
+                    <th key={h} className={clsx('px-4 py-2 text-[11px] font-medium text-mine text-left border-b border-filet', 'tabular-nums')}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredMembers.map((member) => (
-                  <tr key={member.id} className="border-b border-[#eeeeec] hover:bg-[#f5f5f4] transition-colors group">
+                  <tr key={member.id} className="border-b border-voile hover:bg-survol transition-colors group">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <Avatar name={member.name} src={member.avatar_url} />
                         <div className="min-w-0">
-                          <p className="text-[13px] font-medium text-[#0d0d0c] truncate">{member.name}</p>
-                          <p className="text-[11px] text-[#8a8a84] truncate">
-                            {member.email || <span className="italic text-[#b8b8b3]">Pas d'email</span>}
+                          <p className="text-[13px] font-medium text-encre truncate">{member.name}</p>
+                          <p className="text-[11px] text-mine-clair truncate">
+                            {member.email || <span className="italic text-trait">Pas d'email</span>}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className={clsx('text-[13px] text-[#666660]', GeistMono.className)}>{member.project_count} projet{member.project_count !== 1 ? 's' : ''}</span>
+                        <span className={clsx('text-[13px] text-mine', 'tabular-nums')}>{member.project_count} projet{member.project_count !== 1 ? 's' : ''}</span>
                         <button
                           onClick={() => openManageModal(member)}
-                          className="text-[11px] text-[#8a8a84] hover:text-[#2e2e2b] underline opacity-0 group-hover:opacity-100 transition-all"
+                          className="text-[11px] text-mine-clair hover:text-encre-survol underline opacity-0 group-hover:opacity-100 transition-all"
                         >
                           gérer
                         </button>
@@ -459,14 +461,14 @@ export default function MembersPage({ params }) {
                     <td className="px-4 py-3"><RoleBadge role={member.role} /></td>
                     <td className="px-4 py-3">
                       {member.invited ? (
-                        <span className="flex items-center gap-1.5 text-[12px] text-[#8a8a84]">
+                        <span className="flex items-center gap-1.5 text-[12px] text-mine-clair">
                           <Check className="w-3.5 h-3.5 text-[#16a34a] flex-shrink-0" />
                           Invitation envoyée
                         </span>
                       ) : (
                         <button
                           onClick={() => openInviteModal(member)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium border border-[#e5e5e2] rounded-[3px] hover:bg-[#eeeeec] hover:border-[#d6d6d2] transition-colors text-[#4a4a46]"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium border border-filet rounded-[3px] hover:bg-voile hover:border-filet-fort transition-colors text-mine"
                         >
                           <Send className="w-3 h-3" />
                           Envoyer une invitation
@@ -480,7 +482,7 @@ export default function MembersPage({ params }) {
 
             {filteredMembers.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-[13px] text-[#8a8a84]">Aucun membre trouvé</p>
+                <p className="text-[13px] text-mine-clair">Aucun membre trouvé</p>
               </div>
             )}
           </div>
@@ -490,31 +492,31 @@ export default function MembersPage({ params }) {
         <Dialog open={manageOpen} onClose={() => setManageOpen(false)} className="relative z-50">
           <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6">
-            <DialogPanel className="bg-white border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6">
+            <DialogPanel className="bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <DialogTitle className="text-base font-medium text-[#050505]">Gérer les projets</DialogTitle>
-                  <p className="text-[13px] text-[#8a8a84] mt-0.5">{currentMember?.name}</p>
+                  <DialogTitle className="text-base font-medium text-encre">Gérer les projets</DialogTitle>
+                  <p className="text-[13px] text-mine-clair mt-0.5">{currentMember?.name}</p>
                 </div>
-                <button onClick={() => setManageOpen(false)} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
-                  <X className="w-4 h-4 text-[#8a8a84]" />
+                <button onClick={() => setManageOpen(false)} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
+                  <X className="w-4 h-4 text-mine-clair" />
                 </button>
               </div>
               <div className="space-y-1 max-h-[300px] overflow-y-auto">
                 {projects.map((project) => {
                   const active = memberProjects.includes(project.id)
                   return (
-                    <div key={project.id} className="flex justify-between items-center px-3 py-2.5 rounded-[4px] hover:bg-[#f5f5f4] transition-colors">
+                    <div key={project.id} className="flex justify-between items-center px-3 py-2.5 rounded-[4px] hover:bg-survol transition-colors">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-[3px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-xs font-medium text-[#050505]">
+                        <div className="w-7 h-7 rounded-[3px] bg-voile border border-filet flex items-center justify-center text-xs font-medium text-encre">
                           {project.name?.[0]?.toUpperCase() || '?'}
                         </div>
-                        <span className="text-[13px] font-medium text-[#0d0d0c]">{project.name}</span>
+                        <span className="text-[13px] font-medium text-encre">{project.name}</span>
                       </div>
                       <Switch
                         checked={active}
                         onChange={(val) => toggleProject(project.id, val)}
-                        className={clsx('relative inline-flex h-5 w-9 items-center rounded-full transition-colors', active ? 'bg-[#0d0d0c]' : 'bg-[#eeeeec]')}
+                        className={clsx('relative inline-flex h-5 w-9 items-center rounded-full transition-colors', active ? 'bg-encre' : 'bg-voile')}
                       >
                         <span className={clsx('inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform', active ? 'translate-x-[18px]' : 'translate-x-[3px]')} />
                       </Switch>
@@ -522,8 +524,8 @@ export default function MembersPage({ params }) {
                   )
                 })}
               </div>
-              <div className="mt-5 pt-4 border-t border-[#eeeeec]">
-                <button onClick={() => setManageOpen(false)} className="w-full py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] hover:bg-[#d6d6d2] rounded-[4px] transition-colors">
+              <div className="mt-5 pt-4 border-t border-voile">
+                <button onClick={() => setManageOpen(false)} className="w-full py-2 text-[13px] font-medium text-mine bg-voile hover:bg-filet-fort rounded-[4px] transition-colors">
                   Fermer
                 </button>
               </div>
@@ -535,70 +537,70 @@ export default function MembersPage({ params }) {
         <Dialog open={addOpen} onClose={() => setAddOpen(false)} className="relative z-50">
           <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6 overflow-y-auto">
-            <DialogPanel className="bg-white border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6 relative">
+            <DialogPanel className="bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-md p-6 relative">
               <div className="flex items-center justify-between mb-5">
-                <DialogTitle className="text-base font-medium text-[#050505]">Ajouter un membre</DialogTitle>
-                <button onClick={() => setAddOpen(false)} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
-                  <X className="w-4 h-4 text-[#8a8a84]" />
+                <DialogTitle className="text-base font-medium text-encre">Ajouter un membre</DialogTitle>
+                <button onClick={() => setAddOpen(false)} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
+                  <X className="w-4 h-4 text-mine-clair" />
                 </button>
               </div>
 
               {addSuccess ? (
                 <div className="py-8 text-center">
-                  <div className="w-12 h-12 bg-[#eeeeec] rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Check className="w-5 h-5 text-[#0d0d0c]" />
+                  <div className="w-12 h-12 bg-voile rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Check className="w-5 h-5 text-encre" />
                   </div>
-                  <p className="text-[14px] font-medium text-[#050505] mb-1">Membre ajouté</p>
-                  <p className="text-[13px] text-[#8a8a84]">Vous pourrez l'inviter par email depuis la liste.</p>
+                  <p className="text-[14px] font-medium text-encre mb-1">Membre ajouté</p>
+                  <p className="text-[13px] text-mine-clair">Vous pourrez l'inviter par email depuis la liste.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom complet *</label>
+                    <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Nom complet *</label>
                     <input
                       type="text"
                       value={addName}
                       onChange={(e) => setAddName(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-[#e5e5e2] rounded-[4px] text-[13px] bg-white focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+                      className="w-full px-3 py-2.5 border border-filet rounded-[4px] text-[13px] bg-white focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
                       placeholder="Jean Dupont"
                       autoFocus
                     />
                   </div>
 
                   <div>
-                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1', GeistMono.className)}>
-                      Adresse email <span className="text-[#b8b8b3] font-normal normal-case">(optionnel)</span>
+                    <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1', 'tabular-nums')}>
+                      Adresse email <span className="text-trait font-normal normal-case">(optionnel)</span>
                     </label>
-                    <p className="text-[11px] text-[#b8b8b3] mb-1.5">Vous pourrez envoyer l'invitation plus tard.</p>
+                    <p className="text-[11px] text-trait mb-1.5">Vous pourrez envoyer l'invitation plus tard.</p>
                     <div className="relative">
-                      <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#b8b8b3] pointer-events-none" />
+                      <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-trait pointer-events-none" />
                       <input
                         type="email"
                         value={addEmail}
                         onChange={(e) => setAddEmail(e.target.value)}
-                        className="w-full pl-8 pr-3 py-2.5 border border-[#e5e5e2] rounded-[4px] text-[13px] bg-white focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+                        className="w-full pl-8 pr-3 py-2.5 border border-filet rounded-[4px] text-[13px] bg-white focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
                         placeholder="jean.dupont@example.com"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Rôle</label>
+                    <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Rôle</label>
                     <Listbox value={addRole} onChange={setAddRole}>
                       <div className="relative">
-                        <ListboxButton className="relative w-full cursor-pointer rounded-[4px] bg-white border border-[#e5e5e2] py-2.5 pl-3 pr-8 text-left text-[13px] font-medium text-[#0d0d0c] hover:bg-[#f5f5f4] transition-colors focus:outline-none focus:border-[#0d0d0c]">
+                        <ListboxButton className="relative w-full cursor-pointer rounded-[4px] bg-white border border-filet py-2.5 pl-3 pr-8 text-left text-[13px] font-medium text-encre hover:bg-survol transition-colors focus:outline-none focus:border-encre">
                           <span className="block truncate">{addRole.name}</span>
                           <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
-                            <ChevronDown className="w-3.5 h-3.5 text-[#8a8a84]" />
+                            <ChevronDown className="w-3.5 h-3.5 text-mine-clair" />
                           </span>
                         </ListboxButton>
-                        <ListboxOptions className="absolute mt-1 w-full overflow-auto rounded-[4px] bg-white border border-[#e5e5e2] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[60] py-1">
+                        <ListboxOptions className="absolute mt-1 w-full overflow-auto rounded-[4px] bg-white border border-filet shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] z-[60] py-1">
                           {roles.map((role) => (
-                            <ListboxOption key={role.id} value={role} className={({ active }) => clsx('relative cursor-pointer select-none py-2 pl-8 pr-3 text-[13px] transition-colors', active ? 'bg-[#f5f5f4]' : '')}>
+                            <ListboxOption key={role.id} value={role} className={({ active }) => clsx('relative cursor-pointer select-none py-2 pl-8 pr-3 text-[13px] transition-colors', active ? 'bg-survol' : '')}>
                               {({ selected }) => (
                                 <>
-                                  <span className={clsx('block truncate', selected ? 'font-medium text-[#0d0d0c]' : 'text-[#4a4a46]')}>{role.name}</span>
-                                  {selected && <span className="absolute inset-y-0 left-0 flex items-center pl-2.5"><Check className="w-3.5 h-3.5 text-[#2f5ee0]" /></span>}
+                                  <span className={clsx('block truncate', selected ? 'font-medium text-encre' : 'text-mine')}>{role.name}</span>
+                                  {selected && <span className="absolute inset-y-0 left-0 flex items-center pl-2.5"><Check className="w-3.5 h-3.5 text-tirage" /></span>}
                                 </>
                               )}
                             </ListboxOption>
@@ -609,27 +611,27 @@ export default function MembersPage({ params }) {
                   </div>
 
                   <div>
-                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
-                      Projets <span className="text-[#b8b8b3] font-normal normal-case">(optionnel)</span>
+                    <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>
+                      Projets <span className="text-trait font-normal normal-case">(optionnel)</span>
                     </label>
-                    <div className="space-y-0.5 max-h-[180px] overflow-y-auto border border-[#e5e5e2] rounded-[4px] p-2">
+                    <div className="space-y-0.5 max-h-[180px] overflow-y-auto border border-filet rounded-[4px] p-2">
                       {projects.length === 0 ? (
-                        <p className="text-[13px] text-[#b8b8b3] text-center py-4">Aucun projet disponible</p>
+                        <p className="text-[13px] text-trait text-center py-4">Aucun projet disponible</p>
                       ) : (
                         projects.map((project) => {
                           const selected = addProjects.includes(project.id)
                           return (
-                            <div key={project.id} className="flex items-center justify-between px-2.5 py-2 hover:bg-[#f5f5f4] rounded-[3px] transition-colors">
+                            <div key={project.id} className="flex items-center justify-between px-2.5 py-2 hover:bg-survol rounded-[3px] transition-colors">
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-[3px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[10px] font-medium text-[#050505]">
+                                <div className="w-6 h-6 rounded-[3px] bg-voile border border-filet flex items-center justify-center text-[10px] font-medium text-encre">
                                   {project.name?.[0]?.toUpperCase() || '?'}
                                 </div>
-                                <span className="text-[13px] font-medium text-[#0d0d0c]">{project.name}</span>
+                                <span className="text-[13px] font-medium text-encre">{project.name}</span>
                               </div>
                               <Switch
                                 checked={selected}
                                 onChange={() => toggleAddProject(project.id)}
-                                className={clsx('relative inline-flex h-5 w-9 items-center rounded-full transition-colors', selected ? 'bg-[#0d0d0c]' : 'bg-[#eeeeec]')}
+                                className={clsx('relative inline-flex h-5 w-9 items-center rounded-full transition-colors', selected ? 'bg-encre' : 'bg-voile')}
                               >
                                 <span className={clsx('inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform', selected ? 'translate-x-[18px]' : 'translate-x-[3px]')} />
                               </Switch>
@@ -641,16 +643,16 @@ export default function MembersPage({ params }) {
                   </div>
 
                   {addError && (
-                    <div className="px-3 py-2.5 bg-[#fde8e8] border border-[#f5c6c6] rounded-[4px]">
-                      <p className="text-[12px] text-[#9c1b1b]">{addError}</p>
+                    <div className="px-3 py-2.5 bg-alerte-pale border border-alerte-clair rounded-[4px]">
+                      <p className="text-[12px] text-alerte">{addError}</p>
                     </div>
                   )}
 
                   <div className="flex justify-end gap-2 pt-1">
-                    <button type="button" onClick={() => setAddOpen(false)} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors">
+                    <button type="button" onClick={() => setAddOpen(false)} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
                       Annuler
                     </button>
-                    <button type="button" onClick={addMember} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-[#0d0d0c] rounded-[4px] hover:bg-[#1a1a18] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                    <button type="button" onClick={addMember} disabled={addLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-encre rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                       {addLoading ? (
                         <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Ajout...</>
                       ) : (
@@ -668,40 +670,40 @@ export default function MembersPage({ params }) {
         <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} className="relative z-50">
           <div className="fixed inset-0 bg-black/20" />
           <div className="fixed inset-0 flex justify-center items-center p-6">
-            <DialogPanel className="bg-white border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-sm p-6 relative">
+            <DialogPanel className="bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] w-full max-w-sm p-6 relative">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <DialogTitle className="text-base font-medium text-[#050505]">Inviter par email</DialogTitle>
-                  <p className="text-[13px] text-[#8a8a84] mt-0.5">{inviteMember?.name}</p>
+                  <DialogTitle className="text-base font-medium text-encre">Inviter par email</DialogTitle>
+                  <p className="text-[13px] text-mine-clair mt-0.5">{inviteMember?.name}</p>
                 </div>
-                <button onClick={() => setInviteOpen(false)} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
-                  <X className="w-4 h-4 text-[#8a8a84]" />
+                <button onClick={() => setInviteOpen(false)} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
+                  <X className="w-4 h-4 text-mine-clair" />
                 </button>
               </div>
 
               {inviteSuccess ? (
                 <div className="py-6 text-center">
-                  <div className="w-12 h-12 bg-[#eeeeec] rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Check className="w-5 h-5 text-[#0d0d0c]" />
+                  <div className="w-12 h-12 bg-voile rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Check className="w-5 h-5 text-encre" />
                   </div>
-                  <p className="text-[14px] font-medium text-[#050505] mb-1">
+                  <p className="text-[14px] font-medium text-encre mb-1">
                     {inviteResult?.emailSent === false ? 'Membre ajouté' : 'Invitation envoyée'}
                   </p>
-                  <p className="text-[13px] text-[#8a8a84]">
+                  <p className="text-[13px] text-mine-clair">
                     {inviteResult?.emailSent === false ? inviteResult.message : `Un email a été envoyé à ${inviteEmail}`}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Adresse email</label>
+                    <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Adresse email</label>
                     <div className="relative">
-                      <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#b8b8b3] pointer-events-none" />
+                      <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-trait pointer-events-none" />
                       <input
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
-                        className="w-full pl-8 pr-3 py-2.5 border border-[#e5e5e2] rounded-[4px] text-[13px] bg-white focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+                        className="w-full pl-8 pr-3 py-2.5 border border-filet rounded-[4px] text-[13px] bg-white focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
                         placeholder="jean.dupont@example.com"
                         autoFocus
                       />
@@ -709,16 +711,16 @@ export default function MembersPage({ params }) {
                   </div>
 
                   {inviteError && (
-                    <div className="px-3 py-2.5 bg-[#fde8e8] border border-[#f5c6c6] rounded-[4px]">
-                      <p className="text-[12px] text-[#9c1b1b]">{inviteError}</p>
+                    <div className="px-3 py-2.5 bg-alerte-pale border border-alerte-clair rounded-[4px]">
+                      <p className="text-[12px] text-alerte">{inviteError}</p>
                     </div>
                   )}
 
                   <div className="flex justify-end gap-2 pt-1">
-                    <button type="button" onClick={() => setInviteOpen(false)} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors">
+                    <button type="button" onClick={() => setInviteOpen(false)} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
                       Annuler
                     </button>
-                    <button type="button" onClick={sendInvitation} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-[#0d0d0c] rounded-[4px] hover:bg-[#1a1a18] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                    <button type="button" onClick={sendInvitation} disabled={inviteLoading} className="px-4 py-2 text-[13px] font-medium text-white bg-encre rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                       {inviteLoading ? (
                         <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Envoi...</>
                       ) : (

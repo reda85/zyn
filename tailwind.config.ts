@@ -20,8 +20,21 @@ const config: Config = {
       fontFamily: {
   outfit: ["var(--font-outfit)"],
   lexend: ["var(--font-lexend)"],
+  sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+  mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
 },
       colors: {
+        // Palette ZaynSpace : papier calque, encre, mine de crayon, bleu de tirage.
+        papier: 'var(--zs-papier)',
+        encre: { DEFAULT: 'var(--zs-encre)', survol: 'var(--zs-encre-survol)' },
+        mine: { DEFAULT: 'var(--zs-mine)', clair: 'var(--zs-mine-clair)' },
+        trait: 'var(--zs-trait)',
+        filet: { DEFAULT: 'var(--zs-filet)', fort: 'var(--zs-filet-fort)' },
+        voile: 'var(--zs-voile)',
+        survol: 'var(--zs-survol)',
+        tirage: { DEFAULT: 'var(--zs-tirage)', fonce: 'var(--zs-tirage-fonce)', clair: 'var(--zs-tirage-clair)', pale: 'var(--zs-tirage-pale)' },
+        alerte: { DEFAULT: 'var(--zs-alerte)', clair: 'var(--zs-alerte-clair)', pale: 'var(--zs-alerte-pale)' },
+        valide: { DEFAULT: 'var(--zs-valide)', clair: 'var(--zs-valide-clair)', pale: 'var(--zs-valide-pale)' },
         'muted-foreground': 'hsl(var(--muted-foreground))', 
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

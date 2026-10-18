@@ -21,7 +21,7 @@ export default function ProjectHome({ params }) {
   if (notFound) {
     return (
       <FullScreenMessage title="Projet introuvable" message="Ce projet n'existe pas ou vous n'y avez pas accès.">
-        <Link href={`/${organizationId}/projects`} className="text-[13px] font-medium text-[#0d0d0c] underline">
+        <Link href={`/${organizationId}/projects`} className="text-[13px] font-medium text-encre underline">
           Retour aux projets
         </Link>
       </FullScreenMessage>

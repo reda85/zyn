@@ -4,7 +4,7 @@ import { usePinsCache } from '@/hooks/usePins';
 import { supabase } from '@/utils/supabase/client';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from 'lucide-react';
-import { Lexend } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans'
 import { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -12,7 +12,6 @@ const ITEM_HEIGHT = 36;
 const PADDING_X = 8;
 const PADDING_Y = 8;
 const GAP_SIZE = 8; // Tailwind's gap-2
-const inter = Lexend({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 
 export default function StatusSelect({ pin }) {
   const { statuses } = useProjectData();
@@ -140,7 +139,7 @@ export default function StatusSelect({ pin }) {
         ReactDOM.createPortal(
           <div
             data-dropdown-portal
-            className={`fixed ${inter.className} bg-blue-50 shadow-lg border rounded-md z-[1003] overflow-hidden flex flex-col gap-2`}
+            className={`fixed ${GeistSans.className} bg-tirage-pale shadow-lg border rounded-md z-[1003] overflow-hidden flex flex-col gap-2`}
             style={{
               top: buttonRect.top + offsetY,
               left: buttonRect.left - PADDING_X,

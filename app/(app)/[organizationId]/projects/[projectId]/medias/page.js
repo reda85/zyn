@@ -6,7 +6,6 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { Calendar, X, Image as ImageIcon, Download } from 'lucide-react'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 import clsx from 'clsx'
 import dayjs from 'dayjs'
 
@@ -110,17 +109,17 @@ export default function Medias({ params }) {
   }
 
   return (
-    <div className={clsx(GeistSans.className, 'min-h-screen bg-[#fafaf9]')}>
+    <div className={clsx(GeistSans.className, 'min-h-screen bg-papier')}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Médiathèque</h1>
+            <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre">Médiathèque</h1>
             {isPending ? (
-              <div className="h-3 w-24 bg-[#eeeeec] rounded-[3px] animate-pulse" />
+              <div className="h-3 w-24 bg-voile rounded-[3px] animate-pulse" />
             ) : (
-              <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+              <p className={clsx('text-[12px] text-mine-clair mt-0.5', 'tabular-nums')}>
                 {total} photo{total > 1 ? 's' : ''}
                 {hasActiveFilters ? ' pour ces filtres' : ''}
               </p>
@@ -129,7 +128,7 @@ export default function Medias({ params }) {
 
           <div className="flex items-center gap-2">
             <select
-              className="rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-[7px] text-[13px] text-[#4a4a46] font-medium focus:outline-none focus:border-[#0d0d0c] transition-colors cursor-pointer"
+              className="rounded-[4px] border border-filet bg-white px-3 py-[7px] text-[13px] text-mine font-medium focus:outline-none focus:border-encre transition-colors cursor-pointer"
               value={planId}
               onChange={(e) => setParams({ plan: e.target.value })}
             >
@@ -151,16 +150,16 @@ export default function Medias({ params }) {
                 }}
                 isClearable
                 placeholderText="Période"
-                className="rounded-[4px] border border-[#e5e5e2] bg-white pl-8 pr-3 py-[7px] text-[13px] text-[#4a4a46] font-medium focus:outline-none focus:border-[#0d0d0c] transition-colors w-48"
+                className="rounded-[4px] border border-filet bg-white pl-8 pr-3 py-[7px] text-[13px] text-mine font-medium focus:outline-none focus:border-encre transition-colors w-48"
                 dateFormat="dd/MM/yyyy"
               />
-              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8a8a84] pointer-events-none" />
+              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-mine-clair pointer-events-none" />
             </div>
 
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 px-3 py-[7px] text-[13px] font-medium text-[#8a8a84] hover:text-[#0d0d0c] border border-[#e5e5e2] bg-white rounded-[4px] transition-colors"
+                className="flex items-center gap-1 px-3 py-[7px] text-[13px] font-medium text-mine-clair hover:text-encre border border-filet bg-white rounded-[4px] transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
                 Réinitialiser
@@ -169,27 +168,27 @@ export default function Medias({ params }) {
           </div>
         </div>
 
-        <div className="bg-white border border-[#e5e5e2] rounded-[4px] overflow-hidden">
+        <div className="bg-white border border-filet rounded-[6px] overflow-hidden">
           {(hasActiveFilters || selectedIds.size > 0) && (
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[#f5f5f4] border-b border-[#e5e5e2]">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-survol border-b border-filet">
               <div className="flex items-center gap-2 flex-wrap">
                 {selectedIds.size > 0 && (
-                  <p className="text-[12px] font-medium text-[#050505]">
+                  <p className="text-[12px] font-medium text-encre">
                     {selectedIds.size} photo{selectedIds.size > 1 ? 's' : ''} sélectionnée{selectedIds.size > 1 ? 's' : ''}
                   </p>
                 )}
                 {planId && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#e5e5e2] rounded-[3px] text-[11px] font-medium text-[#4a4a46]">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-filet rounded-[3px] text-[11px] font-medium text-mine">
                     {plans.find((p) => p.id === planId)?.name ?? 'Plan'}
-                    <button onClick={() => setParams({ plan: null })} className="text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors">
+                    <button onClick={() => setParams({ plan: null })} className="text-trait hover:text-encre transition-colors">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
                 {(from || to) && (
-                  <span className={clsx('inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#e5e5e2] rounded-[3px] text-[11px] font-medium text-[#4a4a46]', GeistMono.className)}>
+                  <span className={clsx('inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-filet rounded-[3px] text-[11px] font-medium text-mine', 'tabular-nums')}>
                     {toDate(from)?.toLocaleDateString('fr-FR')} – {toDate(to)?.toLocaleDateString('fr-FR') || 'Maintenant'}
-                    <button onClick={() => setParams({ from: null, to: null })} className="text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors">
+                    <button onClick={() => setParams({ from: null, to: null })} className="text-trait hover:text-encre transition-colors">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -200,7 +199,7 @@ export default function Medias({ params }) {
                 <button
                   onClick={handleDownload}
                   disabled={isDownloading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0d0d0c] text-white rounded-[4px] text-[12px] font-medium hover:bg-[#1a1a18] disabled:opacity-60 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-encre text-white rounded-[4px] text-[12px] font-medium hover:bg-encre-survol disabled:opacity-60 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {isDownloading ? 'Génération…' : 'Rapport PDF'}
@@ -213,17 +212,17 @@ export default function Medias({ params }) {
             <div className="p-5 grid grid-cols-3 gap-3">
               {Array.from({ length: 9 }).map((_, i) => (
                 <div key={i} className="animate-pulse">
-                  <div className="w-full aspect-square bg-[#eeeeec] rounded-[4px]" />
-                  <div className="h-2.5 bg-[#eeeeec] rounded-[3px] mt-2 w-2/3" />
+                  <div className="w-full aspect-square bg-voile rounded-[4px]" />
+                  <div className="h-2.5 bg-voile rounded-[3px] mt-2 w-2/3" />
                 </div>
               ))}
             </div>
           ) : isError ? (
             <div className="py-16 text-center">
-              <p className="text-[13px] text-[#9c1b1b] mb-3">Impossible de charger les photos.</p>
+              <p className="text-[13px] text-alerte mb-3">Impossible de charger les photos.</p>
               <button
                 onClick={() => refetch()}
-                className="px-3 py-1.5 text-[12px] font-medium border border-[#e5e5e2] rounded-[4px] hover:bg-[#f5f5f4] transition-colors"
+                className="px-3 py-1.5 text-[12px] font-medium border border-filet rounded-[4px] hover:bg-survol transition-colors"
               >
                 Réessayer
               </button>
@@ -232,8 +231,8 @@ export default function Medias({ params }) {
             <div className={clsx('p-5 transition-opacity', isPlaceholderData && 'opacity-60')}>
               {medias.length === 0 ? (
                 <div className="py-16 text-center">
-                  <ImageIcon className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
-                  <p className="text-[13px] text-[#8a8a84]">
+                  <ImageIcon className="w-10 h-10 text-voile mx-auto mb-3" />
+                  <p className="text-[13px] text-mine-clair">
                     {hasActiveFilters ? 'Aucun résultat pour ces filtres' : 'Aucune photo à afficher'}
                   </p>
                 </div>
@@ -246,7 +245,7 @@ export default function Medias({ params }) {
                   <button
                     onClick={() => fetchNextPage()}
                     disabled={isFetchingNextPage}
-                    className={clsx('text-[12px] text-[#666660] hover:text-[#0d0d0c] disabled:opacity-50 transition-colors', GeistMono.className)}
+                    className={clsx('text-[12px] text-mine hover:text-encre disabled:opacity-50 transition-colors', 'tabular-nums')}
                   >
                     {isFetchingNextPage ? 'Chargement…' : `Charger plus (${medias.length} sur ${total})`}
                   </button>

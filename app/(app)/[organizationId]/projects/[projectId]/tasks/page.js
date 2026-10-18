@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import { useQuery } from '@tanstack/react-query'
 import { Download, FileText, Search, XIcon } from 'lucide-react'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 import clsx from 'clsx'
 
 import NavBar from '@/components/NavBar'
@@ -304,16 +303,16 @@ export default function Tasks({ params }) {
   const isGuest = profile?.role === 'guest'
 
   return (
-    <div className={clsx(GeistSans.className, 'min-h-screen bg-[#fafaf9]')}>
+    <div className={clsx(GeistSans.className, 'min-h-screen bg-papier')}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Liste des tâches</h1>
-            <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+            <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre">Liste des tâches</h1>
+            <p className={clsx('text-[12px] text-mine-clair mt-0.5', 'tabular-nums')}>
               {isPending ? (
-                <span className="inline-block h-3 w-24 bg-[#eeeeec] rounded-[3px] animate-pulse align-middle" />
+                <span className="inline-block h-3 w-24 bg-voile rounded-[3px] animate-pulse align-middle" />
               ) : (
                 `${knownTotal} tâche${knownTotal > 1 ? 's' : ''}`
               )}
@@ -322,13 +321,13 @@ export default function Tasks({ params }) {
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-mine-clair" />
               <input
                 type="text"
                 placeholder="Rechercher…"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-48 rounded-[4px] border border-[#e5e5e2] bg-white pl-8 pr-3 py-[7px] text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
+                className="w-48 rounded-[4px] border border-filet bg-white pl-8 pr-3 py-[7px] text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
               />
             </div>
 
@@ -337,7 +336,7 @@ export default function Tasks({ params }) {
             {!isGuest && (
               <button
                 onClick={() => setIsAddTaskOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-[7px] bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
               >
                 <span className="text-sm leading-none">+</span>
                 Nouvelle tâche
@@ -346,17 +345,17 @@ export default function Tasks({ params }) {
           </div>
         </div>
 
-        <div className="bg-white border border-[#e5e5e2] rounded-[4px] overflow-hidden">
+        <div className="bg-white border border-filet rounded-[6px] overflow-hidden">
           {selectedCount > 0 && (
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[#f5f5f4] border-b border-[#e5e5e2]">
-              <p className="text-[12px] font-medium text-[#050505]">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-survol border-b border-filet">
+              <p className="text-[12px] font-medium text-encre">
                 {selectedCount} tâche{selectedCount > 1 ? 's' : ''} sélectionnée{selectedCount > 1 ? 's' : ''}
               </p>
               <div className="flex items-center gap-1.5">
                 <select
                   value={selectedTemplate?.id || ''}
                   onChange={(e) => setSelectedTemplateId(e.target.value)}
-                  className="px-2.5 py-1.5 bg-white text-[#4a4a46] rounded-[4px] text-[12px] font-medium border border-[#e5e5e2] focus:outline-none focus:border-[#0d0d0c] transition-colors"
+                  className="px-2.5 py-1.5 bg-white text-mine rounded-[4px] text-[12px] font-medium border border-filet focus:outline-none focus:border-encre transition-colors"
                 >
                   <option value="">Template par défaut</option>
                   {availableTemplates.map((t) => (
@@ -370,8 +369,8 @@ export default function Tasks({ params }) {
                   className={clsx(
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[12px] font-medium transition-colors',
                     isGeneratingReport
-                      ? 'bg-[#b8b8b3] text-white cursor-not-allowed'
-                      : 'bg-[#0d0d0c] text-white hover:bg-[#1a1a18]'
+                      ? 'bg-trait text-white cursor-not-allowed'
+                      : 'bg-encre text-white hover:bg-encre-survol'
                   )}
                 >
                   {isGeneratingReport
@@ -383,7 +382,7 @@ export default function Tasks({ params }) {
                 <button
                   onClick={() => handleExport('simple')}
                   disabled={Boolean(exporting)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#4a4a46] rounded-[4px] text-[12px] font-medium border border-[#e5e5e2] hover:bg-[#f5f5f4] disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-mine rounded-[4px] text-[12px] font-medium border border-filet hover:bg-survol disabled:opacity-50 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {exporting === 'simple' ? 'Export…' : 'Excel'}
@@ -392,7 +391,7 @@ export default function Tasks({ params }) {
                 <button
                   onClick={() => handleExport('media')}
                   disabled={Boolean(exporting)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-[#4a4a46] rounded-[4px] text-[12px] font-medium border border-[#e5e5e2] hover:bg-[#f5f5f4] disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-mine rounded-[4px] text-[12px] font-medium border border-filet hover:bg-survol disabled:opacity-50 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {exporting === 'media' ? 'Export…' : 'Excel + Médias'}
@@ -415,7 +414,7 @@ export default function Tasks({ params }) {
           <div className={clsx('overflow-x-auto transition-opacity', isPlaceholderData && 'opacity-60')}>
             <table className="w-full" style={{ borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="bg-[#f5f5f4] border-b border-[#e5e5e2]">
+                <tr className="border-b border-filet">
                   <th className="px-4 py-2 w-10">
                     <input
                       type="checkbox"
@@ -423,13 +422,13 @@ export default function Tasks({ params }) {
                       disabled={isPending || knownTotal === 0}
                       onChange={toggleSelectAll}
                       title="Sélectionner toutes les tâches correspondant aux filtres"
-                      className="w-3.5 h-3.5 rounded-[2px] border-[#d6d6d2] accent-[#0d0d0c]"
+                      className="w-3.5 h-3.5 rounded-[2px] border-filet-fort accent-encre"
                     />
                   </th>
                   {TABLE_HEADERS.map((h) => (
                     <th
                       key={h}
-                      className={clsx('px-4 py-2 text-left text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] whitespace-nowrap', GeistMono.className)}
+                      className={clsx('px-4 py-2 text-left text-[11px] font-medium text-mine whitespace-nowrap', 'tabular-nums')}
                     >
                       {h}
                     </th>
@@ -443,10 +442,10 @@ export default function Tasks({ params }) {
                 {isError && (
                   <tr>
                     <td colSpan={8} className="py-16 text-center">
-                      <p className="text-[13px] text-[#9c1b1b] mb-3">Impossible de charger les tâches.</p>
+                      <p className="text-[13px] text-alerte mb-3">Impossible de charger les tâches.</p>
                       <button
                         onClick={() => refetch()}
-                        className="px-3 py-1.5 text-[12px] font-medium border border-[#e5e5e2] rounded-[4px] hover:bg-[#f5f5f4] transition-colors"
+                        className="px-3 py-1.5 text-[12px] font-medium border border-filet rounded-[4px] hover:bg-survol transition-colors"
                       >
                         Réessayer
                       </button>
@@ -457,8 +456,8 @@ export default function Tasks({ params }) {
                 {!isPending && !isError && pins.length === 0 && (
                   <tr>
                     <td colSpan={8} className="py-16 text-center">
-                      <FileText className="w-10 h-10 text-[#eeeeec] mx-auto mb-3" />
-                      <p className="text-[13px] text-[#8a8a84]">Aucune tâche à afficher</p>
+                      <FileText className="w-10 h-10 text-voile mx-auto mb-3" />
+                      <p className="text-[13px] text-mine-clair">Aucune tâche à afficher</p>
                     </td>
                   </tr>
                 )}
@@ -480,11 +479,11 @@ export default function Tasks({ params }) {
             </table>
 
             {hasNextPage && (
-              <div ref={sentinelRef} className="flex justify-center py-4 border-t border-[#eeeeec]">
+              <div ref={sentinelRef} className="flex justify-center py-4 border-t border-voile">
                 <button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className={clsx('text-[12px] text-[#666660] hover:text-[#0d0d0c] disabled:opacity-50 transition-colors', GeistMono.className)}
+                  className={clsx('text-[12px] text-mine hover:text-encre disabled:opacity-50 transition-colors', 'tabular-nums')}
                 >
                   {isFetchingNextPage ? 'Chargement…' : `Charger plus (${pins.length} sur ${knownTotal})`}
                 </button>
@@ -498,46 +497,46 @@ export default function Tasks({ params }) {
 
       {isAddTaskOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-          <div className={clsx(GeistSans.className, 'bg-white w-full max-w-md rounded-[6px] border border-[#e5e5e2] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]')}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#eeeeec]">
-              <h3 className="text-base font-medium text-[#050505]">Nouvelle tâche</h3>
-              <button onClick={() => setIsAddTaskOpen(false)} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
-                <XIcon className="w-4 h-4 text-[#8a8a84]" />
+          <div className={clsx(GeistSans.className, 'bg-white w-full max-w-md rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]')}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
+              <h3 className="text-base font-medium text-encre">Nouvelle tâche</h3>
+              <button onClick={() => setIsAddTaskOpen(false)} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
+                <XIcon className="w-4 h-4 text-mine-clair" />
               </button>
             </div>
             <div className="p-5 space-y-3">
               <div>
-                <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom</label>
+                <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Nom</label>
                 <input
                   type="text"
                   placeholder="Nom de la tâche"
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
-                  className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
+                  className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
                   autoFocus
                 />
               </div>
               <div>
-                <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
-                  Description <span className="text-[#b8b8b3] font-normal normal-case ml-1">(optionnel)</span>
+                <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>
+                  Description <span className="text-trait font-normal normal-case ml-1">(optionnel)</span>
                 </label>
                 <textarea
                   placeholder="Ajouter une description..."
                   value={newTaskDescription}
                   onChange={(e) => setNewTaskDescription(e.target.value)}
                   rows={3}
-                  className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] resize-none transition-colors"
+                  className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre resize-none transition-colors"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 px-5 py-4 border-t border-[#eeeeec]">
-              <button onClick={() => setIsAddTaskOpen(false)} className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors">
+            <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
+              <button onClick={() => setIsAddTaskOpen(false)} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
                 Annuler
               </button>
               <button
                 onClick={handleCreateTask}
                 disabled={isCreating || !newTaskName.trim()}
-                className="px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {isCreating ? 'Création…' : 'Créer'}
               </button>
@@ -547,11 +546,11 @@ export default function Tasks({ params }) {
       )}
 
       {isGeneratingReport && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 bg-[#0d0d0c] text-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] border border-[#2e2e2b]">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3.5 bg-encre text-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] border border-encre-survol">
           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
           <div>
             <p className="text-[13px] font-medium">Génération du rapport en cours…</p>
-            <p className={clsx('text-[11px] text-[#b8b8b3] mt-0.5', GeistMono.className)}>
+            <p className={clsx('text-[11px] text-trait mt-0.5', 'tabular-nums')}>
               Traitement de {reportCount} tâche{reportCount > 1 ? 's' : ''}, veuillez patienter.
             </p>
           </div>
