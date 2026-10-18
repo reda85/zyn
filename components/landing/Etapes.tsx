@@ -33,34 +33,46 @@ const ETAPES = [
 const PAS = 0.55; // secondes entre deux étapes
 
 export default function Etapes() {
-  const { ref, inView } = useInView<HTMLOListElement>(0.2);
+  // Le fil ne s'affiche qu'en grand écran, quand les quatre étapes sont visibles ensemble.
+  const { ref, inView } = useInView<HTMLOListElement>(0.3);
   return (
-    <ol ref={ref} className={`et mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 relative ${inView ? "et-vu" : ""}`}>
-      {/* Fil qui relie les étapes et se remplit à l'arrivée */}
+    <ol ref={ref} className={`et mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 relative ${inView ? "et-fil-vu" : ""}`}>
       <span aria-hidden="true" className="hidden lg:block absolute left-[12.5%] right-[12.5%] top-[22px] h-px bg-filet">
         <span className="et-fil block h-full bg-tirage origin-left" />
       </span>
-      {ETAPES.map(({ icon: Icon, titre, texte, Visuel }, i) => (
-        <li key={titre} className="et-carte relative flex flex-col" style={{ ["--d" as string]: `${i * PAS}s` }}>
-          <div className="flex lg:justify-center">
-            <span className="et-pastille relative z-10 h-11 w-11 rounded-full bg-white border border-filet-fort flex items-center justify-center">
-              <Icon className="h-5 w-5 text-encre" aria-hidden="true" />
-            </span>
-          </div>
-          <div className="mt-5 flex-1 rounded-[12px] border border-filet bg-white overflow-hidden hover:border-filet-fort transition-colors">
-            <div className="et-visuel relative h-36 bg-papier border-b border-filet overflow-hidden" aria-hidden="true">
-              <Visuel />
-            </div>
-            <div className="p-5">
-              <span className="text-[13px] font-medium text-tirage tabular-nums">Étape {i + 1}</span>
-              <h3 className="mt-1.5 text-[17px] font-semibold tracking-[-0.01em]">{titre}</h3>
-              <p className="mt-2 text-[14px] leading-[1.6] text-mine">{texte}</p>
-            </div>
-          </div>
-        </li>
+      {ETAPES.map((e, i) => (
+        <Etape key={e.titre} {...e} i={i} />
       ))}
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
     </ol>
+  );
+}
+
+/**
+ * Chaque étape se déclenche quand elle entre elle-même dans l'écran : sur
+ * mobile, les étapes sont empilées et se jouent l'une après l'autre au fil du
+ * défilement. En grand écran, elles arrivent ensemble et se décalent (--dl).
+ */
+function Etape({ icon: Icon, titre, texte, Visuel, i }: (typeof ETAPES)[number] & { i: number }) {
+  const { ref, inView } = useInView<HTMLLIElement>(0.35);
+  return (
+    <li ref={ref} className={`et-carte relative flex flex-col ${inView ? "et-vu" : ""}`} style={{ ["--dl" as string]: `${i * PAS}s` }}>
+      <div className="flex lg:justify-center">
+        <span className="et-pastille relative z-10 h-11 w-11 rounded-full bg-white border border-filet-fort flex items-center justify-center">
+          <Icon className="h-5 w-5 text-encre" aria-hidden="true" />
+        </span>
+      </div>
+      <div className="mt-5 flex-1 rounded-[12px] border border-filet bg-white overflow-hidden hover:border-filet-fort transition-colors">
+        <div className="et-visuel relative h-36 bg-papier border-b border-filet overflow-hidden" aria-hidden="true">
+          <Visuel />
+        </div>
+        <div className="p-5">
+          <span className="text-[13px] font-medium text-tirage tabular-nums">Étape {i + 1}</span>
+          <h3 className="mt-1.5 text-[17px] font-semibold tracking-[-0.01em]">{titre}</h3>
+          <p className="mt-2 text-[14px] leading-[1.6] text-mine">{texte}</p>
+        </div>
+      </div>
+    </li>
   );
 }
 
@@ -199,10 +211,12 @@ function VisuelRapport() {
 /* Tout démarre quand la liste entre dans l'écran (.et-vu), étape après étape
    grâce à --d ; --k décale les éléments d'un même visuel. */
 const CSS = `
+.et-carte { --d: 0s; }
+@media (min-width: 1024px) { .et-carte { --d: var(--dl); } }
 .et .et-carte { opacity: 0; transform: translateY(14px); }
-.et-vu .et-carte { animation: et-monte .6s cubic-bezier(.2,.8,.2,1) var(--d) forwards; }
+.et-carte.et-vu { animation: et-monte .6s cubic-bezier(.2,.8,.2,1) var(--d) forwards; }
 .et .et-fil { transform: scaleX(0); }
-.et-vu .et-fil { animation: et-fil ${4 * PAS}s linear .2s forwards; }
+.et-fil-vu .et-fil { animation: et-fil ${4 * PAS}s linear .2s forwards; }
 .et-vu .et-pastille { animation: et-pastille .5s ease-out calc(var(--d) + .2s) forwards; }
 
 .et .et-page { opacity: 0; }

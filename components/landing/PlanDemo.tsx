@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useInView } from "./useInView";
 import { RotateCcw, Camera, FileText } from "lucide-react";
 
 // Réserves de la démonstration : position sur le plan (repère 0-640 × 0-420),
@@ -25,13 +26,20 @@ const DEBUT = 0.6;
 const FIN = DEBUT + RESERVES.length * PAS;
 
 const CSS = `
-        .pd-pin { opacity: 0; animation: pd-pose .5s cubic-bezier(.2,1.4,.4,1) forwards; }
-        .pd-onde { opacity: 0; animation: pd-onde 1.1s ease-out forwards; }
-        .pd-ligne { opacity: 0; animation: pd-ligne .45s ease-out forwards; }
-        .pd-rapport { opacity: .35; animation: pd-rapport .4s ease-out forwards; }
-        .pd-barre { width: 0; animation: pd-barre 1.2s cubic-bezier(.4,0,.2,1) forwards; }
-        .pd-pret, .pd-rejouer { opacity: 0; animation: pd-apparait .4s ease-out forwards; }
-        .pd-compteur::before { content: "0"; animation: pd-compte ${RESERVES.length * PAS}s steps(${RESERVES.length}, end) ${DEBUT + 0.3}s forwards; font-weight: 600; color: var(--zs-encre); }
+        .pd-pin { opacity: 0; }
+        .pd-vu .pd-pin { animation: pd-pose .5s cubic-bezier(.2,1.4,.4,1) forwards; }
+        .pd-onde { opacity: 0; }
+        .pd-vu .pd-onde { animation: pd-onde 1.1s ease-out forwards; }
+        .pd-ligne { opacity: 0; }
+        .pd-vu .pd-ligne { animation: pd-ligne .45s ease-out forwards; }
+        .pd-rapport { opacity: .35; }
+        .pd-vu .pd-rapport { animation: pd-rapport .4s ease-out forwards; }
+        .pd-barre { width: 0; }
+        .pd-vu .pd-barre { animation: pd-barre 1.2s cubic-bezier(.4,0,.2,1) forwards; }
+        .pd-pret, .pd-rejouer { opacity: 0; }
+        .pd-vu .pd-pret, .pd-vu .pd-rejouer { animation: pd-apparait .4s ease-out forwards; }
+        .pd-compteur::before { content: "0"; font-weight: 600; color: var(--zs-encre); }
+        .pd-vu .pd-compteur::before { animation: pd-compte ${RESERVES.length * PAS}s steps(${RESERVES.length}, end) ${DEBUT + 0.3}s forwards; }
         @keyframes pd-pose { from { opacity: 0; transform: translateY(-18px) scale(.6); } to { opacity: 1; transform: none; } }
         @keyframes pd-onde { 0% { opacity: .35; transform: scale(.5); } 100% { opacity: 0; transform: scale(1.8); } }
         @keyframes pd-ligne { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
@@ -40,18 +48,21 @@ const CSS = `
         @keyframes pd-apparait { to { opacity: 1; } }
         @keyframes pd-compte { 0% { content: "0"; } 20% { content: "1"; } 40% { content: "2"; } 60% { content: "3"; } 80% { content: "4"; } 100% { content: "5"; } }
         @media (prefers-reduced-motion: reduce) {
-          .pd-pin, .pd-ligne, .pd-rapport, .pd-pret, .pd-rejouer { animation: none; opacity: 1; }
+          .pd-pin, .pd-ligne, .pd-rapport, .pd-pret, .pd-rejouer { animation: none !important; opacity: 1; }
           .pd-onde { display: none; }
-          .pd-barre { animation: none; width: 100%; }
-          .pd-compteur::before { animation: none; content: "5"; }
+          .pd-barre { animation: none !important; width: 100%; }
+          .pd-compteur::before { animation: none !important; content: "5"; }
         }
       `;
 
 export default function PlanDemo() {
   const [tour, setTour] = useState(0);
+  // Sur mobile la démonstration est sous les boutons : elle démarre quand on la voit.
+  const { ref, inView } = useInView<HTMLDivElement>(0.4, "0px");
 
   return (
-    <figure className="pd relative" key={tour} aria-label="Démonstration : cinq réserves placées sur un plan, puis le rapport de visite généré">
+    <div ref={ref}>
+    <figure className={`pd relative ${inView ? "pd-vu" : ""}`} key={tour} aria-label="Démonstration : cinq réserves placées sur un plan, puis le rapport de visite généré">
       <div className="rounded-[14px] border border-filet bg-white shadow-[0_30px_80px_-30px_rgba(28,28,26,0.35)] overflow-hidden">
         {/* Barre de l'outil, comme dans l'application */}
         <div className="flex items-center gap-3 h-11 px-4 border-b border-filet bg-white">
@@ -173,5 +184,6 @@ export default function PlanDemo() {
 
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
     </figure>
+    </div>
   );
 }

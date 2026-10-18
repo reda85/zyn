@@ -28,41 +28,48 @@ const METIERS = [
 ];
 
 export default function Metiers() {
-  const { ref, inView } = useInView<HTMLDivElement>(0.2);
   return (
-    <div ref={ref} className={`mt mt-12 grid gap-4 md:grid-cols-3 ${inView ? "mt-vu" : ""}`}>
-      {METIERS.map(({ icon: Icon, titre, sousTitre, points, Vignette }, k) => (
-        <article
-          key={titre}
-          className="mt-carte group rounded-[14px] border border-filet bg-white overflow-hidden flex flex-col hover:border-filet-fort hover:shadow-[0_14px_36px_-20px_rgba(28,28,26,0.4)] transition-[border-color,box-shadow] duration-300"
-          style={{ ["--k" as string]: k }}
-        >
-          <div className="relative h-[150px] bg-papier border-b border-filet overflow-hidden" aria-hidden="true">
-            <Vignette />
-          </div>
-          <div className="p-6 flex-1">
-            <div className="flex items-center gap-3">
-              <span className="h-9 w-9 rounded-[9px] bg-encre flex items-center justify-center shrink-0">
-                <Icon className="h-[18px] w-[18px] text-white" aria-hidden="true" />
-              </span>
-              <div>
-                <h3 className="text-[17px] font-semibold tracking-[-0.015em] leading-tight">{titre}</h3>
-                <p className="text-[13px] text-mine">{sousTitre}</p>
-              </div>
-            </div>
-            <ul className="mt-5 space-y-2.5">
-              {points.map((p) => (
-                <li key={p} className="flex gap-2.5 text-[14px] leading-[1.5] text-encre">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-tirage" aria-hidden="true" />
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </article>
+    <div className="mt mt-12 grid gap-4 md:grid-cols-3">
+      {METIERS.map((m, k) => (
+        <Metier key={m.titre} {...m} k={k} />
       ))}
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
     </div>
+  );
+}
+
+/** Chaque carte se joue quand elle-même entre dans l'écran. */
+function Metier({ icon: Icon, titre, sousTitre, points, Vignette, k }: (typeof METIERS)[number] & { k: number }) {
+  const { ref, inView } = useInView<HTMLElement>(0.35);
+  return (
+    <article
+      ref={ref}
+      className={`mt-carte ${inView ? "mt-vu" : ""} group rounded-[14px] border border-filet bg-white overflow-hidden flex flex-col hover:border-filet-fort hover:shadow-[0_14px_36px_-20px_rgba(28,28,26,0.4)] transition-[border-color,box-shadow] duration-300`}
+      style={{ ["--k" as string]: k }}
+    >
+      <div className="relative h-[150px] bg-papier border-b border-filet overflow-hidden" aria-hidden="true">
+        <Vignette />
+      </div>
+      <div className="p-6 flex-1">
+        <div className="flex items-center gap-3">
+          <span className="h-9 w-9 rounded-[9px] bg-encre flex items-center justify-center shrink-0">
+            <Icon className="h-[18px] w-[18px] text-white" aria-hidden="true" />
+          </span>
+          <div>
+            <h3 className="text-[17px] font-semibold tracking-[-0.015em] leading-tight">{titre}</h3>
+            <p className="text-[13px] text-mine">{sousTitre}</p>
+          </div>
+        </div>
+        <ul className="mt-5 space-y-2.5">
+          {points.map((p) => (
+            <li key={p} className="flex gap-2.5 text-[14px] leading-[1.5] text-encre">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-tirage" aria-hidden="true" />
+              {p}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </article>
   );
 }
 
@@ -143,8 +150,10 @@ function VignettePromoteur() {
 }
 
 const CSS = `
+.mt-carte { --kd: 0s; }
+@media (min-width: 768px) { .mt-carte { --kd: calc(var(--k) * .12s); } }
 .mt .mt-carte { opacity: 0; transform: translateY(14px); }
-.mt-vu .mt-carte { animation: mt-monte .6s cubic-bezier(.2,.8,.2,1) calc(var(--k) * .12s) forwards; }
+.mt-carte.mt-vu { animation: mt-monte .6s cubic-bezier(.2,.8,.2,1) var(--kd) forwards; }
 .mt .mt-doc { transform: translateY(30px); }
 .mt-vu .mt-doc { animation: mt-doc .8s cubic-bezier(.2,.8,.2,1) .35s forwards; }
 .mt .mt-barre { transform: scaleX(0); }

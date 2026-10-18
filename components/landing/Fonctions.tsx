@@ -5,9 +5,8 @@ import { useInView } from "./useInView";
 
 /** Fonctionnalités en mosaïque : chaque tuile montre la fonction plutôt que de la décrire. */
 export default function Fonctions() {
-  const { ref, inView } = useInView<HTMLDivElement>(0.15);
   return (
-    <div ref={ref} className={`fn mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3 ${inView ? "fn-vu" : ""}`}>
+    <div className="fn mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Tuile className="md:col-span-2 lg:row-span-2" icon={MapPin} titre="Réserves sur plan" texte="Chaque observation est un point sur le plan, numéroté, avec son lot, son statut, son échéance et son responsable." k={0}>
         <VisuelReserves />
       </Tuile>
@@ -39,9 +38,12 @@ function Tuile({
 }: {
   icon: React.ComponentType<{ className?: string }>; titre: string; texte: string; children: React.ReactNode; className?: string; k: number; horizontal?: boolean;
 }) {
+  // Chaque tuile se joue quand elle-même arrive à l'écran (sur mobile, au fil du défilement).
+  const { ref, inView } = useInView<HTMLElement>(0.35);
   return (
     <article
-      className={`fn-tuile group rounded-[14px] border border-filet bg-white overflow-hidden flex ${horizontal ? "flex-col md:flex-row" : "flex-col"} hover:border-filet-fort hover:shadow-[0_12px_32px_-18px_rgba(28,28,26,0.35)] transition-[border-color,box-shadow] ${className}`}
+      ref={ref}
+      className={`fn-tuile ${inView ? "fn-vu" : ""} group rounded-[14px] border border-filet bg-white overflow-hidden flex ${horizontal ? "flex-col md:flex-row" : "flex-col"} hover:border-filet-fort hover:shadow-[0_12px_32px_-18px_rgba(28,28,26,0.35)] transition-[border-color,box-shadow] ${className}`}
       style={{ ["--k" as string]: k }}
     >
       <div className={`relative bg-papier overflow-hidden ${horizontal ? "md:w-[55%] min-h-[190px] border-b md:border-b-0 md:border-r" : "flex-1 min-h-[150px] border-b"} border-filet`} aria-hidden="true">
@@ -255,8 +257,10 @@ function VisuelInvites() {
 }
 
 const CSS = `
+.fn-tuile { --kd: 0s; }
+@media (min-width: 1024px) { .fn-tuile { --kd: calc(var(--k) * .08s); } }
 .fn .fn-tuile { opacity: 0; transform: translateY(12px); }
-.fn-vu .fn-tuile { animation: fn-monte .6s cubic-bezier(.2,.8,.2,1) calc(var(--k) * .08s) forwards; }
+.fn-tuile.fn-vu { animation: fn-monte .6s cubic-bezier(.2,.8,.2,1) var(--kd) forwards; }
 
 .fn .fn-pin { opacity: 0; }
 .fn-vu .fn-pin { animation: fn-pin .45s cubic-bezier(.2,1.5,.4,1) forwards; }
