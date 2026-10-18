@@ -13,17 +13,17 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   if (!session.profile) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-papier px-6">
+      <div className="flex h-screen w-full items-center justify-center bg-stone-50 px-6">
         <div className="max-w-sm text-center">
-          <h1 className="text-[17px] font-medium text-encre mb-2">Aucun espace de travail</h1>
-          <p className="text-[13px] text-mine mb-6">
+          <h1 className="text-[17px] font-medium text-stone-950 mb-2">Aucun espace de travail</h1>
+          <p className="text-[13px] text-stone-600 mb-6">
             Le compte {session.user.email} n&apos;est rattaché à aucune organisation. Demandez une
             invitation à l&apos;administrateur de votre espace.
           </p>
           <form action={signOutAction}>
             <button
               type="submit"
-              className="px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+              className="px-3 py-[7px] bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors"
             >
               Se déconnecter
             </button>

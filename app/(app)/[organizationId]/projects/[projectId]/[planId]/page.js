@@ -34,7 +34,7 @@ export default function PlanPage({ params }) {
   if (notFound || !project) {
     return (
       <FullScreenMessage title="Projet introuvable" message="Ce projet n'existe pas ou vous n'y avez pas accès.">
-        <Link href={`/${organizationId}/projects`} className="text-[13px] font-medium text-encre underline">
+        <Link href={`/${organizationId}/projects`} className="text-[13px] font-medium text-stone-950 underline">
           Retour aux projets
         </Link>
       </FullScreenMessage>
@@ -46,7 +46,7 @@ export default function PlanPage({ params }) {
       <FullScreenMessage title="Plan introuvable" message="Ce plan a été supprimé ou n'appartient pas à ce projet.">
         <Link
           href={`/${organizationId}/projects/${projectId}`}
-          className="text-[13px] font-medium text-encre underline"
+          className="text-[13px] font-medium text-stone-950 underline"
         >
           Ouvrir le projet
         </Link>
@@ -61,7 +61,7 @@ export default function PlanPage({ params }) {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-80 shrink-0 overflow-y-auto bg-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="w-80 overflow-y-auto border-r border-border/40 bg-secondary/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <PinsList
             pins={filteredPins}
             allPins={pins}
@@ -73,7 +73,7 @@ export default function PlanPage({ params }) {
           />
         </div>
 
-        <div className="flex-1 overflow-auto bg-papier">
+        <div className="flex-1 overflow-auto">
           {currentPlan.png_url && (
             <ImageCanvas
               key={currentPlan.id}

@@ -12,10 +12,10 @@ export default async function Workspaces() {
   if (first) redirect(`/${first.id}/projects`)
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-papier px-6">
+    <div className="flex h-screen w-full items-center justify-center bg-stone-50 px-6">
       <div className="max-w-sm text-center">
-        <h1 className="text-[17px] font-medium text-encre mb-2">Aucune organisation</h1>
-        <p className="text-[13px] text-mine mb-6">
+        <h1 className="text-[17px] font-medium text-stone-950 mb-2">Aucune organisation</h1>
+        <p className="text-[13px] text-stone-600 mb-6">
           Le compte {session.user.email} n&apos;est membre d&apos;aucune organisation pour le moment.
           Demandez à l&apos;administrateur de votre espace de vous y ajouter, ou connectez-vous avec
           un autre compte.
@@ -23,7 +23,7 @@ export default async function Workspaces() {
         <form action={signOutAction}>
           <button
             type="submit"
-            className="px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+            className="px-3 py-[7px] bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors"
           >
             Changer de compte
           </button>

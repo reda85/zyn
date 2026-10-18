@@ -47,7 +47,7 @@ export default function MapPin({ pin, dragging = false, hovered = false }) {
           className="
             absolute bottom-full left-1/2 -translate-x-1/2
             mb-3 w-max max-w-xs min-w-52 p-4 text-xs text-white
-            bg-gray-800 rounded-lg shadow-lg
+            bg-stone-800 rounded-lg shadow-lg
             whitespace-nowrap pointer-events-none
             z-[1]
           "

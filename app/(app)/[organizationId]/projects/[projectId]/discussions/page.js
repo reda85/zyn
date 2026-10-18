@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Send, Plus, Users, X, Search, UserPlus, MessageSquare, Image as ImageIcon, Link as LinkIcon, MapPin, FileText, MapPinIcon } from 'lucide-react';
 import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import NavBar from '@/components/NavBar';
 import { useProjectData } from '@/providers/ProjectProvider';
 import { categoriesPinIcons } from '@/utils/categories';
@@ -12,8 +13,10 @@ import clsx from 'clsx';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 // Muted variants of the system's status hues, kept distinct per group/user via hash
-// Pastilles sobres : encres et gris, un seul bleu (celui des tirages).
-const AVATAR_COLORS = ['#1c1c1a', '#5b5b56', '#2c4f91', '#46463f', '#77776f', '#223e73', '#33332f'];
+const AVATAR_COLORS = [
+  '#5b8def','#3b70e8','#0f7a3a',
+  '#8a5a00','#9c1b1b','#1e3a8a','#264dc2',
+];
 
 const avatarColor = (id = '') => {
   let h = 0;
@@ -62,7 +65,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
 
   if (item.item_type === 'plan') {
     return (
-      <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-[3px] cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-voile text-mine')}>
+      <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-[3px] cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-stone-100 text-stone-700')}>
         <MapPinIcon className="w-4 h-4 shrink-0" />
         <span>{item.label ?? item.item_id}</span>
       </div>
@@ -75,7 +78,7 @@ function LinkedItem({ item, isOwn, organizationId, projectId }) {
   const CategoryIcon = categoriesPinIcons[catIconKey];
 
   return (
-    <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-[3px] cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-voile text-mine')}>
+    <div onClick={handleClick} className={clsx('flex items-center gap-2 mt-1.5 text-[12px] font-medium px-2.5 py-1.5 rounded-[3px] cursor-pointer hover:opacity-80 transition-opacity', isOwn ? 'bg-white/10' : 'bg-stone-100 text-stone-700')}>
       <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: statusColor }}>
         <div className="w-4 h-4 flex items-center justify-center text-white [&>svg]:w-3 [&>svg]:h-3">
           {CategoryIcon}
@@ -265,27 +268,27 @@ export default function DiscussionsPage({ params }) {
   const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
 
   return (
-    <div className={clsx(GeistSans.className, "flex flex-col h-screen bg-papier overflow-hidden")}>
+    <div className={clsx(GeistSans.className, "flex flex-col h-screen bg-stone-50 overflow-hidden")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── SIDEBAR ── */}
-        <aside className="w-64 shrink-0 bg-white border-r border-filet flex flex-col">
+        <aside className="w-64 shrink-0 bg-white border-r border-stone-200 flex flex-col">
 
-          <div className="flex items-center justify-between px-4 py-3 border-b border-voile">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100">
             <div className="flex items-center gap-2">
-              <MessageSquare size={15} className="text-mine-clair" />
-              <span className="text-[13px] font-medium text-encre">Discussions</span>
+              <MessageSquare size={15} className="text-stone-500" />
+              <span className="text-[13px] font-medium text-stone-950">Discussions</span>
               {totalUnread > 0 && (
-                <span className={clsx('bg-alerte text-white text-[9px] font-medium px-1.5 py-0.5 rounded-[3px] min-w-[18px] text-center', 'tabular-nums')}>
+                <span className={clsx('bg-red-600 text-white text-[9px] font-medium px-1.5 py-0.5 rounded-[3px] min-w-[18px] text-center', GeistMono.className)}>
                   {totalUnread}
                 </span>
               )}
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1 px-2 py-1.5 bg-encre text-white rounded-[4px] text-[12px] font-medium hover:bg-encre-survol transition-colors"
+              className="flex items-center gap-1 px-2 py-1.5 bg-stone-950 text-white rounded-[4px] text-[12px] font-medium hover:bg-stone-800 transition-colors"
             >
               <Plus size={13} strokeWidth={2.5} />
               Nouveau
@@ -295,13 +298,13 @@ export default function DiscussionsPage({ params }) {
           <div className="flex-1 overflow-y-auto">
             {loadingGroups ? (
               <div className="flex flex-col gap-1 p-3">
-                {[1,2,3].map(i => <div key={i} className="h-14 rounded-[4px] bg-voile animate-pulse" />)}
+                {[1,2,3].map(i => <div key={i} className="h-14 rounded-[4px] bg-stone-100 animate-pulse" />)}
               </div>
             ) : groups.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-12 px-4 text-center">
-                <MessageSquare size={28} className="text-voile" />
-                <p className="text-[12px] text-mine-clair">Aucune discussion</p>
-                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-encre text-white px-3 py-1.5 rounded-[4px] font-medium hover:bg-encre-survol transition-colors">
+                <MessageSquare size={28} className="text-stone-100" />
+                <p className="text-[12px] text-stone-500">Aucune discussion</p>
+                <button onClick={() => setShowCreate(true)} className="text-[12px] bg-stone-950 text-white px-3 py-1.5 rounded-[4px] font-medium hover:bg-stone-800 transition-colors">
                   Créer un groupe
                 </button>
               </div>
@@ -315,7 +318,7 @@ export default function DiscussionsPage({ params }) {
                   onClick={() => selectGroup(g)}
                   className={clsx(
                     "w-full flex items-center gap-2.5 px-3 py-3 text-left transition-colors border-l-2",
-                    isActive ? 'bg-survol border-encre' : 'border-transparent hover:bg-survol'
+                    isActive ? 'bg-stone-100 border-stone-950' : 'border-transparent hover:bg-stone-100'
                   )}
                 >
                   <div className="w-9 h-9 rounded-[4px] shrink-0 flex items-center justify-center text-white font-medium text-[11px]" style={{ backgroundColor: avatarColor(g.id) }}>
@@ -323,15 +326,15 @@ export default function DiscussionsPage({ params }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[13px] font-medium text-encre truncate">{g.name}</span>
-                      {lm && <span className={clsx('text-[10px] text-mine-clair shrink-0', 'tabular-nums')}>{fmtTime(lm.created_at)}</span>}
+                      <span className="text-[13px] font-medium text-stone-950 truncate">{g.name}</span>
+                      {lm && <span className={clsx('text-[10px] text-stone-500 shrink-0', GeistMono.className)}>{fmtTime(lm.created_at)}</span>}
                     </div>
                     <div className="flex items-center justify-between mt-0.5">
-                      <span className="text-[11px] text-mine-clair truncate max-w-[130px]">
+                      <span className="text-[11px] text-stone-500 truncate max-w-[130px]">
                         {lm?.content ?? <em className="not-italic">Aucun message</em>}
                       </span>
                       {count > 0 && (
-                        <span className={clsx('bg-alerte text-white text-[9px] font-medium px-1.5 py-0.5 rounded-[3px] min-w-[16px] text-center shrink-0', 'tabular-nums')}>
+                        <span className={clsx('bg-red-600 text-white text-[9px] font-medium px-1.5 py-0.5 rounded-[3px] min-w-[16px] text-center shrink-0', GeistMono.className)}>
                           {count > 99 ? '99+' : count}
                         </span>
                       )}
@@ -344,15 +347,15 @@ export default function DiscussionsPage({ params }) {
         </aside>
 
         {/* ── CHAT AREA ── */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-papier">
+        <main className="flex-1 flex flex-col overflow-hidden bg-stone-50">
           {!activeGroup ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-10">
-              <MessageSquare size={32} className="text-voile" />
+              <MessageSquare size={32} className="text-stone-100" />
               <div className="text-center">
-                <p className="text-[13px] font-medium text-mine mb-1">Sélectionnez une discussion</p>
-                <p className="text-[12px] text-mine-clair">Choisissez un groupe ou créez-en un nouveau.</p>
+                <p className="text-[13px] font-medium text-stone-700 mb-1">Sélectionnez une discussion</p>
+                <p className="text-[12px] text-stone-500">Choisissez un groupe ou créez-en un nouveau.</p>
               </div>
-              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors">
+              <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-2 bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors">
                 <Plus size={13} />
                 Nouveau groupe
               </button>
@@ -360,21 +363,21 @@ export default function DiscussionsPage({ params }) {
           ) : (
             <>
               {/* Chat header */}
-              <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-filet">
+              <div className="flex items-center justify-between px-5 py-3 bg-white border-b border-stone-200">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-[4px] flex items-center justify-center text-white font-medium text-[11px]" style={{ backgroundColor: avatarColor(activeGroup.id) }}>
                     {initials(activeGroup.name)}
                   </div>
                   <div>
-                    <p className="text-[13px] font-medium text-encre">{activeGroup.name}</p>
-                    {activeGroup.description && <p className="text-[11px] text-mine-clair">{activeGroup.description}</p>}
+                    <p className="text-[13px] font-medium text-stone-950">{activeGroup.name}</p>
+                    {activeGroup.description && <p className="text-[11px] text-stone-500">{activeGroup.description}</p>}
                   </div>
                 </div>
                 <button
                   onClick={() => setShowMembers(v => !v)}
                   className={clsx(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[12px] font-medium transition-colors",
-                    showMembers ? 'bg-encre text-white' : 'bg-white border border-filet text-mine hover:bg-survol'
+                    showMembers ? 'bg-stone-950 text-white' : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-100'
                   )}
                 >
                   <Users size={13} />
@@ -393,14 +396,14 @@ export default function DiscussionsPage({ params }) {
                     <div className="flex flex-col gap-3">
                       {[1,2,3,4].map(i => (
                         <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-                          <div className="h-10 w-44 rounded-[4px] bg-voile animate-pulse" />
+                          <div className="h-10 w-44 rounded-[4px] bg-stone-100 animate-pulse" />
                         </div>
                       ))}
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center gap-2 py-16">
-                      <MessageSquare size={24} className="text-voile" />
-                      <p className="text-[12px] text-mine-clair">Aucun message. Commencez la conversation !</p>
+                      <MessageSquare size={24} className="text-stone-100" />
+                      <p className="text-[12px] text-stone-500">Aucun message. Commencez la conversation !</p>
                     </div>
                   ) : (
                     <>
@@ -408,7 +411,7 @@ export default function DiscussionsPage({ params }) {
                         <button
                           onClick={loadOlderMessages}
                           disabled={loadingOlder}
-                          className="self-center mb-2 px-3 py-1 text-[11px] text-mine hover:text-encre disabled:opacity-50 transition-colors"
+                          className="self-center mb-2 px-3 py-1 text-[11px] text-stone-600 hover:text-stone-950 disabled:opacity-50 transition-colors"
                         >
                           {loadingOlder ? 'Chargement…' : 'Messages précédents'}
                         </button>
@@ -432,24 +435,24 @@ export default function DiscussionsPage({ params }) {
                             )}
                             <div className={`flex flex-col max-w-[60%] ${isOwn ? 'items-end' : 'items-start'}`}>
                               {showMeta && (
-                                <span className="text-[11px] font-medium text-mine-clair mb-1 px-1">{msgProfile?.name ?? 'Inconnu'}</span>
+                                <span className="text-[11px] font-medium text-stone-500 mb-1 px-1">{msgProfile?.name ?? 'Inconnu'}</span>
                               )}
                               <div className={clsx(
                                 "px-3 py-2 rounded-[4px] text-[13px] leading-relaxed",
                                 isOwn
-                                  ? 'bg-encre text-white rounded-br-[2px]'
-                                  : 'bg-white text-encre border border-filet rounded-bl-[2px]'
+                                  ? 'bg-stone-950 text-white rounded-br-[2px]'
+                                  : 'bg-white text-stone-950 border border-stone-200 rounded-bl-[2px]'
                               )}>
                                 {msg.content && <p className="break-words">{msg.content}</p>}
                                 {images.map((att, i) => (
                                   <img key={i} src={att.public_url} alt={att.file_name}
-                                    className="mt-2 rounded-[4px] max-w-xs border border-filet cursor-pointer hover:opacity-90 transition-opacity"
+                                    className="mt-2 rounded-[4px] max-w-xs border border-stone-200 cursor-pointer hover:opacity-90 transition-opacity"
                                     onClick={() => window.open(att.public_url, '_blank')} />
                                 ))}
                                 {linked.map((l, i) => (
                                   <LinkedItem key={i} item={l} isOwn={isOwn} organizationId={organizationId} projectId={projectId} />
                                 ))}
-                                <span className={clsx('block text-[10px] mt-1', 'tabular-nums', isOwn ? 'text-mine-clair text-right' : 'text-trait')}>
+                                <span className={clsx('block text-[10px] mt-1', GeistMono.className, isOwn ? 'text-stone-500 text-right' : 'text-stone-400')}>
                                   {fmtFull(msg.created_at)}
                                 </span>
                               </div>
@@ -463,24 +466,24 @@ export default function DiscussionsPage({ params }) {
                 </div>
 
                 {/* Input bar */}
-                <div className="flex flex-col bg-white border-t border-filet">
+                <div className="flex flex-col bg-white border-t border-stone-200">
                   {(pendingImages.length > 0 || pendingLinked.length > 0) && (
-                    <div className="px-4 py-2.5 border-b border-voile flex flex-wrap gap-2">
+                    <div className="px-4 py-2.5 border-b border-stone-100 flex flex-wrap gap-2">
                       {pendingImages.map((img, i) => (
                         <div key={i} className="relative group">
-                          <img src={img.preview} alt="preview" className="w-14 h-14 rounded-[4px] object-cover border border-filet" />
+                          <img src={img.preview} alt="preview" className="w-14 h-14 rounded-[4px] object-cover border border-stone-200" />
                           <button onClick={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))}
-                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-alerte text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <X size={10} />
                           </button>
                         </div>
                       ))}
                       {pendingLinked.map((l, i) => (
-                        <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 bg-voile border border-filet text-mine rounded-[3px] text-[11px] font-medium group relative">
+                        <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 border border-stone-200 text-stone-700 rounded-[3px] text-[11px] font-medium group relative">
                           <span>{l.item_type === 'pin' ? '📌' : '🗺'}</span>
                           <span className="max-w-[100px] truncate">{l.label}</span>
                           <button onClick={() => setPendingLinked(prev => prev.filter((_, idx) => idx !== i))}
-                            className="ml-1 w-3.5 h-3.5 rounded-full bg-alerte text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            className="ml-1 w-3.5 h-3.5 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <X size={8} />
                           </button>
                         </div>
@@ -491,11 +494,11 @@ export default function DiscussionsPage({ params }) {
                   <div className="flex items-end gap-2 px-4 py-3">
                     <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" />
                     <button onClick={() => fileInputRef.current?.click()}
-                      className="w-8 h-8 rounded-[4px] border border-filet bg-white hover:bg-survol text-mine-clair hover:text-encre flex items-center justify-center shrink-0 transition-colors">
+                      className="w-8 h-8 rounded-[4px] border border-stone-200 bg-white hover:bg-stone-100 text-stone-500 hover:text-stone-950 flex items-center justify-center shrink-0 transition-colors">
                       <ImageIcon size={15} />
                     </button>
                     <button onClick={() => setShowLinkModal(true)}
-                      className="w-8 h-8 rounded-[4px] border border-filet bg-white hover:bg-survol text-mine-clair hover:text-encre flex items-center justify-center shrink-0 transition-colors">
+                      className="w-8 h-8 rounded-[4px] border border-stone-200 bg-white hover:bg-stone-100 text-stone-500 hover:text-stone-950 flex items-center justify-center shrink-0 transition-colors">
                       <LinkIcon size={15} />
                     </button>
                     <textarea
@@ -505,12 +508,12 @@ export default function DiscussionsPage({ params }) {
                       onKeyDown={handleKeyDown}
                       placeholder="Écrivez un message…"
                       rows={1}
-                      className="flex-1 resize-none bg-survol border border-filet rounded-[4px] px-3 py-2 text-[13px] text-encre placeholder:text-trait outline-none focus:border-encre transition-colors max-h-28 overflow-y-auto"
+                      className="flex-1 resize-none bg-stone-100 border border-stone-200 rounded-[4px] px-3 py-2 text-[13px] text-stone-950 placeholder:text-stone-400 outline-none focus:border-stone-950 transition-colors max-h-28 overflow-y-auto"
                     />
                     <button
                       onClick={handleSend}
                       disabled={(!input.trim() && pendingImages.length === 0 && pendingLinked.length === 0) || sending}
-                      className="w-8 h-8 rounded-[4px] bg-encre hover:bg-encre-survol disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
+                      className="w-8 h-8 rounded-[4px] bg-stone-950 hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 transition-colors"
                     >
                       <Send size={14} />
                     </button>
@@ -569,14 +572,14 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20" onClick={onClose}>
-      <div className="bg-white w-full max-w-md rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
-          <h3 className="text-base font-medium text-encre">Lier un élément</h3>
-          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-voile transition-colors"><X size={16} className="text-mine-clair" /></button>
+      <div className="bg-white w-full max-w-md rounded-[6px] border border-stone-200 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+          <h3 className="text-base font-medium text-stone-950">Lier un élément</h3>
+          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-stone-100 transition-colors"><X size={16} className="text-stone-500" /></button>
         </div>
 
         <div className="px-5 pt-4 pb-3">
-          <div className="flex items-center gap-1 rounded-[4px] bg-voile p-0.5 w-fit">
+          <div className="flex items-center gap-1 rounded-[4px] bg-stone-100 p-0.5 w-fit">
             {[
               { id: 'pin', label: 'Tâches / Pins', icon: <MapPin size={13} /> },
               { id: 'plan', label: 'Plans', icon: <FileText size={13} /> },
@@ -584,7 +587,7 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
               <button key={t.id} onClick={() => setActiveTab(t.id)}
                 className={clsx(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] text-[12px] font-medium transition-all',
-                  activeTab === t.id ? 'bg-white text-encre shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]' : 'text-mine hover:text-encre'
+                  activeTab === t.id ? 'bg-white text-stone-950 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]' : 'text-stone-600 hover:text-stone-950'
                 )}>
                 {t.icon}{t.label}
               </button>
@@ -594,28 +597,28 @@ function LinkItemModal({ projectId, organizationId, onLink, onClose }) {
 
         <div className="px-5 pb-3">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-mine-clair" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
             <input type="text" placeholder={`Rechercher ${activeTab === 'pin' ? 'une tâche' : 'un plan'}…`} value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-[7px] text-[13px] bg-white border border-filet rounded-[6px] outline-none focus:border-encre transition-colors placeholder:text-trait"
+              className="w-full pl-8 pr-3 py-[7px] text-[13px] bg-white border border-stone-200 rounded-[4px] outline-none focus:border-stone-950 transition-colors placeholder:text-stone-400"
               autoFocus />
           </div>
         </div>
 
-        <div className="max-h-72 overflow-y-auto border-t border-voile">
+        <div className="max-h-72 overflow-y-auto border-t border-stone-100">
           {loading ? (
-            <div className="p-8 flex justify-center"><div className="w-5 h-5 border-2 border-filet border-t-encre rounded-full animate-spin" /></div>
+            <div className="p-8 flex justify-center"><div className="w-5 h-5 border-2 border-stone-200 border-t-stone-950 rounded-full animate-spin" /></div>
           ) : filtered.length === 0 ? (
-            <div className="p-8 text-center"><p className="text-[12px] text-mine-clair">Aucun élément trouvé</p></div>
+            <div className="p-8 text-center"><p className="text-[12px] text-stone-500">Aucun élément trouvé</p></div>
           ) : filtered.map(item => (
             <button key={item.id} onClick={() => { onLink({ item_type: item.type, item_id: item.id, label: item.label }); onClose(); }}
-              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-survol transition-colors text-left border-b border-voile last:border-0">
-              <div className="w-7 h-7 rounded-[3px] shrink-0 flex items-center justify-center bg-voile border border-filet text-mine">
+              className="w-full flex items-start gap-3 px-4 py-3 hover:bg-stone-100 transition-colors text-left border-b border-stone-100 last:border-0">
+              <div className="w-7 h-7 rounded-[3px] shrink-0 flex items-center justify-center bg-stone-100 border border-stone-200 text-stone-600">
                 {item.type === 'pin' ? <MapPin size={13} /> : <FileText size={13} />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-encre truncate">{item.label}</p>
-                {item.sublabel && <p className="text-[11px] text-mine-clair truncate">{item.sublabel}</p>}
+                <p className="text-[13px] font-medium text-stone-950 truncate">{item.label}</p>
+                {item.sublabel && <p className="text-[11px] text-stone-500 truncate">{item.sublabel}</p>}
               </div>
             </button>
           ))}
@@ -673,32 +676,32 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
   };
 
   return (
-    <aside className="w-56 shrink-0 bg-white border-l border-filet flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-voile">
-        <span className="text-[13px] font-medium text-encre">Membres</span>
-        <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-voile transition-colors"><X size={15} className="text-mine-clair" /></button>
+    <aside className="w-56 shrink-0 bg-white border-l border-stone-200 flex flex-col">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100">
+        <span className="text-[13px] font-medium text-stone-950">Membres</span>
+        <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-stone-100 transition-colors"><X size={15} className="text-stone-500" /></button>
       </div>
 
       {isAdmin && (
-        <div className="px-3 py-3 border-b border-voile">
-          <div className="flex items-center gap-2 bg-survol border border-filet rounded-[4px] px-2.5 py-1.5">
-            <Search size={13} className="text-mine-clair" />
-            <input className="flex-1 bg-transparent text-[12px] text-encre outline-none placeholder:text-trait" placeholder="Inviter…"
+        <div className="px-3 py-3 border-b border-stone-100">
+          <div className="flex items-center gap-2 bg-stone-100 border border-stone-200 rounded-[4px] px-2.5 py-1.5">
+            <Search size={13} className="text-stone-500" />
+            <input className="flex-1 bg-transparent text-[12px] text-stone-950 outline-none placeholder:text-stone-400" placeholder="Inviter…"
               value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-            {searching && <div className="w-3 h-3 border-2 border-filet border-t-encre rounded-full animate-spin" />}
+            {searching && <div className="w-3 h-3 border-2 border-stone-200 border-t-stone-950 rounded-full animate-spin" />}
           </div>
           {searchResults.length > 0 && (
             <div className="mt-2 flex flex-col gap-1 max-h-36 overflow-y-auto">
               {searchResults.map(u => (
-                <div key={u.auth_id} className="flex items-center gap-2 p-2 rounded-[4px] bg-survol border border-filet">
+                <div key={u.auth_id} className="flex items-center gap-2 p-2 rounded-[4px] bg-stone-100 border border-stone-200">
                   <div className="w-6 h-6 rounded-[3px] shrink-0 flex items-center justify-center text-white font-medium text-[9px]" style={{ backgroundColor: avatarColor(u.auth_id) }}>
                     {initials(u.name)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-medium text-encre truncate">{u.name}</p>
-                    <p className="text-[10px] text-mine-clair truncate">{u.email}</p>
+                    <p className="text-[11px] font-medium text-stone-950 truncate">{u.name}</p>
+                    <p className="text-[10px] text-stone-500 truncate">{u.email}</p>
                   </div>
-                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-[3px] bg-encre hover:bg-encre-survol text-white flex items-center justify-center transition-colors shrink-0">
+                  <button onClick={() => addMember(u.auth_id)} className="w-6 h-6 rounded-[3px] bg-stone-950 hover:bg-stone-800 text-white flex items-center justify-center transition-colors shrink-0">
                     <UserPlus size={11} />
                   </button>
                 </div>
@@ -709,28 +712,28 @@ function MembersPanel({ group, projectId, currentUserId, onClose }) {
       )}
 
       <div className="flex-1 overflow-y-auto">
-        <div className={clsx('px-4 py-2 text-[11px] font-medium text-mine-clair', 'tabular-nums')}>
+        <div className={clsx('px-4 py-2 text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em]', GeistMono.className)}>
           {members.length} membre{members.length !== 1 ? 's' : ''}
         </div>
         {members.map(m => {
           const p = m.members ?? {};
           const isSelf = m.user_id === currentUserId;
           return (
-            <div key={m.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-survol group">
+            <div key={m.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-stone-100 group">
               <div className="w-7 h-7 rounded-[3px] shrink-0 flex items-center justify-center text-white font-medium text-[10px]" style={{ backgroundColor: avatarColor(m.user_id) }}>
                 {initials(p.name)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[12px] font-medium text-encre truncate">{p.name ?? 'Inconnu'}</span>
+                  <span className="text-[12px] font-medium text-stone-950 truncate">{p.name ?? 'Inconnu'}</span>
                   {m.role === 'admin' && <span title="Admin" className="text-[10px]">👑</span>}
-                  {isSelf && <span className="text-[9px] bg-voile text-mine font-medium px-1.5 py-0.5 rounded-[3px] border border-filet">Vous</span>}
+                  {isSelf && <span className="text-[9px] bg-stone-100 text-stone-600 font-medium px-1.5 py-0.5 rounded-[3px] border border-stone-200">Vous</span>}
                 </div>
-                <p className="text-[10px] text-mine-clair truncate">{p.email}</p>
+                <p className="text-[10px] text-stone-500 truncate">{p.email}</p>
               </div>
               {isAdmin && !isSelf && (
                 <button onClick={() => removeMember(m.user_id)}
-                  className="w-5 h-5 rounded-[3px] opacity-0 group-hover:opacity-100 hover:bg-alerte-pale hover:text-alerte text-mine-clair flex items-center justify-center transition-all">
+                  className="w-5 h-5 rounded-[3px] opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 text-stone-500 flex items-center justify-center transition-all">
                   <X size={11} />
                 </button>
               )}
@@ -763,32 +766,32 @@ function CreateGroupModal({ projectId, onClose, onCreated }) {
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-white rounded-[6px] w-[400px] max-w-[95vw] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
-          <h2 className="text-base font-medium text-encre">Nouveau groupe</h2>
-          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-voile transition-colors"><X size={16} className="text-mine-clair" /></button>
+      <div className="bg-white rounded-[6px] w-[400px] max-w-[95vw] border border-stone-200 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+          <h2 className="text-base font-medium text-stone-950">Nouveau groupe</h2>
+          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-stone-100 transition-colors"><X size={16} className="text-stone-500" /></button>
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Nom du groupe *</label>
+            <label className={clsx('block text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Nom du groupe *</label>
             <input autoFocus
-              className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
+              className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2.5 text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors"
               placeholder="Ex : Équipe technique"
               value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleCreate()} />
           </div>
           <div>
-            <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Description <span className="normal-case font-normal text-trait">(optionnel)</span></label>
+            <label className={clsx('block text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>Description <span className="normal-case font-normal text-stone-400">(optionnel)</span></label>
             <textarea
-              className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors resize-none"
+              className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2.5 text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors resize-none"
               placeholder="À quoi sert ce groupe ?"
               value={desc} onChange={e => setDesc(e.target.value)} rows={3} />
           </div>
-          {error && <p className="text-[12px] text-alerte bg-alerte-pale border border-alerte-clair px-3 py-2 rounded-[4px]">{error}</p>}
+          {error && <p className="text-[12px] text-red-800 bg-red-50 border border-red-200 px-3 py-2 rounded-[4px]">{error}</p>}
         </div>
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
-          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">Annuler</button>
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-stone-100">
+          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-stone-700 bg-stone-100 rounded-[4px] hover:bg-stone-300 transition-colors">Annuler</button>
           <button onClick={handleCreate} disabled={creating || !name.trim()}
-            className="px-4 py-2 text-[13px] font-medium text-white bg-encre hover:bg-encre-survol disabled:opacity-40 rounded-[4px] transition-colors">
+            className="px-4 py-2 text-[13px] font-medium text-white bg-stone-950 hover:bg-stone-800 disabled:opacity-40 rounded-[4px] transition-colors">
             {creating ? 'Création…' : 'Créer le groupe'}
           </button>
         </div>

@@ -139,7 +139,7 @@ export default function StatusSelect({ pin }) {
         ReactDOM.createPortal(
           <div
             data-dropdown-portal
-            className={`fixed ${GeistSans.className} bg-tirage-pale shadow-lg border rounded-md z-[1003] overflow-hidden flex flex-col gap-2`}
+            className={`fixed ${GeistSans.className} bg-blue-50 shadow-lg border rounded-md z-[1003] overflow-hidden flex flex-col gap-2`}
             style={{
               top: buttonRect.top + offsetY,
               left: buttonRect.left - PADDING_X,

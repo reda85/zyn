@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { fr } from 'date-fns/locale/fr'
 import { Calendar1Icon } from 'lucide-react'
+import { GeistMono } from 'geist/font/mono'
 import clsx from 'clsx'
 import Pin from '@/components/Pin'
 import CategoryComboBox from '@/components/CategoryComboBox'
@@ -32,26 +33,26 @@ function DueDatePicker({ pin, onUpdate }) {
   }
 
   return (
-    <div className="relative w-36">
+    <div className="relative w-40">
       <button
         type="button"
         onClick={() => setOpen(true)}
         className={clsx(
-          'w-full border border-transparent rounded-[4px] px-2 py-1 pl-7 text-left hover:border-filet hover:bg-white relative transition-colors text-[12px]',
-          'tabular-nums',
+          'w-full border rounded-[4px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-stone-100 relative transition-colors text-[12px] font-medium',
+          GeistMono.className,
           isOverDue
-            ? 'text-alerte font-medium'
+            ? 'border-red-200 text-red-800'
             : selectedDate
-              ? 'text-encre'
-              : 'text-trait'
+              ? 'border-stone-200 text-stone-950'
+              : 'border-stone-200 text-stone-400'
         )}
       >
-        {selectedDate ? selectedDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ajouter'}
+        {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
         <Calendar1Icon
           size={12}
           className={clsx(
-            'absolute left-2 top-1/2 -translate-y-1/2',
-            isOverDue ? 'text-alerte' : selectedDate ? 'text-mine' : 'text-trait'
+            'absolute left-2.5 top-1/2 -translate-y-1/2',
+            isOverDue ? 'text-red-600' : selectedDate ? 'text-stone-600' : 'text-stone-400'
           )}
         />
       </button>
@@ -80,70 +81,70 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
     <tr
       onClick={() => onOpen(pin)}
       className={clsx(
-        'border-b border-voile hover:bg-survol transition-colors cursor-pointer',
-        isSelected && 'bg-survol'
+        'border-b border-stone-100 hover:bg-stone-100 transition-colors cursor-pointer',
+        isSelected && 'bg-stone-100'
       )}
     >
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         <input
           type="checkbox"
           checked={isSelected}
           onClick={(e) => e.stopPropagation()}
           onChange={() => onToggleSelect(pin.id)}
-          className="w-3.5 h-3.5 rounded-[2px] border-filet-fort accent-encre"
+          className="w-3.5 h-3.5 rounded-[2px] border-stone-300 accent-stone-950"
         />
       </td>
 
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
           <Pin pin={pin} />
-          <span className="text-[13px] font-medium text-encre line-clamp-1">{pin.name || 'Réserve sans titre'}</span>
+          <span className="text-[13px] font-medium text-stone-950">{pin.name || 'Pin sans nom'}</span>
         </div>
       </td>
 
-      <td className="px-4 py-2.5">
-        <span className="font-mono text-[11px] text-mine">
+      <td className="px-4 py-3">
+        <span className={clsx('text-[11px] text-stone-500', GeistMono.className)}>
           {pin.projects?.project_number}-{pin.pin_number}
         </span>
       </td>
 
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         {pin.assigned_to?.name ? (
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-voile flex items-center justify-center text-[9px] font-medium text-mine flex-shrink-0">
+            <div className="w-5 h-5 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[9px] font-medium text-stone-700 flex-shrink-0">
               {pin.assigned_to.name.charAt(0).toUpperCase()}
             </div>
-            <span className="text-[13px] text-mine">{pin.assigned_to.name}</span>
+            <span className="text-[13px] text-stone-700">{pin.assigned_to.name}</span>
           </div>
         ) : (
-          <span className="text-[13px] text-trait">—</span>
+          <span className="text-[13px] text-stone-400">—</span>
         )}
       </td>
 
-      <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <CategoryComboBox pin={pin} organization_id={organizationId} />
       </td>
 
-      <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <DueDatePicker key={pin.due_date ?? 'null'} pin={pin} onUpdate={onDueDateUpdate} />
       </td>
 
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         {pin.pdf_name ? (
-          <span className="text-[13px] text-mine truncate max-w-[180px] block">{pin.pdf_name}</span>
+          <span className="text-[13px] text-stone-600 truncate max-w-[180px] block">{pin.pdf_name}</span>
         ) : (
-          <span className="text-[13px] text-trait">—</span>
+          <span className="text-[13px] text-stone-400">—</span>
         )}
       </td>
 
-      <td className="px-4 py-2.5">
+      <td className="px-4 py-3">
         {pin.pin_tags?.length > 0 ? (
           <div className="flex flex-wrap gap-1">
             {pin.pin_tags.map((pt) =>
               pt.tags ? (
                 <span
                   key={pt.tag_id}
-                  className="inline-flex items-center px-1.5 py-px rounded-[3px] text-[11px] border border-filet text-mine"
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-700"
                 >
                   {pt.tags.name}
                 </span>
@@ -151,7 +152,7 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
             )}
           </div>
         ) : (
-          <span className="text-[13px] text-trait">—</span>
+          <span className="text-[13px] text-stone-400">—</span>
         )}
       </td>
     </tr>
@@ -162,15 +163,15 @@ export default memo(TaskRow)
 
 export function TaskRowSkeleton() {
   return (
-    <tr className="border-b border-survol animate-pulse">
-      <td className="px-4 py-2.5"><div className="w-3.5 h-3.5 bg-voile rounded-[2px]" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-40" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-20" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-24" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-16" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-28" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-12" /></td>
-      <td className="px-4 py-2.5"><div className="h-3 bg-voile rounded-[3px] w-12" /></td>
+    <tr className="border-b border-stone-100 animate-pulse">
+      <td className="px-4 py-3"><div className="w-3.5 h-3.5 bg-stone-100 rounded-[2px]" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-40" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-20" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-24" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-16" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-28" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-12" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-12" /></td>
     </tr>
   )
 }

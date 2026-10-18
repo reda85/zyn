@@ -429,14 +429,14 @@ export default function SnippetPage({ params }) {
   }
 
   return (
-    <div className={`${GeistSans.className} h-screen flex flex-col bg-survol`}>
+    <div className={`${GeistSans.className} h-screen flex flex-col bg-stone-50`}>
       {/* Header */}
-      <div className="bg-white border-b border-filet px-6 py-4">
+      <div className="bg-white border-b border-stone-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <button
               onClick={handleCancel}
-              className="hover:bg-voile rounded-full p-2 text-mine"
+              className="hover:bg-stone-100 rounded-full p-2 text-stone-600"
             >
               <ArrowLeft size={20} />
             </button>
@@ -445,10 +445,10 @@ export default function SnippetPage({ params }) {
                 <Scissors className="h-5 w-5 text-pink-600" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-encre">
+                <h1 className="text-lg font-semibold text-stone-900">
                   {snippetImage ? 'Annoter le snippet' : 'Créer un snippet'}
                 </h1>
-                <p className="text-sm text-mine-clair">
+                <p className="text-sm text-stone-500">
                   {snippetImage ? 'Ajoutez une annotation à votre snippet' : 'Ajustez la vue et créez le snippet'}
                 </p>
               </div>
@@ -458,7 +458,7 @@ export default function SnippetPage({ params }) {
           <div className="flex items-center gap-2">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-mine hover:bg-voile rounded-lg transition-colors"
+              className="px-4 py-2 text-stone-700 hover:bg-stone-100 rounded-lg transition-colors"
             >
               Annuler
             </button>
@@ -491,7 +491,7 @@ export default function SnippetPage({ params }) {
           // Vue de sélection PDF avec rectangle fixe
           <div 
             ref={containerRef}
-            className="relative w-full h-full overflow-hidden bg-voile"
+            className="relative w-full h-full overflow-hidden bg-stone-100"
             onMouseDown={onMouseDown}
             onMouseUp={onMouseUp}
             onMouseMove={onMouseMove}
@@ -501,41 +501,41 @@ export default function SnippetPage({ params }) {
           >
             {/* Floating Controls */}
             <div className="absolute top-6 left-6 z-20 flex items-center gap-2">
-              <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-filet">
+              <div className="flex items-center bg-white rounded-lg shadow-lg overflow-hidden border border-stone-200">
                 <button
                   onClick={zoomOut}
-                  className="p-3 hover:bg-survol active:bg-voile transition-colors border-r border-filet"
+                  className="p-3 hover:bg-stone-50 active:bg-stone-100 transition-colors border-r border-stone-200"
                   title="Zoom Out"
                 >
-                  <ZoomOut className="h-5 w-5 text-mine" />
+                  <ZoomOut className="h-5 w-5 text-stone-700" />
                 </button>
-                <div className="px-4 text-sm font-medium text-mine border-r border-filet">
+                <div className="px-4 text-sm font-medium text-stone-700 border-r border-stone-200">
                   {Math.round(scale * 100)}%
                 </div>
                 <button
                   onClick={zoomIn}
-                  className="p-3 hover:bg-survol active:bg-voile transition-colors"
+                  className="p-3 hover:bg-stone-50 active:bg-stone-100 transition-colors"
                   title="Zoom In"
                 >
-                  <ZoomIn className="h-5 w-5 text-mine" />
+                  <ZoomIn className="h-5 w-5 text-stone-700" />
                 </button>
               </div>
 
-              <div className="flex items-center bg-white rounded-lg shadow-lg px-4 py-2.5 border border-filet">
+              <div className="flex items-center bg-white rounded-lg shadow-lg px-4 py-2.5 border border-stone-200">
                 <button
                   onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
                   disabled={pageNumber <= 1}
-                  className="px-2 py-1 text-sm hover:bg-voile rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-sm hover:bg-stone-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ←
                 </button>
-                <span className="px-3 text-sm font-medium text-encre">
+                <span className="px-3 text-sm font-medium text-stone-900">
                   Page {pageNumber} / {numPages || '?'}
                 </span>
                 <button
                   onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
                   disabled={pageNumber >= numPages}
-                  className="px-2 py-1 text-sm hover:bg-voile rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-sm hover:bg-stone-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   →
                 </button>
@@ -605,9 +605,9 @@ export default function SnippetPage({ params }) {
             </div>
 
             {/* Instructions */}
-            <div className="absolute top-6 right-6 bg-white rounded-lg shadow-lg p-4 max-w-xs border border-filet">
-              <h3 className="font-medium text-encre mb-2">Instructions</h3>
-              <ul className="text-sm text-mine space-y-1">
+            <div className="absolute top-6 right-6 bg-white rounded-lg shadow-lg p-4 max-w-xs border border-stone-200">
+              <h3 className="font-medium text-stone-900 mb-2">Instructions</h3>
+              <ul className="text-sm text-stone-600 space-y-1">
                 <li>• Glissez pour déplacer le PDF</li>
                 <li>• Utilisez les boutons ou la molette pour zoomer</li>
                 <li>• Ajustez la vue pour capturer la zone souhaitée</li>
@@ -620,18 +620,18 @@ export default function SnippetPage({ params }) {
           <div className="max-w-6xl mx-auto p-6 space-y-6 overflow-auto h-full">
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-mine">Annoter le snippet</h3>
+                <h3 className="text-sm font-medium text-stone-700">Annoter le snippet</h3>
                 
                 {/* Annotation Tools */}
                 <div className="flex items-center gap-2">
                   {/* Draw Mode Selector */}
-                  <div className="flex items-center bg-voile rounded-lg p-1 gap-1">
+                  <div className="flex items-center bg-stone-100 rounded-lg p-1 gap-1">
                     <button
                       onClick={() => setDrawMode('text')}
                       className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                         drawMode === 'text' 
-                          ? 'bg-white text-encre shadow' 
-                          : 'text-mine hover:text-encre'
+                          ? 'bg-white text-stone-900 shadow' 
+                          : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
                       Texte
@@ -640,8 +640,8 @@ export default function SnippetPage({ params }) {
                       onClick={() => setDrawMode('arrow')}
                       className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                         drawMode === 'arrow' 
-                          ? 'bg-white text-encre shadow' 
-                          : 'text-mine hover:text-encre'
+                          ? 'bg-white text-stone-900 shadow' 
+                          : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
                       Flèche
@@ -650,8 +650,8 @@ export default function SnippetPage({ params }) {
                       onClick={() => setDrawMode('pen')}
                       className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                         drawMode === 'pen' 
-                          ? 'bg-white text-encre shadow' 
-                          : 'text-mine hover:text-encre'
+                          ? 'bg-white text-stone-900 shadow' 
+                          : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
                       Dessin
@@ -659,14 +659,14 @@ export default function SnippetPage({ params }) {
                   </div>
 
                   {/* Color Picker */}
-                  <div className="flex items-center gap-2 bg-voile rounded-lg px-3 py-1.5">
-                    <span className="text-sm text-mine">Couleur:</span>
+                  <div className="flex items-center gap-2 bg-stone-100 rounded-lg px-3 py-1.5">
+                    <span className="text-sm text-stone-600">Couleur:</span>
                     {['#ec4899', '#ef4444', '#3b82f6', '#10b981', '#000000'].map(c => (
                       <button
                         key={c}
                         onClick={() => setColor(c)}
                         className={`w-6 h-6 rounded-full border-2 transition-all ${
-                          color === c ? 'border-encre scale-110' : 'border-trait'
+                          color === c ? 'border-stone-900 scale-110' : 'border-stone-300'
                         }`}
                         style={{ backgroundColor: c }}
                       />
@@ -677,7 +677,7 @@ export default function SnippetPage({ params }) {
                   <button
                     onClick={() => setAnnotations(annotations.slice(0, -1))}
                     disabled={annotations.length === 0}
-                    className="px-3 py-1.5 text-sm text-mine hover:text-encre disabled:opacity-50 disabled:cursor-not-allowed bg-voile rounded-lg"
+                    className="px-3 py-1.5 text-sm text-stone-600 hover:text-stone-900 disabled:opacity-50 disabled:cursor-not-allowed bg-stone-100 rounded-lg"
                   >
                     Annuler
                   </button>
@@ -685,7 +685,7 @@ export default function SnippetPage({ params }) {
               </div>
 
               {/* Canvas Container */}
-              <div className="border rounded-lg bg-survol flex justify-center p-4 relative">
+              <div className="border rounded-lg bg-stone-50 flex justify-center p-4 relative">
                 <div className="relative">
                   <canvas
                     ref={annotationCanvasRef}
@@ -728,7 +728,7 @@ export default function SnippetPage({ params }) {
                         </button>
                         <button
                           onClick={() => setShowTextInput(false)}
-                          className="px-2 py-1 bg-filet text-mine text-xs rounded hover:bg-trait"
+                          className="px-2 py-1 bg-stone-200 text-stone-700 text-xs rounded hover:bg-stone-300"
                         >
                           Annuler
                         </button>
@@ -738,7 +738,7 @@ export default function SnippetPage({ params }) {
                 </div>
               </div>
 
-              <p className="text-xs text-mine-clair mt-2">
+              <p className="text-xs text-stone-500 mt-2">
                 {drawMode === 'text' && 'Cliquez pour ajouter du texte'}
                 {drawMode === 'arrow' && 'Cliquez et glissez pour dessiner une flèche'}
                 {drawMode === 'pen' && 'Cliquez et glissez pour dessiner'}
@@ -746,7 +746,7 @@ export default function SnippetPage({ params }) {
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <label className="block text-sm font-medium text-mine mb-3">
+              <label className="block text-sm font-medium text-stone-700 mb-3">
                 Description (optionnelle)
               </label>
               <textarea
@@ -754,7 +754,7 @@ export default function SnippetPage({ params }) {
                 onChange={(e) => setAnnotation(e.target.value)}
                 placeholder="Ajoutez une description textuelle de ce snippet..."
                 rows={3}
-                className="w-full border border-trait rounded-lg p-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                className="w-full border border-stone-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
               />
             </div>
 

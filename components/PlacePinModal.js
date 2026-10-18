@@ -217,27 +217,27 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
         onClick={e => e.stopPropagation()}
       >
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-filet shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-200 shrink-0">
           <div>
-            <p className="text-sm font-semibold text-encre-survol">
+            <p className="text-sm font-semibold text-stone-800">
               {selectedPlan ? 'Cliquez sur le plan pour placer le pin' : 'Choisir un plan'}
             </p>
             {selectedPlan && (
-              <p className="text-xs text-mine-clair mt-0.5">{selectedPlan.name}</p>
+              <p className="text-xs text-stone-400 mt-0.5">{selectedPlan.name}</p>
             )}
           </div>
           <div className="flex items-center gap-2">
             {selectedPlan && (
               <button
                 onClick={() => { destroyViewer(); setSelectedPlan(null) }}
-                className="text-xs text-mine-clair hover:text-mine px-2 py-1 rounded hover:bg-voile transition-colors"
+                className="text-xs text-stone-400 hover:text-stone-600 px-2 py-1 rounded hover:bg-stone-100 transition-colors"
               >
                 Changer de plan
               </button>
             )}
             <button
               onClick={onClose}
-              className="hover:bg-voile rounded-full p-1.5 text-mine-clair transition-colors"
+              className="hover:bg-stone-100 rounded-full p-1.5 text-stone-400 transition-colors"
             >
               <X size={16} />
             </button>
@@ -245,14 +245,14 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
         </div>
 
         {/* ── Body ───────────────────────────────────────────────────────── */}
-        <div className="flex-1 relative overflow-hidden bg-voile">
+        <div className="flex-1 relative overflow-hidden bg-stone-100">
 
           {/* Plan picker */}
           {!selectedPlan && (
             <div className="absolute inset-0 overflow-y-auto p-4">
               {plans.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-sm text-mine-clair">Aucun plan disponible pour ce projet.</p>
+                  <p className="text-sm text-stone-400">Aucun plan disponible pour ce projet.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
@@ -260,19 +260,19 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
                     <button
                       key={plan.id}
                       onClick={() => setSelectedPlan(plan)}
-                      className="flex items-center gap-3 p-3 bg-white rounded-xl border border-filet hover:border-mine-clair hover:shadow-sm transition-all text-left group"
+                      className="flex items-center gap-3 p-3 bg-white rounded-xl border border-stone-200 hover:border-stone-400 hover:shadow-sm transition-all text-left group"
                     >
                       {/* Thumbnail */}
-                      <div className="w-14 h-14 rounded-lg bg-voile overflow-hidden shrink-0 flex items-center justify-center border border-filet">
+                      <div className="w-14 h-14 rounded-lg bg-stone-100 overflow-hidden shrink-0 flex items-center justify-center border border-stone-200">
                         {plan.image_url ? (
                           <img src={plan.image_url} alt={plan.name} className="w-full h-full object-cover" />
                         ) : (
-                          <MapPin size={20} className="text-trait" />
+                          <MapPin size={20} className="text-stone-300" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-encre-survol truncate">{plan.name}</p>
-                        <p className="text-xs text-mine-clair mt-0.5">
+                        <p className="text-sm font-medium text-stone-800 truncate">{plan.name}</p>
+                        <p className="text-xs text-stone-400 mt-0.5">
                           {plan.tiles_path ? '🟢 Haute résolution' : '🔵 Image'}
                         </p>
                       </div>
@@ -288,10 +288,10 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
             <>
               {/* Loading overlay */}
               {!viewerReady && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-voile">
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-stone-100">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-mine-clair mx-auto mb-3" />
-                    <p className="text-sm text-mine-clair">Chargement du plan…</p>
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-stone-400 mx-auto mb-3" />
+                    <p className="text-sm text-stone-500">Chargement du plan…</p>
                   </div>
                 </div>
               )}
@@ -311,18 +311,18 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
               />
 
               {/* Zoom controls */}
-              <div className="absolute top-3 left-3 z-10 flex flex-col bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-filet overflow-hidden">
-                <button onClick={zoomIn}  className="p-2 hover:bg-survol border-b border-filet transition-colors">
-                  <ZoomIn size={15} className="text-mine" />
+              <div className="absolute top-3 left-3 z-10 flex flex-col bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-stone-200 overflow-hidden">
+                <button onClick={zoomIn}  className="p-2 hover:bg-stone-50 border-b border-stone-200 transition-colors">
+                  <ZoomIn size={15} className="text-stone-600" />
                 </button>
-                <button onClick={zoomOut} className="p-2 hover:bg-survol transition-colors">
-                  <ZoomOut size={15} className="text-mine" />
+                <button onClick={zoomOut} className="p-2 hover:bg-stone-50 transition-colors">
+                  <ZoomOut size={15} className="text-stone-600" />
                 </button>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-10 bg-alerte-pale border border-alerte-clair text-alerte text-xs px-3 py-1.5 rounded-lg">
+                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-10 bg-red-50 border border-red-200 text-red-600 text-xs px-3 py-1.5 rounded-lg">
                   {error}
                 </div>
               )}
@@ -332,8 +332,8 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
 
         {/* ── Footer ─────────────────────────────────────────────────────── */}
         {selectedPlan && (
-          <div className="flex items-center justify-between px-5 py-3 border-t border-filet shrink-0 bg-white">
-            <p className="text-xs text-mine-clair">
+          <div className="flex items-center justify-between px-5 py-3 border-t border-stone-200 shrink-0 bg-white">
+            <p className="text-xs text-stone-400">
               {pendingPos
                 ? `Position : (${pendingPos.x.toFixed(3)}, ${pendingPos.y.toFixed(3)})`
                 : 'Aucune position sélectionnée'}
@@ -341,7 +341,7 @@ export default function PlacePinModal({ pin, plans, onClose, onPlaced }) {
             <button
               onClick={confirmPlacement}
               disabled={!pendingPos || saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-encre text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-mine transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-stone-900 text-white text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-stone-700 transition-colors"
             >
               {saving
                 ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Sauvegarde…</>

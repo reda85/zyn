@@ -44,39 +44,39 @@ export default async function Login({
   searchParams: SearchParams;
 }) {
   return (
-    <div className={`flex min-h-screen w-screen overflow-hidden bg-papier ${GeistSans.className}`}>
+    <div className={`flex min-h-screen w-screen overflow-hidden bg-stone-50 ${GeistSans.className}`}>
 
       {/* 1. BRANDING SIDE (Left Half) */}
-      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-filet relative overflow-hidden">
+      <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-stone-200 relative overflow-hidden">
         <div className="text-center relative z-10 max-w-lg">
-          <div className="w-16 h-16 bg-encre rounded-[4px] flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-stone-950 rounded-[4px] flex items-center justify-center mx-auto mb-8">
             <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={40} height={40} />
           </div>
-          <h2 className="text-[40px] font-medium text-encre leading-tight tracking-[-0.02em] mb-6">
+          <h2 className="text-[40px] font-medium text-stone-950 leading-tight tracking-[-0.02em] mb-6">
             Suivez vos chantiers en toute simplicité
           </h2>
-          <p className="text-mine text-[17px] leading-relaxed">
+          <p className="text-stone-600 text-[17px] leading-relaxed">
             Connectez-vous pour accéder à votre tableau de bord et gérer vos projets efficacement.
           </p>
         </div>
       </div>
 
       {/* 2. SIGN-IN FORM SIDE (Right Half) */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-papier relative">
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-stone-50 relative">
         <div className="w-full max-w-md p-8 m-8">
           {/* Logo for smaller screens */}
           <div className="mb-8 lg:hidden flex justify-center">
-            <div className="w-11 h-11 bg-encre rounded-[4px] flex items-center justify-center">
+            <div className="w-11 h-11 bg-stone-950 rounded-[4px] flex items-center justify-center">
               <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={22} height={22} />
             </div>
           </div>
 
           <div className="text-center mb-10">
-            <h1 className="text-[24px] font-semibold text-encre mb-3 tracking-[-0.015em]">Connexion à ZaynSpace</h1>
-            <p className="text-mine-clair text-[13px]">
+            <h1 className="text-[24px] font-medium text-stone-950 mb-3 tracking-[-0.011em]">Connexion à ZaynSpace</h1>
+            <p className="text-stone-500 text-[13px]">
               Vous n'avez pas de compte ?{" "}
               <Link
-                className="text-tirage font-medium hover:text-tirage-fonce transition-colors underline underline-offset-4"
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors underline underline-offset-4"
                 href="/sign-up"
               >
                 Créer un compte
@@ -85,7 +85,7 @@ export default async function Login({
           </div>
 
           {searchParams?.error && (
-            <div className="mb-6 w-full bg-alerte-pale border border-alerte-clair text-alerte px-4 py-3 rounded-[4px] text-[13px]">
+            <div className="mb-6 w-full bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-[4px] text-[13px]">
               {translateError(searchParams.error)}
             </div>
           )}
@@ -94,21 +94,21 @@ export default async function Login({
             <div className="space-y-4">
               {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-[13px] font-medium text-encre">Email</Label>
+                <Label htmlFor="email" className="text-[13px] font-medium text-stone-950">Email</Label>
                 <Input
                   name="email"
                   placeholder="you@example.com"
                   required
-                  className="w-full h-9 bg-white border-filet rounded-[4px] text-[13px] focus:outline-none focus:border-encre focus:ring-0"
+                  className="w-full h-9 bg-white border-stone-200 rounded-[4px] text-[13px] focus:outline-none focus:border-stone-950 focus:ring-0"
                 />
               </div>
 
               {/* Password Field */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-[13px] font-medium text-encre">Mot de passe</Label>
+                  <Label htmlFor="password" className="text-[13px] font-medium text-stone-950">Mot de passe</Label>
                   <Link
-                    className="text-[12px] text-mine-clair hover:text-tirage transition-colors"
+                    className="text-[12px] text-stone-500 hover:text-blue-600 transition-colors"
                     href="/forgot-password"
                   >
                     Mot de passe oublié ?
@@ -119,7 +119,7 @@ export default async function Login({
                   name="password"
                   placeholder="Votre mot de passe"
                   required
-                  className="w-full h-9 bg-white border-filet rounded-[4px] text-[13px] focus:outline-none focus:border-encre focus:ring-0"
+                  className="w-full h-9 bg-white border-stone-200 rounded-[4px] text-[13px] focus:outline-none focus:border-stone-950 focus:ring-0"
                 />
               </div>
             </div>
@@ -128,7 +128,7 @@ export default async function Login({
             <SubmitButton
               pendingText="Connexion..."
               formAction={signInAction}
-              className="w-full bg-encre text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-encre-survol transition-colors"
+              className="w-full bg-stone-950 text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-stone-800 transition-colors"
             >
               Se connecter
             </SubmitButton>
