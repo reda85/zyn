@@ -575,17 +575,17 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
 
           {/* Pin mode toggle group */}
           {!isGuest && (
-            <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-[#e5e5e2] overflow-hidden">
+            <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-stone-200 overflow-hidden">
               <button
                 onClick={() => setPinMode(false)}
                 title="Mode déplacement"
                 className={clsx(
-                  'p-3 transition-colors border-b border-[#e5e5e2] relative group',
-                  !pinMode ? 'bg-[#2f5ee0] text-white' : 'bg-white hover:bg-[#f5f5f4] text-[#8a8a84]'
+                  'p-3 transition-colors border-b border-stone-200 relative group',
+                  !pinMode ? 'bg-blue-600 text-white' : 'bg-white hover:bg-stone-100 text-stone-500'
                 )}
               >
                 <PointerIcon className="h-[18px] w-[18px]" />
-                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-[#0d0d0c] text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-stone-950 text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                   Déplacer
                 </span>
               </button>
@@ -594,11 +594,11 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
                 title="Placer un pin"
                 className={clsx(
                   'p-3 transition-colors relative group',
-                  pinMode ? 'bg-[#2f5ee0] text-white' : 'bg-white hover:bg-[#f5f5f4] text-[#8a8a84]'
+                  pinMode ? 'bg-blue-600 text-white' : 'bg-white hover:bg-stone-100 text-stone-500'
                 )}
               >
                 <MapPinIcon className="h-[18px] w-[18px]" />
-                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-[#0d0d0c] text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-stone-950 text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                   Placer un pin
                 </span>
               </button>
@@ -606,21 +606,21 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
           )}
 
           {/* Zoom controls */}
-          <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-[#e5e5e2] overflow-hidden">
+          <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-stone-200 overflow-hidden">
             <button
               onClick={zoomIn}
               title="Zoomer"
-              className="p-3 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors border-b border-[#e5e5e2] text-[#4a4a46]"
+              className="p-3 hover:bg-stone-100 active:bg-stone-100 transition-colors border-b border-stone-200 text-stone-700"
             >
               <ZoomIn className="h-[18px] w-[18px]" />
             </button>
-            <div className={clsx('px-2 py-1.5 text-center text-[11px] font-medium text-[#8a8a84] border-b border-[#e5e5e2] select-none', GeistMono.className)}>
+            <div className={clsx('px-2 py-1.5 text-center text-[11px] font-medium text-stone-500 border-b border-stone-200 select-none', GeistMono.className)}>
               {Math.round(scale * 100)}%
             </div>
             <button
               onClick={zoomOut}
               title="Dézoomer"
-              className="p-3 hover:bg-[#f5f5f4] active:bg-[#eeeeec] transition-colors text-[#4a4a46]"
+              className="p-3 hover:bg-stone-100 active:bg-stone-100 transition-colors text-stone-700"
             >
               <ZoomOut className="h-[18px] w-[18px]" />
             </button>
@@ -631,10 +631,10 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
         {useOSD && (
           <>
             {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 bg-[#f5f5f4]">
+              <div className="absolute inset-0 flex items-center justify-center z-10 bg-stone-100">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#e5e5e2] border-t-[#2f5ee0] mx-auto mb-4" />
-                  <p className="text-[13px] text-[#666660]">Chargement du plan...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-stone-200 border-t-blue-600 mx-auto mb-4" />
+                  <p className="text-[13px] text-stone-600">Chargement du plan...</p>
                 </div>
               </div>
             )}
@@ -661,8 +661,8 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
             {!imageLoaded && (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#e5e5e2] border-t-[#2f5ee0] mx-auto mb-4" />
-                  <p className="text-[13px] text-[#666660]">Chargement de l'image...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-stone-200 border-t-blue-600 mx-auto mb-4" />
+                  <p className="text-[13px] text-stone-600">Chargement de l'image...</p>
                 </div>
               </div>
             )}

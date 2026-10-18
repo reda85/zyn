@@ -66,8 +66,8 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                 className={clsx(
                   "w-4 h-4 rounded-[2px] border flex items-center justify-center transition-colors",
                   allSelected
-                    ? 'bg-[#2f5ee0] border-[#2f5ee0]'
-                    : 'border-[#d6d6d2] hover:border-[#2f5ee0]'
+                    ? 'bg-blue-600 border-blue-600'
+                    : 'border-stone-300 hover:border-blue-600'
                 )}
                 title={allSelected ? "Tout désélectionner" : "Tout sélectionner"}
               >
@@ -75,10 +75,10 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
               </button>
 
               <div className="flex items-center gap-2">
-                <h3 className="text-[15px] font-medium text-[#050505]">
+                <h3 className="text-[15px] font-medium text-stone-950">
                   {date}
                 </h3>
-                <span className={clsx('text-[12px] text-[#8a8a84]', GeistMono.className)}>
+                <span className={clsx('text-[12px] text-stone-500', GeistMono.className)}>
                   · {items.length} photo{items.length > 1 ? 's' : ''}
                 </span>
               </div>
@@ -94,19 +94,19 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                     className={clsx(
                       "relative group bg-white border rounded-[4px] overflow-hidden flex flex-col transition-all hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]",
                       selected
-                        ? "border-[#2f5ee0] shadow-[0_0_0_3px_rgba(47,94,224,0.15)]"
-                        : "border-[#e5e5e2] hover:border-[#d6d6d2]"
+                        ? "border-blue-600 shadow-[0_0_0_3px_rgba(47,94,224,0.15)]"
+                        : "border-stone-200 hover:border-stone-300"
                     )}
                   >
                     {/* Header with user and time */}
-                    <div className="px-3 py-2 bg-[#f5f5f4] border-b border-[#e5e5e2]">
+                    <div className="px-3 py-2 bg-stone-100 border-b border-stone-200">
                       <div className="flex items-center gap-2 mb-1">
-                        <User className="w-3 h-3 text-[#8a8a84]" />
-                        <p className="text-[12px] font-medium text-[#0d0d0c] truncate">
+                        <User className="w-3 h-3 text-stone-500" />
+                        <p className="text-[12px] font-medium text-stone-950 truncate">
                           {item.pdf_pins?.assigned_to?.name || 'Non assigné'}
                         </p>
                       </div>
-                      <p className={clsx('text-[12px] text-[#8a8a84]', GeistMono.className)}>
+                      <p className={clsx('text-[12px] text-stone-500', GeistMono.className)}>
                         {new Date(item.created_at).toLocaleTimeString('fr-FR', {
                           hour: '2-digit',
                           minute: '2-digit'
@@ -133,7 +133,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                         className={clsx(
                           "absolute top-2 right-2 w-6 h-6 rounded-full border flex items-center justify-center transition-all shadow-[0_1px_2px_rgba(15,15,15,0.08)]",
                           selected
-                            ? 'bg-[#2f5ee0] border-[#2f5ee0] opacity-100 scale-110'
+                            ? 'bg-blue-600 border-blue-600 opacity-100 scale-110'
                             : 'border-white bg-white/30 backdrop-blur-sm opacity-0 group-hover:opacity-100'
                         )}
                       >
@@ -142,9 +142,9 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                     </div>
 
                     {/* Footer with pin name */}
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-[#e5e5e2] mt-auto">
-                      <MapPinIcon className="h-4 w-4 text-[#8a8a84] flex-shrink-0" />
-                      <span className="text-[13px] text-[#0d0d0c] font-medium truncate">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-stone-200 mt-auto">
+                      <MapPinIcon className="h-4 w-4 text-stone-500 flex-shrink-0" />
+                      <span className="text-[13px] text-stone-950 font-medium truncate">
                         {item.pdf_pins?.name || 'Sans nom'}
                       </span>
                     </div>

@@ -161,15 +161,15 @@ export default function ProjectDetails() {
 
   if (loading) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-[#fafaf9]", GeistSans.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-stone-50", GeistSans.className)}>
         <div className="text-center">
           <div className="mb-6 flex justify-center">
-            <div className="w-12 h-12 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center animate-pulse">
+            <div className="w-12 h-12 bg-stone-950 rounded-[4px] flex items-center justify-center animate-pulse">
                <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
             </div>
           </div>
-          <h2 className="text-[17px] font-medium text-[#050505] mb-2">Chargement...</h2>
-          <p className="text-[13px] text-[#8a8a84]">Veuillez patienter</p>
+          <h2 className="text-[17px] font-medium text-stone-950 mb-2">Chargement...</h2>
+          <p className="text-[13px] text-stone-500">Veuillez patienter</p>
         </div>
       </div>
     )
@@ -177,37 +177,37 @@ export default function ProjectDetails() {
 
   if (!project) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-[#fafaf9]", GeistSans.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-stone-50", GeistSans.className)}>
         <div className="text-center">
-          <p className="text-[13px] text-[#8a8a84]">Projet non trouvé</p>
+          <p className="text-[13px] text-stone-500">Projet non trouvé</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={clsx("min-h-screen bg-[#fafaf9]", GeistSans.className)}>
+    <div className={clsx("min-h-screen bg-stone-50", GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-[#eeeeec] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#e5e5e2] transition-colors"
+            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-stone-100 text-stone-700 rounded-[4px] text-[13px] font-medium hover:bg-stone-200 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour
           </button>
-          <h1 className="text-[30px] font-medium tracking-[-0.02em] text-[#050505] mb-4">Détails du projet</h1>
-          <p className="text-[13px] text-[#666660] leading-relaxed max-w-2xl">
+          <h1 className="text-[30px] font-medium tracking-[-0.02em] text-stone-950 mb-4">Détails du projet</h1>
+          <p className="text-[13px] text-stone-600 leading-relaxed max-w-2xl">
             Gérez les informations principales de votre projet et visualisez les membres de l'équipe.
           </p>
         </div>
 
         {/* Error banner */}
         {uploadError && (
-          <div className="mb-6 p-4 bg-[#fde8e8] border border-[#f5c6c6] rounded-[4px] flex items-start justify-between gap-4">
-            <p className="text-[13px] text-[#9c1b1b] font-medium">{uploadError}</p>
-            <button onClick={() => setUploadError(null)} className="text-[#9c1b1b] hover:opacity-70">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-[4px] flex items-start justify-between gap-4">
+            <p className="text-[13px] text-red-800 font-medium">{uploadError}</p>
+            <button onClick={() => setUploadError(null)} className="text-red-800 hover:opacity-70">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -220,7 +220,7 @@ export default function ProjectDetails() {
             <div className="flex justify-end">
               <Button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors"
+                className="px-4 py-2 bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors"
               >
                 Modifier
               </Button>
@@ -230,14 +230,14 @@ export default function ProjectDetails() {
               <Button
                 onClick={handleCancel}
                 variant="outline"
-                className="px-4 py-2 border-[#e5e5e2] rounded-[4px] text-[13px] font-medium text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
+                className="px-4 py-2 border-stone-200 rounded-[4px] text-[13px] font-medium text-stone-700 hover:bg-stone-100 transition-colors"
               >
                 Annuler
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || uploading.picture || uploading.logo}
-                className="px-4 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors disabled:opacity-50"
               >
                 {saving ? 'Enregistrement...' : 'Enregistrer'}
               </Button>
@@ -245,8 +245,8 @@ export default function ProjectDetails() {
           )}
 
           {/* Project Image */}
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6">
-            <label className="block text-[13px] font-medium text-[#0d0d0c] mb-3">
+          <div className="bg-white border border-stone-200 rounded-[4px] p-6">
+            <label className="block text-[13px] font-medium text-stone-950 mb-3">
               Image du projet
             </label>
 
@@ -255,20 +255,20 @@ export default function ProjectDetails() {
                 <img
                   src={project.picture_url}
                   alt={project.name}
-                  className="w-full h-64 object-cover rounded-[4px] border border-[#e5e5e2]"
+                  className="w-full h-64 object-cover rounded-[4px] border border-stone-200"
                 />
                 {isEditing && (
                   <>
                     <button
                       onClick={handleRemovePicture}
-                      className="absolute top-3 right-3 p-2 bg-[#dc2626] text-white rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => pictureInputRef.current?.click()}
                       disabled={uploading.picture}
-                      className="absolute bottom-3 right-3 px-3 py-2 bg-[#0d0d0c] text-white rounded-[3px] text-[12px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 disabled:opacity-100"
+                      className="absolute bottom-3 right-3 px-3 py-2 bg-stone-950 text-white rounded-[3px] text-[12px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 disabled:opacity-100"
                     >
                       {uploading.picture ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                       Remplacer
@@ -280,25 +280,25 @@ export default function ProjectDetails() {
               <div
                 onClick={() => isEditing && !uploading.picture && pictureInputRef.current?.click()}
                 className={clsx(
-                  "w-full h-64 border-2 border-dashed border-[#e5e5e2] rounded-[4px] flex flex-col items-center justify-center transition-colors",
+                  "w-full h-64 border-2 border-dashed border-stone-200 rounded-[4px] flex flex-col items-center justify-center transition-colors",
                   isEditing && !uploading.picture
-                    ? "cursor-pointer hover:border-[#d6d6d2] hover:bg-[#f5f5f4]"
+                    ? "cursor-pointer hover:border-stone-300 hover:bg-stone-100"
                     : "cursor-not-allowed opacity-60"
                 )}
               >
                 {uploading.picture ? (
                   <>
-                    <Loader2 className="w-10 h-10 text-[#8a8a84] mb-3 animate-spin" />
-                    <p className="text-[13px] text-[#8a8a84] font-medium">Téléchargement…</p>
+                    <Loader2 className="w-10 h-10 text-stone-500 mb-3 animate-spin" />
+                    <p className="text-[13px] text-stone-500 font-medium">Téléchargement…</p>
                   </>
                 ) : (
                   <>
-                    <Upload className="w-10 h-10 text-[#b8b8b3] mb-3" />
-                    <p className="text-[13px] text-[#8a8a84] font-medium">
+                    <Upload className="w-10 h-10 text-stone-400 mb-3" />
+                    <p className="text-[13px] text-stone-500 font-medium">
                       {isEditing ? 'Cliquez pour télécharger une image' : 'Aucune image'}
                     </p>
                     {isEditing && (
-                      <p className="text-[11px] text-[#b8b8b3] mt-1">PNG, JPG jusqu'à 10MB</p>
+                      <p className="text-[11px] text-stone-400 mt-1">PNG, JPG jusqu'à 10MB</p>
                     )}
                   </>
                 )}
@@ -316,17 +316,17 @@ export default function ProjectDetails() {
           </div>
 
           {/* Client Logo */}
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6">
-            <label className="block text-[13px] font-medium text-[#0d0d0c] mb-3">
+          <div className="bg-white border border-stone-200 rounded-[4px] p-6">
+            <label className="block text-[13px] font-medium text-stone-950 mb-3">
               Logo du client
             </label>
-            <p className="text-[13px] text-[#8a8a84] mb-4">
+            <p className="text-[13px] text-stone-500 mb-4">
               Apparaîtra sur la page de couverture des rapports en haut à droite.
             </p>
 
             {project.client_logo_url ? (
               <div className="relative group inline-block">
-                <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6 flex items-center justify-center" style={{ minWidth: 200, minHeight: 120 }}>
+                <div className="bg-white border border-stone-200 rounded-[4px] p-6 flex items-center justify-center" style={{ minWidth: 200, minHeight: 120 }}>
                   <img
                     src={project.client_logo_url}
                     alt="Logo client"
@@ -337,14 +337,14 @@ export default function ProjectDetails() {
                   <>
                     <button
                       onClick={handleRemoveLogo}
-                      className="absolute top-2 right-2 p-1.5 bg-[#dc2626] text-white rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => logoInputRef.current?.click()}
                       disabled={uploading.logo}
-                      className="absolute bottom-2 right-2 px-3 py-1.5 bg-[#0d0d0c] text-white rounded-[3px] text-[12px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5"
+                      className="absolute bottom-2 right-2 px-3 py-1.5 bg-stone-950 text-white rounded-[3px] text-[12px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5"
                     >
                       {uploading.logo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
                       Remplacer
@@ -356,25 +356,25 @@ export default function ProjectDetails() {
               <div
                 onClick={() => isEditing && !uploading.logo && logoInputRef.current?.click()}
                 className={clsx(
-                  "w-full max-w-md h-32 border-2 border-dashed border-[#e5e5e2] rounded-[4px] flex flex-col items-center justify-center transition-colors",
+                  "w-full max-w-md h-32 border-2 border-dashed border-stone-200 rounded-[4px] flex flex-col items-center justify-center transition-colors",
                   isEditing && !uploading.logo
-                    ? "cursor-pointer hover:border-[#d6d6d2] hover:bg-[#f5f5f4]"
+                    ? "cursor-pointer hover:border-stone-300 hover:bg-stone-100"
                     : "cursor-not-allowed opacity-60"
                 )}
               >
                 {uploading.logo ? (
                   <>
-                    <Loader2 className="w-7 h-7 text-[#8a8a84] mb-2 animate-spin" />
-                    <p className="text-[12px] text-[#8a8a84] font-medium">Téléchargement…</p>
+                    <Loader2 className="w-7 h-7 text-stone-500 mb-2 animate-spin" />
+                    <p className="text-[12px] text-stone-500 font-medium">Téléchargement…</p>
                   </>
                 ) : (
                   <>
-                    <Upload className="w-7 h-7 text-[#b8b8b3] mb-2" />
-                    <p className="text-[12px] text-[#8a8a84] font-medium">
+                    <Upload className="w-7 h-7 text-stone-400 mb-2" />
+                    <p className="text-[12px] text-stone-500 font-medium">
                       {isEditing ? 'Cliquez pour télécharger le logo' : 'Aucun logo'}
                     </p>
                     {isEditing && (
-                      <p className="text-[11px] text-[#b8b8b3] mt-1">PNG transparent recommandé</p>
+                      <p className="text-[11px] text-stone-400 mt-1">PNG transparent recommandé</p>
                     )}
                   </>
                 )}
@@ -392,43 +392,43 @@ export default function ProjectDetails() {
           </div>
 
           {/* Project Name */}
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6">
-            <label className="block text-[13px] font-medium text-[#0d0d0c] mb-3">Nom du projet</label>
+          <div className="bg-white border border-stone-200 rounded-[4px] p-6">
+            <label className="block text-[13px] font-medium text-stone-950 mb-3">Nom du projet</label>
             {isEditing ? (
               <Input
                 value={project.name || ''}
                 onChange={(e) => setProject({ ...project, name: e.target.value })}
-                className="border-[#e5e5e2] bg-white focus:outline-none focus:border-[#0d0d0c] focus:ring-0 font-medium text-[13px]"
+                className="border-stone-200 bg-white focus:outline-none focus:border-stone-950 focus:ring-0 font-medium text-[13px]"
                 placeholder="Entrez le nom du projet"
               />
             ) : (
-              <p className="text-[#0d0d0c] font-medium py-2 text-[13px]">{project.name || '-'}</p>
+              <p className="text-stone-950 font-medium py-2 text-[13px]">{project.name || '-'}</p>
             )}
           </div>
 
           {/* Project Address */}
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6">
-            <label className="block text-[13px] font-medium text-[#0d0d0c] mb-3">Adresse</label>
+          <div className="bg-white border border-stone-200 rounded-[4px] p-6">
+            <label className="block text-[13px] font-medium text-stone-950 mb-3">Adresse</label>
             {isEditing ? (
               <Input
                 value={project.address || ''}
                 onChange={(e) => setProject({ ...project, address: e.target.value })}
-                className="border-[#e5e5e2] bg-white focus:outline-none focus:border-[#0d0d0c] focus:ring-0 font-medium text-[13px]"
+                className="border-stone-200 bg-white focus:outline-none focus:border-stone-950 focus:ring-0 font-medium text-[13px]"
                 placeholder="Entrez l'adresse du projet"
               />
             ) : (
-              <p className="text-[#0d0d0c] font-medium py-2 text-[13px]">{project.address || '-'}</p>
+              <p className="text-stone-950 font-medium py-2 text-[13px]">{project.address || '-'}</p>
             )}
           </div>
 
           {/* Project Type */}
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6">
-            <label className="block text-[13px] font-medium text-[#0d0d0c] mb-3">Type de projet</label>
+          <div className="bg-white border border-stone-200 rounded-[4px] p-6">
+            <label className="block text-[13px] font-medium text-stone-950 mb-3">Type de projet</label>
             {isEditing ? (
               <select
                 value={project.type || ''}
                 onChange={(e) => setProject({ ...project, type: e.target.value })}
-                className="w-full px-3 py-2 border border-[#e5e5e2] rounded-[4px] bg-white focus:outline-none focus:border-[#0d0d0c] font-medium text-[13px] text-[#0d0d0c] transition-colors"
+                className="w-full px-3 py-2 border border-stone-200 rounded-[4px] bg-white focus:outline-none focus:border-stone-950 font-medium text-[13px] text-stone-950 transition-colors"
               >
                 <option value="">Sélectionnez un type</option>
                 {PROJECT_TYPES.map((type) => (
@@ -436,43 +436,43 @@ export default function ProjectDetails() {
                 ))}
               </select>
             ) : (
-              <p className="text-[#0d0d0c] font-medium py-2 text-[13px]">{project.type || '-'}</p>
+              <p className="text-stone-950 font-medium py-2 text-[13px]">{project.type || '-'}</p>
             )}
           </div>
 
           {/* Project Members */}
-          <div className="bg-white border border-[#e5e5e2] rounded-[4px] p-6">
-            <h2 className="text-[17px] font-medium text-[#050505] mb-4">
+          <div className="bg-white border border-stone-200 rounded-[4px] p-6">
+            <h2 className="text-[17px] font-medium text-stone-950 mb-4">
               Membres de l'équipe
             </h2>
             {members.length === 0 ? (
               <div className="text-center py-8">
-                <User className="w-10 h-10 text-[#d6d6d2] mx-auto mb-3" />
-                <p className="text-[13px] text-[#8a8a84]">Aucun membre dans ce projet</p>
+                <User className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+                <p className="text-[13px] text-stone-500">Aucun membre dans ce projet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center gap-3 p-3 bg-[#f5f5f4] border border-[#e5e5e2] rounded-[4px]"
+                    className="flex items-center gap-3 p-3 bg-stone-100 border border-stone-200 rounded-[4px]"
                   >
                     {member.members?.avatar_url ? (
                       <img
                         src={member.members.avatar_url}
                         alt={member.members.name || member.members.email}
-                        className="w-10 h-10 rounded-full object-cover border border-[#e5e5e2]"
+                        className="w-10 h-10 rounded-full object-cover border border-stone-200"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center">
-                        <User className="w-5 h-5 text-[#8a8a84]" />
+                      <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center">
+                        <User className="w-5 h-5 text-stone-500" />
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="font-medium text-[#0d0d0c] text-[13px]">
+                      <p className="font-medium text-stone-950 text-[13px]">
                         {member.members?.name || member.members?.email || 'Utilisateur'}
                       </p>
-                      <p className="text-[12px] text-[#8a8a84]">{member.role || 'Membre'}</p>
+                      <p className="text-[12px] text-stone-500">{member.role || 'Membre'}</p>
                     </div>
                   </div>
                 ))}

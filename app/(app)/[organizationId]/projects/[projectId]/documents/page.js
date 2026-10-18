@@ -165,10 +165,10 @@ const documentService = {
 function FileIcon({ mimeType, size = 'md' }) {
   const type = fileTypeFromMime(mimeType);
   const cfg = {
-    pdf:     { label: 'PDF', cls: 'text-[#9c1b1b] bg-[#fde8e8] border border-[#f5c6c6]' },
-    image:   { label: 'IMG', cls: 'text-[#264dc2] bg-[#e6eeff] border border-[#c5d6fb]' },
-    office:  { label: 'DOC', cls: 'text-[#1e3a8a] bg-[#e6eeff] border border-[#c5d6fb]' },
-    unknown: { label: 'FIC', cls: 'text-[#666660] bg-[#eeeeec] border border-[#e5e5e2]' },
+    pdf:     { label: 'PDF', cls: 'text-red-800 bg-red-50 border border-red-200' },
+    image:   { label: 'IMG', cls: 'text-blue-700 bg-blue-50 border border-blue-200' },
+    office:  { label: 'DOC', cls: 'text-blue-900 bg-blue-50 border border-blue-200' },
+    unknown: { label: 'FIC', cls: 'text-stone-600 bg-stone-100 border border-stone-200' },
   }[type];
   const sz = {
     sm: 'w-8 h-8 text-[9px] rounded-[3px]',
@@ -201,11 +201,11 @@ function Dialog({ open, onClose, title, children, size = 'md' }) {
             enter="ease-out duration-150" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
             leave="ease-in duration-100" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className={`w-full ${maxW} bg-white rounded-[6px] border border-[#e5e5e2] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col max-h-[90vh]`}>
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#eeeeec] flex-shrink-0">
-                <DialogTitle className="text-base font-medium text-[#050505]">{title}</DialogTitle>
-                <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors">
-                  <X size={16} className="text-[#8a8a84]" />
+            <DialogPanel className={`w-full ${maxW} bg-white rounded-[6px] border border-stone-200 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col max-h-[90vh]`}>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 flex-shrink-0">
+                <DialogTitle className="text-base font-medium text-stone-950">{title}</DialogTitle>
+                <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-stone-100 transition-colors">
+                  <X size={16} className="text-stone-500" />
                 </button>
               </div>
               <div className="overflow-y-auto flex-1 px-5 py-4">{children}</div>
@@ -240,7 +240,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
   return (
     <Dialog open={open} onClose={handleClose} title={mode === 'new' ? 'Ajouter un document' : 'Nouvelle version'}>
       {mode === 'version' && documentName && (
-        <p className="text-[12px] text-[#8a8a84] -mt-1 mb-3">{documentName}</p>
+        <p className="text-[12px] text-stone-500 -mt-1 mb-3">{documentName}</p>
       )}
       <div
         onClick={() => inputRef.current?.click()}
@@ -249,7 +249,7 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
         onDrop={e => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) { setFile(f); setError(null); } }}
         className={clsx(
           "border-2 border-dashed rounded-[4px] p-6 text-center cursor-pointer transition-all mb-4",
-          file ? 'border-[#8a8a84] bg-[#f5f5f4]' : dragging ? 'border-[#0d0d0c] bg-[#f5f5f4]' : 'border-[#e5e5e2] bg-[#f5f5f4] hover:border-[#d6d6d2]'
+          file ? 'border-stone-500 bg-stone-100' : dragging ? 'border-stone-950 bg-stone-100' : 'border-stone-200 bg-stone-100 hover:border-stone-300'
         )}
       >
         <input ref={inputRef} type="file" className="hidden"
@@ -257,65 +257,65 @@ function UploadDialog({ open, onClose, onSubmit, mode = 'new', documentName }) {
           onChange={e => { const f = e.target.files?.[0]; if (f) { setFile(f); setError(null); } }} />
         {file ? (
           <div>
-            <div className="mb-2 flex justify-center"><FileText size={28} className="text-[#4a4a46]" /></div>
-            <p className="text-[13px] font-medium text-[#050505]">{file.name}</p>
-            <p className={clsx('text-[11px] text-[#8a8a84] mt-1', GeistMono.className)}>{formatBytes(file.size)}</p>
+            <div className="mb-2 flex justify-center"><FileText size={28} className="text-stone-700" /></div>
+            <p className="text-[13px] font-medium text-stone-950">{file.name}</p>
+            <p className={clsx('text-[11px] text-stone-500 mt-1', GeistMono.className)}>{formatBytes(file.size)}</p>
             <button onClick={e => { e.stopPropagation(); setFile(null); }}
-              className="mt-2 text-[12px] text-[#8a8a84] hover:text-[#0d0d0c] transition-colors">Changer de fichier</button>
+              className="mt-2 text-[12px] text-stone-500 hover:text-stone-950 transition-colors">Changer de fichier</button>
           </div>
         ) : (
           <div>
-            <div className="mb-3 flex justify-center"><UploadCloud size={32} className="text-[#b8b8b3]" /></div>
-            <p className="text-[13px] font-medium text-[#050505]">Glissez un fichier ou cliquez</p>
-            <p className="text-[11px] text-[#8a8a84] mt-1">PDF, Word, Excel, PowerPoint, Images</p>
+            <div className="mb-3 flex justify-center"><UploadCloud size={32} className="text-stone-400" /></div>
+            <p className="text-[13px] font-medium text-stone-950">Glissez un fichier ou cliquez</p>
+            <p className="text-[11px] text-stone-500 mt-1">PDF, Word, Excel, PowerPoint, Images</p>
           </div>
         )}
       </div>
 
       {mode === 'new' && (
         <div className="mb-3">
-          <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
-            Description <span className="font-normal normal-case text-[#b8b8b3]">(optionnel)</span>
+          <label className={clsx('block text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
+            Description <span className="font-normal normal-case text-stone-400">(optionnel)</span>
           </label>
           <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Décrivez brièvement ce document…"
-            className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors" />
+            className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2.5 text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors" />
         </div>
       )}
 
       <div className="mb-4">
-        <label className={clsx('block text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
-          Notes {mode === 'new' && <span className="font-normal normal-case text-[#b8b8b3]">(optionnel)</span>}
+        <label className={clsx('block text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mb-1.5', GeistMono.className)}>
+          Notes {mode === 'new' && <span className="font-normal normal-case text-stone-400">(optionnel)</span>}
         </label>
         <textarea value={changeNotes} onChange={e => setChangeNotes(e.target.value)}
           placeholder={mode === 'new' ? 'ex. Première version' : 'ex. Mise à jour section 3…'} rows={3}
-          className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors resize-none" />
+          className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2.5 text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors resize-none" />
       </div>
 
       {loading && (
         <div className="mb-4">
-          <div className="h-1.5 bg-[#eeeeec] rounded-full overflow-hidden">
-            <div className="h-full bg-[#0d0d0c] rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+            <div className="h-full bg-stone-950 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
-          <p className={clsx('text-[11px] text-[#8a8a84] mt-1', GeistMono.className)}>Upload… {progress}%</p>
+          <p className={clsx('text-[11px] text-stone-500 mt-1', GeistMono.className)}>Upload… {progress}%</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 bg-[#fde8e8] border border-[#f5c6c6] rounded-[4px] px-3 py-2.5 mb-4">
-          <p className="text-[12px] text-[#9c1b1b] flex-1">{error}</p>
-          <button onClick={() => setError(null)} className="text-[#dc2626] hover:text-[#9c1b1b] transition-colors">
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-[4px] px-3 py-2.5 mb-4">
+          <p className="text-[12px] text-red-800 flex-1">{error}</p>
+          <button onClick={() => setError(null)} className="text-red-600 hover:text-red-800 transition-colors">
             <X size={14} />
           </button>
         </div>
       )}
 
-      <div className="flex justify-end gap-2 pt-4 border-t border-[#eeeeec]">
+      <div className="flex justify-end gap-2 pt-4 border-t border-stone-100">
         <button onClick={handleClose}
-          className="px-4 py-2 rounded-[4px] text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] hover:bg-[#d6d6d2] transition-colors">
+          className="px-4 py-2 rounded-[4px] text-[13px] font-medium text-stone-700 bg-stone-100 hover:bg-stone-300 transition-colors">
           Annuler
         </button>
         <button onClick={handleSubmit} disabled={!file || loading}
-          className="px-4 py-2 rounded-[4px] bg-[#0d0d0c] text-white text-[13px] font-medium hover:bg-[#1a1a18] disabled:opacity-40 transition-colors">
+          className="px-4 py-2 rounded-[4px] bg-stone-950 text-white text-[13px] font-medium hover:bg-stone-800 disabled:opacity-40 transition-colors">
           {loading ? 'Upload…' : mode === 'new' ? 'Uploader' : 'Enregistrer'}
         </button>
       </div>
@@ -365,23 +365,23 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
 
   return (
     <Dialog open={open} onClose={onClose} title={doc?.name ?? ''} size="lg">
-      <div className="flex items-center gap-3 pb-4 mb-4 border-b border-[#eeeeec]">
+      <div className="flex items-center gap-3 pb-4 mb-4 border-b border-stone-100">
         <FileIcon mimeType={doc?.mime_type} size="lg" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium text-[#050505] truncate">{doc?.name}</p>
-          <p className={clsx('text-[11px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+          <p className="text-[13px] font-medium text-stone-950 truncate">{doc?.name}</p>
+          <p className={clsx('text-[11px] text-stone-500 mt-0.5', GeistMono.className)}>
             v{d?.current_version?.version_number ?? 1} · {formatBytes(d?.current_version?.file_size)} · {formatDate(d?.updated_at)}
           </p>
         </div>
         <button onClick={() => { onClose(); onUploadVersion(doc); }}
-          className="flex items-center gap-1.5 bg-white border border-[#e5e5e2] text-[#4a4a46] text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-[#f5f5f4] transition-colors flex-shrink-0">
+          className="flex items-center gap-1.5 bg-white border border-stone-200 text-stone-700 text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-stone-100 transition-colors flex-shrink-0">
           <UploadCloud size={13} />
           <span>Nouvelle version</span>
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-[4px] bg-[#eeeeec] p-0.5 mb-4 w-fit">
+      <div className="flex items-center gap-1 rounded-[4px] bg-stone-100 p-0.5 mb-4 w-fit">
         {[
           { id: 'preview',  label: previewVersion ? `Aperçu v${previewVersion.version_number}` : 'Aperçu' },
           { id: 'versions', label: `Versions (${versions.length || 1})` },
@@ -389,7 +389,7 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
           <button key={t.id} onClick={() => setTab(t.id)}
             className={clsx(
               'px-3 py-1.5 rounded-[3px] text-[13px] font-medium transition-all',
-              tab === t.id ? 'bg-white text-[#050505] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]' : 'text-[#666660] hover:text-[#0d0d0c]'
+              tab === t.id ? 'bg-white text-stone-950 shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]' : 'text-stone-600 hover:text-stone-950'
             )}>
             {t.label}
           </button>
@@ -397,18 +397,18 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
       </div>
 
       {tab === 'preview' && (
-        <div className="bg-[#f5f5f4] border border-[#e5e5e2] rounded-[4px] flex items-center justify-center min-h-96">
-          {loadingUrl ? <p className="text-[13px] text-[#8a8a84]">Chargement…</p>
-          : !previewUrl ? <p className="text-[13px] text-[#8a8a84]">Aperçu non disponible</p>
+        <div className="bg-stone-100 border border-stone-200 rounded-[4px] flex items-center justify-center min-h-96">
+          {loadingUrl ? <p className="text-[13px] text-stone-500">Chargement…</p>
+          : !previewUrl ? <p className="text-[13px] text-stone-500">Aperçu non disponible</p>
           : isImage ? <img src={previewUrl} alt={doc?.name} className="max-w-full max-h-[540px] rounded-[4px] object-contain" />
           : isPDF ? <iframe src={previewUrl} title={doc?.name} className="w-full h-[540px] border-0 rounded-[4px]" />
           : (
             <div className="text-center p-10">
               <FileIcon mimeType={doc?.mime_type} size="lg" />
-              <p className="mt-4 text-[13px] font-medium text-[#050505]">{doc?.name}</p>
-              <p className="mt-1 text-[11px] text-[#8a8a84]">Aperçu non disponible pour ce type de fichier.</p>
+              <p className="mt-4 text-[13px] font-medium text-stone-950">{doc?.name}</p>
+              <p className="mt-1 text-[11px] text-stone-500">Aperçu non disponible pour ce type de fichier.</p>
               <a href={previewUrl} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 mt-4 bg-[#0d0d0c] text-white px-4 py-2 rounded-[4px] text-[13px] font-medium no-underline hover:bg-[#1a1a18] transition-colors">
+                className="inline-flex items-center gap-2 mt-4 bg-stone-950 text-white px-4 py-2 rounded-[4px] text-[13px] font-medium no-underline hover:bg-stone-800 transition-colors">
                 <ExternalLink size={13} />
                 <span>Ouvrir</span>
               </a>
@@ -424,26 +424,26 @@ function ViewerDialog({ open, doc, onClose, onUploadVersion, onVersionRestored }
             return (
               <div key={v.id} className={clsx(
                 "rounded-[4px] border p-4",
-                isCurrent ? 'bg-[#f5f5f4] border-[#d6d6d2]' : 'bg-white border-[#e5e5e2]'
+                isCurrent ? 'bg-stone-100 border-stone-300' : 'bg-white border-stone-200'
               )}>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className={clsx('text-[13px] font-medium text-[#050505]', GeistMono.className)}>v{v.version_number}</span>
+                  <span className={clsx('text-[13px] font-medium text-stone-950', GeistMono.className)}>v{v.version_number}</span>
                   {isCurrent && (
-                    <span className="bg-[#0d0d0c] text-white text-[10px] font-medium px-2 py-0.5 rounded-[3px]">Actuelle</span>
+                    <span className="bg-stone-950 text-white text-[10px] font-medium px-2 py-0.5 rounded-[3px]">Actuelle</span>
                   )}
-                  <span className={clsx('ml-auto text-[11px] text-[#8a8a84]', GeistMono.className)}>{formatDate(v.created_at)}</span>
+                  <span className={clsx('ml-auto text-[11px] text-stone-500', GeistMono.className)}>{formatDate(v.created_at)}</span>
                 </div>
-                {v.change_notes && <p className="text-[12px] text-[#4a4a46] mb-1.5 leading-relaxed">{v.change_notes}</p>}
-                <p className={clsx('text-[11px] text-[#8a8a84] mb-3', GeistMono.className)}>{formatBytes(v.file_size)}</p>
-                <div className="flex gap-2 pt-3 border-t border-[#eeeeec]">
+                {v.change_notes && <p className="text-[12px] text-stone-700 mb-1.5 leading-relaxed">{v.change_notes}</p>}
+                <p className={clsx('text-[11px] text-stone-500 mb-3', GeistMono.className)}>{formatBytes(v.file_size)}</p>
+                <div className="flex gap-2 pt-3 border-t border-stone-100">
                   <button onClick={() => { setPreviewVersion(v); setTab('preview'); loadPreview(v); }}
-                    className="flex items-center gap-1.5 bg-white border border-[#e5e5e2] text-[#4a4a46] text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-[#f5f5f4] transition-colors">
+                    className="flex items-center gap-1.5 bg-white border border-stone-200 text-stone-700 text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-stone-100 transition-colors">
                     <Eye size={12} />
                     <span>Aperçu</span>
                   </button>
                   {!isCurrent && (
                     <button onClick={() => handleRestore(v)} disabled={!!restoringId}
-                      className="flex items-center gap-1.5 bg-white border border-[#e5e5e2] text-[#4a4a46] text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-[#f5f5f4] transition-colors disabled:opacity-50">
+                      className="flex items-center gap-1.5 bg-white border border-stone-200 text-stone-700 text-[12px] font-medium px-3 py-1.5 rounded-[4px] hover:bg-stone-100 transition-colors disabled:opacity-50">
                       {restoringId === v.id
                         ? <><RotateCcw size={12} className="animate-spin" /><span>Restauration…</span></>
                         : <><RotateCcw size={12} /><span>Restaurer</span></>}
@@ -472,7 +472,7 @@ function SortDialog({ open, onClose, sortField, sortDir, onSelect }) {
       <div className="flex flex-col gap-0.5">
         {SORT_FIELDS.map(field => (
           <div key={field.key}>
-            <p className={clsx('text-[11px] font-medium text-[#8a8a84] uppercase tracking-[0.08em] mt-4 mb-2', GeistMono.className)}>{field.label}</p>
+            <p className={clsx('text-[11px] font-medium text-stone-500 uppercase tracking-[0.08em] mt-4 mb-2', GeistMono.className)}>{field.label}</p>
             {[
               { dir: 'asc',  label: field.isDate ? 'Du plus ancien au plus récent' : 'A → Z' },
               { dir: 'desc', label: field.isDate ? 'Du plus récent au plus ancien' : 'Z → A' },
@@ -483,8 +483,8 @@ function SortDialog({ open, onClose, sortField, sortDir, onSelect }) {
                   className={clsx(
                     "w-full flex items-center justify-between px-3 py-2.5 rounded-[4px] text-[13px] mb-1 border transition-colors text-left",
                     active
-                      ? 'bg-[#0d0d0c] text-white border-[#0d0d0c] font-medium'
-                      : 'bg-white text-[#4a4a46] border-[#e5e5e2] hover:bg-[#f5f5f4]'
+                      ? 'bg-stone-950 text-white border-stone-950 font-medium'
+                      : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-100'
                   )}>
                   <span>{opt.label}</span>
                   {active && <Check size={14} />}
@@ -507,14 +507,14 @@ function RenameFolderDialog({ folder, onClose, onRename }) {
     <Dialog open={!!folder} onClose={onClose} title="Renommer le dossier" size="sm">
       <input autoFocus value={name} onChange={e => setName(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') submit(); }}
-        className="w-full rounded-[4px] border border-[#e5e5e2] bg-white px-3 py-2.5 text-[13px] text-[#0d0d0c] focus:outline-none focus:border-[#0d0d0c] transition-colors mb-4" />
-      <div className="flex justify-end gap-2 pt-2 border-t border-[#eeeeec]">
+        className="w-full rounded-[4px] border border-stone-200 bg-white px-3 py-2.5 text-[13px] text-stone-950 focus:outline-none focus:border-stone-950 transition-colors mb-4" />
+      <div className="flex justify-end gap-2 pt-2 border-t border-stone-100">
         <button onClick={onClose}
-          className="px-4 py-2 rounded-[4px] text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] hover:bg-[#d6d6d2] transition-colors">
+          className="px-4 py-2 rounded-[4px] text-[13px] font-medium text-stone-700 bg-stone-100 hover:bg-stone-300 transition-colors">
           Annuler
         </button>
         <button onClick={submit}
-          className="px-4 py-2 rounded-[4px] bg-[#0d0d0c] text-white text-[13px] font-medium hover:bg-[#1a1a18] transition-colors">
+          className="px-4 py-2 rounded-[4px] bg-stone-950 text-white text-[13px] font-medium hover:bg-stone-800 transition-colors">
           Renommer
         </button>
       </div>
@@ -636,7 +636,7 @@ export default function DocumentsPage({ params }) {
   };
 
   return (
-    <div className={clsx(GeistSans.className, "min-h-screen bg-[#fafaf9]")}>
+    <div className={clsx(GeistSans.className, "min-h-screen bg-stone-50")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
@@ -644,10 +644,10 @@ export default function DocumentsPage({ params }) {
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Documents</h1>
-           <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+            <h1 className="text-xl font-medium tracking-[-0.003em] text-stone-950">Documents</h1>
+           <p className={clsx('text-[12px] text-stone-500 mt-0.5', GeistMono.className)}>
   {loading ? (
-    <span className="inline-block h-3 w-32 bg-[#eeeeec] rounded-[3px] animate-pulse align-middle" />
+    <span className="inline-block h-3 w-32 bg-stone-100 rounded-[3px] animate-pulse align-middle" />
   ) : search
     ? `${filteredDocs.length} résultat${filteredDocs.length > 1 ? 's' : ''} pour "${search}"`
     : `${subfolders.length + filteredDocs.length} élément${(subfolders.length + filteredDocs.length) > 1 ? 's' : ''} au total`
@@ -657,16 +657,16 @@ export default function DocumentsPage({ params }) {
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
               <input
                 type="text"
                 placeholder="Rechercher…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-48 rounded-[4px] border border-[#e5e5e2] bg-white pl-8 pr-8 py-[7px] text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors"
+                className="w-48 rounded-[4px] border border-stone-200 bg-white pl-8 pr-8 py-[7px] text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#b8b8b3] hover:text-[#0d0d0c] transition-colors">
+                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-950 transition-colors">
                   <X size={13} />
                 </button>
               )}
@@ -674,7 +674,7 @@ export default function DocumentsPage({ params }) {
 
             <button
               onClick={() => setSortOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-[#e5e5e2] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#f5f5f4] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-stone-200 text-stone-700 rounded-[4px] text-[13px] font-medium hover:bg-stone-100 transition-colors"
             >
               <ArrowUpDown size={14} />
               Trier
@@ -683,7 +683,7 @@ export default function DocumentsPage({ params }) {
             {!search && (
               <button
                 onClick={() => setNewFolderOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-[#e5e5e2] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#f5f5f4] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-[7px] bg-white border border-stone-200 text-stone-700 rounded-[4px] text-[13px] font-medium hover:bg-stone-100 transition-colors"
               >
                 <Folder size={14} />
                 Nouveau dossier
@@ -692,7 +692,7 @@ export default function DocumentsPage({ params }) {
 
             <button
               onClick={() => { setUploadMode('new'); setUploadOpen(true); }}
-              className="flex items-center gap-1.5 px-3 py-[7px] bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-[7px] bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors"
             >
               <Plus size={14} />
               Ajouter
@@ -701,22 +701,22 @@ export default function DocumentsPage({ params }) {
         </div>
 
         {/* ── Main card ── */}
-        <div className="bg-white border border-[#e5e5e2] rounded-[4px] overflow-hidden">
+        <div className="bg-white border border-stone-200 rounded-[4px] overflow-hidden">
 
           {/* Upload progress */}
           {uploads.length > 0 && (
-            <div className="px-4 py-2.5 bg-[#f5f5f4] border-b border-[#e5e5e2] space-y-2">
+            <div className="px-4 py-2.5 bg-stone-100 border-b border-stone-200 space-y-2">
               {uploads.map(u => (
                 <div key={u.name} className="flex items-center gap-3">
-                  <FileText size={13} className="text-[#8a8a84] flex-shrink-0" />
-                  <span className="text-[12px] font-medium text-[#4a4a46] flex-1 truncate">{u.name}</span>
+                  <FileText size={13} className="text-stone-500 flex-shrink-0" />
+                  <span className="text-[12px] font-medium text-stone-700 flex-1 truncate">{u.name}</span>
                   {u.error
-                    ? <span className="text-[11px] text-[#dc2626]">Erreur</span>
+                    ? <span className="text-[11px] text-red-600">Erreur</span>
                     : u.done
-                      ? <span className="flex items-center gap-1 text-[11px] text-[#050505] font-medium"><Check size={11} />Terminé</span>
+                      ? <span className="flex items-center gap-1 text-[11px] text-stone-950 font-medium"><Check size={11} />Terminé</span>
                       : (
-                        <div className="w-24 h-1.5 bg-[#eeeeec] rounded-full overflow-hidden">
-                          <div className="h-full bg-[#0d0d0c] rounded-full transition-all duration-300" style={{ width: `${u.progress}%` }} />
+                        <div className="w-24 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-stone-950 rounded-full transition-all duration-300" style={{ width: `${u.progress}%` }} />
                         </div>
                       )}
                 </div>
@@ -726,13 +726,13 @@ export default function DocumentsPage({ params }) {
 
           {/* Breadcrumbs */}
           {breadcrumbs.length > 0 && (
-            <div className="px-4 py-2.5 border-b border-[#e5e5e2] flex items-center gap-1 text-[12px]">
-              <button onClick={() => goToBreadcrumb(null)} className="text-[#8a8a84] hover:text-[#0d0d0c] font-medium transition-colors">Documents</button>
+            <div className="px-4 py-2.5 border-b border-stone-200 flex items-center gap-1 text-[12px]">
+              <button onClick={() => goToBreadcrumb(null)} className="text-stone-500 hover:text-stone-950 font-medium transition-colors">Documents</button>
               {breadcrumbs.map((b, i) => (
                 <span key={b.id} className="flex items-center gap-1">
-                  <ChevronRight size={13} className="text-[#b8b8b3]" />
+                  <ChevronRight size={13} className="text-stone-400" />
                   <button onClick={() => goToBreadcrumb(b.id)}
-                    className={clsx("font-medium transition-colors hover:text-[#0d0d0c]", i === breadcrumbs.length - 1 ? "text-[#0d0d0c]" : "text-[#8a8a84]")}>
+                    className={clsx("font-medium transition-colors hover:text-stone-950", i === breadcrumbs.length - 1 ? "text-stone-950" : "text-stone-500")}>
                     {b.name}
                   </button>
                 </span>
@@ -741,15 +741,15 @@ export default function DocumentsPage({ params }) {
           )}
 
          {loading ? (
-  <div className="p-4 flex flex-col divide-y divide-[#f5f5f4]">
+  <div className="p-4 flex flex-col divide-y divide-stone-100">
     {Array.from({ length: 6 }).map((_, i) => (
       <div key={i} className="flex items-center gap-3 py-3 animate-pulse">
-        <div className="w-8 h-8 bg-[#eeeeec] rounded-[4px] flex-shrink-0" />
+        <div className="w-8 h-8 bg-stone-100 rounded-[4px] flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="h-3 bg-[#eeeeec] rounded-[3px] w-48 mb-2" />
-          <div className="h-2.5 bg-[#eeeeec] rounded-[3px] w-24" />
+          <div className="h-3 bg-stone-100 rounded-[3px] w-48 mb-2" />
+          <div className="h-2.5 bg-stone-100 rounded-[3px] w-24" />
         </div>
-        <div className="h-2.5 bg-[#eeeeec] rounded-[3px] w-16 flex-shrink-0" />
+        <div className="h-2.5 bg-stone-100 rounded-[3px] w-16 flex-shrink-0" />
       </div>
     ))}
   </div>
@@ -758,17 +758,17 @@ export default function DocumentsPage({ params }) {
 
               {/* New folder inline */}
               {!search && newFolderOpen && (
-                <div className="flex gap-2 items-center bg-[#f5f5f4] border border-[#e5e5e2] rounded-[4px] px-3 py-2.5 mb-3">
+                <div className="flex gap-2 items-center bg-stone-100 border border-stone-200 rounded-[4px] px-3 py-2.5 mb-3">
                   <input autoFocus value={newFolderName} onChange={e => setNewFolderName(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') setNewFolderOpen(false); }}
                     placeholder="Nom du dossier…"
-                    className="flex-1 bg-white border border-[#e5e5e2] rounded-[4px] px-3 py-1.5 text-[13px] text-[#0d0d0c] placeholder:text-[#b8b8b3] focus:outline-none focus:border-[#0d0d0c] transition-colors" />
+                    className="flex-1 bg-white border border-stone-200 rounded-[4px] px-3 py-1.5 text-[13px] text-stone-950 placeholder:text-stone-400 focus:outline-none focus:border-stone-950 transition-colors" />
                   <button onClick={handleCreateFolder}
-                    className="px-3 py-1.5 bg-[#0d0d0c] text-white text-[12px] font-medium rounded-[4px] hover:bg-[#1a1a18] transition-colors">
+                    className="px-3 py-1.5 bg-stone-950 text-white text-[12px] font-medium rounded-[4px] hover:bg-stone-800 transition-colors">
                     Créer
                   </button>
                   <button onClick={() => setNewFolderOpen(false)}
-                    className="text-[12px] text-[#8a8a84] hover:text-[#0d0d0c] transition-colors px-1">
+                    className="text-[12px] text-stone-500 hover:text-stone-950 transition-colors px-1">
                     Annuler
                   </button>
                 </div>
@@ -777,22 +777,22 @@ export default function DocumentsPage({ params }) {
               {/* Empty state */}
               {subfolders.length === 0 && filteredDocs.length === 0 && !newFolderOpen ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <FileText size={32} className="text-[#eeeeec] mb-3" />
-                  <p className="text-[13px] font-medium text-[#050505] mb-1">
+                  <FileText size={32} className="text-stone-100 mb-3" />
+                  <p className="text-[13px] font-medium text-stone-950 mb-1">
                     {search ? 'Aucun résultat' : 'Aucun élément'}
                   </p>
-                  <p className="text-[12px] text-[#8a8a84] mb-5 max-w-xs">
+                  <p className="text-[12px] text-stone-500 mb-5 max-w-xs">
                     {search ? `Aucun fichier ne correspond à "${search}"` : 'Créez un dossier ou uploadez un document'}
                   </p>
                   {!search && (
                     <div className="flex gap-2">
                       <button onClick={() => setNewFolderOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#e5e5e2] text-[#4a4a46] rounded-[4px] text-[13px] font-medium hover:bg-[#f5f5f4] transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-stone-200 text-stone-700 rounded-[4px] text-[13px] font-medium hover:bg-stone-100 transition-colors">
                         <Folder size={13} />
                         Nouveau dossier
                       </button>
                       <button onClick={() => { setUploadMode('new'); setUploadOpen(true); }}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-[#0d0d0c] text-white rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors">
+                        className="flex items-center gap-1.5 px-3 py-2 bg-stone-950 text-white rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors">
                         <Plus size={13} />
                         Ajouter un document
                       </button>
@@ -800,7 +800,7 @@ export default function DocumentsPage({ params }) {
                   )}
                 </div>
               ) : (
-                <div className="border border-[#e5e5e2] rounded-[4px] overflow-hidden">
+                <div className="border border-stone-200 rounded-[4px] overflow-hidden">
 
                   {/* Folders */}
                   {!search && subfolders.map((folder, i) => (
@@ -808,28 +808,28 @@ export default function DocumentsPage({ params }) {
                       key={`folder-${folder.id}`}
                       onClick={() => openFolder(folder)}
                       className={clsx(
-                        "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#f5f5f4] transition-colors group",
-                        (i < subfolders.length - 1 || filteredDocs.length > 0) && "border-b border-[#e5e5e2]"
+                        "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-stone-100 transition-colors group",
+                        (i < subfolders.length - 1 || filteredDocs.length > 0) && "border-b border-stone-200"
                       )}
                     >
-                      <div className="w-8 h-8 rounded-[4px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center flex-shrink-0">
-                        <Folder size={15} className="text-[#666660]" />
+                      <div className="w-8 h-8 rounded-[4px] bg-stone-100 border border-stone-200 flex items-center justify-center flex-shrink-0">
+                        <Folder size={15} className="text-stone-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-[#0d0d0c] truncate">{folder.name}</p>
-                        <p className="text-[11px] text-[#8a8a84]">Dossier</p>
+                        <p className="text-[13px] font-medium text-stone-950 truncate">{folder.name}</p>
+                        <p className="text-[11px] text-stone-500">Dossier</p>
                       </div>
                       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setRenameTarget(folder)}
-                          className="w-7 h-7 rounded-[3px] hover:bg-[#eeeeec] flex items-center justify-center text-[#8a8a84] hover:text-[#0d0d0c] transition-colors">
+                          className="w-7 h-7 rounded-[3px] hover:bg-stone-100 flex items-center justify-center text-stone-500 hover:text-stone-950 transition-colors">
                           <Pencil size={12} />
                         </button>
                         <button onClick={() => handleDeleteFolder(folder.id)}
-                          className="w-7 h-7 rounded-[3px] hover:bg-[#fde8e8] flex items-center justify-center text-[#8a8a84] hover:text-[#dc2626] transition-colors">
+                          className="w-7 h-7 rounded-[3px] hover:bg-red-50 flex items-center justify-center text-stone-500 hover:text-red-600 transition-colors">
                           <Trash2 size={12} />
                         </button>
                       </div>
-                      <ChevronRight size={15} className="text-[#b8b8b3] flex-shrink-0" />
+                      <ChevronRight size={15} className="text-stone-400 flex-shrink-0" />
                     </div>
                   ))}
 
@@ -842,28 +842,28 @@ export default function DocumentsPage({ params }) {
                         key={`doc-${doc.id}`}
                         onClick={() => setViewerDoc(doc)}
                         className={clsx(
-                          "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#f5f5f4] transition-colors group",
-                          !isLast && "border-b border-[#e5e5e2]"
+                          "flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-stone-100 transition-colors group",
+                          !isLast && "border-b border-stone-200"
                         )}
                       >
                         <FileIcon mimeType={doc.mime_type} size="sm" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-medium text-[#0d0d0c] truncate">{doc.name}</p>
+                          <p className="text-[13px] font-medium text-stone-950 truncate">{doc.name}</p>
                           {doc.description && (
-                            <p className="text-[11px] text-[#8a8a84] truncate">{doc.description}</p>
+                            <p className="text-[11px] text-stone-500 truncate">{doc.description}</p>
                           )}
-                          <p className={clsx('text-[11px] text-[#b8b8b3] mt-0.5', GeistMono.className)}>
+                          <p className={clsx('text-[11px] text-stone-400 mt-0.5', GeistMono.className)}>
                             {formatBytes(version?.file_size)} · {formatDate(doc.updated_at)}
                           </p>
                         </div>
 
-                        <span className={clsx('text-[10px] font-medium text-[#666660] bg-[#eeeeec] border border-[#e5e5e2] px-2 py-0.5 rounded-[3px] flex-shrink-0', GeistMono.className)}>
+                        <span className={clsx('text-[10px] font-medium text-stone-600 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-[3px] flex-shrink-0', GeistMono.className)}>
                           v{version?.version_number ?? 1}
                         </span>
 
                         <button
                           onClick={e => { e.stopPropagation(); e.preventDefault(); setContextMenu({ doc, x: e.clientX, y: e.clientY }); }}
-                          className="w-7 h-7 rounded-[3px] hover:bg-[#eeeeec] flex items-center justify-center text-[#8a8a84] opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
+                          className="w-7 h-7 rounded-[3px] hover:bg-stone-100 flex items-center justify-center text-stone-500 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                             <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
@@ -883,20 +883,20 @@ export default function DocumentsPage({ params }) {
       {contextMenu && (
         <div
           id="context-menu"
-          className="fixed bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden min-w-[180px]"
+          className="fixed bg-white border border-stone-200 rounded-[4px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden min-w-[180px]"
           style={{ left: Math.min(contextMenu.x, window.innerWidth - 196), top: Math.min(contextMenu.y, window.innerHeight - 90), zIndex: 9999 }}
         >
           <button
             onClick={e => { e.stopPropagation(); setContextMenu(null); openVersionUpload(contextMenu.doc); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-stone-700 hover:bg-stone-100 transition-colors text-left"
           >
-            <UploadCloud size={13} className="text-[#8a8a84]" />
+            <UploadCloud size={13} className="text-stone-500" />
             Nouvelle version
           </button>
-          <div className="h-px bg-[#eeeeec]" />
+          <div className="h-px bg-stone-100" />
           <button
             onClick={e => { e.stopPropagation(); const d = contextMenu.doc; setContextMenu(null); handleDeleteDocument(d.id); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors text-left"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-red-800 hover:bg-red-50 transition-colors text-left"
           >
             <Trash2 size={13} />
             Supprimer

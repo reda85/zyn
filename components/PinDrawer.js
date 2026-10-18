@@ -23,9 +23,9 @@ export default function PinDrawer({ organization_id }) {
 
   return (
     <div
-      className={`${GeistSans.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-[#e5e5e2] rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col overflow-hidden`}
+      className={`${GeistSans.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-stone-200 rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col overflow-hidden`}
     >
-      <div className="px-5 py-4 border-b border-[#eeeeec] shrink-0">
+      <div className="px-5 py-4 border-b border-stone-100 shrink-0">
         <DrawerHeader
           organization_id={organization_id}
           pin={selectedPin}
@@ -43,7 +43,7 @@ export default function PinDrawer({ organization_id }) {
         />
       </div>
 
-      <div className="px-5 py-4 border-t border-[#eeeeec] shrink-0">
+      <div className="px-5 py-4 border-t border-stone-100 shrink-0">
         <DrawerFooter pin={selectedPin} onCommentAdded={setNewComment} />
       </div>
     </div>

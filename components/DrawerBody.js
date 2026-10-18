@@ -61,7 +61,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
           <Pin pin={pin} />
           <div className="text-base">{pin && <StatusSelect pin={pin} />}</div>
         </div>
-        <div className={clsx('text-[12px] text-[#8a8a84]', GeistMono.className)}>
+        <div className={clsx('text-[12px] text-stone-500', GeistMono.className)}>
           ID: {pin?.projects?.project_number}-{pin.pin_number}
         </div>
         <div className="text-base">
@@ -71,7 +71,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
             value={name || ''}
             onChange={(e) => setName(e.target.value)}
             disabled={isGuest}
-            className="w-full resize-none text-lg text-[#0d0d0c] placeholder:text-lg placeholder:text-[#b8b8b3] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[#f5f5f4]"
+            className="w-full resize-none text-lg text-stone-950 placeholder:text-lg placeholder:text-stone-400 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-stone-100"
           />
         </div>
         <div className="text-xs">
@@ -81,7 +81,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
             onBlur={handleUpdateNote}
             onChange={(e) => setNote(e.target.value)}
             disabled={isGuest}
-            className="w-full resize-none text-[13px] text-[#4a4a46] placeholder:text-[13px] placeholder:text-[#b8b8b3] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-[#f5f5f4]"
+            className="w-full resize-none text-[13px] text-stone-700 placeholder:text-[13px] placeholder:text-stone-400 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-stone-100"
           />
         </div>
         <TagEditor pin={pin} onChange={handleTagsChange} disabled={isGuest} />

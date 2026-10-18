@@ -18,13 +18,13 @@ function ProjectsGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="bg-white border border-[#e5e5e2] rounded-[4px] p-4">
+        <div key={i} className="bg-white border border-stone-200 rounded-[4px] p-4">
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-8 h-8 rounded-[4px] bg-[#eeeeec] animate-pulse flex-shrink-0" />
-            <div className="h-3.5 rounded-[2px] bg-[#eeeeec] animate-pulse flex-1" style={{ maxWidth: `${100 + (i % 3) * 20}px` }} />
+            <div className="w-8 h-8 rounded-[4px] bg-stone-100 animate-pulse flex-shrink-0" />
+            <div className="h-3.5 rounded-[2px] bg-stone-100 animate-pulse flex-1" style={{ maxWidth: `${100 + (i % 3) * 20}px` }} />
           </div>
-          <div className="h-3 w-16 rounded-[2px] bg-[#eeeeec] animate-pulse mb-3" />
-          <div className="h-2.5 w-20 rounded-[2px] bg-[#eeeeec] animate-pulse" />
+          <div className="h-3 w-16 rounded-[2px] bg-stone-100 animate-pulse mb-3" />
+          <div className="h-2.5 w-20 rounded-[2px] bg-stone-100 animate-pulse" />
         </div>
       ))}
     </div>
@@ -179,18 +179,18 @@ export default function ProjectsPage({ params }) {
   )
 
   return (
-    <div className={clsx('flex h-screen bg-[#fafaf9] overflow-hidden', GeistSans.className)}>
+    <div className={clsx('flex h-screen bg-stone-50 overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="projects" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl font-medium tracking-[-0.003em] text-[#050505]">Projets</h1>
+            <h1 className="text-xl font-medium tracking-[-0.003em] text-stone-950">Projets</h1>
             {projectsLoading ? (
-              <div className="h-3 w-32 rounded-[2px] bg-[#eeeeec] animate-pulse mt-1.5" />
+              <div className="h-3 w-32 rounded-[2px] bg-stone-100 animate-pulse mt-1.5" />
             ) : (
-              <p className={clsx('text-[12px] text-[#8a8a84] mt-0.5', GeistMono.className)}>
+              <p className={clsx('text-[12px] text-stone-500 mt-0.5', GeistMono.className)}>
                 {projects.length} projet
                 {projects.length !== 1 ? 's' : ''} au total
               </p>
@@ -199,7 +199,7 @@ export default function ProjectsPage({ params }) {
           {profile?.role !== 'guest' && (
             <button
               onClick={() => setShowModal(true)}
-              className="bg-[#0d0d0c] text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-[#1a1a18] transition-colors flex items-center gap-1.5"
+              className="bg-stone-950 text-white px-4 py-2 rounded-[4px] text-[13px] font-medium hover:bg-stone-800 transition-colors flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               Créer un projet
@@ -210,23 +210,23 @@ export default function ProjectsPage({ params }) {
         {/* ── Search + View Toggle ── */}
         <div className="flex items-center gap-2 mb-5">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8a8a84]" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
             <input
               type="text"
-              className="border border-[#e5e5e2] bg-white pl-8 pr-3 py-[7px] w-full rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+              className="border border-stone-200 bg-white pl-8 pr-3 py-[7px] w-full rounded-[4px] text-[13px] focus:outline-none focus:border-stone-950 transition-colors text-stone-950 placeholder:text-stone-400"
               placeholder="Rechercher un projet..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex bg-[#eeeeec] rounded-[4px] p-0.5">
+          <div className="flex bg-stone-100 rounded-[4px] p-0.5">
             <button
               onClick={() => setViewMode('grid')}
               className={clsx(
                 'p-[6px] rounded-[3px] transition-all',
                 viewMode === 'grid'
-                  ? 'bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] text-[#050505]'
-                  : 'text-[#8a8a84] hover:text-[#4a4a46]'
+                  ? 'bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] text-stone-950'
+                  : 'text-stone-500 hover:text-stone-700'
               )}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -236,8 +236,8 @@ export default function ProjectsPage({ params }) {
               className={clsx(
                 'p-[6px] rounded-[3px] transition-all',
                 viewMode === 'list'
-                  ? 'bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] text-[#050505]'
-                  : 'text-[#8a8a84] hover:text-[#4a4a46]'
+                  ? 'bg-white shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] text-stone-950'
+                  : 'text-stone-500 hover:text-stone-700'
               )}
             >
               <List className="w-3.5 h-3.5" />
@@ -255,7 +255,7 @@ export default function ProjectsPage({ params }) {
                 {filteredProjects.map((proj) => (
                   <div
                     key={proj.id}
-                    className="bg-white border border-[#e5e5e2] rounded-[4px] p-4 hover:border-[#d6d6d2] hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] transition-all group relative cursor-pointer"
+                    className="bg-white border border-stone-200 rounded-[4px] p-4 hover:border-stone-300 hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] transition-all group relative cursor-pointer"
                     onClick={() => handleProjectClick(proj)}
                   >
                     {/* Menu */}
@@ -269,19 +269,19 @@ export default function ProjectsPage({ params }) {
                             e.stopPropagation()
                             setOpenMenuId(openMenuId === proj.id ? null : proj.id)
                           }}
-                          className="p-1.5 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1.5 rounded-[3px] hover:bg-stone-100 transition-colors opacity-0 group-hover:opacity-100"
                         >
-                          <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
+                          <MoreVertical className="w-4 h-4 text-stone-500" />
                         </button>
 
                         {openMenuId === proj.id && (
-                          <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
+                          <div className="absolute right-0 mt-1 w-44 bg-white border border-stone-200 rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
                                 archiveProject(proj.id)
                               }}
-                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
+                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-stone-700 hover:bg-stone-100 transition-colors"
                             >
                               <Archive className="w-3.5 h-3.5" />
                               Archiver
@@ -293,7 +293,7 @@ export default function ProjectsPage({ params }) {
                                 setShowDeleteModal(true)
                                 setOpenMenuId(null)
                               }}
-                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
+                              className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-red-800 hover:bg-red-50 transition-colors"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                               Supprimer
@@ -305,10 +305,10 @@ export default function ProjectsPage({ params }) {
 
                     {/* Card content */}
                     <div className="flex items-center gap-2.5 mb-3">
-                      <div className="w-8 h-8 rounded-[4px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-sm font-medium text-[#050505] flex-shrink-0">
+                      <div className="w-8 h-8 rounded-[4px] bg-stone-100 border border-stone-200 flex items-center justify-center text-sm font-medium text-stone-950 flex-shrink-0">
                         {proj.name?.[0]?.toUpperCase() || '?'}
                       </div>
-                      <h3 className="text-[14px] font-medium text-[#0d0d0c] truncate flex-1 pr-6">
+                      <h3 className="text-[14px] font-medium text-stone-950 truncate flex-1 pr-6">
                         {proj.name}
                       </h3>
                     </div>
@@ -316,7 +316,7 @@ export default function ProjectsPage({ params }) {
                     {/* Stats */}
                     <div className="flex items-center gap-3 mb-3">
                       {proj.plans?.length > 0 && (
-                        <span className={clsx('text-[12px] text-[#666660] flex items-center gap-1', GeistMono.className)}>
+                        <span className={clsx('text-[12px] text-stone-600 flex items-center gap-1', GeistMono.className)}>
                           <svg
                             width="12"
                             height="12"
@@ -335,7 +335,7 @@ export default function ProjectsPage({ params }) {
 
                     {/* Footer: date */}
                     <div className="flex items-center justify-between">
-                      <span className={clsx('text-[11px] text-[#b8b8b3]', GeistMono.className)}>
+                      <span className={clsx('text-[11px] text-stone-400', GeistMono.className)}>
                         {getRelativeTime(proj.created_at)}
                       </span>
                     </div>
@@ -346,7 +346,7 @@ export default function ProjectsPage({ params }) {
 
             {/* ── List View ── */}
             {viewMode === 'list' && (
-              <div className="bg-white rounded-[4px] border border-[#e5e5e2] overflow-hidden">
+              <div className="bg-white rounded-[4px] border border-stone-200 overflow-hidden">
                 <table className="w-full" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                   <colgroup>
                     <col style={{ width: '40%' }} />
@@ -356,12 +356,12 @@ export default function ProjectsPage({ params }) {
                     <col style={{ width: '5%' }} />
                   </colgroup>
                   <thead>
-                    <tr className="bg-[#f5f5f4]">
+                    <tr className="bg-stone-100">
                       {['Projet', 'Plans', 'Créé le', 'Activité', ''].map((h) => (
                         <th
                           key={h}
                           className={clsx(
-                            'px-4 py-2 text-[11px] font-medium text-[#666660] uppercase tracking-[0.08em] text-left border-b border-[#e5e5e2]',
+                            'px-4 py-2 text-[11px] font-medium text-stone-600 uppercase tracking-[0.08em] text-left border-b border-stone-200',
                             GeistMono.className
                           )}
                         >
@@ -374,30 +374,30 @@ export default function ProjectsPage({ params }) {
                     {filteredProjects.map((proj) => (
                       <tr
                         key={proj.id}
-                        className="border-b border-[#eeeeec] hover:bg-[#f5f5f4] cursor-pointer transition-colors group"
+                        className="border-b border-stone-100 hover:bg-stone-100 cursor-pointer transition-colors group"
                         onClick={() => handleProjectClick(proj)}
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-[3px] bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-xs font-medium text-[#050505] flex-shrink-0">
+                            <div className="w-7 h-7 rounded-[3px] bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-medium text-stone-950 flex-shrink-0">
                               {proj.name?.[0]?.toUpperCase() || '?'}
                             </div>
-                            <span className="text-[13px] font-medium text-[#0d0d0c] truncate">
+                            <span className="text-[13px] font-medium text-stone-950 truncate">
                               {proj.name}
                             </span>
                           </div>
                         </td>
-                        <td className={clsx('px-4 py-3 text-[13px] text-[#666660]', GeistMono.className)}>
+                        <td className={clsx('px-4 py-3 text-[13px] text-stone-600', GeistMono.className)}>
                           {proj.plans?.length || 0}
                         </td>
-                        <td className={clsx('px-4 py-3 text-[13px] text-[#666660]', GeistMono.className)}>
+                        <td className={clsx('px-4 py-3 text-[13px] text-stone-600', GeistMono.className)}>
                           {new Date(proj.created_at).toLocaleDateString('fr-FR', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
                           })}
                         </td>
-                        <td className={clsx('px-4 py-3 text-[12px] text-[#8a8a84]', GeistMono.className)}>
+                        <td className={clsx('px-4 py-3 text-[12px] text-stone-500', GeistMono.className)}>
                           {getRelativeTime(proj.created_at)}
                         </td>
                         <td className="px-4 py-3">
@@ -408,19 +408,19 @@ export default function ProjectsPage({ params }) {
                                   e.stopPropagation()
                                   setOpenMenuId(openMenuId === proj.id ? null : proj.id)
                                 }}
-                                className="p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors opacity-0 group-hover:opacity-100"
+                                className="p-1 rounded-[3px] hover:bg-stone-100 transition-colors opacity-0 group-hover:opacity-100"
                               >
-                                <MoreVertical className="w-4 h-4 text-[#8a8a84]" />
+                                <MoreVertical className="w-4 h-4 text-stone-500" />
                               </button>
 
                               {openMenuId === proj.id && (
-                                <div className="absolute right-0 mt-1 w-44 bg-white border border-[#e5e5e2] rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
+                                <div className="absolute right-0 mt-1 w-44 bg-white border border-stone-200 rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] overflow-hidden z-10">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       archiveProject(proj.id)
                                     }}
-                                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#4a4a46] hover:bg-[#f5f5f4] transition-colors"
+                                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-stone-700 hover:bg-stone-100 transition-colors"
                                   >
                                     <Archive className="w-3.5 h-3.5" />
                                     Archiver
@@ -432,7 +432,7 @@ export default function ProjectsPage({ params }) {
                                       setShowDeleteModal(true)
                                       setOpenMenuId(null)
                                     }}
-                                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-[#9c1b1b] hover:bg-[#fde8e8] transition-colors"
+                                    className="flex items-center gap-2.5 w-full px-3 py-2.5 text-[13px] text-red-800 hover:bg-red-50 transition-colors"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                     Supprimer
@@ -451,7 +451,7 @@ export default function ProjectsPage({ params }) {
 
             {filteredProjects.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-[13px] text-[#8a8a84]">Aucun projet trouvé.</p>
+                <p className="text-[13px] text-stone-500">Aucun projet trouvé.</p>
               </div>
             )}
           </>
@@ -462,25 +462,25 @@ export default function ProjectsPage({ params }) {
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/20" onClick={() => setShowModal(false)} />
 
-            <div className="relative bg-white border border-[#e5e5e2] rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
+            <div className="relative bg-white border border-stone-200 rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-stone-100 transition-colors"
               >
-                <X className="w-4 h-4 text-[#8a8a84]" />
+                <X className="w-4 h-4 text-stone-500" />
               </button>
 
-              <h2 className="text-base font-medium text-[#050505] mb-1">
+              <h2 className="text-base font-medium text-stone-950 mb-1">
                 Créer un nouveau projet
               </h2>
-              <p className="text-[13px] text-[#8a8a84] mb-5">
+              <p className="text-[13px] text-stone-500 mb-5">
                 Organisation:{' '}
-                <span className="font-medium text-[#0d0d0c]">{selectedOrganization?.name}</span>
+                <span className="font-medium text-stone-950">{selectedOrganization?.name}</span>
               </p>
 
               <input
                 type="text"
-                className="border border-[#e5e5e2] bg-white px-3 py-2.5 w-full rounded-[4px] text-[13px] mb-5 focus:outline-none focus:border-[#0d0d0c] transition-colors text-[#0d0d0c] placeholder:text-[#b8b8b3]"
+                className="border border-stone-200 bg-white px-3 py-2.5 w-full rounded-[4px] text-[13px] mb-5 focus:outline-none focus:border-stone-950 transition-colors text-stone-950 placeholder:text-stone-400"
                 placeholder="Nom du projet"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
@@ -491,14 +491,14 @@ export default function ProjectsPage({ params }) {
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-stone-700 bg-stone-100 rounded-[4px] hover:bg-stone-300 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={createProject}
                   disabled={loading || !newProjectName.trim()}
-                  className="px-4 py-2 text-[13px] font-medium text-white bg-[#0d0d0c] rounded-[4px] hover:bg-[#1a1a18] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-[13px] font-medium text-white bg-stone-950 rounded-[4px] hover:bg-stone-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Création...' : 'Créer'}
                 </button>
@@ -512,23 +512,23 @@ export default function ProjectsPage({ params }) {
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/20" onClick={() => setShowDeleteModal(false)} />
 
-            <div className="relative bg-white border border-[#e5e5e2] rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
+            <div className="relative bg-white border border-stone-200 rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
               <button
                 onClick={() => {
                   setShowDeleteModal(false)
                   setProjectToDelete(null)
                 }}
-                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-[#eeeeec] transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-stone-100 transition-colors"
               >
-                <X className="w-4 h-4 text-[#8a8a84]" />
+                <X className="w-4 h-4 text-stone-500" />
               </button>
 
-              <h2 className="text-base font-medium text-[#050505] mb-1">
+              <h2 className="text-base font-medium text-stone-950 mb-1">
                 Supprimer le projet
               </h2>
-              <p className="text-[13px] text-[#666660] mb-5">
+              <p className="text-[13px] text-stone-600 mb-5">
                 Êtes-vous sûr de vouloir supprimer{' '}
-                <span className="font-medium text-[#0d0d0c]">"{projectToDelete?.name}"</span> ?
+                <span className="font-medium text-stone-950">"{projectToDelete?.name}"</span> ?
                 Cette action est irréversible.
               </p>
 
@@ -538,13 +538,13 @@ export default function ProjectsPage({ params }) {
                     setShowDeleteModal(false)
                     setProjectToDelete(null)
                   }}
-                  className="px-4 py-2 text-[13px] font-medium text-[#4a4a46] bg-[#eeeeec] rounded-[4px] hover:bg-[#d6d6d2] transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-stone-700 bg-stone-100 rounded-[4px] hover:bg-stone-300 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={deleteProject}
-                  className="px-4 py-2 text-[13px] font-medium text-white bg-[#dc2626] rounded-[4px] hover:bg-[#b91c1c] transition-colors"
+                  className="px-4 py-2 text-[13px] font-medium text-white bg-red-600 rounded-[4px] hover:bg-red-700 transition-colors"
                 >
                   Supprimer
                 </button>

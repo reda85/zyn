@@ -13,18 +13,18 @@ export default async function ForgotPassword(props: {
   const searchParams = await props.searchParams;
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden bg-[#fafaf9] ${GeistSans.className}`}>
+    <div className={`flex h-screen w-screen overflow-hidden bg-stone-50 ${GeistSans.className}`}>
 
       {/* LEFT — Branding */}
-      <div className="hidden lg:flex flex-col w-1/2 h-full bg-white items-center justify-center p-16 border-r border-[#e5e5e2] shrink-0">
+      <div className="hidden lg:flex flex-col w-1/2 h-full bg-white items-center justify-center p-16 border-r border-stone-200 shrink-0">
         <div className="text-center max-w-lg">
-          <div className="w-16 h-16 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-stone-950 rounded-[4px] flex items-center justify-center mx-auto mb-8">
             <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={40} height={40} />
           </div>
-          <h2 className="text-[40px] font-medium text-[#050505] leading-tight tracking-[-0.02em] mb-6">
+          <h2 className="text-[40px] font-medium text-stone-950 leading-tight tracking-[-0.02em] mb-6">
             Mot de passe oublié ?
           </h2>
-          <p className="text-[#666660] text-[17px] leading-relaxed">
+          <p className="text-stone-600 text-[17px] leading-relaxed">
             Entrez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
           </p>
         </div>
@@ -36,19 +36,19 @@ export default async function ForgotPassword(props: {
 
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden flex justify-center">
-            <div className="w-11 h-11 bg-[#0d0d0c] rounded-[4px] flex items-center justify-center">
+            <div className="w-11 h-11 bg-stone-950 rounded-[4px] flex items-center justify-center">
               <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={22} height={22} />
             </div>
           </div>
 
           <div className="text-center mb-10">
-            <h1 className="text-[24px] font-medium text-[#050505] mb-3 tracking-[-0.011em]">
+            <h1 className="text-[24px] font-medium text-stone-950 mb-3 tracking-[-0.011em]">
               Réinitialiser le mot de passe
             </h1>
-            <p className="text-[#8a8a84] text-[13px]">
+            <p className="text-stone-500 text-[13px]">
               Vous vous souvenez de votre mot de passe ?{" "}
               <Link
-                className="text-[#2f5ee0] font-medium hover:text-[#264dc2] transition-colors underline underline-offset-4"
+                className="text-blue-600 font-medium hover:text-blue-700 transition-colors underline underline-offset-4"
                 href="/sign-in"
               >
                 Se connecter
@@ -59,14 +59,14 @@ export default async function ForgotPassword(props: {
           <form className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-[13px] font-medium text-[#0d0d0c]">
+                <Label htmlFor="email" className="text-[13px] font-medium text-stone-950">
                   Email
                 </Label>
                 <Input
                   name="email"
                   placeholder="you@example.com"
                   required
-                  className="w-full h-9 bg-white border-[#e5e5e2] rounded-[4px] text-[13px] focus:outline-none focus:border-[#0d0d0c] focus:ring-0"
+                  className="w-full h-9 bg-white border-stone-200 rounded-[4px] text-[13px] focus:outline-none focus:border-stone-950 focus:ring-0"
                 />
               </div>
             </div>
@@ -74,7 +74,7 @@ export default async function ForgotPassword(props: {
             <SubmitButton
               pendingText="Envoi en cours..."
               formAction={forgotPasswordAction}
-              className="w-full flex items-center justify-center gap-2 bg-[#0d0d0c] text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-[#1a1a18] transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-stone-950 text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-stone-800 transition-colors"
             >
               Envoyer le lien
             </SubmitButton>
@@ -82,10 +82,10 @@ export default async function ForgotPassword(props: {
             <FormMessage message={searchParams} />
           </form>
 
-          <p className="text-center text-[13px] text-[#8a8a84] mt-6">
+          <p className="text-center text-[13px] text-stone-500 mt-6">
             <Link
               href="/sign-in"
-              className="text-[#2f5ee0] font-medium hover:text-[#264dc2] transition-colors underline underline-offset-4"
+              className="text-blue-600 font-medium hover:text-blue-700 transition-colors underline underline-offset-4"
             >
               Retour à la connexion
             </Link>

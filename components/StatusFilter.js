@@ -30,25 +30,25 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
 
   return (
     <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="bg-[#f5f5f4] border border-[#e5e5e2] rounded-[4px] overflow-hidden">
+      <div className="bg-stone-100 border border-stone-200 rounded-[4px] overflow-hidden">
 
         {/* Header avec "Tout sélectionner" */}
-        <div className="flex items-center justify-between bg-[#eeeeec] border-b border-[#e5e5e2] p-3">
-          <span className="text-[13px] text-[#0d0d0c]">
+        <div className="flex items-center justify-between bg-stone-100 border-b border-stone-200 p-3">
+          <span className="text-[13px] text-stone-950">
             Filtrer par statut
           </span>
           <button
             onClick={toggleAll}
-            className="text-[12px] font-medium text-[#2f5ee0] hover:text-[#264dc2] transition-colors flex items-center gap-1"
+            className="text-[12px] font-medium text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
           >
             {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
           </button>
         </div>
 
         {/* Liste des statuts */}
-        <div className="divide-y divide-[#e5e5e2]">
+        <div className="divide-y divide-stone-200">
           {statuses.length === 0 ? (
-            <div className="p-4 text-center text-[13px] text-[#8a8a84]">
+            <div className="p-4 text-center text-[13px] text-stone-500">
               Aucun statut disponible
             </div>
           ) : (
@@ -68,13 +68,13 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
                     />
 
                     {/* Nom du statut */}
-                    <span className="text-[13px] font-medium text-[#0d0d0c]">
+                    <span className="text-[13px] font-medium text-stone-950">
                       {status.name}
                     </span>
 
                     {/* Badge si actif */}
                     {isActive && (
-                      <CheckCircle2 className="w-4 h-4 text-[#2f5ee0]" />
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" />
                     )}
                   </div>
 
@@ -83,7 +83,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
                     checked={isActive}
                     onChange={() => toggleStatus(status.id)}
                     className={clsx(
-                      isActive ? 'bg-[#0d0d0c]' : 'bg-[#d6d6d2]',
+                      isActive ? 'bg-stone-950' : 'bg-stone-300',
                       'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)]'
                     )}
                   >
@@ -102,7 +102,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
 
         {/* Footer avec compteur */}
         {statuses.length > 0 && activeStatuses.length > 0 && (
-          <div className={clsx('bg-[#eeeeec] border-t border-[#e5e5e2] px-3 py-2 text-[11px] text-[#8a8a84] text-center', GeistMono.className)}>
+          <div className={clsx('bg-stone-100 border-t border-stone-200 px-3 py-2 text-[11px] text-stone-500 text-center', GeistMono.className)}>
             {activeStatuses.length} statut{activeStatuses.length > 1 ? 's' : ''} sélectionné{activeStatuses.length > 1 ? 's' : ''}
           </div>
         )}

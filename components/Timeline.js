@@ -67,28 +67,28 @@ function ModificationDiff({ metadata }) {
 
   const formatVal = (val) =>
     val === null || val === undefined || val === ''
-      ? <span className="italic text-[#8a8a84]">vide</span>
+      ? <span className="italic text-stone-500">vide</span>
       : <span className="font-medium">"{String(val)}"</span>
 
   return (
-    <div className="mt-2 bg-[#e6eeff] border border-[#c5d6fb] rounded-[4px] px-3 py-2.5 space-y-2">
+    <div className="mt-2 bg-blue-50 border border-blue-200 rounded-[4px] px-3 py-2.5 space-y-2">
       {changes.map(([field, { old: oldVal, new: newVal }]) => (
         <div key={field} className="space-y-1">
-          <p className="text-[12px] text-[#1e3a8a]">
+          <p className="text-[12px] text-blue-900">
             A modifié <span className="font-medium">{FIELD_LABELS[field] || field}</span> → {formatVal(newVal)}
           </p>
           <button
             onClick={() => toggle(field)}
-            className="flex items-center gap-1 text-[11px] text-[#264dc2] hover:text-[#1e3a8a] transition-colors"
+            className="flex items-center gap-1 text-[11px] text-blue-700 hover:text-blue-900 transition-colors"
           >
             {expanded[field]
               ? <><ChevronUp className="w-3 h-3" /> Masquer</>
               : <><ChevronDown className="w-3 h-3" /> Valeur précédente</>}
           </button>
           {expanded[field] && (
-            <div className="flex items-center gap-1.5 bg-[#dbe7fe] rounded-[3px] px-2 py-1">
-              <span className="text-[11px] font-medium text-[#264dc2]">Avant :</span>
-              <span className="text-[11px] text-[#1e3a8a]">{oldVal ?? 'vide'}</span>
+            <div className="flex items-center gap-1.5 bg-blue-100 rounded-[3px] px-2 py-1">
+              <span className="text-[11px] font-medium text-blue-700">Avant :</span>
+              <span className="text-[11px] text-blue-900">{oldVal ?? 'vide'}</span>
             </div>
           )}
         </div>
@@ -100,11 +100,11 @@ function ModificationDiff({ metadata }) {
 // ─── Category badge ──────────────────────────────────────────────────────────
 function CategoryBadge({ category }) {
   const map = {
-    modification: { label: 'Modification', class: 'bg-[#e6eeff] text-[#264dc2] border-[#c5d6fb]' },
-    photo_upload: { label: 'Photo', class: 'bg-[#e6f4ea] text-[#0f7a3a] border-[#bfe3cb]' },
-    comment: { label: 'Commentaire', class: 'bg-[#eeeeec] text-[#666660] border-[#e5e5e2]' },
+    modification: { label: 'Modification', class: 'bg-blue-50 text-blue-700 border-blue-200' },
+    photo_upload: { label: 'Photo', class: 'bg-green-50 text-green-700 border-green-200' },
+    comment: { label: 'Commentaire', class: 'bg-stone-100 text-stone-600 border-stone-200' },
   }
-  const cfg = map[category] || { label: category, class: 'bg-[#eeeeec] text-[#8a8a84] border-[#e5e5e2]' }
+  const cfg = map[category] || { label: category, class: 'bg-stone-100 text-stone-500 border-stone-200' }
   return (
     <span className={clsx('text-[10px] font-medium uppercase tracking-[0.08em] px-2 py-0.5 rounded-[2px] border', GeistMono.className, cfg.class)}>
       {cfg.label}
@@ -191,18 +191,18 @@ export default function Timeline({ pin, newComment, refreshKey }) {
   const hiddenCount = events.length - displayedItems.length
 
   return (
-    <div className="flex flex-col bg-[#fafaf9]">
+    <div className="flex flex-col bg-stone-50">
       {/* ── Toggle bar ── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-[#e5e5e2]">
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-stone-200">
         <div className="flex items-center gap-2">
           {showAllEvents
-            ? <Eye className="w-4 h-4 text-[#2f5ee0]" />
-            : <EyeOff className="w-4 h-4 text-[#8a8a84]" />}
-          <p className="text-[13px] font-medium text-[#0d0d0c]">
+            ? <Eye className="w-4 h-4 text-blue-600" />
+            : <EyeOff className="w-4 h-4 text-stone-500" />}
+          <p className="text-[13px] font-medium text-stone-950">
             {showAllEvents ? 'Tous les événements' : 'Événements principaux'}
           </p>
           {hiddenCount > 0 && !showAllEvents && (
-            <span className={clsx('text-[11px] bg-[#eeeeec] text-[#8a8a84] px-2 py-0.5 rounded-[3px] font-medium', GeistMono.className)}>
+            <span className={clsx('text-[11px] bg-stone-100 text-stone-500 px-2 py-0.5 rounded-[3px] font-medium', GeistMono.className)}>
               +{hiddenCount} masqués
             </span>
           )}
@@ -211,7 +211,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
           onClick={() => setShowAllEvents(!showAllEvents)}
           className={clsx(
             'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)]',
-            showAllEvents ? 'bg-[#0d0d0c]' : 'bg-[#eeeeec]'
+            showAllEvents ? 'bg-stone-950' : 'bg-stone-100'
           )}
         >
           <span
@@ -227,13 +227,13 @@ export default function Timeline({ pin, newComment, refreshKey }) {
       <div className="px-4 py-5">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-7 h-7 rounded-full border-2 border-[#e5e5e2] border-t-[#0d0d0c] animate-spin" />
-            <p className="text-[13px] text-[#8a8a84]">Chargement...</p>
+            <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-stone-950 animate-spin" />
+            <p className="text-[13px] text-stone-500">Chargement...</p>
           </div>
         ) : displayedItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
-            <Clock className="w-9 h-9 text-[#d6d6d2]" />
-            <p className="text-[13px] text-[#8a8a84]">Aucune activité pour le moment</p>
+            <Clock className="w-9 h-9 text-stone-300" />
+            <p className="text-[13px] text-stone-500">Aucune activité pour le moment</p>
           </div>
         ) : (
           <div className="relative">
@@ -274,21 +274,21 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                     <div className={clsx(
                       'rounded-[4px] border transition-colors',
                       isModification
-                        ? 'bg-[#eff5ff] border-[#c5d6fb]'
-                        : 'bg-white border-[#e5e5e2]'
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-white border-stone-200'
                     )}>
                       {/* Card header */}
                       <div className="flex items-start justify-between gap-2 px-3.5 pt-3 pb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline gap-1.5 flex-wrap">
-                            <span className="text-[13px] font-medium text-[#0d0d0c] leading-tight">
+                            <span className="text-[13px] font-medium text-stone-950 leading-tight">
                               {userName || 'Utilisateur inconnu'}
                             </span>
-                            <span className="text-[13px] text-[#8a8a84] leading-tight">
+                            <span className="text-[13px] text-stone-500 leading-tight">
                               {eventLabel}
                             </span>
                           </div>
-                          <p className={clsx('text-[11px] text-[#b8b8b3] mt-0.5', GeistMono.className)}>
+                          <p className={clsx('text-[11px] text-stone-400 mt-0.5', GeistMono.className)}>
                             {timestamp}
                           </p>
                         </div>
@@ -298,7 +298,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                       {/* Comment body */}
                       {isComment && item.comment && (
                         <div className="px-3.5 pb-3">
-                          <p className="text-[13px] text-[#0d0d0c] leading-relaxed bg-[#f5f5f4] rounded-[4px] px-3 py-2.5">
+                          <p className="text-[13px] text-stone-950 leading-relaxed bg-stone-100 rounded-[4px] px-3 py-2.5">
                             {item.comment}
                           </p>
                         </div>
@@ -315,7 +315,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                       {!isComment && item.pins_photos?.public_url && (
                         <div className="px-3.5 pb-3">
                           <div
-                            className="relative w-full h-56 rounded-[4px] overflow-hidden cursor-pointer group border border-[#e5e5e2]"
+                            className="relative w-full h-56 rounded-[4px] overflow-hidden cursor-pointer group border border-stone-200"
                             onClick={() => setSelectedImage({
                               url: item.pins_photos.public_url,
                               event: item.event,
@@ -331,7 +331,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                               className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
-                              <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 text-[#0d0d0c] text-[12px] font-medium px-3 py-1.5 rounded-[3px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 text-stone-950 text-[12px] font-medium px-3 py-1.5 rounded-[3px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
                                 Agrandir
                               </span>
                             </div>

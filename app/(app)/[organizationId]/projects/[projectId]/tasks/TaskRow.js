@@ -38,13 +38,13 @@ function DueDatePicker({ pin, onUpdate }) {
         type="button"
         onClick={() => setOpen(true)}
         className={clsx(
-          'w-full border rounded-[4px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-[#f5f5f4] relative transition-colors text-[12px] font-medium',
+          'w-full border rounded-[4px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-stone-100 relative transition-colors text-[12px] font-medium',
           GeistMono.className,
           isOverDue
-            ? 'border-[#f5c6c6] text-[#9c1b1b]'
+            ? 'border-red-200 text-red-800'
             : selectedDate
-              ? 'border-[#e5e5e2] text-[#0d0d0c]'
-              : 'border-[#e5e5e2] text-[#b8b8b3]'
+              ? 'border-stone-200 text-stone-950'
+              : 'border-stone-200 text-stone-400'
         )}
       >
         {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
@@ -52,7 +52,7 @@ function DueDatePicker({ pin, onUpdate }) {
           size={12}
           className={clsx(
             'absolute left-2.5 top-1/2 -translate-y-1/2',
-            isOverDue ? 'text-[#dc2626]' : selectedDate ? 'text-[#666660]' : 'text-[#b8b8b3]'
+            isOverDue ? 'text-red-600' : selectedDate ? 'text-stone-600' : 'text-stone-400'
           )}
         />
       </button>
@@ -81,8 +81,8 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
     <tr
       onClick={() => onOpen(pin)}
       className={clsx(
-        'border-b border-[#eeeeec] hover:bg-[#f5f5f4] transition-colors cursor-pointer',
-        isSelected && 'bg-[#f5f5f4]'
+        'border-b border-stone-100 hover:bg-stone-100 transition-colors cursor-pointer',
+        isSelected && 'bg-stone-100'
       )}
     >
       <td className="px-4 py-3">
@@ -91,19 +91,19 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
           checked={isSelected}
           onClick={(e) => e.stopPropagation()}
           onChange={() => onToggleSelect(pin.id)}
-          className="w-3.5 h-3.5 rounded-[2px] border-[#d6d6d2] accent-[#0d0d0c]"
+          className="w-3.5 h-3.5 rounded-[2px] border-stone-300 accent-stone-950"
         />
       </td>
 
       <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
           <Pin pin={pin} />
-          <span className="text-[13px] font-medium text-[#0d0d0c]">{pin.name || 'Pin sans nom'}</span>
+          <span className="text-[13px] font-medium text-stone-950">{pin.name || 'Pin sans nom'}</span>
         </div>
       </td>
 
       <td className="px-4 py-3">
-        <span className={clsx('text-[11px] text-[#8a8a84]', GeistMono.className)}>
+        <span className={clsx('text-[11px] text-stone-500', GeistMono.className)}>
           {pin.projects?.project_number}-{pin.pin_number}
         </span>
       </td>
@@ -111,13 +111,13 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
       <td className="px-4 py-3">
         {pin.assigned_to?.name ? (
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-[#eeeeec] border border-[#e5e5e2] flex items-center justify-center text-[9px] font-medium text-[#4a4a46] flex-shrink-0">
+            <div className="w-5 h-5 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[9px] font-medium text-stone-700 flex-shrink-0">
               {pin.assigned_to.name.charAt(0).toUpperCase()}
             </div>
-            <span className="text-[13px] text-[#4a4a46]">{pin.assigned_to.name}</span>
+            <span className="text-[13px] text-stone-700">{pin.assigned_to.name}</span>
           </div>
         ) : (
-          <span className="text-[13px] text-[#b8b8b3]">—</span>
+          <span className="text-[13px] text-stone-400">—</span>
         )}
       </td>
 
@@ -131,9 +131,9 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
 
       <td className="px-4 py-3">
         {pin.pdf_name ? (
-          <span className="text-[13px] text-[#666660] truncate max-w-[180px] block">{pin.pdf_name}</span>
+          <span className="text-[13px] text-stone-600 truncate max-w-[180px] block">{pin.pdf_name}</span>
         ) : (
-          <span className="text-[13px] text-[#b8b8b3]">—</span>
+          <span className="text-[13px] text-stone-400">—</span>
         )}
       </td>
 
@@ -144,7 +144,7 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
               pt.tags ? (
                 <span
                   key={pt.tag_id}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#eeeeec] text-[#4a4a46]"
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-stone-100 text-stone-700"
                 >
                   {pt.tags.name}
                 </span>
@@ -152,7 +152,7 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
             )}
           </div>
         ) : (
-          <span className="text-[13px] text-[#b8b8b3]">—</span>
+          <span className="text-[13px] text-stone-400">—</span>
         )}
       </td>
     </tr>
@@ -163,15 +163,15 @@ export default memo(TaskRow)
 
 export function TaskRowSkeleton() {
   return (
-    <tr className="border-b border-[#f5f5f4] animate-pulse">
-      <td className="px-4 py-3"><div className="w-3.5 h-3.5 bg-[#eeeeec] rounded-[2px]" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-40" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-20" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-24" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-16" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-28" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-12" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-[#eeeeec] rounded-[3px] w-12" /></td>
+    <tr className="border-b border-stone-100 animate-pulse">
+      <td className="px-4 py-3"><div className="w-3.5 h-3.5 bg-stone-100 rounded-[2px]" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-40" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-20" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-24" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-16" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-28" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-12" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-stone-100 rounded-[3px] w-12" /></td>
     </tr>
   )
 }
