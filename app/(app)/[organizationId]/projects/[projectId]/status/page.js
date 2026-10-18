@@ -11,7 +11,6 @@ import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 
 /* ---------- StrictMode-safe Droppable ---------- */
 function StrictModeDroppable(props) {
@@ -35,7 +34,7 @@ function ColorPickerPopup({ color, onChange }) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-8 h-8 rounded-[4px] border border-stone-200"
+        className="w-8 h-8 rounded-[4px] border border-filet"
         style={{ backgroundColor: color }}
         title="Changer la couleur"
       />
@@ -153,29 +152,29 @@ export default function ProjectStatuses() {
 
   if (loading) {
     return (
-      <div className={clsx('h-screen flex items-center justify-center bg-stone-50 text-[13px] text-stone-500', GeistSans.className)}>
+      <div className={clsx('h-screen flex items-center justify-center bg-papier text-[13px] text-mine-clair', GeistSans.className)}>
         Chargement…
       </div>
     )
   }
 
   return (
-    <div className={clsx('min-h-screen bg-stone-50', GeistSans.className)}>
+    <div className={clsx('min-h-screen bg-papier', GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
 
         {/* Retour */}
         <button
           onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-stone-100 text-stone-700 rounded-[4px] text-[13px] font-medium hover:bg-stone-200 transition-colors"
+          className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[4px] text-[13px] font-medium hover:bg-filet transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
 
         {/* Titre */}
-        <h1 className="text-[30px] font-medium tracking-[-0.02em] text-stone-950 mb-4">Gestionnaire de statuts</h1>
+        <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre mb-2">Gestionnaire de statuts</h1>
 
         {/* Description */}
-        <p className="text-[13px] text-stone-600 leading-relaxed max-w-2xl mb-8">
+        <p className="text-[13px] text-mine leading-relaxed max-w-2xl mb-8">
           Les statuts permettent de classer les tâches selon leur progression.
           Le premier et le dernier statut sont fixes et représentent le début et la fin du cycle.
         </p>
@@ -204,7 +203,7 @@ export default function ProjectStatuses() {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         style={provided.draggableProps.style}
-                        className="p-3 rounded-[4px] border border-stone-200 bg-stone-100"
+                        className="p-3 rounded-[4px] border border-filet bg-survol"
                       >
                         <div className="flex items-center gap-3">
 
@@ -214,7 +213,7 @@ export default function ProjectStatuses() {
                               ? provided.dragHandleProps
                               : {})}
                             className={clsx(
-                              'cursor-grab text-stone-500',
+                              'cursor-grab text-mine-clair',
                               isFixed(index) && 'opacity-30 cursor-not-allowed'
                             )}
                           >
@@ -230,12 +229,12 @@ export default function ProjectStatuses() {
                               setStatuses(copy)
                             }}
                             onBlur={() => saveStatus(status)}
-                            className="border-stone-200 bg-white focus:outline-none focus:border-stone-950 focus:ring-0 font-medium text-[13px] text-stone-950"
+                            className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[13px] text-encre"
                           />
 
                           {/* Badge “Fixe” */}
                           {isFixed(index) && (
-                            <span className={clsx('text-[11px] px-2 py-0.5 rounded-[3px] bg-stone-100 text-stone-500 font-medium', GeistMono.className)}>
+                            <span className={clsx('text-[11px] px-2 py-0.5 rounded-[3px] bg-voile text-mine-clair font-medium', 'tabular-nums')}>
                               Fixe
                             </span>
                           )}
@@ -257,7 +256,7 @@ export default function ProjectStatuses() {
                               variant="ghost"
                               size="icon"
                               onClick={() => removeStatus(status, index)}
-                              className="hover:bg-red-50 text-red-600 hover:text-red-800 rounded-[3px] transition-colors"
+                              className="hover:bg-alerte-pale text-alerte hover:text-alerte rounded-[3px] transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -274,7 +273,7 @@ export default function ProjectStatuses() {
                 <button
                   disabled={isDragging}
                   onClick={addStatus}
-                  className="w-full p-3 rounded-[4px] bg-stone-100 border border-stone-200 text-stone-950 text-[13px] font-medium flex justify-center items-center gap-2 hover:bg-stone-100 transition-colors disabled:opacity-40"
+                  className="w-full p-3 rounded-[4px] bg-survol border border-filet text-encre text-[13px] font-medium flex justify-center items-center gap-2 hover:bg-voile transition-colors disabled:opacity-40"
                 >
                   <Plus className="w-4 h-4" /> Ajouter un statut
                 </button>

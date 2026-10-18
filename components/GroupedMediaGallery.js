@@ -3,7 +3,6 @@
 import React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
 import { MapPinIcon, User, Calendar } from 'lucide-react';
 import clsx from 'clsx';
 import { photoThumbUrl } from '@/lib/images';
@@ -66,87 +65,70 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                 className={clsx(
                   "w-4 h-4 rounded-[2px] border flex items-center justify-center transition-colors",
                   allSelected
-                    ? 'bg-blue-600 border-blue-600'
-                    : 'border-stone-300 hover:border-blue-600'
+                    ? 'bg-tirage border-tirage'
+                    : 'border-filet-fort hover:border-tirage'
                 )}
                 title={allSelected ? "Tout désélectionner" : "Tout sélectionner"}
               >
                 {allSelected && <CheckCircleIcon className="text-white w-3 h-3" />}
               </button>
 
-              <div className="flex items-center gap-2">
-                <h3 className="text-[15px] font-medium text-stone-950">
+              <div className="flex items-baseline gap-2.5">
+                <h3 className="text-[14px] font-semibold text-encre first-letter:uppercase">
                   {date}
                 </h3>
-                <span className={clsx('text-[12px] text-stone-500', GeistMono.className)}>
-                  · {items.length} photo{items.length > 1 ? 's' : ''}
+                <span className="text-[12px] text-mine-clair tabular-nums">
+                  {items.length} photo{items.length > 1 ? 's' : ''}
                 </span>
               </div>
             </div>
 
             {/* Media Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {items.map((item) => {
                 const selected = selectedIds.has(item.id);
                 return (
                   <div
                     key={item.id}
                     className={clsx(
-                      "relative group bg-white border rounded-[4px] overflow-hidden flex flex-col transition-all hover:shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)]",
-                      selected
-                        ? "border-blue-600 shadow-[0_0_0_3px_rgba(47,94,224,0.15)]"
-                        : "border-stone-200 hover:border-stone-300"
+                      "relative group bg-white border rounded-[6px] overflow-hidden flex flex-col transition-colors",
+                      selected ? "border-tirage ring-1 ring-tirage" : "border-filet hover:border-filet-fort"
                     )}
                   >
-                    {/* Header with user and time */}
-                    <div className="px-3 py-2 bg-stone-100 border-b border-stone-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <User className="w-3 h-3 text-stone-500" />
-                        <p className="text-[12px] font-medium text-stone-950 truncate">
-                          {item.pdf_pins?.assigned_to?.name || 'Non assigné'}
-                        </p>
-                      </div>
-                      <p className={clsx('text-[12px] text-stone-500', GeistMono.className)}>
-                        {new Date(item.created_at).toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-
-                    {/* Media image */}
-                    <div className="relative h-48">
+                    <div className="relative aspect-[4/3] bg-voile">
                       <img
                         src={photoThumbUrl(item, { width: 640 })}
-                        alt="media"
+                        alt={item.pdf_pins?.name || 'Photo de chantier'}
                         loading="lazy"
                         decoding="async"
                         className="w-full h-full object-cover"
                       />
-
-                      {/* Overlay gradient on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                      {/* Checkbox */}
                       <button
                         onClick={() => toggleMedia(item.id)}
+                        aria-pressed={selected}
+                        aria-label={selected ? 'Retirer de la sélection' : 'Sélectionner la photo'}
                         className={clsx(
-                          "absolute top-2 right-2 w-6 h-6 rounded-full border flex items-center justify-center transition-all shadow-[0_1px_2px_rgba(15,15,15,0.08)]",
+                          "absolute top-2 right-2 w-6 h-6 rounded-full border flex items-center justify-center transition-opacity",
                           selected
-                            ? 'bg-blue-600 border-blue-600 opacity-100 scale-110'
-                            : 'border-white bg-white/30 backdrop-blur-sm opacity-0 group-hover:opacity-100'
+                            ? 'bg-tirage border-tirage opacity-100'
+                            : 'border-white bg-black/20 opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
                         )}
                       >
                         {selected && <CheckCircleIcon className="text-white w-4 h-4" />}
                       </button>
                     </div>
 
-                    {/* Footer with pin name */}
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-stone-200 mt-auto">
-                      <MapPinIcon className="h-4 w-4 text-stone-500 flex-shrink-0" />
-                      <span className="text-[13px] text-stone-950 font-medium truncate">
-                        {item.pdf_pins?.name || 'Sans nom'}
-                      </span>
+                    <div className="px-3 py-2.5">
+                      <p className="flex items-center gap-1.5 text-[13px] text-encre font-medium truncate">
+                        <MapPinIcon className="h-3.5 w-3.5 text-mine-clair flex-shrink-0" />
+                        <span className="truncate">{item.pdf_pins?.name || 'Réserve sans titre'}</span>
+                      </p>
+                      <p className="mt-0.5 ml-5 flex items-center gap-2 text-[12px] text-mine-clair">
+                        <span className="truncate">{item.pdf_pins?.assigned_to?.name || 'Non assigné'}</span>
+                        <span className="ml-auto tabular-nums">
+                          {new Date(item.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </p>
                     </div>
                   </div>
                 );

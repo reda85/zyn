@@ -9,7 +9,6 @@ import { usePinsCache } from '@/hooks/usePins';
 import { backendFetch } from '@/lib/backend';
 import clsx from 'clsx';
 import { useUserData } from '@/hooks/useUserData';
-import { GeistMono } from 'geist/font/mono';
 
 export default function IntervenantDatePicker({ pin }) {
   const [selectedIntervenant, setSelectedIntervenant] = useState(
@@ -164,7 +163,7 @@ export default function IntervenantDatePicker({ pin }) {
   const displayText = selectedIntervenant?.name || 'Assigner intervenant';
 
   const IconCircle = ({ children }) => (
-    <div className="w-6 h-6 rounded-full bg-white border border-stone-200 flex items-center justify-center">
+    <div className="w-6 h-6 rounded-full bg-white border border-filet flex items-center justify-center">
       {children}
     </div>
   );
@@ -181,43 +180,43 @@ export default function IntervenantDatePicker({ pin }) {
                   <div className="relative">
                     <Combobox.Input
                       autoFocus
-                      className="w-full border border-stone-200 rounded-[4px] px-3 py-2 pl-10 pr-10 focus:outline-none focus:border-stone-950 bg-stone-100 hover:bg-stone-100 text-stone-950 placeholder:text-stone-400 transition-colors"
+                      className="w-full border border-filet rounded-[4px] px-3 py-2 pl-10 pr-10 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre placeholder:text-trait transition-colors"
                       onChange={e => setQuery(e.target.value)}
                       onFocus={() => setQuery('')}
                       displayValue={() => query || selectedIntervenant?.name || ''}
                       placeholder="Ajouter un intervenant..."
                     />
                     <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                      <IconCircle><User2Icon size={13} className="text-stone-700" /></IconCircle>
+                      <IconCircle><User2Icon size={13} className="text-mine" /></IconCircle>
                     </div>
                     <button
                       type="button"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-950 transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-mine-clair hover:text-encre transition-colors"
                       onClick={() => { setSelectedIntervenant(null); setQuery(''); setIsEditing(false); }}
                     >
-                      <IconCircle><XIcon size={13} className="text-stone-700" /></IconCircle>
+                      <IconCircle><XIcon size={13} className="text-mine" /></IconCircle>
                     </button>
                   </div>
                   {open && (
-                    <Combobox.Options className="absolute mt-2 w-full bg-white shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] max-h-60 overflow-auto z-10 border border-stone-200 py-1">
+                    <Combobox.Options className="absolute mt-2 w-full bg-white shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] max-h-60 overflow-auto z-10 border border-filet py-1">
                       {filteredIntervenants.map(person => (
                         <Combobox.Option
                           key={person.id}
                           value={person}
                           className={({ active }) =>
-                            clsx('flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors', active && 'bg-stone-100')
+                            clsx('flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors', active && 'bg-survol')
                           }
                         >
                           {person.id === 0 ? (
-                            <span className="text-stone-500 italic text-[13px]">Aucun intervenant</span>
+                            <span className="text-mine-clair italic text-[13px]">Aucun intervenant</span>
                           ) : (
                             <>
-                              <div className="w-7 h-7 flex-shrink-0 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[11px] font-medium text-stone-950">
+                              <div className="w-7 h-7 flex-shrink-0 rounded-full bg-voile border border-filet flex items-center justify-center text-[11px] font-medium text-encre">
                                 {getInitials(person.name)}
                               </div>
                               <div className="flex flex-col">
-                                <span className="font-medium text-stone-950 text-[13px]">{person.name}</span>
-                                <span className="text-stone-500 text-[11px]">{person.email}</span>
+                                <span className="font-medium text-encre text-[13px]">{person.name}</span>
+                                <span className="text-mine-clair text-[11px]">{person.email}</span>
                               </div>
                             </>
                           )}
@@ -231,16 +230,16 @@ export default function IntervenantDatePicker({ pin }) {
                   as="button"
                   disabled={isGuest}
                   className={clsx(
-                    'w-full border border-stone-200 rounded-[4px] px-3 py-2 pl-10 text-left transition-colors relative text-[13px] font-medium',
+                    'w-full border border-filet rounded-[4px] px-3 py-2 pl-10 text-left transition-colors relative text-[13px] font-medium',
                     isGuest
-                      ? 'bg-stone-100 cursor-not-allowed opacity-70 text-stone-500'
-                      : 'bg-stone-100 hover:bg-stone-100 text-stone-950 cursor-pointer'
+                      ? 'bg-survol cursor-not-allowed opacity-70 text-mine-clair'
+                      : 'bg-survol hover:bg-voile text-encre cursor-pointer'
                   )}
                   onClick={() => { if (!isGuest) { setIsEditing(true); setTimeout(() => setQuery(''), 0); } }}
                 >
                   {displayText}
                   <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                    <IconCircle><User2Icon size={13} className="text-stone-700" /></IconCircle>
+                    <IconCircle><User2Icon size={13} className="text-mine" /></IconCircle>
                   </div>
                 </Combobox.Button>
               )}
@@ -257,7 +256,7 @@ export default function IntervenantDatePicker({ pin }) {
             onChange={date => { setIsPickingDate(false); updateDueDate(date); }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus
-            className={clsx('w-full border border-stone-200 rounded-[4px] px-3 py-2 focus:outline-none focus:border-stone-950 bg-stone-100 hover:bg-stone-100 text-stone-950', GeistMono.className)}
+            className={clsx('w-full border border-filet rounded-[4px] px-3 py-2 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre', 'tabular-nums')}
             dateFormat="dd/MM/yyyy"
             placeholderText="Sélectionner une date"
           />
@@ -268,18 +267,18 @@ export default function IntervenantDatePicker({ pin }) {
               disabled={isGuest}
               className={clsx(
                 'w-full border rounded-[4px] px-3 py-2 pl-10 text-left relative transition-colors text-[13px] font-medium',
-                GeistMono.className,
+                'tabular-nums',
                 isGuest
-                  ? 'bg-stone-100 cursor-not-allowed opacity-70 border-stone-200 text-stone-500'
+                  ? 'bg-survol cursor-not-allowed opacity-70 border-filet text-mine-clair'
                   : isOverDue
-                    ? 'border-red-200 text-red-800 bg-red-50 hover:bg-red-100 cursor-pointer'
-                    : 'border-stone-200 text-stone-950 bg-stone-100 hover:bg-stone-100 cursor-pointer'
+                    ? 'border-alerte-clair text-alerte bg-alerte-pale hover:bg-[#fbdbdb] cursor-pointer'
+                    : 'border-filet text-encre bg-survol hover:bg-voile cursor-pointer'
               )}
               onClick={() => { if (!isGuest) setIsPickingDate(true); }}
             >
               {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
               <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                <IconCircle><CalendarIcon size={13} className={isOverDue ? 'text-red-600' : 'text-stone-700'} /></IconCircle>
+                <IconCircle><CalendarIcon size={13} className={isOverDue ? 'text-alerte' : 'text-mine'} /></IconCircle>
               </div>
             </button>
 
@@ -288,11 +287,11 @@ export default function IntervenantDatePicker({ pin }) {
                 type="button"
                 className={clsx(
                   'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
-                  isOverDue ? 'text-red-600 hover:text-red-800' : 'text-stone-500 hover:text-red-600'
+                  isOverDue ? 'text-alerte hover:text-alerte' : 'text-mine-clair hover:text-alerte'
                 )}
                 onClick={e => { e.stopPropagation(); updateDueDate(null); }}
               >
-                <IconCircle><XIcon size={13} className="text-stone-700" /></IconCircle>
+                <IconCircle><XIcon size={13} className="text-mine" /></IconCircle>
               </button>
             )}
           </div>
