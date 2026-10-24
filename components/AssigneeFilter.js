@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Switch, Listbox } from '@headlessui/react';
 import clsx from 'clsx';
 import { UserCheck, ChevronDown } from 'lucide-react';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 
 export default function AssignedToMemberFilter({
   active,
@@ -17,12 +17,12 @@ export default function AssignedToMemberFilter({
   const selectedMember = members.find(m => m.id === selectedMemberId) || null;
 
   return (
-    <div className={clsx('px-4 mb-4', GeistSans.className)}>
-      <div className="flex flex-col overflow-visible gap-2 bg-survol border border-filet p-3 rounded-[4px]">
+    <div className={clsx('px-4 mb-4', outfit.className)}>
+      <div className="flex flex-col overflow-visible gap-2 bg-survol border border-filet p-3 rounded-[8px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <UserCheck className="w-4 h-4 text-mine-clair" />
-            <span className="text-[13px] text-encre">{label}</span>
+            <span className="text-[14px] text-encre">{label}</span>
           </div>
 
           <Switch
@@ -47,7 +47,7 @@ export default function AssignedToMemberFilter({
         {active && (
           <Listbox value={selectedMember?.id || ''} onChange={onSelectMember}>
             <div className="relative mt-2">
-              <Listbox.Button className="relative w-full cursor-pointer rounded-[4px] bg-white border border-filet py-2 pl-3 pr-9 text-left text-[13px] hover:bg-survol transition-colors focus:outline-none focus:border-encre">
+              <Listbox.Button className="relative w-full cursor-pointer rounded-[8px] bg-white border border-filet py-2 pl-3 pr-9 text-left text-[14px] hover:bg-survol transition-colors focus:outline-none focus:border-encre">
                 <span className="block truncate text-encre">
                   {selectedMember ? selectedMember.name : 'Choisir un membre'}
                 </span>
@@ -56,7 +56,7 @@ export default function AssignedToMemberFilter({
                 </span>
               </Listbox.Button>
 
-              <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-[4px] bg-white border border-filet py-1 text-[13px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] focus:outline-none z-10">
+              <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-[8px] bg-white border border-filet py-1 text-[14px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] focus:outline-none z-10">
                 {members.map((member) => (
                   <Listbox.Option
                     key={member.id}

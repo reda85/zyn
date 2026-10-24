@@ -60,7 +60,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
           <Pin pin={pin} />
           <div className="text-base">{pin && <StatusSelect pin={pin} />}</div>
         </div>
-        <div className={clsx('text-[12px] text-mine-clair', 'tabular-nums')}>
+        <div className={clsx('text-[13px] text-mine-clair', 'tabular-nums')}>
           ID: {pin?.projects?.project_number}-{pin.pin_number}
         </div>
         <div className="text-base">
@@ -80,7 +80,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
             onBlur={handleUpdateNote}
             onChange={(e) => setNote(e.target.value)}
             disabled={isGuest}
-            className="w-full resize-none text-[13px] text-mine placeholder:text-[13px] placeholder:text-trait focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-survol"
+            className="w-full resize-none text-[14px] text-mine placeholder:text-[14px] placeholder:text-trait focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-survol"
           />
         </div>
         <TagEditor pin={pin} onChange={handleTagsChange} disabled={isGuest} />

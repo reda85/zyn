@@ -8,7 +8,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import clsx from 'clsx'
 import Image from 'next/image'
 
@@ -160,15 +160,15 @@ export default function ProjectDetails() {
 
   if (loading) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", GeistSans.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", outfit.className)}>
         <div className="text-center">
           <div className="mb-6 flex justify-center">
-            <div className="w-12 h-12 bg-encre rounded-[4px] flex items-center justify-center animate-pulse">
+            <div className="w-12 h-12 bg-encre rounded-[8px] flex items-center justify-center animate-pulse">
                <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={52} height={52} />
             </div>
           </div>
           <h2 className="text-[17px] font-medium text-encre mb-2">Chargement...</h2>
-          <p className="text-[13px] text-mine-clair">Veuillez patienter</p>
+          <p className="text-[14px] text-mine-clair">Veuillez patienter</p>
         </div>
       </div>
     )
@@ -176,36 +176,36 @@ export default function ProjectDetails() {
 
   if (!project) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", GeistSans.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", outfit.className)}>
         <div className="text-center">
-          <p className="text-[13px] text-mine-clair">Projet non trouvé</p>
+          <p className="text-[14px] text-mine-clair">Projet non trouvé</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={clsx("min-h-screen bg-papier", GeistSans.className)}>
+    <div className={clsx("min-h-screen bg-papier", outfit.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[4px] text-[13px] font-medium hover:bg-filet transition-colors"
+            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[8px] text-[14px] font-medium hover:bg-filet transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour
           </button>
           <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre mb-2">Détails du projet</h1>
-          <p className="text-[13px] text-mine leading-relaxed max-w-2xl">
+          <p className="text-[14px] text-mine leading-relaxed max-w-2xl">
             Gérez les informations principales de votre projet et visualisez les membres de l'équipe.
           </p>
         </div>
 
         {/* Error banner */}
         {uploadError && (
-          <div className="mb-6 p-4 bg-alerte-pale border border-alerte-clair rounded-[4px] flex items-start justify-between gap-4">
-            <p className="text-[13px] text-alerte font-medium">{uploadError}</p>
+          <div className="mb-6 p-4 bg-alerte-pale border border-alerte-clair rounded-[8px] flex items-start justify-between gap-4">
+            <p className="text-[14px] text-alerte font-medium">{uploadError}</p>
             <button onClick={() => setUploadError(null)} className="text-alerte hover:opacity-70">
               <X className="w-4 h-4" />
             </button>
@@ -219,7 +219,7 @@ export default function ProjectDetails() {
             <div className="flex justify-end">
               <Button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+                className="px-4 py-2 bg-encre text-white rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors"
               >
                 Modifier
               </Button>
@@ -229,14 +229,14 @@ export default function ProjectDetails() {
               <Button
                 onClick={handleCancel}
                 variant="outline"
-                className="px-4 py-2 border-filet rounded-[4px] text-[13px] font-medium text-mine hover:bg-survol transition-colors"
+                className="px-4 py-2 border-filet rounded-[8px] text-[14px] font-medium text-mine hover:bg-survol transition-colors"
               >
                 Annuler
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving || uploading.picture || uploading.logo}
-                className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-encre text-white rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors disabled:opacity-50"
               >
                 {saving ? 'Enregistrement...' : 'Enregistrer'}
               </Button>
@@ -244,8 +244,8 @@ export default function ProjectDetails() {
           )}
 
           {/* Project Image */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
-            <label className="block text-[13px] font-medium text-encre mb-3">
+          <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
+            <label className="block text-[14px] font-medium text-encre mb-3">
               Image du projet
             </label>
 
@@ -254,20 +254,20 @@ export default function ProjectDetails() {
                 <img
                   src={project.picture_url}
                   alt={project.name}
-                  className="w-full h-64 object-cover rounded-[4px] border border-filet"
+                  className="w-full h-64 object-cover rounded-[8px] border border-filet"
                 />
                 {isEditing && (
                   <>
                     <button
                       onClick={handleRemovePicture}
-                      className="absolute top-3 right-3 p-2 bg-alerte text-white rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-3 right-3 p-2 bg-alerte text-white rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => pictureInputRef.current?.click()}
                       disabled={uploading.picture}
-                      className="absolute bottom-3 right-3 px-3 py-2 bg-encre text-white rounded-[3px] text-[12px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 disabled:opacity-100"
+                      className="absolute bottom-3 right-3 px-3 py-2 bg-encre text-white rounded-[6px] text-[13px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 disabled:opacity-100"
                     >
                       {uploading.picture ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                       Remplacer
@@ -279,7 +279,7 @@ export default function ProjectDetails() {
               <div
                 onClick={() => isEditing && !uploading.picture && pictureInputRef.current?.click()}
                 className={clsx(
-                  "w-full h-64 border-2 border-dashed border-filet rounded-[4px] flex flex-col items-center justify-center transition-colors",
+                  "w-full h-64 border-2 border-dashed border-filet rounded-[8px] flex flex-col items-center justify-center transition-colors",
                   isEditing && !uploading.picture
                     ? "cursor-pointer hover:border-filet-fort hover:bg-survol"
                     : "cursor-not-allowed opacity-60"
@@ -288,16 +288,16 @@ export default function ProjectDetails() {
                 {uploading.picture ? (
                   <>
                     <Loader2 className="w-10 h-10 text-mine-clair mb-3 animate-spin" />
-                    <p className="text-[13px] text-mine-clair font-medium">Téléchargement…</p>
+                    <p className="text-[14px] text-mine-clair font-medium">Téléchargement…</p>
                   </>
                 ) : (
                   <>
                     <Upload className="w-10 h-10 text-trait mb-3" />
-                    <p className="text-[13px] text-mine-clair font-medium">
+                    <p className="text-[14px] text-mine-clair font-medium">
                       {isEditing ? 'Cliquez pour télécharger une image' : 'Aucune image'}
                     </p>
                     {isEditing && (
-                      <p className="text-[11px] text-trait mt-1">PNG, JPG jusqu'à 10MB</p>
+                      <p className="text-[12px] text-trait mt-1">PNG, JPG jusqu'à 10MB</p>
                     )}
                   </>
                 )}
@@ -315,17 +315,17 @@ export default function ProjectDetails() {
           </div>
 
           {/* Client Logo */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
-            <label className="block text-[13px] font-medium text-encre mb-3">
+          <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
+            <label className="block text-[14px] font-medium text-encre mb-3">
               Logo du client
             </label>
-            <p className="text-[13px] text-mine-clair mb-4">
+            <p className="text-[14px] text-mine-clair mb-4">
               Apparaîtra sur la page de couverture des rapports en haut à droite.
             </p>
 
             {project.client_logo_url ? (
               <div className="relative group inline-block">
-                <div className="bg-white border border-filet rounded-[6px] p-6 flex items-center justify-center" style={{ minWidth: 200, minHeight: 120 }}>
+                <div className="bg-white border border-filet rounded-[12px] p-6 flex items-center justify-center shadow-carte" style={{ minWidth: 200, minHeight: 120 }}>
                   <img
                     src={project.client_logo_url}
                     alt="Logo client"
@@ -336,14 +336,14 @@ export default function ProjectDetails() {
                   <>
                     <button
                       onClick={handleRemoveLogo}
-                      className="absolute top-2 right-2 p-1.5 bg-alerte text-white rounded-[3px] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 p-1.5 bg-alerte text-white rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => logoInputRef.current?.click()}
                       disabled={uploading.logo}
-                      className="absolute bottom-2 right-2 px-3 py-1.5 bg-encre text-white rounded-[3px] text-[12px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5"
+                      className="absolute bottom-2 right-2 px-3 py-1.5 bg-encre text-white rounded-[6px] text-[13px] font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5"
                     >
                       {uploading.logo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
                       Remplacer
@@ -355,7 +355,7 @@ export default function ProjectDetails() {
               <div
                 onClick={() => isEditing && !uploading.logo && logoInputRef.current?.click()}
                 className={clsx(
-                  "w-full max-w-md h-32 border-2 border-dashed border-filet rounded-[4px] flex flex-col items-center justify-center transition-colors",
+                  "w-full max-w-md h-32 border-2 border-dashed border-filet rounded-[8px] flex flex-col items-center justify-center transition-colors",
                   isEditing && !uploading.logo
                     ? "cursor-pointer hover:border-filet-fort hover:bg-survol"
                     : "cursor-not-allowed opacity-60"
@@ -364,16 +364,16 @@ export default function ProjectDetails() {
                 {uploading.logo ? (
                   <>
                     <Loader2 className="w-7 h-7 text-mine-clair mb-2 animate-spin" />
-                    <p className="text-[12px] text-mine-clair font-medium">Téléchargement…</p>
+                    <p className="text-[13px] text-mine-clair font-medium">Téléchargement…</p>
                   </>
                 ) : (
                   <>
                     <Upload className="w-7 h-7 text-trait mb-2" />
-                    <p className="text-[12px] text-mine-clair font-medium">
+                    <p className="text-[13px] text-mine-clair font-medium">
                       {isEditing ? 'Cliquez pour télécharger le logo' : 'Aucun logo'}
                     </p>
                     {isEditing && (
-                      <p className="text-[11px] text-trait mt-1">PNG transparent recommandé</p>
+                      <p className="text-[12px] text-trait mt-1">PNG transparent recommandé</p>
                     )}
                   </>
                 )}
@@ -391,43 +391,43 @@ export default function ProjectDetails() {
           </div>
 
           {/* Project Name */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
-            <label className="block text-[13px] font-medium text-encre mb-3">Nom du projet</label>
+          <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
+            <label className="block text-[14px] font-medium text-encre mb-3">Nom du projet</label>
             {isEditing ? (
               <Input
                 value={project.name || ''}
                 onChange={(e) => setProject({ ...project, name: e.target.value })}
-                className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[13px]"
+                className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[14px]"
                 placeholder="Entrez le nom du projet"
               />
             ) : (
-              <p className="text-encre font-medium py-2 text-[13px]">{project.name || '-'}</p>
+              <p className="text-encre font-medium py-2 text-[14px]">{project.name || '-'}</p>
             )}
           </div>
 
           {/* Project Address */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
-            <label className="block text-[13px] font-medium text-encre mb-3">Adresse</label>
+          <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
+            <label className="block text-[14px] font-medium text-encre mb-3">Adresse</label>
             {isEditing ? (
               <Input
                 value={project.address || ''}
                 onChange={(e) => setProject({ ...project, address: e.target.value })}
-                className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[13px]"
+                className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[14px]"
                 placeholder="Entrez l'adresse du projet"
               />
             ) : (
-              <p className="text-encre font-medium py-2 text-[13px]">{project.address || '-'}</p>
+              <p className="text-encre font-medium py-2 text-[14px]">{project.address || '-'}</p>
             )}
           </div>
 
           {/* Project Type */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
-            <label className="block text-[13px] font-medium text-encre mb-3">Type de projet</label>
+          <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
+            <label className="block text-[14px] font-medium text-encre mb-3">Type de projet</label>
             {isEditing ? (
               <select
                 value={project.type || ''}
                 onChange={(e) => setProject({ ...project, type: e.target.value })}
-                className="w-full px-3 py-2 border border-filet rounded-[4px] bg-white focus:outline-none focus:border-encre font-medium text-[13px] text-encre transition-colors"
+                className="w-full px-3 py-2 border border-filet rounded-[8px] bg-white focus:outline-none focus:border-encre font-medium text-[14px] text-encre transition-colors"
               >
                 <option value="">Sélectionnez un type</option>
                 {PROJECT_TYPES.map((type) => (
@@ -435,26 +435,26 @@ export default function ProjectDetails() {
                 ))}
               </select>
             ) : (
-              <p className="text-encre font-medium py-2 text-[13px]">{project.type || '-'}</p>
+              <p className="text-encre font-medium py-2 text-[14px]">{project.type || '-'}</p>
             )}
           </div>
 
           {/* Project Members */}
-          <div className="bg-white border border-filet rounded-[6px] p-6">
+          <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
             <h2 className="text-[17px] font-medium text-encre mb-4">
               Membres de l'équipe
             </h2>
             {members.length === 0 ? (
               <div className="text-center py-8">
                 <User className="w-10 h-10 text-filet-fort mx-auto mb-3" />
-                <p className="text-[13px] text-mine-clair">Aucun membre dans ce projet</p>
+                <p className="text-[14px] text-mine-clair">Aucun membre dans ce projet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center gap-3 p-3 bg-survol border border-filet rounded-[4px]"
+                    className="flex items-center gap-3 p-3 bg-survol border border-filet rounded-[8px]"
                   >
                     {member.members?.avatar_url ? (
                       <img
@@ -468,10 +468,10 @@ export default function ProjectDetails() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="font-medium text-encre text-[13px]">
+                      <p className="font-medium text-encre text-[14px]">
                         {member.members?.name || member.members?.email || 'Utilisateur'}
                       </p>
-                      <p className="text-[12px] text-mine-clair">{member.role || 'Membre'}</p>
+                      <p className="text-[13px] text-mine-clair">{member.role || 'Membre'}</p>
                     </div>
                   </div>
                 ))}

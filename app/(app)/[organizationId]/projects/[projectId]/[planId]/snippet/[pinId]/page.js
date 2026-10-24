@@ -6,7 +6,7 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import { supabase } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { X, Check, Scissors, ArrowLeft, ZoomIn, ZoomOut } from 'lucide-react';
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import Image from 'next/image';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -429,7 +429,7 @@ export default function SnippetPage({ params }) {
   }
 
   return (
-    <div className={`${GeistSans.className} h-screen flex flex-col bg-survol`}>
+    <div className={`${outfit.className} h-screen flex flex-col bg-survol`}>
       {/* Header */}
       <div className="bg-white border-b border-filet px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">

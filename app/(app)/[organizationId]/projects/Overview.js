@@ -22,33 +22,29 @@ export function Bandeau({ overview, loading }) {
   return (
     <section
       aria-label="Vue d'ensemble"
-      className="grid grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.7fr)] bg-white border border-filet rounded-[6px] mb-8"
+      className="grid grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_minmax(0,1.7fr)] gap-3 mb-8"
     >
       {cells.map((c, i) => (
         <div
           key={c.label}
-          className={clsx(
-            'px-5 py-4 min-w-0',
-            i % 2 === 1 && 'border-l border-filet lg:border-l',
-            i >= 2 && 'border-t lg:border-t-0 border-filet',
-            i >= 1 && 'lg:border-l'
-          )}
+          className="px-5 py-4 min-w-0 bg-white border border-filet rounded-[18px] shadow-carte"
         >
-          <p className="text-[12px] text-mine">{c.label}</p>
+          {/* Libellé en petites capitales espacées, comme les cartes de l'accueil mobile */}
+          <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-mine truncate">{c.label}</p>
           {loading ? (
-            <div className="h-7 w-14 mt-1.5 rounded-[3px] bg-voile animate-pulse" />
+            <div className="h-7 w-14 mt-1.5 rounded-[6px] bg-voile animate-pulse" />
           ) : (
-            <p className={clsx('mt-1 text-[26px] leading-none font-semibold tabular-nums tracking-[-0.02em]', c.alert ? 'text-alerte' : 'text-encre')}>
+            <p className={clsx('mt-2 text-[28px] leading-none font-bold tabular-nums tracking-[-0.02em]', c.alert ? 'text-alerte' : 'text-encre')}>
               {fmt(c.value ?? 0)}
             </p>
           )}
-          <p className="mt-2 text-[12px] text-mine-clair truncate">{loading ? ' ' : c.hint}</p>
+          <p className="mt-2 text-[13px] text-mine-clair truncate">{loading ? ' ' : c.hint}</p>
         </div>
       ))}
-      <div className="col-span-2 lg:col-span-1 px-5 py-4 border-t lg:border-t-0 lg:border-l border-filet min-w-0">
+      <div className="col-span-2 lg:col-span-1 px-5 py-4 min-w-0 bg-white border border-filet rounded-[18px] shadow-carte">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="text-[12px] text-mine">Activité sur 12 semaines</p>
-          <p className="flex items-center gap-3 text-[11px] text-mine-clair">
+          <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-mine truncate">Activité sur 12 semaines</p>
+          <p className="flex items-center gap-3 text-[12px] text-mine-clair">
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-filet-fort" />créées</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-tirage" />levées</span>
           </p>

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ListFilterIcon } from 'lucide-react'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import clsx from 'clsx'
 
 import CategoryFilter from './CategoryFilter'
@@ -93,16 +93,16 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
         ref={buttonRef}
         onClick={() => setOpen((v) => !v)}
         className={clsx(
-          'flex items-center gap-1.5 px-2.5 py-[7px] rounded-[4px] border transition-colors',
-          GeistSans.className,
+          'flex items-center gap-1.5 px-2.5 py-[7px] rounded-[8px] border transition-colors',
+          outfit.className,
           activeCount > 0
             ? 'bg-encre text-white border-encre'
             : 'bg-white text-mine border-filet hover:bg-survol'
         )}
       >
         <ListFilterIcon className="h-4 w-4" />
-        {variant === 'list' && <span className="text-[13px] font-medium">Filtres</span>}
-        {activeCount > 0 && <span className="text-[11px] font-medium tabular-nums">{activeCount}</span>}
+        {variant === 'list' && <span className="text-[14px] font-medium">Filtres</span>}
+        {activeCount > 0 && <span className="text-[12px] font-medium tabular-nums">{activeCount}</span>}
       </button>
 
       {open &&
@@ -111,13 +111,13 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
             ref={panelRef}
             style={{ top: position.top, left: position.left, width }}
             className={clsx(
-              'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-filet rounded-[6px]',
+              'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-filet rounded-[12px] shadow-carte',
               'shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)]',
-              GeistSans.className
+              outfit.className
             )}
           >
             <div className="flex justify-between items-center px-4 py-3 border-b border-voile">
-              <h3 className="text-[13px] font-medium text-encre">Filtres</h3>
+              <h3 className="text-[14px] font-medium text-encre">Filtres</h3>
               <div className="flex items-center gap-2">
                 {activeCount > 0 && (
                   <button
@@ -125,14 +125,14 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
                       resetFilters()
                       setExpanded({})
                     }}
-                    className="text-[12px] text-mine hover:text-encre transition-colors"
+                    className="text-[13px] text-mine hover:text-encre transition-colors"
                   >
                     Réinitialiser
                   </button>
                 )}
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1 rounded-[3px] hover:bg-voile transition-colors"
+                  className="p-1 rounded-[6px] hover:bg-voile transition-colors"
                 >
                   <XMarkIcon className="h-4 w-4 text-mine-clair" />
                 </button>

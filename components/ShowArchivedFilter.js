@@ -3,7 +3,7 @@
 import { Switch } from '@headlessui/react';
 import clsx from 'clsx';
 import { ArchiveIcon } from 'lucide-react';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 
 export default function ShowArchivedFilter({
   active,
@@ -12,14 +12,14 @@ export default function ShowArchivedFilter({
   label = "Afficher les archivés",
 }) {
   return (
-    <div className={clsx('px-4 mb-4', GeistSans.className)}>
-      <div className="flex flex-col overflow-visible gap-2 bg-survol border border-filet p-3 rounded-[4px]">
+    <div className={clsx('px-4 mb-4', outfit.className)}>
+      <div className="flex flex-col overflow-visible gap-2 bg-survol border border-filet p-3 rounded-[8px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ArchiveIcon className="w-4 h-4 text-mine-clair" />
-            <span className="text-[13px] text-encre">{label}</span>
+            <span className="text-[14px] text-encre">{label}</span>
             {archivedCount > 0 && (
-              <span className={clsx('text-[11px] rounded-[3px] px-1.5 py-0.5 font-medium bg-voile text-mine-clair', 'tabular-nums')}>
+              <span className={clsx('text-[12px] rounded-[6px] px-1.5 py-0.5 font-medium bg-voile text-mine-clair', 'tabular-nums')}>
                 {archivedCount}
               </span>
             )}

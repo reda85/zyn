@@ -51,7 +51,7 @@ const HeadingDropdown = ({ editor }) => {
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o) }}
-        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-voile text-[12px] text-mine"
+        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-voile text-[13px] text-mine"
       >
         {current}
         <ChevronDown className="w-3 h-3" />
@@ -66,7 +66,7 @@ const HeadingDropdown = ({ editor }) => {
                 type="button"
                 onClick={(e) => { e.preventDefault(); item.action(); setOpen(false) }}
                 className={clsx(
-                  'w-full px-3 py-1.5 text-left text-[12px] flex items-center gap-2 hover:bg-survol',
+                  'w-full px-3 py-1.5 text-left text-[13px] flex items-center gap-2 hover:bg-survol',
                   item.active && 'bg-voile font-medium',
                 )}
               >
@@ -92,7 +92,7 @@ const TableControls = ({ editor }) => {
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o) }}
-        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-voile text-[12px] bg-encre text-white"
+        className="h-7 px-2 flex items-center gap-1 rounded hover:bg-voile text-[13px] bg-encre text-white"
       >
         Tableau
         <ChevronDown className="w-3 h-3" />
@@ -101,16 +101,16 @@ const TableControls = ({ editor }) => {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute top-full left-0 mt-1 bg-white border border-filet rounded-lg shadow-lg py-1 z-20 min-w-[180px]">
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Colonne avant</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Colonne après</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteColumn().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-alerte-pale text-alerte">Supprimer colonne</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-survol">Colonne avant</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-survol">Colonne après</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteColumn().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-alerte-pale text-alerte">Supprimer colonne</button>
             <div className="h-px bg-filet my-1" />
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Ligne avant</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Ligne après</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-alerte-pale text-alerte">Supprimer ligne</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-survol">Ligne avant</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-survol">Ligne après</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-alerte-pale text-alerte">Supprimer ligne</button>
             <div className="h-px bg-filet my-1" />
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleHeaderRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-survol">Basculer en-tête</button>
-            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-alerte-pale text-alerte flex items-center gap-2"><Trash2 className="w-3.5 h-3.5" />Supprimer le tableau</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().toggleHeaderRow().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-survol">Basculer en-tête</button>
+            <button type="button" onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); setOpen(false) }} className="w-full px-3 py-1.5 text-left text-[13px] hover:bg-alerte-pale text-alerte flex items-center gap-2"><Trash2 className="w-3.5 h-3.5" />Supprimer le tableau</button>
           </div>
         </>
       )}

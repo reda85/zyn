@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import { Download, FileText, Upload, X as XCloseIcon, XIcon } from 'lucide-react'
 import clsx from 'clsx'
 import RichTextEditor from '@/components/RichTextEditor'
@@ -100,15 +100,15 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className={clsx(GeistSans.className, 'bg-white w-full max-w-2xl rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-h-[92vh] flex flex-col')}>
+      <div className={clsx(outfit.className, 'bg-white w-full max-w-2xl rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-h-[92vh] flex flex-col')}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-voile flex-shrink-0">
           <div>
             <h3 className="text-base font-medium text-encre">Composer le rapport</h3>
             {templateConfig?.reportTitle && (
-              <p className={clsx('text-[11px] text-mine-clair mt-0.5', 'tabular-nums')}>{templateConfig.reportTitle}</p>
+              <p className={clsx('text-[12px] text-mine-clair mt-0.5', 'tabular-nums')}>{templateConfig.reportTitle}</p>
             )}
           </div>
-          <button onClick={onClose} className="p-1 rounded-[3px] hover:bg-voile transition-colors">
+          <button onClick={onClose} className="p-1 rounded-[6px] hover:bg-voile transition-colors">
             <XIcon className="w-4 h-4 text-mine-clair" />
           </button>
         </div>
@@ -116,22 +116,22 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
 
           <div>
-            <p className={clsx('text-[11px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Titre du rapport</p>
+            <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Titre du rapport</p>
             <input
               type="text"
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
               placeholder="RAPPORT DE TÂCHES"
-              className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] font-medium text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
+              className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[14px] font-medium text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
             />
-            <p className="text-[10px] text-mine-clair mt-1">
+            <p className="text-[11px] text-mine-clair mt-1">
               Ce titre apparaîtra sur la couverture et dans le résumé du rapport.
             </p>
           </div>
 
           {/* Display mode */}
           <div>
-            <p className={clsx('text-[11px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Mode d'affichage</p>
+            <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Mode d'affichage</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { key: 'list',  label: 'Liste détaillée', icon: <FileText className="w-4 h-4" /> },
@@ -146,7 +146,7 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
                   key={key}
                   onClick={() => setDisplayMode(key)}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-2.5 rounded-[4px] border text-[13px] font-medium transition-colors',
+                    'flex items-center gap-2 px-3 py-2.5 rounded-[8px] border text-[14px] font-medium transition-colors',
                     displayMode === key
                       ? 'bg-encre text-white border-encre'
                       : 'bg-white text-mine border-filet hover:bg-survol'
@@ -160,12 +160,12 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
 
           {/* Fields */}
           <div>
-            <p className={clsx('text-[11px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Champs à inclure</p>
+            <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Champs à inclure</p>
             <div className="space-y-0.5">
               {Object.entries(fields).map(([key, value]) => (
-                <label key={key} className="flex items-center gap-3 px-3 py-2 rounded-[3px] hover:bg-survol transition-colors cursor-pointer">
-                  <input type="checkbox" checked={value} onChange={() => toggle(key)} className="w-3.5 h-3.5 rounded-[2px] border-filet-fort accent-encre" />
-                  <span className="text-[13px] text-mine">{FIELD_LABELS[key]}</span>
+                <label key={key} className="flex items-center gap-3 px-3 py-2 rounded-[6px] hover:bg-survol transition-colors cursor-pointer">
+                  <input type="checkbox" checked={value} onChange={() => toggle(key)} className="w-3.5 h-3.5 rounded-[4px] border-filet-fort accent-encre" />
+                  <span className="text-[14px] text-mine">{FIELD_LABELS[key]}</span>
                 </label>
               ))}
             </div>
@@ -174,29 +174,29 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
           {/* Participants */}
           {showParticipants && (
             <div>
-              <p className={clsx('text-[11px] font-medium text-mine-clair mb-2', 'tabular-nums')}>
+              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>
                 {participantsConfig.title || 'Participants'}
               </p>
               {participants.length === 0 ? (
-                <p className="text-[12px] text-trait px-1">Aucun membre trouvé sur ce projet.</p>
+                <p className="text-[13px] text-trait px-1">Aucun membre trouvé sur ce projet.</p>
               ) : (
-                <div className="border border-filet rounded-[4px] overflow-hidden divide-y divide-voile">
+                <div className="border border-filet rounded-[8px] overflow-hidden divide-y divide-voile">
                   {participants.map(member => (
                     <div key={member.id} className="flex items-center justify-between px-3 py-2.5 hover:bg-survol transition-colors">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-6 h-6 rounded-full bg-voile border border-filet flex items-center justify-center text-[10px] font-medium text-mine flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-voile border border-filet flex items-center justify-center text-[11px] font-medium text-mine flex-shrink-0">
                           {member.name?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
-                          <p className="text-[13px] font-medium text-encre-survol">{member.name || '—'}</p>
+                          <p className="text-[14px] font-medium text-encre-survol">{member.name || '—'}</p>
                           <div className="flex items-center gap-2">
-                            {participantsConfig.showRoles   && member.role  && <p className="text-[11px] text-mine-clair">{member.role}</p>}
-                            {participantsConfig.showContact && member.email && <p className="text-[11px] text-trait">{member.email}</p>}
+                            {participantsConfig.showRoles   && member.role  && <p className="text-[12px] text-mine-clair">{member.role}</p>}
+                            {participantsConfig.showContact && member.email && <p className="text-[12px] text-trait">{member.email}</p>}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2.5">
-                        <span className={clsx('text-[11px] font-medium', member.present ? 'text-valide' : 'text-trait')}>
+                        <span className={clsx('text-[12px] font-medium', member.present ? 'text-valide' : 'text-trait')}>
                           {member.present ? 'Présent' : 'Absent'}
                         </span>
                         <button
@@ -216,23 +216,23 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
           {/* Planning */}
           {planningEnabled && (
             <div className="space-y-3">
-              <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>
+              <p className={clsx('text-[12px] font-medium text-mine-clair', 'tabular-nums')}>
                 {templateConfig.planning.title || 'Pointage de planning'}
               </p>
 
               {planningImageFiles.length > 0 && (
                 <div className="space-y-2">
                   {planningImageFiles.map((img, i) => (
-                    <div key={i} className="flex items-center gap-3 bg-survol rounded-[4px] p-2 border border-filet">
-                      <img src={img.url} alt={img.name} className="w-14 h-10 object-cover rounded-[3px]" />
+                    <div key={i} className="flex items-center gap-3 bg-survol rounded-[8px] p-2 border border-filet">
+                      <img src={img.url} alt={img.name} className="w-14 h-10 object-cover rounded-[6px]" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-encre truncate">{img.name}</p>
-                        <p className={clsx('text-[10px] text-mine-clair', 'tabular-nums')}>Page {i + 1}</p>
+                        <p className="text-[13px] font-medium text-encre truncate">{img.name}</p>
+                        <p className={clsx('text-[11px] text-mine-clair', 'tabular-nums')}>Page {i + 1}</p>
                       </div>
                       <div className="flex gap-1">
-                        <button type="button" onClick={() => movePlanningImage(i, -1)} disabled={i === 0} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-voile disabled:opacity-20 text-[11px] font-bold">▲</button>
-                        <button type="button" onClick={() => movePlanningImage(i, 1)} disabled={i === planningImageFiles.length - 1} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-voile disabled:opacity-20 text-[11px] font-bold">▼</button>
-                        <button type="button" onClick={() => removePlanningImage(i)} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-alerte-pale text-alerte">
+                        <button type="button" onClick={() => movePlanningImage(i, -1)} disabled={i === 0} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 text-[12px] font-bold">▲</button>
+                        <button type="button" onClick={() => movePlanningImage(i, 1)} disabled={i === planningImageFiles.length - 1} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 text-[12px] font-bold">▼</button>
+                        <button type="button" onClick={() => removePlanningImage(i)} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-alerte-pale text-alerte">
                           <XCloseIcon className="w-3 h-3" />
                         </button>
                       </div>
@@ -243,19 +243,19 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
 
               <label className="block">
                 <input type="file" accept="image/*" multiple onChange={handlePlanningImageUpload} className="sr-only" />
-                <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-filet rounded-[4px] cursor-pointer hover:border-mine-clair hover:bg-survol transition-all">
+                <div className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-filet rounded-[8px] cursor-pointer hover:border-mine-clair hover:bg-survol transition-all">
                   <Upload className="w-4 h-4 text-mine-clair" />
-                  <span className="text-[12px] text-mine">Ajouter des captures de planning</span>
+                  <span className="text-[13px] text-mine">Ajouter des captures de planning</span>
                 </div>
               </label>
 
-              <p className="text-[10px] text-mine-clair px-1">
+              <p className="text-[11px] text-mine-clair px-1">
                 Format recommandé : capture d'écran de votre Gantt MS Project. {templateConfig.planning.imagesPerPage === 2 ? '2 images par page.' : '1 image par page.'}
               </p>
 
               {showPlanningObs && (
                 <div className="space-y-2 pt-3 border-t border-voile">
-                  <p className="text-[12px] font-medium text-encre-survol">{templateConfig.planning.observationsTitle || 'Retards et observations'}</p>
+                  <p className="text-[13px] font-medium text-encre-survol">{templateConfig.planning.observationsTitle || 'Retards et observations'}</p>
                   <RichTextEditor
                     content={planningObservations}
                     onChange={setPlanningObservations}
@@ -270,10 +270,10 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
           {/* Custom sections */}
           {enabledSections.length > 0 && (
             <div className="space-y-4">
-              <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Sections additionnelles</p>
+              <p className={clsx('text-[12px] font-medium text-mine-clair', 'tabular-nums')}>Sections additionnelles</p>
               {customSectionContents.map(section => (
                 <div key={section.id} className="space-y-2">
-                  <label className="text-[12px] font-medium text-encre-survol">{section.title}</label>
+                  <label className="text-[13px] font-medium text-encre-survol">{section.title}</label>
                   <RichTextEditor
                     content={section.content}
                     onChange={(content) => updateSectionContent(section.id, content)}
@@ -287,12 +287,12 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
         </div>
 
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-[14px] font-medium text-encre bg-white border border-filet rounded-[8px] hover:bg-survol transition-colors">
             Annuler
           </button>
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 bg-encre text-white rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             Générer PDF

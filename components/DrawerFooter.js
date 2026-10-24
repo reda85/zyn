@@ -55,7 +55,7 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
           placeholder="Ajouter un commentaire"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="w-full resize-none border border-filet rounded-[4px] px-4 py-2 pr-16 text-[13px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
+          className="w-full resize-none border border-filet rounded-[8px] px-4 py-2 pr-16 text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -72,7 +72,7 @@ export default function DrawerFooter({ pin, onCommentAdded }) {
             disabled={!comment.trim() || isSubmitting}
             className="absolute right-2 top-1/2 -translate-y-1/2
              flex items-center justify-center
-             h-7 w-7 rounded-[3px]
+             h-7 w-7 rounded-[6px]
              bg-encre text-white
              hover:bg-encre-survol
              disabled:bg-filet-fort disabled:cursor-not-allowed

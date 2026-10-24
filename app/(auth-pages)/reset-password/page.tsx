@@ -5,7 +5,7 @@ import { supabase } from '@/utils/supabase/client'
 import { activateMembershipAction } from '@/app/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -109,13 +109,13 @@ export default function ResetPasswordPage() {
 
   if (linkError) {
     return (
-      <div className={`flex h-screen w-screen items-center justify-center bg-papier px-6 ${GeistSans.className}`}>
+      <div className={`flex h-screen w-screen items-center justify-center bg-papier px-6 ${outfit.className}`}>
         <div className="max-w-sm text-center">
           <h1 className="text-[17px] font-medium text-encre mb-2">Lien invalide</h1>
-          <p className="text-[13px] text-mine mb-6">{linkError}</p>
+          <p className="text-[14px] text-mine mb-6">{linkError}</p>
           <Link
             href="/forgot-password"
-            className="inline-block px-3 py-[7px] bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors"
+            className="inline-block px-3 py-[7px] bg-encre text-white rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors"
           >
             Demander un nouveau lien
           </Link>
@@ -126,19 +126,19 @@ export default function ResetPasswordPage() {
 
   if (!ready) {
     return (
-      <div className={`flex h-screen w-screen items-center justify-center bg-papier ${GeistSans.className}`}>
+      <div className={`flex h-screen w-screen items-center justify-center bg-papier ${outfit.className}`}>
         <div className="animate-spin rounded-full h-6 w-6 border-2 border-filet border-t-encre" />
       </div>
     )
   }
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden bg-papier ${GeistSans.className}`}>
+    <div className={`flex h-screen w-screen overflow-hidden bg-papier ${outfit.className}`}>
 
       {/* LEFT — Branding */}
       <div className="hidden lg:flex flex-col w-1/2 h-full bg-white items-center justify-center p-16 border-r border-filet shrink-0">
         <div className="text-center max-w-lg">
-          <div className="w-16 h-16 bg-encre rounded-[4px] flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-encre rounded-[8px] flex items-center justify-center mx-auto mb-8">
             <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={40} height={40} />
           </div>
           <h2 className="text-[40px] font-medium text-encre leading-tight tracking-[-0.02em] mb-6">
@@ -156,7 +156,7 @@ export default function ResetPasswordPage() {
 
           {/* Mobile logo */}
           <div className="mb-8 lg:hidden flex justify-center">
-            <div className="w-11 h-11 bg-encre rounded-[4px] flex items-center justify-center">
+            <div className="w-11 h-11 bg-encre rounded-[8px] flex items-center justify-center">
               <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={22} height={22} />
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function ResetPasswordPage() {
             <h1 className="text-[24px] font-medium text-encre mb-3 tracking-[-0.011em]">
               Réinitialiser le mot de passe
             </h1>
-            <p className="text-[13px] text-mine-clair">
+            <p className="text-[14px] text-mine-clair">
               Entrez votre nouveau mot de passe ci-dessous.
             </p>
           </div>
@@ -173,7 +173,7 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-[13px] font-medium text-encre">
+                <Label htmlFor="password" className="text-[14px] font-medium text-encre">
                   Nouveau mot de passe
                 </Label>
                 <Input
@@ -183,12 +183,12 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Nouveau mot de passe"
                   required
-                  className="w-full h-9 bg-white border-filet rounded-[4px] text-[13px] focus:outline-none focus:border-encre focus:ring-0"
+                  className="w-full h-9 bg-white border-filet rounded-[8px] text-[14px] focus:outline-none focus:border-encre focus:ring-0"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-[13px] font-medium text-encre">
+                <Label htmlFor="confirmPassword" className="text-[14px] font-medium text-encre">
                   Confirmer le mot de passe
                 </Label>
                 <Input
@@ -198,24 +198,24 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirmer le mot de passe"
                   required
-                  className="w-full h-9 bg-white border-filet rounded-[4px] text-[13px] focus:outline-none focus:border-encre focus:ring-0"
+                  className="w-full h-9 bg-white border-filet rounded-[8px] text-[14px] focus:outline-none focus:border-encre focus:ring-0"
                 />
               </div>
             </div>
 
-            {error && <p className="text-[13px] text-alerte">{error}</p>}
-            {success && <p className="text-[13px] text-valide">Mot de passe mis à jour. Redirection...</p>}
+            {error && <p className="text-[14px] text-alerte">{error}</p>}
+            {success && <p className="text-[14px] text-valide">Mot de passe mis à jour. Redirection...</p>}
 
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full flex items-center justify-center gap-2 bg-encre text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-encre-survol transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-encre text-white font-medium py-2.5 px-4 rounded-[8px] text-[14px] hover:bg-encre-survol transition-colors disabled:opacity-50"
             >
               {loading ? 'Mise à jour...' : 'Réinitialiser le mot de passe'}
             </button>
           </form>
 
-          <p className="text-center text-[13px] text-mine-clair mt-6">
+          <p className="text-center text-[14px] text-mine-clair mt-6">
             <Link
               href="/sign-in"
               className="text-tirage font-medium hover:text-tirage-fonce transition-colors underline underline-offset-4"

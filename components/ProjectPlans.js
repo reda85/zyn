@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import { useRouter } from 'next/navigation'
 import {
   Upload, FileText, Trash2, Save, X, AlertCircle,
@@ -249,7 +249,7 @@ export default function ProjectPlans({ project, onClose }) {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className={clsx(GeistSans.className, 'bg-papier')}>
+    <div className={clsx(outfit.className, 'bg-papier')}>
       <div className="flex h-screen">
 
         {/* Side Panel */}
@@ -257,11 +257,11 @@ export default function ProjectPlans({ project, onClose }) {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-medium text-encre">Plans du projet</h2>
-              <button onClick={() => router.back()} className="p-1 rounded-[3px] hover:bg-voile">
+              <button onClick={() => router.back()} className="p-1 rounded-[6px] hover:bg-voile">
                 <X className="w-4 h-4 text-mine-clair" />
               </button>
             </div>
-            <p className="text-[13px] text-mine-clair mb-5 leading-relaxed">
+            <p className="text-[14px] text-mine-clair mb-5 leading-relaxed">
               Gérez les plans PDF de votre projet. Le PDF sera automatiquement séparé en pages individuelles.
             </p>
 
@@ -272,24 +272,24 @@ export default function ProjectPlans({ project, onClose }) {
               onDragOver={(e) => { e.preventDefault(); setDragActive(true) }}
               onDragLeave={() => setDragActive(false)}
               className={clsx(
-                'border-2 border-dashed rounded-[4px] p-6 flex flex-col items-center transition-colors',
+                'border-2 border-dashed rounded-[8px] p-6 flex flex-col items-center transition-colors',
                 dragActive ? 'bg-voile border-mine-clair' : 'border-filet hover:border-filet-fort bg-survol'
               )}
             >
               <div className={clsx('p-3 rounded-full mb-3', dragActive ? 'bg-filet' : 'bg-voile')}>
                 <Upload className={clsx('w-6 h-6', dragActive ? 'text-encre' : 'text-mine-clair')} />
               </div>
-              <p className="text-center mb-1 text-[13px] font-medium text-encre">Glissez-déposez un PDF ici</p>
-              <p className="text-[11px] text-mine-clair mb-3">Maximum 100 MB</p>
+              <p className="text-center mb-1 text-[14px] font-medium text-encre">Glissez-déposez un PDF ici</p>
+              <p className="text-[12px] text-mine-clair mb-3">Maximum 100 MB</p>
               <input type="file" accept="application/pdf" className="hidden" id="upload"
                 onChange={(e) => { if (e.target.files[0]) { handleFileSelect(e.target.files[0]); setShowUploadModal(true) } }} />
-              <label htmlFor="upload" className="px-3 py-1.5 bg-voile text-encre text-[12px] font-medium rounded-[4px] cursor-pointer hover:bg-filet transition-colors">
+              <label htmlFor="upload" className="px-3 py-1.5 bg-voile text-encre text-[13px] font-medium rounded-[8px] cursor-pointer hover:bg-filet transition-colors">
                 Parcourir les fichiers
               </label>
             </div>
           </div>
 
-          <button onClick={handleSaveAndClose} className="bg-encre text-white px-4 py-2.5 rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors flex items-center justify-center gap-2 mt-5">
+          <button onClick={handleSaveAndClose} className="bg-encre text-white px-4 py-2.5 rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors flex items-center justify-center gap-2 mt-5">
             <Save className="w-4 h-4" /> Enregistrer et fermer
           </button>
         </div>
@@ -300,16 +300,16 @@ export default function ProjectPlans({ project, onClose }) {
             <div className="flex flex-col items-center justify-center h-full text-center">
               <FileText className="w-9 h-9 text-voile mb-3" />
               <h3 className="text-[14px] font-medium text-encre mb-1">Aucun plan disponible</h3>
-              <p className="text-[13px] text-mine-clair max-w-sm">Commencez par ajouter un plan PDF depuis le panneau de gauche.</p>
+              <p className="text-[14px] text-mine-clair max-w-sm">Commencez par ajouter un plan PDF depuis le panneau de gauche.</p>
             </div>
           )}
           {plans.map((plan) => {
             const publicUrl = supabase.storage.from('project-plans').getPublicUrl(plan.file_url).data.publicUrl
             return (
-              <div key={plan.id} className="border border-filet bg-white rounded-[4px] p-4 space-y-3 hover:border-filet-fort transition-colors">
+              <div key={plan.id} className="border border-filet bg-white rounded-[8px] p-4 space-y-3 hover:border-filet-fort transition-colors">
                 <div className="flex justify-between items-center gap-3">
                   <input
-                    className="border border-filet bg-white rounded-[4px] px-3 py-2 flex-1 text-[13px] text-encre font-medium focus:outline-none focus:border-encre transition-colors placeholder:text-trait"
+                    className="border border-filet bg-white rounded-[8px] px-3 py-2 flex-1 text-[14px] text-encre font-medium focus:outline-none focus:border-encre transition-colors placeholder:text-trait"
                     value={editedNames[plan.id] ?? plan.name}
                     onChange={(e) => setEditedNames((p) => ({ ...p, [plan.id]: e.target.value }))}
                     placeholder="Nom du plan"
@@ -317,44 +317,44 @@ export default function ProjectPlans({ project, onClose }) {
                   <div className="flex items-center gap-1.5">
                     {/* Revision badge */}
                     {plan.revision_label && (
-                      <span className={clsx('text-[11px] font-medium text-mine bg-voile px-2 py-1 rounded-[3px] border border-filet', 'tabular-nums')}>
+                      <span className={clsx('text-[12px] font-medium text-mine bg-voile px-2 py-1 rounded-[6px] border border-filet', 'tabular-nums')}>
                         {plan.revision_label}
                       </span>
                     )}
                     {/* Bouton Mettre à jour */}
                     <button
                       onClick={() => openUpdateModal(plan)}
-                      className="p-1.5 text-mine-clair hover:text-encre hover:bg-voile rounded-[3px] transition-colors"
+                      className="p-1.5 text-mine-clair hover:text-encre hover:bg-voile rounded-[6px] transition-colors"
                       title="Mettre à jour le fichier"
                     >
                       <RefreshCw className="w-4 h-4" />
                     </button>
                     {plans.length > 1 && (
-                      <button onClick={() => openDeletePlanModal(plan)} className="p-1.5 text-mine-clair hover:text-alerte hover:bg-alerte-pale rounded-[3px] transition-colors" title="Supprimer">
+                      <button onClick={() => openDeletePlanModal(plan)} className="p-1.5 text-mine-clair hover:text-alerte hover:bg-alerte-pale rounded-[6px] transition-colors" title="Supprimer">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 </div>
-                <div className="border border-filet rounded-[4px] overflow-hidden bg-survol">
+                <div className="border border-filet rounded-[8px] overflow-hidden bg-survol">
                   <Document
                     file={publicUrl}
                     loading={
                       <div className="flex flex-col items-center justify-center gap-2 py-16">
                         <Loader2 className="w-5 h-5 text-mine-clair animate-spin" />
-                        <p className="text-[13px] text-mine-clair">Chargement du PDF…</p>
+                        <p className="text-[14px] text-mine-clair">Chargement du PDF…</p>
                       </div>
                     }
                     error={
                       <div className="flex flex-col items-center justify-center gap-2 py-16">
                         <AlertCircle className="w-5 h-5 text-alerte" />
-                        <p className="text-[13px] text-alerte">Impossible de charger le PDF</p>
+                        <p className="text-[14px] text-alerte">Impossible de charger le PDF</p>
                       </div>
                     }
                     noData={
                       <div className="flex flex-col items-center justify-center gap-2 py-16">
                         <FileText className="w-5 h-5 text-mine-clair" />
-                        <p className="text-[13px] text-mine-clair">Aucun fichier à afficher</p>
+                        <p className="text-[14px] text-mine-clair">Aucun fichier à afficher</p>
                       </div>
                     }
                   >
@@ -395,16 +395,16 @@ export default function ProjectPlans({ project, onClose }) {
       {/* ── Modal Update plan existant ── */}
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
+          <div className="bg-white rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
               <div>
                 <h2 className="text-base font-medium text-encre">Mettre à jour le plan</h2>
-                <p className="text-[11px] text-mine-clair mt-0.5">
+                <p className="text-[12px] text-mine-clair mt-0.5">
                   {updateTarget?.name} · Le fichier actuel sera remplacé
                 </p>
               </div>
               <button onClick={closeUpdateModal} disabled={updateState.uploading || updateState.processing}
-                className="p-1 rounded-[3px] hover:bg-voile disabled:opacity-40 disabled:cursor-not-allowed">
+                className="p-1 rounded-[6px] hover:bg-voile disabled:opacity-40 disabled:cursor-not-allowed">
                 <X className="w-4 h-4 text-mine-clair" />
               </button>
             </div>
@@ -413,9 +413,9 @@ export default function ProjectPlans({ project, onClose }) {
               {/* Champ label révision */}
               {!updateState.success && !updateState.processing && !updateState.uploading && (
                 <div>
-                  <label className={clsx('block text-[11px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Label de révision (optionnel)</label>
+                  <label className={clsx('block text-[12px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Label de révision (optionnel)</label>
                   <input
-                    className="w-full border border-filet rounded-[4px] px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors placeholder:text-trait"
+                    className="w-full border border-filet rounded-[8px] px-3 py-2 text-[14px] text-encre focus:outline-none focus:border-encre transition-colors placeholder:text-trait"
                     placeholder="Ex : Rev B, Émission DCE, V2..."
                     value={updateState.revisionLabel}
                     onChange={(e) => setUpdateState((p) => ({ ...p, revisionLabel: e.target.value }))}
@@ -427,28 +427,28 @@ export default function ProjectPlans({ project, onClose }) {
               {!updateState.file && !updateState.error ? (
                 <label className="block">
                   <input type="file" accept=".pdf" onChange={(e) => { if (e.target.files[0]) handleFileSelect(e.target.files[0], true) }} className="hidden" />
-                  <div className="border-2 border-dashed border-filet rounded-[4px] p-8 text-center cursor-pointer hover:border-filet-fort hover:bg-survol transition-all">
+                  <div className="border-2 border-dashed border-filet rounded-[8px] p-8 text-center cursor-pointer hover:border-filet-fort hover:bg-survol transition-all">
                     <div className="p-3 bg-voile rounded-full w-fit mx-auto mb-3">
                       <Upload className="w-7 h-7 text-mine-clair" />
                     </div>
-                    <p className="text-[13px] font-medium text-encre mb-1">Cliquez pour sélectionner le nouveau PDF</p>
-                    <p className="text-[11px] text-mine-clair">Maximum 100 MB</p>
+                    <p className="text-[14px] font-medium text-encre mb-1">Cliquez pour sélectionner le nouveau PDF</p>
+                    <p className="text-[12px] text-mine-clair">Maximum 100 MB</p>
                   </div>
                 </label>
               ) : (
                 <div className="space-y-3">
                   {/* File info */}
                   {updateState.file && (
-                    <div className="flex items-start gap-3 p-3 bg-survol rounded-[4px] border border-filet">
-                      <div className="p-2 bg-voile rounded-[4px]">
+                    <div className="flex items-start gap-3 p-3 bg-survol rounded-[8px] border border-filet">
+                      <div className="p-2 bg-voile rounded-[8px]">
                         <FileText className="w-5 h-5 text-mine" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-encre truncate">{updateState.file.name}</p>
-                        <p className={clsx('text-[11px] text-mine-clair', 'tabular-nums')}>{formatFileSize(updateState.file.size)}</p>
+                        <p className="text-[14px] font-medium text-encre truncate">{updateState.file.name}</p>
+                        <p className={clsx('text-[12px] text-mine-clair', 'tabular-nums')}>{formatFileSize(updateState.file.size)}</p>
                       </div>
                       {!updateState.uploading && !updateState.processing && !updateState.success && (
-                        <button onClick={() => setUpdateState((p) => ({ ...p, file: null }))} className="p-1 rounded-[3px] hover:bg-voile">
+                        <button onClick={() => setUpdateState((p) => ({ ...p, file: null }))} className="p-1 rounded-[6px] hover:bg-voile">
                           <X className="w-3.5 h-3.5 text-mine-clair" />
                         </button>
                       )}
@@ -458,7 +458,7 @@ export default function ProjectPlans({ project, onClose }) {
                   {/* Uploading */}
                   {updateState.uploading && (
                     <div className="space-y-2">
-                      <span className="text-[12px] text-mine-clair flex items-center gap-1.5">
+                      <span className="text-[13px] text-mine-clair flex items-center gap-1.5">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload en cours...
                       </span>
                       <div className="h-1.5 bg-voile rounded-full overflow-hidden">
@@ -470,7 +470,7 @@ export default function ProjectPlans({ project, onClose }) {
                   {/* Processing */}
                   {updateState.processing && (
                     <div className="space-y-2">
-                      <div className="flex justify-between text-[12px]">
+                      <div className="flex justify-between text-[13px]">
                         <span className="text-mine-clair flex items-center gap-1.5">
                           <Loader2 className="w-3.5 h-3.5 animate-spin" /> Génération des tiles...
                         </span>
@@ -480,11 +480,11 @@ export default function ProjectPlans({ project, onClose }) {
                         <div className="h-full bg-encre transition-all duration-300 rounded-full" style={{ width: `${updateState.progress}%` }} />
                       </div>
                       {updateState.estimatedTime && (
-                        <div className={clsx('flex items-center gap-1.5 text-[11px] text-mine-clair', 'tabular-nums')}>
+                        <div className={clsx('flex items-center gap-1.5 text-[12px] text-mine-clair', 'tabular-nums')}>
                           <Clock className="w-3 h-3" /> Temps estimé: {updateState.estimatedTime}
                         </div>
                       )}
-                      <p className="text-[11px] text-mine text-center bg-survol border border-filet rounded-[4px] p-2.5">
+                      <p className="text-[12px] text-mine text-center bg-survol border border-filet rounded-[8px] p-2.5">
                         Le traitement continue en arrière-plan. Vous pouvez fermer cette fenêtre.
                       </p>
                     </div>
@@ -493,21 +493,21 @@ export default function ProjectPlans({ project, onClose }) {
                   {/* Success */}
                   {updateState.success && (
                     <div className="space-y-2">
-                      <div className="flex items-start gap-2.5 p-3 bg-valide-pale border border-valide-clair rounded-[4px]">
+                      <div className="flex items-start gap-2.5 p-3 bg-valide-pale border border-valide-clair rounded-[8px]">
                         <CheckCircle2 className="w-4 h-4 text-valide flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-[13px] font-medium text-valide">Plan mis à jour avec succès</p>
-                          <p className="text-[11px] text-mine-clair mt-0.5">Les nouvelles tiles ont été générées.</p>
+                          <p className="text-[14px] font-medium text-valide">Plan mis à jour avec succès</p>
+                          <p className="text-[12px] text-mine-clair mt-0.5">Les nouvelles tiles ont été générées.</p>
                         </div>
                       </div>
 
                       {/* Warning dimensions */}
                       {updateState.dimensionsChanged && (
-                        <div className="flex items-start gap-2.5 p-3 bg-[#fef3dc] border border-[#f5e0ab] rounded-[4px]">
+                        <div className="flex items-start gap-2.5 p-3 bg-[#fef3dc] border border-[#f5e0ab] rounded-[8px]">
                           <AlertTriangle className="w-4 h-4 text-[#eab308] flex-shrink-0 mt-0.5" />
                           <div>
-                            <p className="text-[13px] font-medium text-[#8a5a00]">Dimensions modifiées</p>
-                            <p className="text-[11px] text-[#8a5a00] mt-0.5">
+                            <p className="text-[14px] font-medium text-[#8a5a00]">Dimensions modifiées</p>
+                            <p className="text-[12px] text-[#8a5a00] mt-0.5">
                               Le nouveau plan a des dimensions différentes. Vérifiez le positionnement des épingles existantes.
                             </p>
                           </div>
@@ -518,11 +518,11 @@ export default function ProjectPlans({ project, onClose }) {
 
                   {/* Error */}
                   {updateState.error && (
-                    <div className="flex items-start gap-2.5 p-3 bg-alerte-pale border border-alerte-clair rounded-[4px]">
+                    <div className="flex items-start gap-2.5 p-3 bg-alerte-pale border border-alerte-clair rounded-[8px]">
                       <AlertCircle className="w-4 h-4 text-alerte flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-[13px] font-medium text-alerte">Erreur</p>
-                        <p className="text-[11px] text-alerte mt-0.5">{updateState.error}</p>
+                        <p className="text-[14px] font-medium text-alerte">Erreur</p>
+                        <p className="text-[12px] text-alerte mt-0.5">{updateState.error}</p>
                       </div>
                     </div>
                   )}
@@ -532,12 +532,12 @@ export default function ProjectPlans({ project, onClose }) {
 
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
               <button onClick={closeUpdateModal} disabled={updateState.uploading || updateState.processing}
-                className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                className="px-4 py-2 text-[14px] font-medium text-encre bg-white border border-filet rounded-[8px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {updateState.success ? 'Fermer' : 'Annuler'}
               </button>
               {updateState.file && !updateState.success && !updateState.error && !updateState.processing && (
                 <button onClick={handleUpdate} disabled={updateState.uploading}
-                  className="px-4 py-2 text-[13px] font-medium bg-encre text-white rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                  className="px-4 py-2 text-[14px] font-medium bg-encre text-white rounded-[8px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                   {updateState.uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload...</> : <><RefreshCw className="w-3.5 h-3.5" /> Mettre à jour</>}
                 </button>
               )}
@@ -551,11 +551,11 @@ export default function ProjectPlans({ project, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/20" onClick={closeDeletePlanModal} />
 
-          <div className="relative bg-white border border-filet rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full p-6">
+          <div className="relative bg-white border border-filet rounded-[12px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full p-6">
             <button
               onClick={closeDeletePlanModal}
               disabled={deletingPlan}
-              className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-voile transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="absolute top-4 right-4 p-1 rounded-[6px] hover:bg-voile transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <X className="w-4 h-4 text-mine-clair" />
             </button>
@@ -563,7 +563,7 @@ export default function ProjectPlans({ project, onClose }) {
             <h2 className="text-base font-medium text-encre mb-1">
               Supprimer le plan
             </h2>
-            <p className="text-[13px] text-mine mb-5">
+            <p className="text-[14px] text-mine mb-5">
               Êtes-vous sûr de vouloir supprimer{' '}
               <span className="font-medium text-encre">"{planToDelete?.name}"</span> ?
               Les pins associées à ce plan perdront leur positionnement. Cette action est irréversible.
@@ -573,14 +573,14 @@ export default function ProjectPlans({ project, onClose }) {
               <button
                 onClick={closeDeletePlanModal}
                 disabled={deletingPlan}
-                className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-[14px] font-medium text-encre bg-white border border-filet rounded-[8px] hover:bg-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Annuler
               </button>
               <button
                 onClick={confirmDeletePlan}
                 disabled={deletingPlan}
-                className="px-4 py-2 text-[13px] font-medium text-white bg-alerte rounded-[4px] hover:bg-alerte transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-4 py-2 text-[14px] font-medium text-white bg-alerte rounded-[8px] hover:bg-alerte transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {deletingPlan ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Suppression...</> : 'Supprimer'}
               </button>
@@ -597,13 +597,13 @@ function UploadModalContent({ show, state, onClose, onFileSelect, onUpload, onRe
   if (!show) return null
   return (
     <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-[6px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
+      <div className="bg-white rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-xl w-full overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
           <div>
             <h2 className="text-base font-medium text-encre">Importer un fichier PDF</h2>
-            <p className="text-[11px] text-mine-clair mt-0.5">Division automatique en pages · Maximum 100 MB</p>
+            <p className="text-[12px] text-mine-clair mt-0.5">Division automatique en pages · Maximum 100 MB</p>
           </div>
-          <button onClick={onClose} disabled={state.uploading || state.processing} className="p-1 rounded-[3px] hover:bg-voile disabled:opacity-40">
+          <button onClick={onClose} disabled={state.uploading || state.processing} className="p-1 rounded-[6px] hover:bg-voile disabled:opacity-40">
             <X className="w-4 h-4 text-mine-clair" />
           </button>
         </div>
@@ -611,71 +611,71 @@ function UploadModalContent({ show, state, onClose, onFileSelect, onUpload, onRe
           {!state.file && !state.error ? (
             <label className="block">
               <input type="file" accept=".pdf" onChange={(e) => { if (e.target.files[0]) onFileSelect(e.target.files[0]) }} className="hidden" />
-              <div className="border-2 border-dashed border-filet rounded-[4px] p-10 text-center cursor-pointer hover:border-filet-fort hover:bg-survol transition-all">
+              <div className="border-2 border-dashed border-filet rounded-[8px] p-10 text-center cursor-pointer hover:border-filet-fort hover:bg-survol transition-all">
                 <div className="p-3 bg-voile rounded-full w-fit mx-auto mb-3">
                   <Upload className="w-8 h-8 text-mine-clair" />
                 </div>
-                <p className="text-[13px] font-medium text-encre mb-1">Cliquez pour sélectionner un fichier</p>
-                <p className="text-[11px] text-mine-clair">ou glissez-déposez votre PDF ici</p>
+                <p className="text-[14px] font-medium text-encre mb-1">Cliquez pour sélectionner un fichier</p>
+                <p className="text-[12px] text-mine-clair">ou glissez-déposez votre PDF ici</p>
               </div>
             </label>
           ) : (
             <div className="space-y-3">
               {state.file && (
-                <div className="flex items-start gap-3 p-3 bg-survol rounded-[4px] border border-filet">
-                  <div className="p-2 bg-voile rounded-[4px]"><FileText className="w-5 h-5 text-mine" /></div>
+                <div className="flex items-start gap-3 p-3 bg-survol rounded-[8px] border border-filet">
+                  <div className="p-2 bg-voile rounded-[8px]"><FileText className="w-5 h-5 text-mine" /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-encre truncate">{state.file.name}</p>
-                    <p className={clsx('text-[11px] text-mine-clair', 'tabular-nums')}>{formatFileSize(state.file.size)}</p>
+                    <p className="text-[14px] font-medium text-encre truncate">{state.file.name}</p>
+                    <p className={clsx('text-[12px] text-mine-clair', 'tabular-nums')}>{formatFileSize(state.file.size)}</p>
                   </div>
                   {!state.uploading && !state.processing && !state.success && (
-                    <button onClick={onReset} className="p-1 rounded-[3px] hover:bg-voile"><X className="w-3.5 h-3.5 text-mine-clair" /></button>
+                    <button onClick={onReset} className="p-1 rounded-[6px] hover:bg-voile"><X className="w-3.5 h-3.5 text-mine-clair" /></button>
                   )}
                 </div>
               )}
               {state.uploading && (
                 <div className="space-y-2">
-                  <span className="text-[12px] text-mine-clair flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload en cours...</span>
+                  <span className="text-[13px] text-mine-clair flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload en cours...</span>
                   <div className="h-1.5 bg-voile rounded-full overflow-hidden"><div className="h-full bg-encre animate-pulse rounded-full" /></div>
                 </div>
               )}
               {state.processing && (
                 <div className="space-y-2">
-                  <div className="flex justify-between text-[12px]">
+                  <div className="flex justify-between text-[13px]">
                     <span className="text-mine-clair flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Génération des tiles...</span>
                     <span className={clsx('text-encre font-medium', 'tabular-nums')}>{state.progress}%</span>
                   </div>
                   <div className="h-1.5 bg-voile rounded-full overflow-hidden">
                     <div className="h-full bg-encre transition-all duration-300 rounded-full" style={{ width: `${state.progress}%` }} />
                   </div>
-                  {state.estimatedTime && <div className={clsx('flex items-center gap-1.5 text-[11px] text-mine-clair', 'tabular-nums')}><Clock className="w-3 h-3" /> Temps estimé: {state.estimatedTime}</div>}
-                  <p className="text-[11px] text-mine text-center bg-survol border border-filet rounded-[4px] p-2.5">Le traitement continue en arrière-plan. Vous pouvez fermer cette fenêtre.</p>
+                  {state.estimatedTime && <div className={clsx('flex items-center gap-1.5 text-[12px] text-mine-clair', 'tabular-nums')}><Clock className="w-3 h-3" /> Temps estimé: {state.estimatedTime}</div>}
+                  <p className="text-[12px] text-mine text-center bg-survol border border-filet rounded-[8px] p-2.5">Le traitement continue en arrière-plan. Vous pouvez fermer cette fenêtre.</p>
                 </div>
               )}
               {state.success && (
-                <div className="flex items-start gap-2.5 p-3 bg-valide-pale border border-valide-clair rounded-[4px]">
+                <div className="flex items-start gap-2.5 p-3 bg-valide-pale border border-valide-clair rounded-[8px]">
                   <CheckCircle2 className="w-4 h-4 text-valide flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[13px] font-medium text-valide">PDF traité avec succès</p>
-                    <p className="text-[11px] text-mine-clair mt-0.5">Les pages ont été générées et sont maintenant disponibles.</p>
+                    <p className="text-[14px] font-medium text-valide">PDF traité avec succès</p>
+                    <p className="text-[12px] text-mine-clair mt-0.5">Les pages ont été générées et sont maintenant disponibles.</p>
                   </div>
                 </div>
               )}
               {state.error && (
-                <div className="flex items-start gap-2.5 p-3 bg-alerte-pale border border-alerte-clair rounded-[4px]">
+                <div className="flex items-start gap-2.5 p-3 bg-alerte-pale border border-alerte-clair rounded-[8px]">
                   <AlertCircle className="w-4 h-4 text-alerte flex-shrink-0 mt-0.5" />
-                  <div><p className="text-[13px] font-medium text-alerte">Erreur</p><p className="text-[11px] text-alerte mt-0.5">{state.error}</p></div>
+                  <div><p className="text-[14px] font-medium text-alerte">Erreur</p><p className="text-[12px] text-alerte mt-0.5">{state.error}</p></div>
                 </div>
               )}
             </div>
           )}
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-voile">
-          <button onClick={onClose} disabled={state.uploading || state.processing} className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors disabled:opacity-40">
+          <button onClick={onClose} disabled={state.uploading || state.processing} className="px-4 py-2 text-[14px] font-medium text-encre bg-white border border-filet rounded-[8px] hover:bg-survol transition-colors disabled:opacity-40">
             {state.success ? 'Fermer' : state.processing ? 'Fermer' : 'Annuler'}
           </button>
           {state.file && !state.success && !state.error && !state.processing && (
-            <button onClick={onUpload} disabled={state.uploading} className="px-4 py-2 text-[13px] font-medium bg-encre text-white rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 flex items-center gap-1.5">
+            <button onClick={onUpload} disabled={state.uploading} className="px-4 py-2 text-[14px] font-medium bg-encre text-white rounded-[8px] hover:bg-encre-survol transition-colors disabled:opacity-40 flex items-center gap-1.5">
               {state.uploading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Upload...</> : <><Upload className="w-3.5 h-3.5" /> Télécharger</>}
             </button>
           )}

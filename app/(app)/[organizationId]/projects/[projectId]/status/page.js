@@ -10,7 +10,7 @@ import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 
 /* ---------- StrictMode-safe Droppable ---------- */
 function StrictModeDroppable(props) {
@@ -34,7 +34,7 @@ function ColorPickerPopup({ color, onChange }) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-8 h-8 rounded-[4px] border border-filet"
+        className="w-8 h-8 rounded-[8px] border border-filet"
         style={{ backgroundColor: color }}
         title="Changer la couleur"
       />
@@ -152,20 +152,20 @@ export default function ProjectStatuses() {
 
   if (loading) {
     return (
-      <div className={clsx('h-screen flex items-center justify-center bg-papier text-[13px] text-mine-clair', GeistSans.className)}>
+      <div className={clsx('h-screen flex items-center justify-center bg-papier text-[14px] text-mine-clair', outfit.className)}>
         Chargement…
       </div>
     )
   }
 
   return (
-    <div className={clsx('min-h-screen bg-papier', GeistSans.className)}>
+    <div className={clsx('min-h-screen bg-papier', outfit.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
 
         {/* Retour */}
         <button
           onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[4px] text-[13px] font-medium hover:bg-filet transition-colors"
+          className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[8px] text-[14px] font-medium hover:bg-filet transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Retour
         </button>
@@ -174,7 +174,7 @@ export default function ProjectStatuses() {
         <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre mb-2">Gestionnaire de statuts</h1>
 
         {/* Description */}
-        <p className="text-[13px] text-mine leading-relaxed max-w-2xl mb-8">
+        <p className="text-[14px] text-mine leading-relaxed max-w-2xl mb-8">
           Les statuts permettent de classer les tâches selon leur progression.
           Le premier et le dernier statut sont fixes et représentent le début et la fin du cycle.
         </p>
@@ -203,7 +203,7 @@ export default function ProjectStatuses() {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         style={provided.draggableProps.style}
-                        className="p-3 rounded-[4px] border border-filet bg-survol"
+                        className="p-3 rounded-[8px] border border-filet bg-survol"
                       >
                         <div className="flex items-center gap-3">
 
@@ -229,12 +229,12 @@ export default function ProjectStatuses() {
                               setStatuses(copy)
                             }}
                             onBlur={() => saveStatus(status)}
-                            className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[13px] text-encre"
+                            className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[14px] text-encre"
                           />
 
                           {/* Badge “Fixe” */}
                           {isFixed(index) && (
-                            <span className={clsx('text-[11px] px-2 py-0.5 rounded-[3px] bg-voile text-mine-clair font-medium', 'tabular-nums')}>
+                            <span className={clsx('text-[12px] px-2 py-0.5 rounded-[6px] bg-voile text-mine-clair font-medium', 'tabular-nums')}>
                               Fixe
                             </span>
                           )}
@@ -256,7 +256,7 @@ export default function ProjectStatuses() {
                               variant="ghost"
                               size="icon"
                               onClick={() => removeStatus(status, index)}
-                              className="hover:bg-alerte-pale text-alerte hover:text-alerte rounded-[3px] transition-colors"
+                              className="hover:bg-alerte-pale text-alerte hover:text-alerte rounded-[6px] transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -273,7 +273,7 @@ export default function ProjectStatuses() {
                 <button
                   disabled={isDragging}
                   onClick={addStatus}
-                  className="w-full p-3 rounded-[4px] bg-survol border border-filet text-encre text-[13px] font-medium flex justify-center items-center gap-2 hover:bg-voile transition-colors disabled:opacity-40"
+                  className="w-full p-3 rounded-[8px] bg-survol border border-filet text-encre text-[14px] font-medium flex justify-center items-center gap-2 hover:bg-voile transition-colors disabled:opacity-40"
                 >
                   <Plus className="w-4 h-4" /> Ajouter un statut
                 </button>

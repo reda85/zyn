@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 import { MapPinIcon, User, Calendar } from 'lucide-react';
 import clsx from 'clsx';
 import { photoThumbUrl } from '@/lib/images';
@@ -51,7 +51,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
   };
 
   return (
-    <div className={clsx("space-y-10", GeistSans.className)}>
+    <div className={clsx("space-y-10", outfit.className)}>
       {sortedDates.map((date) => {
         const items = grouped[date];
         const allSelected = items.every((item) => selectedIds.has(item.id));
@@ -63,7 +63,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
               <button
                 onClick={() => toggleAllInGroup(items)}
                 className={clsx(
-                  "w-4 h-4 rounded-[2px] border flex items-center justify-center transition-colors",
+                  "w-4 h-4 rounded-[4px] border flex items-center justify-center transition-colors",
                   allSelected
                     ? 'bg-tirage border-tirage'
                     : 'border-filet-fort hover:border-tirage'
@@ -77,7 +77,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                 <h3 className="text-[14px] font-semibold text-encre first-letter:uppercase">
                   {date}
                 </h3>
-                <span className="text-[12px] text-mine-clair tabular-nums">
+                <span className="text-[13px] text-mine-clair tabular-nums">
                   {items.length} photo{items.length > 1 ? 's' : ''}
                 </span>
               </div>
@@ -91,7 +91,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                   <div
                     key={item.id}
                     className={clsx(
-                      "relative group bg-white border rounded-[6px] overflow-hidden flex flex-col transition-colors",
+                      "relative group bg-white border rounded-[12px] overflow-hidden flex flex-col transition-colors",
                       selected ? "border-tirage ring-1 ring-tirage" : "border-filet hover:border-filet-fort"
                     )}
                   >
@@ -119,11 +119,11 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
                     </div>
 
                     <div className="px-3 py-2.5">
-                      <p className="flex items-center gap-1.5 text-[13px] text-encre font-medium truncate">
+                      <p className="flex items-center gap-1.5 text-[14px] text-encre font-medium truncate">
                         <MapPinIcon className="h-3.5 w-3.5 text-mine-clair flex-shrink-0" />
                         <span className="truncate">{item.pdf_pins?.name || 'Réserve sans titre'}</span>
                       </p>
-                      <p className="mt-0.5 ml-5 flex items-center gap-2 text-[12px] text-mine-clair">
+                      <p className="mt-0.5 ml-5 flex items-center gap-2 text-[13px] text-mine-clair">
                         <span className="truncate">{item.pdf_pins?.assigned_to?.name || 'Non assigné'}</span>
                         <span className="ml-auto tabular-nums">
                           {new Date(item.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}

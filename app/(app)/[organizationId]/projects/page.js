@@ -9,7 +9,7 @@ import { Plus, Search, MoreVertical, Archive, Trash2, X, LayoutGrid, List } from
 import Link from 'next/link'
 
 import clsx from 'clsx'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import { useUserData } from '@/hooks/useUserData'
 import Sidebar from '@/components/Sidebar'
 import { fetchOverview } from '@/lib/data/overview'
@@ -19,11 +19,11 @@ function ProjectsGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="bg-white border border-filet rounded-[6px] p-4 min-h-[148px] flex flex-col">
-          <div className="h-3.5 rounded-[3px] bg-voile animate-pulse" style={{ maxWidth: `${140 + (i % 3) * 30}px` }} />
-          <div className="h-3 w-24 rounded-[3px] bg-voile animate-pulse mt-2" />
+        <div key={i} className="bg-white border border-filet rounded-[12px] p-4 min-h-[148px] flex flex-col shadow-carte">
+          <div className="h-3.5 rounded-[6px] bg-voile animate-pulse" style={{ maxWidth: `${140 + (i % 3) * 30}px` }} />
+          <div className="h-3 w-24 rounded-[6px] bg-voile animate-pulse mt-2" />
           <div className="h-1.5 rounded-full bg-voile animate-pulse mt-auto mb-4" />
-          <div className="h-3 w-32 rounded-[3px] bg-voile animate-pulse" />
+          <div className="h-3 w-32 rounded-[6px] bg-voile animate-pulse" />
         </div>
       ))}
     </div>
@@ -197,20 +197,20 @@ export default function ProjectsPage({ params }) {
           }}
           aria-label={`Actions pour ${proj.name}`}
           className={clsx(
-            'p-1 rounded-[4px] text-mine-clair hover:bg-voile hover:text-encre transition-colors',
+            'p-1 rounded-[8px] text-mine-clair hover:bg-voile hover:text-encre transition-colors',
             openMenuId === proj.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
           )}
         >
           <MoreVertical className="w-4 h-4" />
         </button>
         {openMenuId === proj.id && (
-          <div className="absolute right-0 mt-1 w-44 bg-white border border-filet rounded-[6px] shadow-[0_8px_24px_-8px_rgba(28,28,26,0.18)] py-1 z-10">
+          <div className="absolute right-0 mt-1 w-44 bg-white border border-filet rounded-[12px] shadow-[0_8px_24px_-8px_rgba(28,28,26,0.18)] py-1 z-10">
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 archiveProject(proj.id)
               }}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-[13px] text-mine hover:bg-survol hover:text-encre transition-colors"
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-[14px] text-mine hover:bg-survol hover:text-encre transition-colors"
             >
               <Archive className="w-3.5 h-3.5" />
               Archiver
@@ -222,7 +222,7 @@ export default function ProjectsPage({ params }) {
                 setShowDeleteModal(true)
                 setOpenMenuId(null)
               }}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-[13px] text-alerte hover:bg-alerte-pale transition-colors"
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-[14px] text-alerte hover:bg-alerte-pale transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Supprimer
@@ -237,7 +237,7 @@ export default function ProjectsPage({ params }) {
     const st = statsFor(proj.id)
     const plans = proj.plans?.length ?? 0
     return (
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[12px] text-mine tabular-nums">
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px] text-mine tabular-nums">
         {st && <span><span className="text-encre font-medium">{st.open}</span> ouverte{st.open > 1 ? 's' : ''}</span>}
         {st?.overdue > 0 && <span className="text-alerte"><span className="font-medium">{st.overdue}</span> en retard</span>}
         <span>{plans ? `${plans} plan${plans > 1 ? 's' : ''}` : 'Aucun plan'}</span>
@@ -251,7 +251,7 @@ export default function ProjectsPage({ params }) {
   }
 
   return (
-    <div className={clsx('flex h-screen bg-papier overflow-hidden', GeistSans.className)}>
+    <div className={clsx('flex h-screen bg-papier overflow-hidden', outfit.className)}>
       <Sidebar organizationId={organizationId} currentPage="projects" />
 
       <main className="flex-1 overflow-y-auto">
@@ -260,7 +260,7 @@ export default function ProjectsPage({ params }) {
           <div className="flex items-end justify-between gap-4 mb-6">
             <div className="min-w-0">
               <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre leading-tight">Projets</h1>
-              <p className="text-[13px] text-mine mt-1 truncate">
+              <p className="text-[14px] text-mine mt-1 truncate">
                 {selectedOrganization?.name}
                 {!projectsLoading && (
                   <span className="text-mine-clair tabular-nums">
@@ -272,7 +272,7 @@ export default function ProjectsPage({ params }) {
             {profile?.role !== 'guest' && (
               <button
                 onClick={() => setShowModal(true)}
-                className="shrink-0 bg-encre text-white h-9 px-3.5 rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors flex items-center gap-1.5"
+                className="shrink-0 bg-encre text-white h-9 px-3.5 rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 Créer un projet
@@ -291,13 +291,13 @@ export default function ProjectsPage({ params }) {
               <input
                 type="search"
                 aria-label="Rechercher un projet"
-                className="border border-filet bg-white pl-8 pr-3 h-9 w-full rounded-[4px] text-[13px] focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
+                className="border border-filet bg-white pl-8 pr-3 h-9 w-full rounded-[8px] text-[14px] focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
                 placeholder="Rechercher un projet"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex border border-filet bg-white rounded-[4px] p-0.5" role="group" aria-label="Affichage">
+            <div className="flex border border-filet bg-white rounded-[8px] p-0.5" role="group" aria-label="Affichage">
               {[['grid', LayoutGrid, 'Grille'], ['list', List, 'Liste']].map(([mode, Icon, label]) => (
                 <button
                   key={mode}
@@ -305,7 +305,7 @@ export default function ProjectsPage({ params }) {
                   aria-pressed={viewMode === mode}
                   title={label}
                   className={clsx(
-                    'h-7 w-7 flex items-center justify-center rounded-[3px] transition-colors',
+                    'h-7 w-7 flex items-center justify-center rounded-[6px] transition-colors',
                     viewMode === mode ? 'bg-voile text-encre' : 'text-mine-clair hover:text-encre'
                   )}
                 >
@@ -331,12 +331,12 @@ export default function ProjectsPage({ params }) {
                         tabIndex={0}
                         onClick={() => handleProjectClick(proj)}
                         onKeyDown={(e) => e.key === 'Enter' && handleProjectClick(proj)}
-                        className="group bg-white border border-filet rounded-[6px] p-4 hover:border-filet-fort transition-colors cursor-pointer flex flex-col gap-4 min-h-[148px]"
+                        className="group bg-white border border-filet rounded-[12px] p-4 hover:border-filet-fort transition-colors cursor-pointer flex flex-col gap-4 min-h-[148px] shadow-carte"
                       >
                         <div className="flex items-start gap-3">
                           <div className="min-w-0 flex-1">
                             <h3 className="text-[14px] font-semibold text-encre truncate">{proj.name}</h3>
-                            <p className="text-[12px] text-mine-clair truncate mt-0.5">
+                            <p className="text-[13px] text-mine-clair truncate mt-0.5">
                               {proj.address || 'Adresse non renseignée'}
                             </p>
                           </div>
@@ -346,8 +346,8 @@ export default function ProjectsPage({ params }) {
                         {!isGuest && (
                           <div className="mt-auto">
                             <div className="flex items-baseline justify-between mb-1.5">
-                              <span className="text-[12px] text-mine">Levées</span>
-                              <span className="text-[12px] text-encre font-medium tabular-nums">
+                              <span className="text-[13px] text-mine">Levées</span>
+                              <span className="text-[13px] text-encre font-medium tabular-nums">
                                 {pct === null ? '—' : `${pct} %`}
                               </span>
                             </div>
@@ -357,7 +357,7 @@ export default function ProjectsPage({ params }) {
 
                         <div className={clsx('flex items-end justify-between gap-3', isGuest && 'mt-auto')}>
                           {figures(proj)}
-                          <span className="text-[11px] text-mine-clair whitespace-nowrap">{lastActivity(proj)}</span>
+                          <span className="text-[12px] text-mine-clair whitespace-nowrap">{lastActivity(proj)}</span>
                         </div>
                       </div>
                     )
@@ -367,7 +367,7 @@ export default function ProjectsPage({ params }) {
 
               {/* ── Liste ── */}
               {viewMode === 'list' && (
-                <div className="bg-white rounded-[6px] border border-filet overflow-x-auto">
+                <div className="bg-white rounded-[12px] border border-filet overflow-x-auto shadow-carte">
                   <table className="w-full min-w-[760px]" style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                     <colgroup>
                       <col style={{ width: '34%' }} />
@@ -384,7 +384,7 @@ export default function ProjectsPage({ params }) {
                           <th
                             key={i}
                             className={clsx(
-                              'px-4 py-2.5 text-[12px] font-medium text-mine border-b border-filet',
+                              'px-4 py-2.5 text-[13px] font-medium text-mine border-b border-filet',
                               i >= 2 && i <= 4 ? 'text-right' : 'text-left'
                             )}
                           >
@@ -404,21 +404,21 @@ export default function ProjectsPage({ params }) {
                             onClick={() => handleProjectClick(proj)}
                           >
                             <td className="px-4 py-3">
-                              <p className="text-[13px] font-medium text-encre truncate">{proj.name}</p>
-                              <p className="text-[12px] text-mine-clair truncate">{proj.address || '—'}</p>
+                              <p className="text-[14px] font-medium text-encre truncate">{proj.name}</p>
+                              <p className="text-[13px] text-mine-clair truncate">{proj.address || '—'}</p>
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
                                 <StatusBar stats={st} className="flex-1" />
-                                <span className="w-10 text-right text-[12px] text-encre tabular-nums">{pct === null ? '—' : `${pct} %`}</span>
+                                <span className="w-10 text-right text-[13px] text-encre tabular-nums">{pct === null ? '—' : `${pct} %`}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-right text-[13px] text-encre tabular-nums">{st?.open ?? '—'}</td>
-                            <td className={clsx('px-4 py-3 text-right text-[13px] tabular-nums', st?.overdue ? 'text-alerte font-medium' : 'text-mine-clair')}>
+                            <td className="px-4 py-3 text-right text-[14px] text-encre tabular-nums">{st?.open ?? '—'}</td>
+                            <td className={clsx('px-4 py-3 text-right text-[14px] tabular-nums', st?.overdue ? 'text-alerte font-medium' : 'text-mine-clair')}>
                               {st ? st.overdue : '—'}
                             </td>
-                            <td className="px-4 py-3 text-right text-[13px] text-mine tabular-nums">{proj.plans?.length || 0}</td>
-                            <td className="px-4 py-3 text-[12px] text-mine-clair">{lastActivity(proj)}</td>
+                            <td className="px-4 py-3 text-right text-[14px] text-mine tabular-nums">{proj.plans?.length || 0}</td>
+                            <td className="px-4 py-3 text-[13px] text-mine-clair">{lastActivity(proj)}</td>
                             <td className="px-2 py-3">{menu(proj)}</td>
                           </tr>
                         )
@@ -429,12 +429,12 @@ export default function ProjectsPage({ params }) {
               )}
 
               {filteredProjects.length === 0 && (
-                <div className="text-center py-16 border border-dashed border-filet-fort rounded-[6px]">
-                  <p className="text-[13px] text-mine">
+                <div className="text-center py-16 border border-dashed border-filet-fort rounded-[12px]">
+                  <p className="text-[14px] text-mine">
                     {searchQuery ? `Aucun projet ne correspond à « ${searchQuery} ».` : 'Aucun projet pour le moment.'}
                   </p>
                   {!searchQuery && profile?.role !== 'guest' && (
-                    <button onClick={() => setShowModal(true)} className="mt-3 text-[13px] font-medium text-tirage hover:text-tirage-fonce">
+                    <button onClick={() => setShowModal(true)} className="mt-3 text-[14px] font-medium text-tirage hover:text-tirage-fonce">
                       Créer le premier projet
                     </button>
                   )}
@@ -449,10 +449,10 @@ export default function ProjectsPage({ params }) {
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/20" onClick={() => setShowModal(false)} />
 
-            <div className="relative bg-white border border-filet rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
+            <div className="relative bg-white border border-filet rounded-[12px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-voile transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-[6px] hover:bg-voile transition-colors"
               >
                 <X className="w-4 h-4 text-mine-clair" />
               </button>
@@ -460,14 +460,14 @@ export default function ProjectsPage({ params }) {
               <h2 className="text-base font-medium text-encre mb-1">
                 Créer un nouveau projet
               </h2>
-              <p className="text-[13px] text-mine-clair mb-5">
+              <p className="text-[14px] text-mine-clair mb-5">
                 Organisation:{' '}
                 <span className="font-medium text-encre">{selectedOrganization?.name}</span>
               </p>
 
               <input
                 type="text"
-                className="border border-filet bg-white px-3 py-2.5 w-full rounded-[4px] text-[13px] mb-5 focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
+                className="border border-filet bg-white px-3 py-2.5 w-full rounded-[8px] text-[14px] mb-5 focus:outline-none focus:border-encre transition-colors text-encre placeholder:text-trait"
                 placeholder="Nom du projet"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
@@ -478,14 +478,14 @@ export default function ProjectsPage({ params }) {
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors"
+                  className="px-4 py-2 text-[14px] font-medium text-encre bg-white border border-filet rounded-[8px] hover:bg-survol transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={createProject}
                   disabled={loading || !newProjectName.trim()}
-                  className="px-4 py-2 text-[13px] font-medium text-white bg-encre rounded-[4px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-[14px] font-medium text-white bg-encre rounded-[8px] hover:bg-encre-survol transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Création...' : 'Créer'}
                 </button>
@@ -499,13 +499,13 @@ export default function ProjectsPage({ params }) {
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black/20" onClick={() => setShowDeleteModal(false)} />
 
-            <div className="relative bg-white border border-filet rounded-[6px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
+            <div className="relative bg-white border border-filet rounded-[12px] p-6 shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-w-md w-full mx-4">
               <button
                 onClick={() => {
                   setShowDeleteModal(false)
                   setProjectToDelete(null)
                 }}
-                className="absolute top-4 right-4 p-1 rounded-[3px] hover:bg-voile transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-[6px] hover:bg-voile transition-colors"
               >
                 <X className="w-4 h-4 text-mine-clair" />
               </button>
@@ -513,7 +513,7 @@ export default function ProjectsPage({ params }) {
               <h2 className="text-base font-medium text-encre mb-1">
                 Supprimer le projet
               </h2>
-              <p className="text-[13px] text-mine mb-5">
+              <p className="text-[14px] text-mine mb-5">
                 Êtes-vous sûr de vouloir supprimer{' '}
                 <span className="font-medium text-encre">"{projectToDelete?.name}"</span> ?
                 Cette action est irréversible.
@@ -525,13 +525,13 @@ export default function ProjectsPage({ params }) {
                     setShowDeleteModal(false)
                     setProjectToDelete(null)
                   }}
-                  className="px-4 py-2 text-[13px] font-medium text-encre bg-white border border-filet rounded-[4px] hover:bg-survol transition-colors"
+                  className="px-4 py-2 text-[14px] font-medium text-encre bg-white border border-filet rounded-[8px] hover:bg-survol transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={deleteProject}
-                  className="px-4 py-2 text-[13px] font-medium text-white bg-alerte rounded-[4px] hover:bg-alerte transition-colors"
+                  className="px-4 py-2 text-[14px] font-medium text-white bg-alerte rounded-[8px] hover:bg-alerte transition-colors"
                 >
                   Supprimer
                 </button>

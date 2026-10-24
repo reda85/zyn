@@ -169,7 +169,7 @@ export default function IntervenantDatePicker({ pin }) {
   );
 
   return (
-    <div className="flex flex-row text-[13px] gap-4 items-center">
+    <div className="flex flex-row text-[14px] gap-4 items-center">
       {/* Combobox */}
       <div className="w-56 relative">
         <Combobox value={selectedIntervenant} onChange={handleSelect} disabled={isGuest}>
@@ -180,7 +180,7 @@ export default function IntervenantDatePicker({ pin }) {
                   <div className="relative">
                     <Combobox.Input
                       autoFocus
-                      className="w-full border border-filet rounded-[4px] px-3 py-2 pl-10 pr-10 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre placeholder:text-trait transition-colors"
+                      className="w-full border border-filet rounded-[8px] px-3 py-2 pl-10 pr-10 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre placeholder:text-trait transition-colors"
                       onChange={e => setQuery(e.target.value)}
                       onFocus={() => setQuery('')}
                       displayValue={() => query || selectedIntervenant?.name || ''}
@@ -198,7 +198,7 @@ export default function IntervenantDatePicker({ pin }) {
                     </button>
                   </div>
                   {open && (
-                    <Combobox.Options className="absolute mt-2 w-full bg-white shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] max-h-60 overflow-auto z-10 border border-filet py-1">
+                    <Combobox.Options className="absolute mt-2 w-full bg-white shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[8px] max-h-60 overflow-auto z-10 border border-filet py-1">
                       {filteredIntervenants.map(person => (
                         <Combobox.Option
                           key={person.id}
@@ -208,15 +208,15 @@ export default function IntervenantDatePicker({ pin }) {
                           }
                         >
                           {person.id === 0 ? (
-                            <span className="text-mine-clair italic text-[13px]">Aucun intervenant</span>
+                            <span className="text-mine-clair italic text-[14px]">Aucun intervenant</span>
                           ) : (
                             <>
-                              <div className="w-7 h-7 flex-shrink-0 rounded-full bg-voile border border-filet flex items-center justify-center text-[11px] font-medium text-encre">
+                              <div className="w-7 h-7 flex-shrink-0 rounded-full bg-voile border border-filet flex items-center justify-center text-[12px] font-medium text-encre">
                                 {getInitials(person.name)}
                               </div>
                               <div className="flex flex-col">
-                                <span className="font-medium text-encre text-[13px]">{person.name}</span>
-                                <span className="text-mine-clair text-[11px]">{person.email}</span>
+                                <span className="font-medium text-encre text-[14px]">{person.name}</span>
+                                <span className="text-mine-clair text-[12px]">{person.email}</span>
                               </div>
                             </>
                           )}
@@ -230,7 +230,7 @@ export default function IntervenantDatePicker({ pin }) {
                   as="button"
                   disabled={isGuest}
                   className={clsx(
-                    'w-full border border-filet rounded-[4px] px-3 py-2 pl-10 text-left transition-colors relative text-[13px] font-medium',
+                    'w-full border border-filet rounded-[8px] px-3 py-2 pl-10 text-left transition-colors relative text-[14px] font-medium',
                     isGuest
                       ? 'bg-survol cursor-not-allowed opacity-70 text-mine-clair'
                       : 'bg-survol hover:bg-voile text-encre cursor-pointer'
@@ -256,7 +256,7 @@ export default function IntervenantDatePicker({ pin }) {
             onChange={date => { setIsPickingDate(false); updateDueDate(date); }}
             onBlur={() => setIsPickingDate(false)}
             autoFocus
-            className={clsx('w-full border border-filet rounded-[4px] px-3 py-2 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre', 'tabular-nums')}
+            className={clsx('w-full border border-filet rounded-[8px] px-3 py-2 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre', 'tabular-nums')}
             dateFormat="dd/MM/yyyy"
             placeholderText="Sélectionner une date"
           />
@@ -266,7 +266,7 @@ export default function IntervenantDatePicker({ pin }) {
               type="button"
               disabled={isGuest}
               className={clsx(
-                'w-full border rounded-[4px] px-3 py-2 pl-10 text-left relative transition-colors text-[13px] font-medium',
+                'w-full border rounded-[8px] px-3 py-2 pl-10 text-left relative transition-colors text-[14px] font-medium',
                 'tabular-nums',
                 isGuest
                   ? 'bg-survol cursor-not-allowed opacity-70 border-filet text-mine-clair'

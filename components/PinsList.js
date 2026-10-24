@@ -3,12 +3,13 @@ import PinFilterPanel from './PinFilterPanel'
 import { useSelectedPin } from '@/hooks/usePins'
 import { photoThumbUrl } from '@/lib/images'
 import Pin from './Pin'
+import StatusPill from './StatusPill'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/fr'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 
 dayjs.extend(relativeTime)
 dayjs.locale('fr')
@@ -18,8 +19,8 @@ function PinSkeleton() {
     <li className="px-4 py-3 flex items-start gap-2.5 border-b border-voile animate-pulse">
       <div className="w-5 h-5 rounded-full bg-voile flex-shrink-0" />
       <div className="flex-1">
-        <div className="h-3 bg-voile rounded-[3px]" />
-        <div className="h-2.5 bg-voile rounded-[3px] w-20 mt-2" />
+        <div className="h-3 bg-voile rounded-[6px]" />
+        <div className="h-2.5 bg-voile rounded-[6px] w-20 mt-2" />
       </div>
     </li>
   )
@@ -38,7 +39,7 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
   return (
     <div
       className={clsx(
-        GeistSans.className,
+        outfit.className,
         'overflow-auto bg-white border-r border-filet [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       )}
     >
@@ -58,7 +59,7 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
 
       {/* Compteur */}
       <div className="flex items-center justify-between px-4 py-2 border-y border-filet bg-papier">
-        <p className="text-[12px] text-mine tabular-nums">
+        <p className="text-[13px] text-mine tabular-nums">
           {isLoading ? '\u00a0' : `${pins.length} réserve${pins.length > 1 ? 's' : ''}`}
           {!isLoading && allPins.length !== pins.length && (
             <span className="text-mine-clair"> sur {allPins.length}</span>
@@ -90,10 +91,11 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
                   <div className="flex items-start gap-2.5">
                     <Pin pin={pin} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13px] font-medium text-encre leading-snug line-clamp-2">
+                      <p className="text-[14px] font-medium text-encre leading-snug line-clamp-2">
                         {pin.name || 'Réserve sans titre'}
                       </p>
-                      <p className="mt-1 flex items-center gap-2 text-[11px] text-mine-clair">
+                      <p className="mt-1 flex items-center gap-2 text-[12px] text-mine-clair">
+                        <StatusPill pin={pin} />
                         {pin.pin_number != null && <span className="font-mono text-mine">#{pin.pin_number}</span>}
                         {pin.categories?.name && <span className="truncate">{pin.categories.name}</span>}
                         <span className="ml-auto whitespace-nowrap">{dayjs(pin.created_at).fromNow()}</span>
@@ -110,11 +112,11 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
                           alt=""
                           loading="lazy"
                           decoding="async"
-                          className="w-10 h-10 rounded-[3px] object-cover bg-voile"
+                          className="w-10 h-10 rounded-[6px] object-cover bg-voile"
                         />
                       ))}
                       {pin.pins_photos.length > 4 && (
-                        <span className="text-[11px] text-mine-clair tabular-nums">+{pin.pins_photos.length - 4}</span>
+                        <span className="text-[12px] text-mine-clair tabular-nums">+{pin.pins_photos.length - 4}</span>
                       )}
                     </div>
                   )}

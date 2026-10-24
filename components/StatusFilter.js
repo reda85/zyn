@@ -2,7 +2,7 @@
 import { Switch } from '@headlessui/react';
 import { useProjectData } from '@/providers/ProjectProvider';
 import { CheckCircle2 } from 'lucide-react';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 import clsx from 'clsx';
 
 export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
@@ -28,17 +28,17 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
   };
 
   return (
-    <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="bg-survol border border-filet rounded-[4px] overflow-hidden">
+    <div className={clsx("px-4 mb-4", outfit.className)}>
+      <div className="bg-survol border border-filet rounded-[8px] overflow-hidden">
 
         {/* Header avec "Tout sélectionner" */}
         <div className="flex items-center justify-between bg-voile border-b border-filet p-3">
-          <span className="text-[13px] text-encre">
+          <span className="text-[14px] text-encre">
             Filtrer par statut
           </span>
           <button
             onClick={toggleAll}
-            className="text-[12px] font-medium text-tirage hover:text-tirage-fonce transition-colors flex items-center gap-1"
+            className="text-[13px] font-medium text-tirage hover:text-tirage-fonce transition-colors flex items-center gap-1"
           >
             {allSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
           </button>
@@ -47,7 +47,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
         {/* Liste des statuts */}
         <div className="divide-y divide-filet">
           {statuses.length === 0 ? (
-            <div className="p-4 text-center text-[13px] text-mine-clair">
+            <div className="p-4 text-center text-[14px] text-mine-clair">
               Aucun statut disponible
             </div>
           ) : (
@@ -67,7 +67,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
                     />
 
                     {/* Nom du statut */}
-                    <span className="text-[13px] font-medium text-encre">
+                    <span className="text-[14px] font-medium text-encre">
                       {status.name}
                     </span>
 
@@ -101,7 +101,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
 
         {/* Footer avec compteur */}
         {statuses.length > 0 && activeStatuses.length > 0 && (
-          <div className={clsx('bg-voile border-t border-filet px-3 py-2 text-[11px] text-mine-clair text-center', 'tabular-nums')}>
+          <div className={clsx('bg-voile border-t border-filet px-3 py-2 text-[12px] text-mine-clair text-center', 'tabular-nums')}>
             {activeStatuses.length} statut{activeStatuses.length > 1 ? 's' : ''} sélectionné{activeStatuses.length > 1 ? 's' : ''}
           </div>
         )}

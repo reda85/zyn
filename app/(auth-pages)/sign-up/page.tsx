@@ -1,4 +1,4 @@
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 
 
 import { signUpAction } from "@/app/actions";
@@ -17,7 +17,7 @@ export default async function Signup(props: {
   // Handles displaying a final message after a successful action (like email confirmation link sent)
   if ("message" in searchParams) {
     return (
-      <div className={`flex min-h-screen w-screen overflow-hidden ${GeistSans.className} items-center justify-center bg-survol p-4`}>
+      <div className={`flex min-h-screen w-screen overflow-hidden ${outfit.className} items-center justify-center bg-survol p-4`}>
         {/* Card for the message display */}
         <div className="w-full max-w-lg p-8 bg-white rounded-lg shadow-xl border border-filet">
           <FormMessage message={searchParams} />
@@ -36,7 +36,7 @@ export default async function Signup(props: {
   // Renders the main Sign Up form
   return (
     // Conteneur pleine largeur
-    <div className={`flex min-h-screen w-screen overflow-hidden ${GeistSans.className}`}> 
+    <div className={`flex min-h-screen w-screen overflow-hidden ${outfit.className}`}> 
       
       {/* 1. BRANDING/LOGO SIDE (Left Half) - White Background */}
       <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-voile">
