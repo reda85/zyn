@@ -11,6 +11,7 @@ import PlanDemo from "@/components/landing/PlanDemo";
 import Etapes from "@/components/landing/Etapes";
 import Metiers from "@/components/landing/Metiers";
 import Fonctions from "@/components/landing/Fonctions";
+import FondHero from "@/components/landing/FondHero";
 
 const DEMO_URL = "https://cal.com/zaynspace/demo";
 
@@ -98,10 +99,10 @@ export default function HomePage() {
 
       <main>
         {/* ── Ouverture ── */}
-        <section className="relative pt-28 sm:pt-36 pb-24 overflow-hidden">
+        <section className="relative isolate pt-28 sm:pt-36 pb-24 overflow-hidden">
+          <FondHero />
           <div className="mx-auto max-w-[1200px] px-5 sm:px-8 grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-14 lg:gap-14 items-center">
             <div>
-              <p className="text-[14px] text-mine mb-5">Suivi de chantier pour les architectes, MOD et AMO au Maroc</p>
               <h1 className="text-[clamp(2.4rem,1.6rem+3.4vw,4.1rem)] font-semibold leading-[1.02] tracking-[-0.035em] text-encre">
                 Le chantier documenté avant d’avoir quitté le site.
               </h1>
