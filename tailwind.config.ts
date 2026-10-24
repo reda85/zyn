@@ -20,7 +20,8 @@ const config: Config = {
       fontFamily: {
   outfit: ["var(--font-outfit)"],
   lexend: ["var(--font-lexend)"],
-  sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+  sans: ["var(--font-outfit)", "system-ui", "sans-serif"],
+  geist: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
   mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
 },
       colors: {
@@ -69,6 +70,10 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      // Ombre douce des cartes de l'application mobile.
+      boxShadow: {
+        carte: "0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px -2px rgba(16, 24, 40, 0.06)",
       },
       borderRadius: {
         lg: "var(--radius)",

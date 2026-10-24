@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import { focusOnPinAtom } from '@/store/atoms';
@@ -548,7 +548,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
   return (
     <>
       <div
-        className={GeistSans.className}
+        className={outfit.className}
         ref={containerRef}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
@@ -574,7 +574,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
 
           {/* Pin mode toggle group */}
           {!isGuest && (
-            <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-filet overflow-hidden">
+            <div className="flex flex-col bg-white rounded-[12px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-filet overflow-hidden">
               <button
                 onClick={() => setPinMode(false)}
                 title="Mode déplacement"
@@ -584,7 +584,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
                 )}
               >
                 <PointerIcon className="h-[18px] w-[18px]" />
-                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-encre text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[6px] bg-encre text-white text-[12px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                   Déplacer
                 </span>
               </button>
@@ -597,7 +597,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
                 )}
               >
                 <MapPinIcon className="h-[18px] w-[18px]" />
-                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[3px] bg-encre text-white text-[11px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 rounded-[6px] bg-encre text-white text-[12px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                   Placer un pin
                 </span>
               </button>
@@ -605,7 +605,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
           )}
 
           {/* Zoom controls */}
-          <div className="flex flex-col bg-white rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-filet overflow-hidden">
+          <div className="flex flex-col bg-white rounded-[12px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] border border-filet overflow-hidden">
             <button
               onClick={zoomIn}
               title="Zoomer"
@@ -613,7 +613,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
             >
               <ZoomIn className="h-[18px] w-[18px]" />
             </button>
-            <div className={clsx('px-2 py-1.5 text-center text-[11px] font-medium text-mine-clair border-b border-filet select-none', 'tabular-nums')}>
+            <div className={clsx('px-2 py-1.5 text-center text-[12px] font-medium text-mine-clair border-b border-filet select-none', 'tabular-nums')}>
               {Math.round(scale * 100)}%
             </div>
             <button
@@ -633,7 +633,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
               <div className="absolute inset-0 flex items-center justify-center z-10 bg-survol">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-10 w-10 border-2 border-filet border-t-tirage mx-auto mb-4" />
-                  <p className="text-[13px] text-mine">Chargement du plan...</p>
+                  <p className="text-[14px] text-mine">Chargement du plan...</p>
                 </div>
               </div>
             )}
@@ -661,7 +661,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-10 w-10 border-2 border-filet border-t-tirage mx-auto mb-4" />
-                  <p className="text-[13px] text-mine">Chargement de l'image...</p>
+                  <p className="text-[14px] text-mine">Chargement de l'image...</p>
                 </div>
               </div>
             )}

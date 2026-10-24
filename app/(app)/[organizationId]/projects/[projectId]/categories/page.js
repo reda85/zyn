@@ -10,7 +10,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import clsx from 'clsx'
 
 // StrictMode wrapper for Droppable
@@ -141,17 +141,17 @@ export default function ProjectCategories() {
 
   if (loading) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", GeistSans.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", outfit.className)}>
         <div className="text-center">
           <div className="mb-6 flex justify-center">
-            <div className="w-12 h-12 bg-encre rounded-[4px] flex items-center justify-center animate-pulse">
+            <div className="w-12 h-12 bg-encre rounded-[8px] flex items-center justify-center animate-pulse">
               <span className="text-white font-medium text-xl">z</span>
             </div>
           </div>
           <h2 className="text-[17px] font-medium text-encre mb-2">
             Chargement...
           </h2>
-          <p className="text-[13px] text-mine-clair">
+          <p className="text-[14px] text-mine-clair">
             Veuillez patienter
           </p>
           <div className="mt-8 w-64 mx-auto">
@@ -172,13 +172,13 @@ export default function ProjectCategories() {
   }
 
   return (
-    <div className={clsx("min-h-screen bg-papier", GeistSans.className)}>
+    <div className={clsx("min-h-screen bg-papier", outfit.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[4px] text-[13px] font-medium hover:bg-filet transition-colors"
+            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[8px] text-[14px] font-medium hover:bg-filet transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Retour
@@ -187,7 +187,7 @@ export default function ProjectCategories() {
           <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre mb-2">
             Gestionnaire de catégories
           </h1>
-          <p className="text-[13px] text-mine leading-relaxed max-w-2xl">
+          <p className="text-[14px] text-mine leading-relaxed max-w-2xl">
             Les catégories vous permettent d'organiser vos tâches par thème ou par type.
             Organisez-les par glisser-déposer pour définir leur ordre d'apparition dans l'application.
           </p>
@@ -195,12 +195,12 @@ export default function ProjectCategories() {
 
         {/* Categories List */}
         {categories.length === 0 ? (
-          <div className="bg-white border border-filet rounded-[6px] p-12 text-center">
+          <div className="bg-white border border-filet rounded-[12px] p-12 text-center shadow-carte">
             <Folder className="w-12 h-12 text-filet-fort mx-auto mb-4" />
-            <p className="text-[13px] text-mine-clair mb-4">Aucune catégorie trouvée pour ce projet.</p>
+            <p className="text-[14px] text-mine-clair mb-4">Aucune catégorie trouvée pour ce projet.</p>
             <button
               onClick={handleAddCategory}
-              className="px-4 py-2 bg-encre text-white rounded-[4px] text-[13px] font-medium hover:bg-encre-survol transition-colors inline-flex items-center gap-2"
+              className="px-4 py-2 bg-encre text-white rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors inline-flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Créer la première catégorie
@@ -214,7 +214,7 @@ export default function ProjectCategories() {
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                   className={clsx(
-                    "space-y-2 border border-filet p-6 rounded-[4px] bg-white transition-colors",
+                    "space-y-2 border border-filet p-6 rounded-[8px] bg-white transition-colors",
                     snapshot.isDraggingOver && "bg-survol"
                   )}
                 >
@@ -230,7 +230,7 @@ export default function ProjectCategories() {
                           {...provided.draggableProps}
                           style={provided.draggableProps.style}
                           className={clsx(
-                            "bg-survol p-3 border border-filet rounded-[4px] transition-all",
+                            "bg-survol p-3 border border-filet rounded-[8px] transition-all",
                             snapshot.isDragging && "shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)]"
                           )}
                         >
@@ -257,7 +257,7 @@ export default function ProjectCategories() {
                               value={cat.name}
                               onChange={(e) => handleNameChange(index, e.target.value)}
                               onBlur={() => handleSaveCategory(cat)}
-                              className="flex-1 border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[13px]"
+                              className="flex-1 border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[14px]"
                               placeholder="Nom de la catégorie"
                             />
 
@@ -266,7 +266,7 @@ export default function ProjectCategories() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteCategory(cat.id)}
-                              className="hover:bg-alerte-pale text-alerte hover:text-alerte rounded-[3px] transition-colors"
+                              className="hover:bg-alerte-pale text-alerte hover:text-alerte rounded-[6px] transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -280,7 +280,7 @@ export default function ProjectCategories() {
                   {/* Add Button */}
                   <button
                     onClick={handleAddCategory}
-                    className="flex bg-survol border border-filet items-center text-encre w-full gap-2 p-3 rounded-[4px] hover:bg-voile hover:border-filet-fort transition-colors text-[13px] font-medium justify-center"
+                    className="flex bg-survol border border-filet items-center text-encre w-full gap-2 p-3 rounded-[8px] hover:bg-voile hover:border-filet-fort transition-colors text-[14px] font-medium justify-center"
                   >
                     <Plus className="w-4 h-4" />
                     Ajouter une catégorie

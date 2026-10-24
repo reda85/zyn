@@ -8,7 +8,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
-import { GeistSans } from 'geist/font/sans'
+import { outfit } from '@/lib/fonts';
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
@@ -72,7 +72,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
         'sticky top-0 z-30 flex items-center gap-6 h-14 px-8',
         'bg-white border-b border-filet',
         'shadow-[0_1px_0_rgba(15,15,15,0.04)]',
-        GeistSans.className
+        outfit.className
       )}
     >
       {/* Logo + Dropdown (Project Menu) */}
@@ -83,8 +83,8 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 >
   {isLoading ? (
     <>
-      <div className="h-10 w-10 shrink-0 bg-voile rounded-[4px] animate-pulse" />
-      <div className="h-3.5 w-28 bg-voile rounded-[3px] animate-pulse" />
+      <div className="h-10 w-10 shrink-0 bg-voile rounded-[8px] animate-pulse" />
+      <div className="h-3.5 w-28 bg-voile rounded-[6px] animate-pulse" />
     </>
   ) : (
     <>
@@ -99,8 +99,8 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 </button>
 
         {!isLoading && projectMenuOpen && (
-          <div className="absolute top-[52px] left-0 w-64 bg-white border border-filet shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] z-50">
-            <ul className="py-1.5 text-[13px]">
+          <div className="absolute top-[52px] left-0 w-64 bg-white border border-filet shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[8px] z-50">
+            <ul className="py-1.5 text-[14px]">
               <li>
                 <Link
                   href={`/${organizationId}/projects`}
@@ -168,7 +168,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
             <Link key={tab} href={path}>
               <button
                 className={clsx(
-                  'h-8 px-3 rounded-[4px] text-[13px] transition-colors',
+                  'h-8 px-3 rounded-[8px] text-[14px] transition-colors',
                   currentTab === tab
                     ? 'bg-voile text-encre font-medium'
                     : 'text-mine hover:bg-survol hover:text-encre'
@@ -183,7 +183,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 
       {/* Right Actions */}
       <div className="ml-auto flex items-center gap-3">
-        <button className="flex h-8 w-8 items-center justify-center rounded-[4px] text-mine hover:bg-survol hover:text-encre transition-colors">
+        <button className="flex h-8 w-8 items-center justify-center rounded-[8px] text-mine hover:bg-survol hover:text-encre transition-colors">
           <BellIcon className="h-5 w-5" />
         </button>
 
@@ -193,7 +193,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setUserMenuOpen(prev => !prev)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-voile border border-filet text-[12px] font-medium text-encre focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)] transition-shadow"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-voile border border-filet text-[13px] font-medium text-encre focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)] transition-shadow"
             aria-expanded={userMenuOpen}
             aria-haspopup="true"
           >
@@ -205,16 +205,16 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
           </button>
 
            {!isLoading && userMenuOpen && (
-    <div className="absolute right-0 mt-2 w-56 bg-white border border-filet shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[4px] z-50">
+    <div className="absolute right-0 mt-2 w-56 bg-white border border-filet shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] rounded-[8px] z-50">
       <div className="px-3.5 py-3 border-b border-filet">
-        <p className="text-[13px] font-medium text-encre">{user?.name || user?.email || ''}</p>
-        <p className="text-[12px] text-mine truncate mt-0.5">{user?.email || ''}</p>
+        <p className="text-[14px] font-medium text-encre">{user?.name || user?.email || ''}</p>
+        <p className="text-[13px] text-mine truncate mt-0.5">{user?.email || ''}</p>
       </div>
 
               <div className="py-1.5">
                 <Link
                   href={`/${organizationId}/profile`}
-                  className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-encre hover:bg-survol transition-colors"
+                  className="flex items-center gap-2.5 px-3.5 py-2 text-[14px] text-encre hover:bg-survol transition-colors"
                   onClick={() => setUserMenuOpen(false)}
                 >
                   <UserGroupIcon className="h-4 w-4 text-mine" />
@@ -223,7 +223,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center gap-2.5 w-full text-left px-3.5 py-2 text-[13px] text-alerte hover:bg-alerte-pale transition-colors"
+                  className="flex items-center gap-2.5 w-full text-left px-3.5 py-2 text-[14px] text-alerte hover:bg-alerte-pale transition-colors"
                   role="menuitem"
                 >
                   <ArrowRightStartOnRectangleIcon className="h-4 w-4" />

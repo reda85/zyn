@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Map,
 } from "lucide-react"
 import clsx from "clsx"
-import { GeistSans } from "geist/font/sans"
+import { outfit } from '@/lib/fonts';
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -68,7 +68,7 @@ const Section = ({ title, icon: Icon, section, expandedSections, toggleSection, 
       className="w-full flex items-center justify-between p-5 hover:bg-survol transition-colors text-left group"
     >
       <div className="flex items-center gap-3">
-        <div className={clsx("p-2 rounded-[4px] transition-colors", expandedSections[section] ? "bg-tirage-pale" : "bg-voile group-hover:bg-filet")}>
+        <div className={clsx("p-2 rounded-[8px] transition-colors", expandedSections[section] ? "bg-tirage-pale" : "bg-voile group-hover:bg-filet")}>
           <Icon className={clsx("w-4 h-4 transition-colors", expandedSections[section] ? "text-tirage" : "text-mine-clair group-hover:text-encre")} />
         </div>
         <span className="text-[13px] font-medium text-encre">{title}</span>
@@ -96,7 +96,7 @@ const Toggle = ({ label, checked, onChange }) => {
   return (
     <label
       onMouseDown={(e) => e.preventDefault()}
-      className="flex items-center justify-between cursor-pointer group py-2 px-3 rounded-[4px] hover:bg-voile transition-colors"
+      className="flex items-center justify-between cursor-pointer group py-2 px-3 rounded-[8px] hover:bg-voile transition-colors"
     >
       <span className="text-[13px] text-encre font-medium">{label}</span>
       <div className="relative flex-shrink-0">
@@ -115,7 +115,7 @@ const SelectField = ({ label, value, onChange, options }) => (
     <select
       value={value}
       onChange={(e) => { e.stopPropagation(); onChange(e) }}
-      className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+      className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
     >
       {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
     </select>
@@ -123,12 +123,12 @@ const SelectField = ({ label, value, onChange, options }) => (
 )
 
 const SectionOrderItem = ({ id, label, icon, index, total, onMoveUp, onMoveDown }) => (
-  <div className="flex items-center gap-3 bg-white border border-filet rounded-[6px] px-3 py-2.5 group">
+  <div className="flex items-center gap-3 bg-white border border-filet rounded-[12px] px-3 py-2.5 group shadow-carte">
     <span className="text-base">{icon}</span>
     <span className="text-[13px] font-medium text-encre flex-1">{label}</span>
     <div className="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▲</button>
-      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded-[3px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▼</button>
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▲</button>
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▼</button>
     </div>
   </div>
 )
@@ -725,7 +725,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
   }
 
   return (
-    <div className={clsx("flex h-screen bg-papier text-encre", GeistSans.className)}>
+    <div className={clsx("flex h-screen bg-papier text-encre", outfit.className)}>
       <style>{`@import url('${GOOGLE_FONTS_URL}');`}</style>
 
       {/* ── CONTROL PANEL ─────────────────────────────────────────────────── */}
@@ -739,19 +739,19 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <div className="space-y-3">
             <div>
               <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Titre du rapport</label>
-              <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-[4px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors font-medium" />
+              <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors font-medium" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Couleur</label>
-                <div className="flex items-center gap-2 bg-white rounded-[6px] border border-filet px-3 py-2">
-                  <input type="color" value={config.primaryColor} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, primaryColor: e.target.value })) }} className="w-6 h-6 rounded-[3px] cursor-pointer border-0" />
+                <div className="flex items-center gap-2 bg-white rounded-[12px] border border-filet px-3 py-2 shadow-carte">
+                  <input type="color" value={config.primaryColor} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, primaryColor: e.target.value })) }} className="w-6 h-6 rounded-[6px] cursor-pointer border-0" />
                   <span className={clsx('text-[12px] text-encre', 'tabular-nums')}>{config.primaryColor}</span>
                 </div>
               </div>
               <div>
                 <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Police</label>
-                <select value={config.fontFamily} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, fontFamily: e.target.value })) }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[12px] text-encre focus:outline-none focus:border-encre transition-colors">
+                <select value={config.fontFamily} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, fontFamily: e.target.value })) }} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[12px] text-encre focus:outline-none focus:border-encre transition-colors">
                   {fontOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
                 <p className="mt-1 text-[11px] text-mine-clair px-1 truncate" style={{ fontFamily: previewFont }}>AaBbCcDd 0123</p>
@@ -812,7 +812,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     value={config.planOverviews.title ?? 'Aperçus des plans'}
                     onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planOverviews: { ...p.planOverviews, title: e.target.value } })) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+                    className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                   />
                 </div>
                 <Toggle
@@ -848,7 +848,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     value={config.planning.title ?? 'Pointage de planning'}
                     onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, title: e.target.value } })) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+                    className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                   />
                 </div>
 
@@ -892,7 +892,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                           value={config.planning.observationsTitle ?? 'Retards et observations'}
                           onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, planning: { ...p.planning, observationsTitle: e.target.value } })) }}
                           onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                          className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+                          className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                         />
                       </div>
 
@@ -904,7 +904,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                           onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }}
                           placeholder={"- Retard sur le lot Gros-Œuvre\n- Étanchéité à entamer la semaine prochaine\n- ..."}
                           rows={8}
-                          className={clsx("w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre resize-none transition-colors", 'tabular-nums')}
+                          className={clsx("w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre resize-none transition-colors", 'tabular-nums')}
                         />
                         <p className="text-[11px] text-mine-clair px-1">
                           Une ligne par observation. Préfixez avec - ou • pour les puces.
@@ -921,7 +921,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Affichage des tâches" icon={Layout} section="tasks">
             <div className="space-y-2">
               <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre de la section</label>
-              <input type="text" value={config.tasks.title ?? 'Tâches'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, tasks: { ...p.tasks, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
+              <input type="text" value={config.tasks.title ?? 'Tâches'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, tasks: { ...p.tasks, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
             </div>
             <SelectField
               label="Mode d'affichage"
@@ -994,7 +994,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <SelectField label="Taille" value={config.sectionTitles?.titleSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
             <Toggle label="Barre d'accent (bordure gauche)" checked={config.sectionTitles?.titleAccentBar ?? true}  onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleAccentBar: e.target.checked } }))} />
             <Toggle label="Souligné"                        checked={config.sectionTitles?.titleUnderline ?? false} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleUnderline: e.target.checked } }))} />
-            <div className="rounded-[4px] bg-survol border border-filet p-4 space-y-2 mt-1">
+            <div className="rounded-[8px] bg-survol border border-filet p-4 space-y-2 mt-1">
               <p className={clsx('text-[10px] text-mine-clair font-medium', 'tabular-nums')}>Aperçu</p>
               {[config.tasks.title || 'Tâches', config.participants.title || 'Équipe projet', config.signatures.title || 'Signatures', 'Section personnalisée'].map((title) => (
                 <div key={title} style={sectionTitlePreviewStyle()}>{title}</div>
@@ -1039,14 +1039,14 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Couleur du titre</label>
                     <div className="flex gap-2">
                       {['primary', 'custom'].map((opt) => (
-                        <button key={opt} onClick={() => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleColor: opt } }))} className={clsx("flex-1 py-1.5 rounded-[4px] text-[12px] font-medium border transition-colors", (config.coverPage.titleColor ?? 'primary') === opt ? "bg-encre text-white border-encre" : "bg-white text-encre border-filet hover:bg-survol")}>
+                        <button key={opt} onClick={() => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleColor: opt } }))} className={clsx("flex-1 py-1.5 rounded-[8px] text-[12px] font-medium border transition-colors", (config.coverPage.titleColor ?? 'primary') === opt ? "bg-encre text-white border-encre" : "bg-white text-encre border-filet hover:bg-survol")}>
                           {opt === 'primary' ? 'Principale' : 'Personnalisée'}
                         </button>
                       ))}
                     </div>
                     {(config.coverPage.titleColor ?? 'primary') === 'custom' && (
-                      <div className="flex items-center gap-2 bg-white rounded-[6px] border border-filet px-3 py-2">
-                        <input type="color" value={config.coverPage.titleCustomColor ?? '#000000'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleCustomColor: e.target.value } })) }} className="w-6 h-6 rounded-[3px] cursor-pointer border-0" />
+                      <div className="flex items-center gap-2 bg-white rounded-[12px] border border-filet px-3 py-2 shadow-carte">
+                        <input type="color" value={config.coverPage.titleCustomColor ?? '#000000'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, coverPage: { ...p.coverPage, titleCustomColor: e.target.value } })) }} className="w-6 h-6 rounded-[6px] cursor-pointer border-0" />
                         <span className={clsx('text-[12px]', 'tabular-nums')}>{config.coverPage.titleCustomColor ?? '#000000'}</span>
                       </div>
                     )}
@@ -1094,7 +1094,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               <div className="space-y-4 pl-5 border-l-2 border-voile">
                 <div className="space-y-2">
                   <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre</label>
-                  <input type="text" value={config.participants.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, participants: { ...p.participants, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
+                  <input type="text" value={config.participants.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, participants: { ...p.participants, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
                 </div>
                 <SelectField label="Disposition" value={config.participants.layout} onChange={(e) => setConfig(p => ({ ...p, participants: { ...p.participants, layout: e.target.value } }))} options={[{ value: "list", label: "Liste" }, { value: "grid", label: "Grille" }, { value: "table", label: "Tableau" }]} />
                 <Toggle label="Afficher les rôles"    checked={config.participants.showRoles}   onChange={(e) => setConfig(p => ({ ...p, participants: { ...p.participants, showRoles:   e.target.checked } }))} />
@@ -1111,7 +1111,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               <div className="space-y-4 pl-5 border-l-2 border-voile">
                 <div className="space-y-2">
                   <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre</label>
-                  <input type="text" value={config.signatures.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, signatures: { ...p.signatures, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
+                  <input type="text" value={config.signatures.title} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, signatures: { ...p.signatures, title: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
                 </div>
                 <SelectField label="Disposition" value={config.signatures.layout} onChange={(e) => setConfig(p => ({ ...p, signatures: { ...p.signatures, layout: e.target.value } }))} options={[{ value: "horizontal", label: "Horizontale" }, { value: "vertical", label: "Verticale" }]} />
                 <div className="space-y-2">
@@ -1134,7 +1134,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <Toggle label="Informations entreprise" checked={config.footer.showCompanyInfo} onChange={(e) => setConfig(p => ({ ...p, footer: { ...p.footer, showCompanyInfo: e.target.checked } }))} />
                 <div className="space-y-2">
                   <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Texte personnalisé</label>
-                  <textarea value={config.footer.customText} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, footer: { ...p.footer, customText: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }} placeholder="Ex: Confidentiel" rows={2} className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre resize-none transition-colors" />
+                  <textarea value={config.footer.customText} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, footer: { ...p.footer, customText: e.target.value } })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.stopPropagation() }} placeholder="Ex: Confidentiel" rows={2} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre resize-none transition-colors" />
                 </div>
               </div>
             )}
@@ -1156,10 +1156,10 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                       setConfig(p => ({ ...p, customSections: next }))
                     }}
                     onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
-                    className="w-full rounded-[4px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+                    className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
                   />
                 </div>
-                <div className="bg-tirage-pale border border-tirage-pale rounded-[4px] p-3 flex gap-2 items-start">
+                <div className="bg-tirage-pale border border-tirage-pale rounded-[8px] p-3 flex gap-2 items-start">
                   <FileText className="w-4 h-4 text-tirage-fonce flex-shrink-0 mt-0.5" />
                   <p className="text-[12px] text-tirage-fonce">
                     Cette section sera remplie avec un éditeur riche (texte, listes, tableaux) au moment de la génération du rapport.
@@ -1179,7 +1179,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     e.stopPropagation()
                     setConfig(p => ({ ...p, customSections: p.customSections.filter((_, i) => i !== index) }))
                   }}
-                  className="w-full px-4 py-2.5 border border-alerte-clair bg-alerte-pale rounded-[4px] text-[13px] font-medium text-alerte hover:bg-[#fbdbdb] transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2.5 border border-alerte-clair bg-alerte-pale rounded-[8px] text-[13px] font-medium text-alerte hover:bg-[#fbdbdb] transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />Supprimer
                 </button>
@@ -1189,10 +1189,10 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Actions ── */}
           <div className="p-5 space-y-3 bg-papier border-t border-voile">
-            <button onClick={addCustomSection} className="w-full px-4 py-2.5 border-2 border-dashed border-filet-fort rounded-[4px] text-[13px] font-medium text-mine-clair hover:text-tirage hover:border-tirage transition-colors flex items-center justify-center gap-2">
+            <button onClick={addCustomSection} className="w-full px-4 py-2.5 border-2 border-dashed border-filet-fort rounded-[8px] text-[13px] font-medium text-mine-clair hover:text-tirage hover:border-tirage transition-colors flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" />Ajouter une section personnalisée
             </button>
-            <button onClick={saveTemplate} disabled={isSaving} className={clsx("w-full py-2.5 rounded-[4px] font-medium text-[13px] transition-colors uppercase tracking-[0.04em] flex items-center justify-center gap-2", isSaving && "opacity-50 cursor-not-allowed", saveStatus === 'success' && "bg-[#16a34a] text-white", saveStatus === 'error' && "bg-alerte text-white", !saveStatus && "bg-encre text-white hover:bg-encre-survol")}>
+            <button onClick={saveTemplate} disabled={isSaving} className={clsx("w-full py-2.5 rounded-[8px] font-medium text-[13px] transition-colors uppercase tracking-[0.04em] flex items-center justify-center gap-2", isSaving && "opacity-50 cursor-not-allowed", saveStatus === 'success' && "bg-[#16a34a] text-white", saveStatus === 'error' && "bg-alerte text-white", !saveStatus && "bg-encre text-white hover:bg-encre-survol")}>
               {isSaving ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Sauvegarde...</>
                 : saveStatus === 'success' ? '✓ Template sauvegardé !'
                 : saveStatus === 'error'   ? '✗ Erreur de sauvegarde'
@@ -1206,20 +1206,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       <main className="flex-1 overflow-y-auto bg-survol p-12">
         <div className="max-w-4xl mx-auto space-y-6">
 
-          <div className="bg-white rounded-[4px] shadow-[0_1px_2px_rgba(15,15,15,0.04)] border border-filet p-4 flex items-center justify-between sticky top-0 z-10">
+          <div className="bg-white rounded-[8px] shadow-[0_1px_2px_rgba(15,15,15,0.04)] border border-filet p-4 flex items-center justify-between sticky top-0 z-10">
             <div className="flex items-center gap-3">
               <Eye className="w-4 h-4 text-tirage" />
               <h2 className="text-[15px] font-medium text-encre">Aperçu du PDF</h2>
             </div>
             <div className="flex items-center gap-3">
-              <span className={clsx('text-[11px] px-2 py-1 rounded-[3px] bg-voile font-medium text-mine', 'tabular-nums')} style={{ fontFamily: previewFont }}>{fontOptions.find(f => f.value === config.fontFamily)?.label}</span>
+              <span className={clsx('text-[11px] px-2 py-1 rounded-[6px] bg-voile font-medium text-mine', 'tabular-nums')} style={{ fontFamily: previewFont }}>{fontOptions.find(f => f.value === config.fontFamily)?.label}</span>
               <span className="text-[11px] text-mine-clair">Modifications en temps réel</span>
             </div>
           </div>
 
           {/* ── COVER PAGE preview ── */}
           {config.coverPage.enabled && (
-            <div className="bg-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
+            <div className="bg-white rounded-[12px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
               <div className="w-full aspect-[210/297] p-12 bg-white flex flex-col" style={{ fontFamily: previewFont }}>
                 <div className="flex justify-between items-start mb-12">
                   {config.coverPage.showCompanyLogo && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.companyLogoSize)}>Logo</div>}
@@ -1247,7 +1247,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           )}
 
           {/* ── MAIN PAGE preview ── */}
-          <div className="bg-white rounded-[6px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
+          <div className="bg-white rounded-[12px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
             <div className="w-full aspect-[210/297] bg-white overflow-auto" style={{ fontFamily: previewFont }}>
               {(config.header.showOrganizationName || config.header.showProjectName || config.header.showDate || config.header.showLogo || config.header.showClientLogo) && (
                 <div className="flex justify-between items-center px-12 py-4 border-b border-voile bg-white sticky top-0 z-10">
@@ -1280,7 +1280,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             </div>
           </div>
 
-          <div className="bg-tirage-pale border border-tirage-pale rounded-[4px] p-4 flex gap-3">
+          <div className="bg-tirage-pale border border-tirage-pale rounded-[8px] p-4 flex gap-3">
             <FileText className="w-4 h-4 text-tirage-fonce flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-medium text-[#1a2e6b] text-[13px] mb-1">Comment appliquer ce template ?</h4>

@@ -5,7 +5,7 @@ import { SubmitButton } from "../../../components/submit-button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import Link from "next/link";
-import { GeistSans } from "geist/font/sans";
+import { outfit } from '@/lib/fonts';
 
 type SearchParams = {
   error?: string;
@@ -44,12 +44,12 @@ export default async function Login({
   searchParams: SearchParams;
 }) {
   return (
-    <div className={`flex min-h-screen w-screen overflow-hidden bg-papier ${GeistSans.className}`}>
+    <div className={`flex min-h-screen w-screen overflow-hidden bg-papier ${outfit.className}`}>
 
       {/* 1. BRANDING SIDE (Left Half) */}
       <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-filet relative overflow-hidden">
         <div className="text-center relative z-10 max-w-lg">
-          <div className="w-16 h-16 bg-encre rounded-[4px] flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-encre rounded-[8px] flex items-center justify-center mx-auto mb-8">
             <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={40} height={40} />
           </div>
           <h2 className="text-[40px] font-medium text-encre leading-tight tracking-[-0.02em] mb-6">
@@ -66,14 +66,14 @@ export default async function Login({
         <div className="w-full max-w-md p-8 m-8">
           {/* Logo for smaller screens */}
           <div className="mb-8 lg:hidden flex justify-center">
-            <div className="w-11 h-11 bg-encre rounded-[4px] flex items-center justify-center">
+            <div className="w-11 h-11 bg-encre rounded-[8px] flex items-center justify-center">
               <Image src="/logo_blanc.png" alt="Logo Zaynspace" width={22} height={22} />
             </div>
           </div>
 
           <div className="text-center mb-10">
             <h1 className="text-[24px] font-semibold text-encre mb-3 tracking-[-0.015em]">Connexion à ZaynSpace</h1>
-            <p className="text-mine-clair text-[13px]">
+            <p className="text-mine-clair text-[14px]">
               Vous n'avez pas de compte ?{" "}
               <Link
                 className="text-tirage font-medium hover:text-tirage-fonce transition-colors underline underline-offset-4"
@@ -85,7 +85,7 @@ export default async function Login({
           </div>
 
           {searchParams?.error && (
-            <div className="mb-6 w-full bg-alerte-pale border border-alerte-clair text-alerte px-4 py-3 rounded-[4px] text-[13px]">
+            <div className="mb-6 w-full bg-alerte-pale border border-alerte-clair text-alerte px-4 py-3 rounded-[8px] text-[14px]">
               {translateError(searchParams.error)}
             </div>
           )}
@@ -94,21 +94,21 @@ export default async function Login({
             <div className="space-y-4">
               {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-[13px] font-medium text-encre">Email</Label>
+                <Label htmlFor="email" className="text-[14px] font-medium text-encre">Email</Label>
                 <Input
                   name="email"
                   placeholder="you@example.com"
                   required
-                  className="w-full h-9 bg-white border-filet rounded-[4px] text-[13px] focus:outline-none focus:border-encre focus:ring-0"
+                  className="w-full h-9 bg-white border-filet rounded-[8px] text-[14px] focus:outline-none focus:border-encre focus:ring-0"
                 />
               </div>
 
               {/* Password Field */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="password" className="text-[13px] font-medium text-encre">Mot de passe</Label>
+                  <Label htmlFor="password" className="text-[14px] font-medium text-encre">Mot de passe</Label>
                   <Link
-                    className="text-[12px] text-mine-clair hover:text-tirage transition-colors"
+                    className="text-[13px] text-mine-clair hover:text-tirage transition-colors"
                     href="/forgot-password"
                   >
                     Mot de passe oublié ?
@@ -119,7 +119,7 @@ export default async function Login({
                   name="password"
                   placeholder="Votre mot de passe"
                   required
-                  className="w-full h-9 bg-white border-filet rounded-[4px] text-[13px] focus:outline-none focus:border-encre focus:ring-0"
+                  className="w-full h-9 bg-white border-filet rounded-[8px] text-[14px] focus:outline-none focus:border-encre focus:ring-0"
                 />
               </div>
             </div>
@@ -128,7 +128,7 @@ export default async function Login({
             <SubmitButton
               pendingText="Connexion..."
               formAction={signInAction}
-              className="w-full bg-encre text-white font-medium py-2.5 px-4 rounded-[4px] text-[13px] hover:bg-encre-survol transition-colors"
+              className="w-full bg-encre text-white font-medium py-2.5 px-4 rounded-[8px] text-[14px] hover:bg-encre-survol transition-colors"
             >
               Se connecter
             </SubmitButton>

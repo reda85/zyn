@@ -2,16 +2,16 @@
 
 import { Switch } from '@headlessui/react';
 import { AlertCircle } from 'lucide-react';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 import clsx from 'clsx';
 
 export default function OverdueFilter({ active, onToggle }) {
   return (
-    <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[4px]">
+    <div className={clsx("px-4 mb-4", outfit.className)}>
+      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[8px]">
         <div className="flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-alerte" />
-          <span className="text-[13px] text-encre">
+          <span className="text-[14px] text-encre">
             Tâches en retard
           </span>
         </div>

@@ -153,7 +153,7 @@ export default function TagEditor({ pin: selectedPin, onChange, disabled = false
   return (
     <div className="w-full relative">
       <div className="flex flex-wrap gap-1.5 mb-2">
-        <div className={clsx('flex items-center w-fit px-2.5 py-1 bg-survol border border-filet rounded-[3px] text-[13px] text-mine-clair', disabled && 'opacity-50')}>
+        <div className={clsx('flex items-center w-fit px-2.5 py-1 bg-survol border border-filet rounded-[6px] text-[14px] text-mine-clair', disabled && 'opacity-50')}>
           <Tag className="h-3.5 w-3.5 mr-2 text-mine-clair shrink-0" />
           <input
             ref={inputRef}
@@ -174,7 +174,7 @@ export default function TagEditor({ pin: selectedPin, onChange, disabled = false
         {currentTags.map((tag) => (
           <span
             key={tag.id}
-            className="flex items-center px-2.5 py-1 text-[13px] bg-tirage-pale border border-tirage-clair text-tirage-fonce rounded-[3px]"
+            className="flex items-center px-2.5 py-1 text-[14px] bg-tirage-pale border border-tirage-clair text-tirage-fonce rounded-[6px]"
           >
             <Tag className="h-3 w-3 mr-1.5 shrink-0" />
             {tag.name}
@@ -195,11 +195,11 @@ export default function TagEditor({ pin: selectedPin, onChange, disabled = false
       {!disabled && showDropdown && (suggestions.length > 0 || input.trim()) && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-filet rounded-[6px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden"
+          className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-filet rounded-[12px] shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] overflow-hidden"
         >
           {suggestions.length > 0 && (
             <>
-              <p className={clsx('px-3 pt-2 pb-1 text-[11px] font-medium text-mine-clair', 'tabular-nums')}>
+              <p className={clsx('px-3 pt-2 pb-1 text-[12px] font-medium text-mine-clair', 'tabular-nums')}>
                 Tags disponibles
               </p>
               <ul>
@@ -211,7 +211,7 @@ export default function TagEditor({ pin: selectedPin, onChange, disabled = false
                         e.preventDefault();
                         addTag(tag);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-mine hover:bg-survol transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[14px] text-mine hover:bg-survol transition-colors"
                     >
                       <Tag className="w-3.5 h-3.5 text-mine-clair shrink-0" />
                       <span className="truncate">{tag.name}</span>
@@ -232,7 +232,7 @@ export default function TagEditor({ pin: selectedPin, onChange, disabled = false
                   e.preventDefault();
                   handleCreateAndAdd();
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-tirage-fonce hover:bg-tirage-pale border-t border-voile transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-[14px] text-tirage-fonce hover:bg-tirage-pale border-t border-voile transition-colors"
               >
                 <Tag className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">Créer "{input.trim()}"</span>

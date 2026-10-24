@@ -59,7 +59,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className={`${GeistSans.className} min-h-screen bg-papier text-encre antialiased`}>
+    <div className={`${GeistSans.className} zs-vitrine min-h-screen bg-papier text-encre antialiased`}>
       {/* ── En-tête ── */}
       <header className={`fixed inset-x-0 top-0 z-50 transition-colors ${defile ? "bg-papier/90 backdrop-blur border-b border-filet" : "bg-transparent border-b border-transparent"}`}>
         <div className="mx-auto max-w-[1200px] h-16 px-5 sm:px-8 flex items-center gap-10">

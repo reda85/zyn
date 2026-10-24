@@ -36,10 +36,10 @@ export default function CustomSelect({ options, selected, onChange }) {
           <div className="relative mt-1">
             <ListboxButton
               ref={buttonRef}
-              className="relative w-full flex items-center gap-2 cursor-pointer rounded-[4px] bg-white hover:bg-survol py-[7px] pl-3 pr-8 text-left border border-filet focus:outline-none focus:border-encre transition-colors"
+              className="relative w-full flex items-center gap-2 cursor-pointer rounded-[8px] bg-white hover:bg-survol py-[7px] pl-3 pr-8 text-left border border-filet focus:outline-none focus:border-encre transition-colors"
             >
               <Square3Stack3DIcon className="h-4 w-4 text-mine-clair" aria-hidden="true" />
-              <span className="block truncate text-[13px] font-medium text-encre">
+              <span className="block truncate text-[14px] font-medium text-encre">
                 {selected.name}
               </span>
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5">
@@ -47,7 +47,7 @@ export default function CustomSelect({ options, selected, onChange }) {
               </span>
             </ListboxButton>
             <ListboxOptions
-              className="fixed z-50 mt-1 max-h-60 w-max overflow-auto rounded-[4px] bg-white border border-filet py-1 shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] focus:outline-none"
+              className="fixed z-50 mt-1 max-h-60 w-max overflow-auto rounded-[8px] bg-white border border-filet py-1 shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)] focus:outline-none"
               style={
                 buttonRect
                   ? {
@@ -64,7 +64,7 @@ export default function CustomSelect({ options, selected, onChange }) {
                   value={option}
                   className={({ active }) =>
                     clsx(
-                      'relative cursor-pointer select-none py-2 pl-8 pr-4 transition-colors whitespace-nowrap text-[13px]',
+                      'relative cursor-pointer select-none py-2 pl-8 pr-4 transition-colors whitespace-nowrap text-[14px]',
                       active ? 'bg-survol' : ''
                     )
                   }

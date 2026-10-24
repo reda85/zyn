@@ -46,7 +46,7 @@ function Avatar({ name }) {
 
   return (
     <div
-      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-medium shrink-0"
+      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[13px] font-medium shrink-0"
       style={{ backgroundColor: bg }}
     >
       {initials}
@@ -70,24 +70,24 @@ function ModificationDiff({ metadata }) {
       : <span className="font-medium">"{String(val)}"</span>
 
   return (
-    <div className="mt-2 bg-tirage-pale border border-tirage-clair rounded-[4px] px-3 py-2.5 space-y-2">
+    <div className="mt-2 bg-tirage-pale border border-tirage-clair rounded-[8px] px-3 py-2.5 space-y-2">
       {changes.map(([field, { old: oldVal, new: newVal }]) => (
         <div key={field} className="space-y-1">
-          <p className="text-[12px] text-tirage-fonce">
+          <p className="text-[13px] text-tirage-fonce">
             A modifié <span className="font-medium">{FIELD_LABELS[field] || field}</span> → {formatVal(newVal)}
           </p>
           <button
             onClick={() => toggle(field)}
-            className="flex items-center gap-1 text-[11px] text-tirage-fonce hover:text-tirage-fonce transition-colors"
+            className="flex items-center gap-1 text-[12px] text-tirage-fonce hover:text-tirage-fonce transition-colors"
           >
             {expanded[field]
               ? <><ChevronUp className="w-3 h-3" /> Masquer</>
               : <><ChevronDown className="w-3 h-3" /> Valeur précédente</>}
           </button>
           {expanded[field] && (
-            <div className="flex items-center gap-1.5 bg-tirage-pale rounded-[3px] px-2 py-1">
-              <span className="text-[11px] font-medium text-tirage-fonce">Avant :</span>
-              <span className="text-[11px] text-tirage-fonce">{oldVal ?? 'vide'}</span>
+            <div className="flex items-center gap-1.5 bg-tirage-pale rounded-[6px] px-2 py-1">
+              <span className="text-[12px] font-medium text-tirage-fonce">Avant :</span>
+              <span className="text-[12px] text-tirage-fonce">{oldVal ?? 'vide'}</span>
             </div>
           )}
         </div>
@@ -105,7 +105,7 @@ function CategoryBadge({ category }) {
   }
   const cfg = map[category] || { label: category, class: 'bg-voile text-mine-clair border-filet' }
   return (
-    <span className={clsx('text-[10px] font-medium px-2 py-0.5 rounded-[2px] border', 'tabular-nums', cfg.class)}>
+    <span className={clsx('text-[11px] font-medium px-2 py-0.5 rounded-[4px] border', 'tabular-nums', cfg.class)}>
       {cfg.label}
     </span>
   )
@@ -197,11 +197,11 @@ export default function Timeline({ pin, newComment, refreshKey }) {
           {showAllEvents
             ? <Eye className="w-4 h-4 text-tirage" />
             : <EyeOff className="w-4 h-4 text-mine-clair" />}
-          <p className="text-[13px] font-medium text-encre">
+          <p className="text-[14px] font-medium text-encre">
             {showAllEvents ? 'Tous les événements' : 'Événements principaux'}
           </p>
           {hiddenCount > 0 && !showAllEvents && (
-            <span className={clsx('text-[11px] bg-voile text-mine-clair px-2 py-0.5 rounded-[3px] font-medium', 'tabular-nums')}>
+            <span className={clsx('text-[12px] bg-voile text-mine-clair px-2 py-0.5 rounded-[6px] font-medium', 'tabular-nums')}>
               +{hiddenCount} masqués
             </span>
           )}
@@ -227,12 +227,12 @@ export default function Timeline({ pin, newComment, refreshKey }) {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <div className="w-7 h-7 rounded-full border-2 border-filet border-t-encre animate-spin" />
-            <p className="text-[13px] text-mine-clair">Chargement...</p>
+            <p className="text-[14px] text-mine-clair">Chargement...</p>
           </div>
         ) : displayedItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
             <Clock className="w-9 h-9 text-filet-fort" />
-            <p className="text-[13px] text-mine-clair">Aucune activité pour le moment</p>
+            <p className="text-[14px] text-mine-clair">Aucune activité pour le moment</p>
           </div>
         ) : (
           <div className="relative">
@@ -271,7 +271,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
 
                     {/* Card */}
                     <div className={clsx(
-                      'rounded-[4px] border transition-colors',
+                      'rounded-[8px] border transition-colors',
                       isModification
                         ? 'bg-tirage-pale border-tirage-clair'
                         : 'bg-white border-filet'
@@ -280,14 +280,14 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                       <div className="flex items-start justify-between gap-2 px-3.5 pt-3 pb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline gap-1.5 flex-wrap">
-                            <span className="text-[13px] font-medium text-encre leading-tight">
+                            <span className="text-[14px] font-medium text-encre leading-tight">
                               {userName || 'Utilisateur inconnu'}
                             </span>
-                            <span className="text-[13px] text-mine-clair leading-tight">
+                            <span className="text-[14px] text-mine-clair leading-tight">
                               {eventLabel}
                             </span>
                           </div>
-                          <p className={clsx('text-[11px] text-trait mt-0.5', 'tabular-nums')}>
+                          <p className={clsx('text-[12px] text-trait mt-0.5', 'tabular-nums')}>
                             {timestamp}
                           </p>
                         </div>
@@ -297,7 +297,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                       {/* Comment body */}
                       {isComment && item.comment && (
                         <div className="px-3.5 pb-3">
-                          <p className="text-[13px] text-encre leading-relaxed bg-survol rounded-[4px] px-3 py-2.5">
+                          <p className="text-[14px] text-encre leading-relaxed bg-survol rounded-[8px] px-3 py-2.5">
                             {item.comment}
                           </p>
                         </div>
@@ -314,7 +314,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                       {!isComment && item.pins_photos?.public_url && (
                         <div className="px-3.5 pb-3">
                           <div
-                            className="relative w-full h-56 rounded-[4px] overflow-hidden cursor-pointer group border border-filet"
+                            className="relative w-full h-56 rounded-[8px] overflow-hidden cursor-pointer group border border-filet"
                             onClick={() => setSelectedImage({
                               url: item.pins_photos.public_url,
                               event: item.event,
@@ -330,13 +330,13 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                               className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
-                              <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 text-encre text-[12px] font-medium px-3 py-1.5 rounded-[3px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 text-encre text-[13px] font-medium px-3 py-1.5 rounded-[6px] shadow-[0_1px_2px_rgba(15,15,15,0.04)]">
                                 Agrandir
                               </span>
                             </div>
                             {item.pins_photos.description && (
                               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
-                                <p className="text-white text-[12px] line-clamp-2">
+                                <p className="text-white text-[13px] line-clamp-2">
                                   {item.pins_photos.description}
                                 </p>
                               </div>
@@ -360,7 +360,7 @@ export default function Timeline({ pin, newComment, refreshKey }) {
           onClick={() => setSelectedImage(null)}
         >
           <div
-            className="relative max-w-5xl w-full max-h-[90vh] bg-white rounded-[6px] overflow-hidden shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]"
+            className="relative max-w-5xl w-full max-h-[90vh] bg-white rounded-[12px] overflow-hidden shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal header */}
@@ -370,10 +370,10 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                   <h3 className="font-medium text-[15px] leading-tight truncate">
                     {selectedImage.event}
                   </h3>
-                  <p className="text-[13px] text-white/70 mt-0.5">{selectedImage.userName}</p>
-                  <p className={clsx('text-[11px] text-white/50 mt-1', 'tabular-nums')}>{selectedImage.timestamp}</p>
+                  <p className="text-[14px] text-white/70 mt-0.5">{selectedImage.userName}</p>
+                  <p className={clsx('text-[12px] text-white/50 mt-1', 'tabular-nums')}>{selectedImage.timestamp}</p>
                   {selectedImage.description && (
-                    <p className="text-[11px] text-white/80 mt-2 bg-white/10 rounded-[3px] px-2 py-1 backdrop-blur-sm max-w-xs">
+                    <p className="text-[12px] text-white/80 mt-2 bg-white/10 rounded-[6px] px-2 py-1 backdrop-blur-sm max-w-xs">
                       {selectedImage.description}
                     </p>
                   )}
@@ -381,21 +381,21 @@ export default function Timeline({ pin, newComment, refreshKey }) {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => handleDownload(selectedImage.url, `photo-${Date.now()}.jpg`)}
-                    className="p-2 bg-white/15 hover:bg-white/25 rounded-[4px] transition-colors backdrop-blur-sm"
+                    className="p-2 bg-white/15 hover:bg-white/25 rounded-[8px] transition-colors backdrop-blur-sm"
                     title="Télécharger"
                   >
                     <Download className="w-4 h-4 text-white" />
                   </button>
                   <button
                     onClick={() => window.open(selectedImage.url, '_blank')}
-                    className="p-2 bg-white/15 hover:bg-white/25 rounded-[4px] transition-colors backdrop-blur-sm"
+                    className="p-2 bg-white/15 hover:bg-white/25 rounded-[8px] transition-colors backdrop-blur-sm"
                     title="Ouvrir dans un nouvel onglet"
                   >
                     <ExternalLink className="w-4 h-4 text-white" />
                   </button>
                   <button
                     onClick={() => setSelectedImage(null)}
-                    className="p-2 bg-white/15 hover:bg-white/25 rounded-[4px] transition-colors backdrop-blur-sm"
+                    className="p-2 bg-white/15 hover:bg-white/25 rounded-[8px] transition-colors backdrop-blur-sm"
                     title="Fermer"
                   >
                     <X className="w-4 h-4 text-white" />

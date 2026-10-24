@@ -2,16 +2,16 @@
 import { Switch } from '@headlessui/react';
 import clsx from 'clsx';
 import { User } from 'lucide-react';
-import { GeistSans } from 'geist/font/sans';
+import { outfit } from '@/lib/fonts';
 
 export default function CreatedByMeFilter({ active, onToggle }) {
 
   return (
-    <div className={clsx("px-4 mb-4", GeistSans.className)}>
-      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[4px]">
+    <div className={clsx("px-4 mb-4", outfit.className)}>
+      <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[8px]">
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-mine-clair" />
-          <span className="text-[13px] text-encre">
+          <span className="text-[14px] text-encre">
             Créés par moi
           </span>
         </div>

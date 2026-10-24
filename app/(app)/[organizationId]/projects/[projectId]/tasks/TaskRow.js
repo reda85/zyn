@@ -7,6 +7,7 @@ import { fr } from 'date-fns/locale/fr'
 import { Calendar1Icon } from 'lucide-react'
 import clsx from 'clsx'
 import Pin from '@/components/Pin'
+import StatusPill from '@/components/StatusPill'
 import CategoryComboBox from '@/components/CategoryComboBox'
 import { supabase } from '@/utils/supabase/client'
 
@@ -37,7 +38,7 @@ function DueDatePicker({ pin, onUpdate }) {
         type="button"
         onClick={() => setOpen(true)}
         className={clsx(
-          'w-full border rounded-[4px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-survol relative transition-colors text-[12px] font-medium',
+          'w-full border rounded-[8px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-survol relative transition-colors text-[13px] font-medium',
           'tabular-nums',
           isOverDue
             ? 'border-alerte-clair text-alerte'
@@ -90,19 +91,23 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
           checked={isSelected}
           onClick={(e) => e.stopPropagation()}
           onChange={() => onToggleSelect(pin.id)}
-          className="w-3.5 h-3.5 rounded-[2px] border-filet-fort accent-encre"
+          className="w-3.5 h-3.5 rounded-[4px] border-filet-fort accent-encre"
         />
       </td>
 
       <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
           <Pin pin={pin} />
-          <span className="text-[13px] font-medium text-encre">{pin.name || 'Pin sans nom'}</span>
+          <span className="text-[14px] font-medium text-encre">{pin.name || 'Pin sans nom'}</span>
         </div>
       </td>
 
       <td className="px-4 py-3">
-        <span className={clsx('text-[11px] text-mine-clair', 'tabular-nums')}>
+        <StatusPill pin={pin} />
+      </td>
+
+      <td className="px-4 py-3">
+        <span className={clsx('text-[12px] text-mine-clair', 'tabular-nums')}>
           {pin.projects?.project_number}-{pin.pin_number}
         </span>
       </td>
@@ -113,10 +118,10 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
             <div className="w-5 h-5 rounded-full bg-voile border border-filet flex items-center justify-center text-[9px] font-medium text-mine flex-shrink-0">
               {pin.assigned_to.name.charAt(0).toUpperCase()}
             </div>
-            <span className="text-[13px] text-mine">{pin.assigned_to.name}</span>
+            <span className="text-[14px] text-mine">{pin.assigned_to.name}</span>
           </div>
         ) : (
-          <span className="text-[13px] text-trait">—</span>
+          <span className="text-[14px] text-trait">—</span>
         )}
       </td>
 
@@ -130,9 +135,9 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
 
       <td className="px-4 py-3">
         {pin.pdf_name ? (
-          <span className="text-[13px] text-mine truncate max-w-[180px] block">{pin.pdf_name}</span>
+          <span className="text-[14px] text-mine truncate max-w-[180px] block">{pin.pdf_name}</span>
         ) : (
-          <span className="text-[13px] text-trait">—</span>
+          <span className="text-[14px] text-trait">—</span>
         )}
       </td>
 
@@ -143,7 +148,7 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
               pt.tags ? (
                 <span
                   key={pt.tag_id}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-voile text-mine"
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-voile text-mine"
                 >
                   {pt.tags.name}
                 </span>
@@ -151,7 +156,7 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
             )}
           </div>
         ) : (
-          <span className="text-[13px] text-trait">—</span>
+          <span className="text-[14px] text-trait">—</span>
         )}
       </td>
     </tr>
@@ -163,14 +168,15 @@ export default memo(TaskRow)
 export function TaskRowSkeleton() {
   return (
     <tr className="border-b border-survol animate-pulse">
-      <td className="px-4 py-3"><div className="w-3.5 h-3.5 bg-voile rounded-[2px]" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-40" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-20" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-24" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-16" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-28" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-12" /></td>
-      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[3px] w-12" /></td>
+      <td className="px-4 py-3"><div className="w-3.5 h-3.5 bg-voile rounded-[4px]" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-40" /></td>
+      <td className="px-4 py-3"><div className="h-5 bg-voile rounded-full w-16" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-20" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-24" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-16" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-28" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-12" /></td>
+      <td className="px-4 py-3"><div className="h-3 bg-voile rounded-[6px] w-12" /></td>
     </tr>
   )
 }

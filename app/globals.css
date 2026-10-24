@@ -3,10 +3,72 @@
 @tailwind utilities;
 
 :root {
-  /* ── Palette ZaynSpace ───────────────────────────────────────────────────
-     Gris chauds de papier calque, encre graphite, et un seul accent : le bleu
-     des tirages de plans, réservé à ce qui est actif ou sélectionné. Le rouge
-     ne sert qu'aux retards et aux actions destructives. */
+  /* ── Palette ZaynSpace (application) ─────────────────────────────────────
+     Reprise de l'application mobile : fond gris bleuté, cartes blanches,
+     encre presque noire pour les actions, un seul accent violet. Les noms
+     des jetons restent ceux d'origine ; seules les valeurs changent. */
+  --zs-papier: #f5f7fa;
+  --zs-encre: #111827;
+  --zs-encre-survol: #000000;
+  --zs-mine: #6b7280;
+  --zs-mine-clair: #9ca3af;
+  --zs-trait: #d1d5db;
+  --zs-filet: #e5e7eb;
+  --zs-filet-fort: #d1d5db;
+  --zs-voile: #f3f4f6;
+  --zs-survol: #f3f4f6;
+  --zs-tirage: #6d28d9;
+  --zs-tirage-fonce: #5b21b6;
+  --zs-tirage-clair: #c4b5fd;
+  --zs-tirage-pale: #ede9fe;
+  --zs-alerte: #dc2626;
+  --zs-alerte-clair: #fecaca;
+  --zs-alerte-pale: #fef2f2;
+  --zs-valide: #059669;
+  --zs-valide-clair: #a7f3d0;
+  --zs-valide-pale: #d1fae5;
+
+  /* Variables shadcn alignées sur la palette de l'application */
+  --background: 216 33% 97%;
+  --foreground: 221 39% 11%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 221 39% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 221 39% 11%;
+
+  --primary: 221 39% 11%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 217 19% 27%;
+
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+
+  --accent: 220 14% 96%;
+  --accent-foreground: 221 39% 11%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 263 70% 50%;
+
+  --radius: 0.75rem;
+
+  /* Chart Colors */
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+}
+
+/* Page d'accueil publique : garde la palette d'origine (papier calque, bleu de tirage). */
+.zs-vitrine {
   --zs-papier: #f8f8f6;
   --zs-encre: #1c1c1a;
   --zs-encre-survol: #33332f;
@@ -27,44 +89,6 @@
   --zs-valide: #2f6b4a;
   --zs-valide-clair: #c3dccd;
   --zs-valide-pale: #ebf3ee;
-
-  /* Zinc & Indigo Palette - Light */
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-
-  --radius: 0.75rem;
-
-  /* Chart Colors */
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
 }
 
 .dark {
@@ -167,7 +191,7 @@
 }
 
 body {
-  font-family: var(--font-geist-sans);
+  font-family: var(--font-outfit), system-ui, sans-serif;
 }
 
 code, pre {
