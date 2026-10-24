@@ -37,6 +37,8 @@ const CSS = `
         .pd-barre { width: 0; }
         .pd-vu .pd-barre { animation: pd-barre 1.2s cubic-bezier(.4,0,.2,1) forwards; }
         .pd-pret, .pd-rejouer { opacity: 0; }
+        .pd-pdf { opacity: 0; }
+        .pd-vu .pd-pdf { animation: pd-pdf .7s cubic-bezier(.2,1.2,.4,1) forwards; }
         .pd-vu .pd-pret, .pd-vu .pd-rejouer { animation: pd-apparait .4s ease-out forwards; }
         .pd-compteur::before { content: "0"; font-weight: 600; color: var(--zs-encre); }
         .pd-vu .pd-compteur::before { animation: pd-compte ${RESERVES.length * PAS}s steps(${RESERVES.length}, end) ${DEBUT + 0.3}s forwards; }
@@ -46,9 +48,11 @@ const CSS = `
         @keyframes pd-rapport { to { opacity: 1; border-color: var(--zs-tirage-clair); } }
         @keyframes pd-barre { to { width: 100%; } }
         @keyframes pd-apparait { to { opacity: 1; } }
+        @keyframes pd-pdf { from { opacity: 0; transform: translateY(40px) scale(.85) rotate(0); } to { opacity: 1; transform: rotate(3deg); } }
         @keyframes pd-compte { 0% { content: "0"; } 20% { content: "1"; } 40% { content: "2"; } 60% { content: "3"; } 80% { content: "4"; } 100% { content: "5"; } }
         @media (prefers-reduced-motion: reduce) {
           .pd-pin, .pd-ligne, .pd-rapport, .pd-pret, .pd-rejouer { animation: none !important; opacity: 1; }
+          .pd-pdf { animation: none !important; opacity: 1; transform: rotate(3deg); }
           .pd-onde { display: none; }
           .pd-barre { animation: none !important; width: 100%; }
           .pd-compteur::before { animation: none !important; content: "5"; }
@@ -172,10 +176,12 @@ export default function PlanDemo() {
         </div>
       </div>
 
+      <PagePdf delai={FIN + 1.5} />
+
       <button
         type="button"
         onClick={() => setTour((t) => t + 1)}
-        className="pd-rejouer absolute -bottom-10 right-0 inline-flex items-center gap-1.5 text-[12px] text-mine hover:text-encre transition-colors"
+        className="pd-rejouer absolute -bottom-10 left-0 inline-flex items-center gap-1.5 text-[12px] text-mine hover:text-encre transition-colors"
         style={{ animationDelay: `${FIN + 1.8}s` }}
       >
         <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
@@ -184,6 +190,52 @@ export default function PlanDemo() {
 
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
     </figure>
+    </div>
+  );
+}
+
+// Première page du rapport généré : elle sort de la carte « Rapport de visite »
+// une fois la barre remplie. Plan miniature avec les réserves, puis la liste.
+function PagePdf({ delai }: { delai: number }) {
+  return (
+    <div
+      className="pd-pdf absolute -right-2 sm:-right-7 lg:-right-16 -bottom-12 sm:-bottom-14 lg:-bottom-20 w-[172px] sm:w-[196px] rounded-[6px] border border-filet bg-white p-3 shadow-[0_24px_50px_-18px_rgba(28,28,26,0.45)]"
+      style={{ animationDelay: `${delai}s`, transformOrigin: "80% 100%" }}
+      aria-hidden="true"
+    >
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-1">
+          <span className="h-2.5 w-2.5 rounded-[2px] bg-encre" />
+          <span className="text-[8px] font-semibold tracking-[-0.01em] text-encre">Agence Benali</span>
+        </span>
+        <span className="rounded-[3px] bg-alerte px-1 py-px text-[7px] font-semibold text-white">PDF</span>
+      </div>
+      <p className="mt-2 text-[10px] font-semibold leading-tight text-encre">Rapport de visite n° 12</p>
+      <p className="text-[7.5px] text-mine-clair">Résidence Al Andalous · Niveau R+1</p>
+      <svg viewBox="0 0 120 70" className="mt-2 block w-full rounded-[3px] bg-papier">
+        <g fill="none" stroke="var(--zs-encre)">
+          <rect x="6" y="5" width="108" height="60" strokeWidth="1.4" />
+          <path d="M6 34H68M68 5V65M68 39H114M40 34V65M91 39V65" strokeWidth=".8" />
+        </g>
+        {RESERVES.map((r) => (
+          <circle key={r.n} cx={6 + (r.x / 560) * 108} cy={5 + (r.y / 520) * 60} r="3" fill={STATUT[r.statut].couleur} />
+        ))}
+      </svg>
+      <ul className="mt-2 space-y-1">
+        {RESERVES.slice(0, 4).map((r) => (
+          <li key={r.n} className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: STATUT[r.statut].couleur }} />
+            <span className="truncate text-[7.5px] text-encre">{r.titre}</span>
+            <span className="ml-auto flex gap-0.5">
+              {Array.from({ length: Math.min(r.photos, 2) }, (_, k) => <span key={k} className="h-2.5 w-3 rounded-[1px] bg-voile" />)}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex items-center justify-between border-t border-voile pt-1.5 text-[7px] text-mine-clair">
+        <span>5 réserves · 9 photos</span>
+        <span>1 / 3</span>
+      </div>
     </div>
   );
 }
