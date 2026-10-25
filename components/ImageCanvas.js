@@ -565,9 +565,9 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
           width: '100%',
           height: 'calc(100vh - 56px)', // hauteur de la barre du projet (h-14)
           position: 'relative',
-          // Fond blanc quadrillé de gris (pas de 24 px), autour du plan.
-          backgroundColor: '#fff',
-          backgroundImage: 'linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)',
+          // Fond de la page, quadrillé d'un gris un peu plus foncé (pas de 24 px), autour du plan.
+          backgroundColor: 'var(--zs-papier)',
+          backgroundImage: 'linear-gradient(var(--zs-filet) 1px, transparent 1px), linear-gradient(90deg, var(--zs-filet) 1px, transparent 1px)',
           backgroundSize: '24px 24px',
           userSelect: 'none',
         }}
