@@ -70,8 +70,8 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
     <nav
       className={clsx(
         'sticky top-0 z-30 flex items-center gap-6 h-14 px-8',
-        'bg-white border-b border-filet',
-        'shadow-[0_1px_0_rgba(15,15,15,0.04)]',
+        // Même gris que la page, sans filet ni ombre : comme les en-têtes de l'app mobile.
+        'bg-papier/90 backdrop-blur',
         outfit.className
       )}
     >
@@ -89,7 +89,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
   ) : (
     <>
       <div className="relative h-10 w-10 shrink-0">
-        <Image src="/logo.png" alt="logo" fill className="object-contain" />
+        <Image src="/logo_encre.png" alt="logo" fill className="object-contain p-1.5" />
       </div>
       <span className="text-[14px] font-medium tracking-[-0.01em] text-encre">
         {project?.name}
@@ -170,8 +170,8 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
                 className={clsx(
                   'h-8 px-3 rounded-[8px] text-[14px] transition-colors',
                   currentTab === tab
-                    ? 'bg-voile text-encre font-medium'
-                    : 'text-mine hover:bg-survol hover:text-encre'
+                    ? 'bg-white text-encre font-medium shadow-carte'
+                    : 'text-mine hover:bg-white/70 hover:text-encre'
                 )}
               >
                 {tab}
@@ -183,7 +183,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 
       {/* Right Actions */}
       <div className="ml-auto flex items-center gap-3">
-        <button className="flex h-8 w-8 items-center justify-center rounded-[8px] text-mine hover:bg-survol hover:text-encre transition-colors">
+        <button className="flex h-8 w-8 items-center justify-center rounded-[8px] text-mine hover:bg-white/70 hover:text-encre transition-colors">
           <BellIcon className="h-5 w-5" />
         </button>
 
@@ -193,7 +193,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setUserMenuOpen(prev => !prev)}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-voile border border-filet text-[13px] font-medium text-encre focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)] transition-shadow"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-white border border-filet text-[13px] font-medium text-encre focus:outline-none focus-visible:shadow-[0_0_0_3px_rgba(47,94,224,0.22)] transition-shadow"
             aria-expanded={userMenuOpen}
             aria-haspopup="true"
           >
