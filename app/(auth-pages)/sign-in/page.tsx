@@ -5,7 +5,7 @@ import { SubmitButton } from "../../../components/submit-button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import Link from "next/link";
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 type SearchParams = {
   error?: string;
@@ -44,7 +44,7 @@ export default async function Login({
   searchParams: SearchParams;
 }) {
   return (
-    <div className={`flex min-h-screen w-screen overflow-hidden bg-papier ${outfit.className}`}>
+    <div className={`flex min-h-screen w-screen overflow-hidden bg-papier ${GeistSans.className}`}>
 
       {/* 1. BRANDING SIDE (Left Half) */}
       <div className="hidden lg:flex flex-col w-1/2 bg-white items-center justify-center p-16 border-r border-filet relative overflow-hidden">

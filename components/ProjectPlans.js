@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import { useRouter } from 'next/navigation'
 import {
   Upload, FileText, Trash2, Save, X, AlertCircle,
@@ -249,7 +249,7 @@ export default function ProjectPlans({ project, onClose }) {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className={clsx(outfit.className, 'bg-papier')}>
+    <div className={clsx(GeistSans.className, 'bg-papier')}>
       <div className="flex h-screen">
 
         {/* Side Panel */}

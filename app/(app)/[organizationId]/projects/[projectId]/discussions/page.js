@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Send, Plus, Users, X, Search, UserPlus, MessageSquare, Image as ImageIcon, Link as LinkIcon, MapPin, FileText, MapPinIcon } from 'lucide-react';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import NavBar from '@/components/NavBar';
 import { useProjectData } from '@/providers/ProjectProvider';
 import { categoriesPinIcons } from '@/utils/categories';
@@ -265,7 +265,7 @@ export default function DiscussionsPage({ params }) {
   const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
 
   return (
-    <div className={clsx(outfit.className, "flex flex-col h-screen bg-papier overflow-hidden")}>
+    <div className={clsx(GeistSans.className, "flex flex-col h-screen bg-papier overflow-hidden")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="flex flex-1 overflow-hidden">

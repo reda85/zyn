@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Switch, Listbox } from '@headlessui/react';
 import clsx from 'clsx';
 import { UserCheck, ChevronDown } from 'lucide-react';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 export default function AssignedToMemberFilter({
   active,
@@ -17,7 +17,7 @@ export default function AssignedToMemberFilter({
   const selectedMember = members.find(m => m.id === selectedMemberId) || null;
 
   return (
-    <div className={clsx('px-4 mb-4', outfit.className)}>
+    <div className={clsx('px-4 mb-4', GeistSans.className)}>
       <div className="flex flex-col overflow-visible gap-2 bg-survol border border-filet p-3 rounded-[8px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

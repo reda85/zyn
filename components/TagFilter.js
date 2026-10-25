@@ -2,7 +2,7 @@
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
 import { useProjectTags } from '@/hooks/useProjectTags';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 
 export default function TagFilter({ active, onToggle, tags, setTags, projectId }) {
@@ -30,7 +30,7 @@ export default function TagFilter({ active, onToggle, tags, setTags, projectId }
   );
 
   return (
-    <div className={clsx("px-4 mb-4", outfit.className)}>
+    <div className={clsx("px-4 mb-4", GeistSans.className)}>
       <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[8px]">
         <span className="text-[14px] text-encre">Filtrer par tag</span>
         <Switch

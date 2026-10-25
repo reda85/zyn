@@ -9,7 +9,7 @@ import { Plus, Search, MoreVertical, Archive, Trash2, X, LayoutGrid, List } from
 import Link from 'next/link'
 
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import { useUserData } from '@/hooks/useUserData'
 import Sidebar from '@/components/Sidebar'
 import { fetchOverview } from '@/lib/data/overview'
@@ -251,7 +251,7 @@ export default function ProjectsPage({ params }) {
   }
 
   return (
-    <div className={clsx('flex h-screen bg-papier overflow-hidden', outfit.className)}>
+    <div className={clsx('flex h-screen bg-papier overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="projects" />
 
       <main className="flex-1 overflow-y-auto">

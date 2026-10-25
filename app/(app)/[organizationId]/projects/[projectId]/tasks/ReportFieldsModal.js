@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import { Download, FileText, Upload, X as XCloseIcon, XIcon } from 'lucide-react'
 import clsx from 'clsx'
 import RichTextEditor from '@/components/RichTextEditor'
@@ -100,7 +100,7 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-      <div className={clsx(outfit.className, 'bg-white w-full max-w-2xl rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-h-[92vh] flex flex-col')}>
+      <div className={clsx(GeistSans.className, 'bg-white w-full max-w-2xl rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-h-[92vh] flex flex-col')}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-voile flex-shrink-0">
           <div>
             <h3 className="text-base font-medium text-encre">Composer le rapport</h3>

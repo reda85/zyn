@@ -1,10 +1,10 @@
 import Image from 'next/image'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 export default function FullScreenLoader({ title = 'Chargement...', message = 'Veuillez patienter' }) {
   return (
-    <div className={clsx('flex h-screen w-full items-center justify-center bg-papier', outfit.className)}>
+    <div className={clsx('flex h-screen w-full items-center justify-center bg-papier', GeistSans.className)}>
       <div className="text-center">
         <div className="mb-6 flex justify-center">
           <div className="w-12 h-12 bg-encre rounded-[8px] flex items-center justify-center animate-pulse">
@@ -32,7 +32,7 @@ export default function FullScreenLoader({ title = 'Chargement...', message = 'V
 
 export function FullScreenMessage({ title, message, children }) {
   return (
-    <div className={clsx('flex h-screen w-full items-center justify-center bg-papier px-6', outfit.className)}>
+    <div className={clsx('flex h-screen w-full items-center justify-center bg-papier px-6', GeistSans.className)}>
       <div className="max-w-sm text-center">
         <h2 className="text-[17px] font-medium text-encre mb-2">{title}</h2>
         {message && <p className="text-[14px] text-mine mb-6">{message}</p>}

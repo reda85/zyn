@@ -8,7 +8,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 
 
@@ -114,7 +114,7 @@ export default function ProjectTags() {
   }
 
   return (
-    <div className={clsx('min-h-screen bg-background font-sans', outfit.className)}>
+    <div className={clsx('min-h-screen bg-background font-sans', GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">

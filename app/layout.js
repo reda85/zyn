@@ -5,7 +5,6 @@ import './globals.css'
 
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
-import { outfit } from '@/lib/fonts';
 
 
 export const metadata = {
@@ -15,7 +14,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="fr" className={`${outfit.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="fr" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body >
         {children}
         <div id="portal-root"></div>

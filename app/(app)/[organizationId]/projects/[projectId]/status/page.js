@@ -10,7 +10,7 @@ import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 /* ---------- StrictMode-safe Droppable ---------- */
 function StrictModeDroppable(props) {
@@ -152,14 +152,14 @@ export default function ProjectStatuses() {
 
   if (loading) {
     return (
-      <div className={clsx('h-screen flex items-center justify-center bg-papier text-[14px] text-mine-clair', outfit.className)}>
+      <div className={clsx('h-screen flex items-center justify-center bg-papier text-[14px] text-mine-clair', GeistSans.className)}>
         Chargement…
       </div>
     )
   }
 
   return (
-    <div className={clsx('min-h-screen bg-papier', outfit.className)}>
+    <div className={clsx('min-h-screen bg-papier', GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
 
         {/* Retour */}

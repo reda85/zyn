@@ -10,7 +10,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 
 // StrictMode wrapper for Droppable
@@ -141,7 +141,7 @@ export default function ProjectCategories() {
 
   if (loading) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", outfit.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", GeistSans.className)}>
         <div className="text-center">
           <div className="mb-6 flex justify-center">
             <div className="w-12 h-12 bg-encre rounded-[8px] flex items-center justify-center animate-pulse">
@@ -172,7 +172,7 @@ export default function ProjectCategories() {
   }
 
   return (
-    <div className={clsx("min-h-screen bg-papier", outfit.className)}>
+    <div className={clsx("min-h-screen bg-papier", GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">

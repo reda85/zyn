@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import DrawerHeader from './DrawerHeader'
 import DrawerBody from './DrawerBody'
 import DrawerFooter from './DrawerFooter'
@@ -23,7 +23,7 @@ export default function PinDrawer({ organization_id }) {
 
   return (
     <div
-      className={`${outfit.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-filet rounded-[12px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col overflow-hidden`}
+      className={`${GeistSans.className} fixed top-[64px] right-4 w-[500px] h-[calc(100vh-100px)] bg-white z-[1000] border border-filet rounded-[12px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] flex flex-col overflow-hidden`}
     >
       <div className="px-5 py-4 border-b border-voile shrink-0">
         <DrawerHeader

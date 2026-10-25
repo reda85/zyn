@@ -20,8 +20,7 @@ const config: Config = {
       fontFamily: {
   outfit: ["var(--font-outfit)"],
   lexend: ["var(--font-lexend)"],
-  sans: ["var(--font-outfit)", "system-ui", "sans-serif"],
-  geist: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+  sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
   mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
 },
       colors: {

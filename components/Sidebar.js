@@ -7,7 +7,7 @@ import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   const { user, profile, organization, organizations, isAdmin, isLoading } = useUserData(organizationId)
@@ -57,7 +57,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
   if (isLoading) {
     return (
-      <aside className={clsx('w-60 h-screen shrink-0 bg-papier flex flex-col', outfit.className)}>
+      <aside className={clsx('w-60 h-screen shrink-0 bg-papier flex flex-col', GeistSans.className)}>
         {/* ── Organization Selector skeleton ── */}
         <div className="px-3 pt-4 pb-3">
           <div className="flex items-center gap-2.5 px-2.5 py-2">
@@ -97,7 +97,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   }
 
   return (
-    <aside className={clsx('w-60 h-screen shrink-0 bg-papier flex flex-col', outfit.className)}>
+    <aside className={clsx('w-60 h-screen shrink-0 bg-papier flex flex-col', GeistSans.className)}>
 
       {/* ── Organization Selector ── */}
       <div className="px-3 pt-4 pb-3 relative" ref={dropdownRef}>
