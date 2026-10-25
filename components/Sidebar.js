@@ -57,7 +57,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
   if (isLoading) {
     return (
-      <aside className={clsx('w-60 h-screen shrink-0 bg-papier flex flex-col', GeistSans.className)}>
+      <aside className={clsx('w-60 h-screen shrink-0 bg-white border-r border-filet flex flex-col', GeistSans.className)}>
         {/* ── Organization Selector skeleton ── */}
         <div className="px-3 pt-4 pb-3">
           <div className="flex items-center gap-2.5 px-2.5 py-2">
@@ -69,7 +69,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
           </div>
         </div>
 
-        <div className="h-px bg-filet mx-3" />
+        <div className="h-px bg-voile mx-3" />
 
         {/* ── Navigation skeleton ── */}
         <nav className="flex-1 px-3 pt-2 space-y-0.5">
@@ -83,7 +83,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
         {/* ── Profile skeleton ── */}
         <div className="px-3 pb-4">
-          <div className="h-px bg-filet mb-3" />
+          <div className="h-px bg-voile mb-3" />
           <div className="flex items-center gap-2.5 px-2.5 py-2">
             <div className="h-7 w-7 rounded-full bg-voile animate-pulse flex-shrink-0" />
             <div className="flex-1 min-w-0 space-y-1.5">
@@ -97,13 +97,13 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
   }
 
   return (
-    <aside className={clsx('w-60 h-screen shrink-0 bg-papier flex flex-col', GeistSans.className)}>
+    <aside className={clsx('w-60 h-screen shrink-0 bg-white border-r border-filet flex flex-col', GeistSans.className)}>
 
       {/* ── Organization Selector ── */}
       <div className="px-3 pt-4 pb-3 relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((prev) => !prev)}
-          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[8px] hover:bg-white/70 transition-colors"
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[8px] hover:bg-survol transition-colors"
         >
           <div className="h-[30px] w-[30px] rounded-[8px] bg-encre flex items-center justify-center text-xs font-medium text-white flex-shrink-0">
             {displayedOrg?.name?.[0]?.toUpperCase() || '?'}
@@ -149,7 +149,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-filet mx-3" />
+      <div className="h-px bg-voile mx-3" />
 
       {/* ── Navigation ── */}
       <nav className="flex-1 px-3 pt-2 space-y-0.5">
@@ -164,8 +164,8 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
               className={clsx(
                 'relative flex text-[14px] items-center gap-2.5 px-2.5 py-[7px] rounded-[8px] transition-colors',
                 isActive
-                  ? 'bg-white text-encre font-medium shadow-carte'
-                  : 'text-mine hover:bg-white/70 hover:text-encre font-normal'
+                  ? 'bg-survol text-encre font-medium before:absolute before:-left-3 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-tirage'
+                  : 'text-mine hover:bg-survol hover:text-encre font-normal'
               )}
             >
               <Icon strokeWidth={1.75} className={clsx('w-4 h-4', isActive ? 'text-encre' : 'text-mine-clair')} />
@@ -177,7 +177,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
       {/* ── Profile + Sign out ── */}
       <div className="px-3 pb-4">
-        <div className="h-px bg-filet mb-3" />
+        <div className="h-px bg-voile mb-3" />
         <div className="flex items-center gap-1 group">
           <Link
             href={`/${organizationId}/profile`}
