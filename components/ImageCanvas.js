@@ -565,8 +565,10 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
           width: '100%',
           height: 'calc(100vh - 56px)', // hauteur de la barre du projet (h-14)
           position: 'relative',
-          // Fond anthracite autour de la feuille blanche, comme le lecteur de plans mobile.
-          backgroundColor: '#222',
+          // Fond blanc quadrillé de gris (pas de 24 px), autour du plan.
+          backgroundColor: '#fff',
+          backgroundImage: 'linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
           userSelect: 'none',
         }}
       >
@@ -631,10 +633,10 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
         {useOSD && (
           <>
             {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 bg-[#222]">
+              <div className="absolute inset-0 flex items-center justify-center z-10">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-white mx-auto mb-4" />
-                  <p className="text-[14px] text-white/70">Chargement du plan...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-filet border-t-tirage mx-auto mb-4" />
+                  <p className="text-[14px] text-mine">Chargement du plan...</p>
                 </div>
               </div>
             )}
@@ -661,8 +663,8 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
             {!imageLoaded && (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-white/20 border-t-white mx-auto mb-4" />
-                  <p className="text-[14px] text-white/70">Chargement de l'image...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-filet border-t-tirage mx-auto mb-4" />
+                  <p className="text-[14px] text-mine">Chargement de l'image...</p>
                 </div>
               </div>
             )}
