@@ -8,7 +8,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { qk } from '@/lib/data/keys'
 import { useParams, useRouter } from 'next/navigation'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 import Image from 'next/image'
 
@@ -160,7 +160,7 @@ export default function ProjectDetails() {
 
   if (loading) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", outfit.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", GeistSans.className)}>
         <div className="text-center">
           <div className="mb-6 flex justify-center">
             <div className="w-12 h-12 bg-encre rounded-[8px] flex items-center justify-center animate-pulse">
@@ -176,7 +176,7 @@ export default function ProjectDetails() {
 
   if (!project) {
     return (
-      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", outfit.className)}>
+      <div className={clsx("flex h-screen w-full items-center justify-center bg-papier", GeistSans.className)}>
         <div className="text-center">
           <p className="text-[14px] text-mine-clair">Projet non trouvé</p>
         </div>
@@ -185,7 +185,7 @@ export default function ProjectDetails() {
   }
 
   return (
-    <div className={clsx("min-h-screen bg-papier", outfit.className)}>
+    <div className={clsx("min-h-screen bg-papier", GeistSans.className)}>
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">

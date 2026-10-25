@@ -9,7 +9,7 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/fr'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 dayjs.extend(relativeTime)
 dayjs.locale('fr')
@@ -39,7 +39,7 @@ export default function PinsList({ pins = [], allPins = pins, plans = [], curren
   return (
     <div
       className={clsx(
-        outfit.className,
+        GeistSans.className,
         'overflow-auto bg-white border-r border-filet [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       )}
     >

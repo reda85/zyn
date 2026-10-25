@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import { MapPinIcon, User, Calendar } from 'lucide-react';
 import clsx from 'clsx';
 import { photoThumbUrl } from '@/lib/images';
@@ -51,7 +51,7 @@ export default function GroupedMediaGallery({ media, selectedIds, setSelectedIds
   };
 
   return (
-    <div className={clsx("space-y-10", outfit.className)}>
+    <div className={clsx("space-y-10", GeistSans.className)}>
       {sortedDates.map((date) => {
         const items = grouped[date];
         const allSelected = items.every((item) => selectedIds.has(item.id));

@@ -2,7 +2,7 @@
 import { Switch } from '@headlessui/react';
 import { useState } from 'react';
 import { useProjectData } from '@/providers/ProjectProvider';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 
 export default function ProjectPlanFilter({ active, onToggle, selectedPlans, setSelectedPlans }) {
@@ -26,7 +26,7 @@ export default function ProjectPlanFilter({ active, onToggle, selectedPlans, set
   };
 
   return (
-    <div className={clsx("px-4 mb-4", outfit.className)}>
+    <div className={clsx("px-4 mb-4", GeistSans.className)}>
       <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[8px]">
         <span className="text-[14px] text-encre">
           Filtrer par plan de projet

@@ -8,7 +8,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
@@ -72,7 +72,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
         'sticky top-0 z-30 flex items-center gap-6 h-14 px-8',
         // Même gris que la page, sans filet ni ombre : comme les en-têtes de l'app mobile.
         'bg-papier/90 backdrop-blur',
-        outfit.className
+        GeistSans.className
       )}
     >
       {/* Logo + Dropdown (Project Menu) */}

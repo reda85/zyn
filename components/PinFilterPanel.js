@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ListFilterIcon } from 'lucide-react'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 
 import CategoryFilter from './CategoryFilter'
@@ -94,7 +94,7 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
         onClick={() => setOpen((v) => !v)}
         className={clsx(
           'flex items-center gap-1.5 px-2.5 py-[7px] rounded-[8px] border transition-colors',
-          outfit.className,
+          GeistSans.className,
           activeCount > 0
             ? 'bg-encre text-white border-encre'
             : 'bg-white text-mine border-filet hover:bg-survol'
@@ -113,7 +113,7 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
             className={clsx(
               'absolute z-50 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto bg-white border border-filet rounded-[12px] shadow-carte',
               'shadow-[0_2px_4px_rgba(15,15,15,0.04),0_8px_24px_-6px_rgba(15,15,15,0.08)]',
-              outfit.className
+              GeistSans.className
             )}
           >
             <div className="flex justify-between items-center px-4 py-3 border-b border-voile">

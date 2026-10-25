@@ -5,7 +5,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 export default async function ForgotPassword(props: {
   searchParams: Promise<Message>;
@@ -13,7 +13,7 @@ export default async function ForgotPassword(props: {
   const searchParams = await props.searchParams;
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden bg-papier ${outfit.className}`}>
+    <div className={`flex h-screen w-screen overflow-hidden bg-papier ${GeistSans.className}`}>
 
       {/* LEFT — Branding */}
       <div className="hidden lg:flex flex-col w-1/2 h-full bg-white items-center justify-center p-16 border-r border-filet shrink-0">

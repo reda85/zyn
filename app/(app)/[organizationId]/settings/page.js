@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { Upload } from 'lucide-react'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 const ORG_SIZES = ['1 – 5', '6 – 10', '11 – 25', '26 – 50', '51 – 100', '100+']
 
@@ -108,7 +108,7 @@ export default function OrganizationSettingsPage({ params }) {
 
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className={clsx('flex h-screen items-center justify-center bg-papier', outfit.className)}>
+      <div className={clsx('flex h-screen items-center justify-center bg-papier', GeistSans.className)}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-filet border-t-encre mx-auto mb-3" />
           <p className="text-[14px] text-mine-clair">Vérification des accès...</p>
@@ -118,7 +118,7 @@ export default function OrganizationSettingsPage({ params }) {
   }
 
   return (
-    <div className={clsx('flex h-screen bg-papier overflow-hidden', outfit.className)}>
+    <div className={clsx('flex h-screen bg-papier overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="settings" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">

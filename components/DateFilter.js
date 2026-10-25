@@ -4,7 +4,7 @@ import { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar, X } from 'lucide-react';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 import { DATE_PRESETS, dateRangeToken, dateTokenLabel } from '@/lib/data/pinFilters';
 
@@ -40,7 +40,7 @@ export default function DateFilter({ active, onToggle, tags, setTags }) {
   };
 
   return (
-    <div className={clsx("px-4 mb-4", outfit.className)}>
+    <div className={clsx("px-4 mb-4", GeistSans.className)}>
       <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[8px]">
         <span className="text-[14px] text-encre">
           Filtrer par date

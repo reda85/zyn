@@ -11,7 +11,7 @@ import {
   Search, ArrowLeft,
 } from 'lucide-react'
 import clsx from 'clsx'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 function TemplatesGridSkeleton() {
   return (
@@ -223,7 +223,7 @@ export default function ReportsPage({ params }) {
 
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className={clsx('flex h-screen items-center justify-center bg-papier', outfit.className)}>
+      <div className={clsx('flex h-screen items-center justify-center bg-papier', GeistSans.className)}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-filet border-t-encre mx-auto mb-3" />
           <p className="text-[14px] text-mine-clair">Vérification des accès...</p>
@@ -234,7 +234,7 @@ export default function ReportsPage({ params }) {
 
   if (currentView === 'builder') {
     return (
-      <div className={clsx(outfit.className, 'h-screen bg-papier')}>
+      <div className={clsx(GeistSans.className, 'h-screen bg-papier')}>
         <button
           onClick={handleBackToList}
           className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-2 bg-white border border-filet rounded-[12px] shadow-[0_1px_2px_rgba(15,15,15,0.04),0_1px_1px_rgba(15,15,15,0.03)] hover:bg-survol transition-colors text-[14px] font-medium text-mine"
@@ -248,7 +248,7 @@ export default function ReportsPage({ params }) {
   }
 
   return (
-    <div className={clsx('flex h-screen bg-papier overflow-hidden', outfit.className)}>
+    <div className={clsx('flex h-screen bg-papier overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="reports" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">

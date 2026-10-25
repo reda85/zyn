@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, Map,
 } from "lucide-react"
 import clsx from "clsx"
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -725,7 +725,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
   }
 
   return (
-    <div className={clsx("flex h-screen bg-papier text-encre", outfit.className)}>
+    <div className={clsx("flex h-screen bg-papier text-encre", GeistSans.className)}>
       <style>{`@import url('${GOOGLE_FONTS_URL}');`}</style>
 
       {/* ── CONTROL PANEL ─────────────────────────────────────────────────── */}

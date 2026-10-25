@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 import { useAtom } from 'jotai';
 import { focusOnPinAtom } from '@/store/atoms';
@@ -548,7 +548,7 @@ export default function ImageCanvas({ imageUrl, pins = [], project, plan, user, 
   return (
     <>
       <div
-        className={outfit.className}
+        className={GeistSans.className}
         ref={containerRef}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}

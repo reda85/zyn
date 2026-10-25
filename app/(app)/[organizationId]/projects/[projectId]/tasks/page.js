@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useQuery } from '@tanstack/react-query'
 import { Download, FileText, Search, XIcon } from 'lucide-react'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 
 import NavBar from '@/components/NavBar'
@@ -303,7 +303,7 @@ export default function Tasks({ params }) {
   const isGuest = profile?.role === 'guest'
 
   return (
-    <div className={clsx(outfit.className, 'min-h-screen bg-papier')}>
+    <div className={clsx(GeistSans.className, 'min-h-screen bg-papier')}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">
@@ -497,7 +497,7 @@ export default function Tasks({ params }) {
 
       {isAddTaskOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
-          <div className={clsx(outfit.className, 'bg-white w-full max-w-md rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]')}>
+          <div className={clsx(GeistSans.className, 'bg-white w-full max-w-md rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]')}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
               <h3 className="text-base font-medium text-encre">Nouvelle tâche</h3>
               <button onClick={() => setIsAddTaskOpen(false)} className="p-1 rounded-[6px] hover:bg-voile transition-colors">

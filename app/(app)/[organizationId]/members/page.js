@@ -6,7 +6,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useAtom } from 'jotai'
 import { selectedOrganizationAtom } from '@/store/atoms'
 import { Check, ChevronDown, UserPlus, Search, X, Mail, Send } from 'lucide-react'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 import { Dialog, DialogPanel, DialogTitle, Listbox, ListboxButton, ListboxOption, ListboxOptions, Switch } from '@headlessui/react'
 import { useUserData } from '@/hooks/useUserData'
@@ -324,7 +324,7 @@ export default function MembersPage({ params }) {
 
   if (isCheckingAccess || !isAdmin) {
     return (
-      <div className={clsx('flex h-screen items-center justify-center bg-papier', outfit.className)}>
+      <div className={clsx('flex h-screen items-center justify-center bg-papier', GeistSans.className)}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-filet border-t-encre mx-auto mb-3" />
           <p className="text-[14px] text-mine-clair">Vérification des accès...</p>
@@ -334,7 +334,7 @@ export default function MembersPage({ params }) {
   }
 
   return (
-    <div className={clsx('flex h-screen bg-papier overflow-hidden', outfit.className)}>
+    <div className={clsx('flex h-screen bg-papier overflow-hidden', GeistSans.className)}>
       <Sidebar organizationId={organizationId} currentPage="members" />
 
       <main className="flex-1 overflow-y-auto px-8 py-7">

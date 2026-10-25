@@ -2,7 +2,7 @@
 import { Switch } from '@headlessui/react';
 import { useProjectData } from '@/providers/ProjectProvider';
 import { CheckCircle2 } from 'lucide-react';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx';
 
 export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
@@ -28,7 +28,7 @@ export default function StatusFilter({ activeStatuses, setActiveStatuses }) {
   };
 
   return (
-    <div className={clsx("px-4 mb-4", outfit.className)}>
+    <div className={clsx("px-4 mb-4", GeistSans.className)}>
       <div className="bg-survol border border-filet rounded-[8px] overflow-hidden">
 
         {/* Header avec "Tout sélectionner" */}

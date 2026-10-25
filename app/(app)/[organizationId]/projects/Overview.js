@@ -43,7 +43,7 @@ export function Bandeau({ overview, loading }) {
       ))}
       <div className="col-span-2 lg:col-span-1 px-5 py-4 min-w-0 bg-white border border-filet rounded-[18px] shadow-carte">
         <div className="flex items-baseline justify-between gap-3">
-          <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-mine truncate">Activité sur 12 semaines</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-mine truncate">Activité, 12 sem.</p>
           <p className="flex items-center gap-3 text-[12px] text-mine-clair">
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-filet-fort" />créées</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-tirage" />levées</span>

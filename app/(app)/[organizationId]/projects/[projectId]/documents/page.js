@@ -12,7 +12,7 @@ import {
 import { Dialog as HDialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { Fragment } from 'react';
 import clsx from 'clsx';
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import { useUserData } from '@/hooks/useUserData';
 
 const STORAGE_BUCKET = 'documents';
@@ -635,7 +635,7 @@ export default function DocumentsPage({ params }) {
   };
 
   return (
-    <div className={clsx(outfit.className, "min-h-screen bg-papier")}>
+    <div className={clsx(GeistSans.className, "min-h-screen bg-papier")}>
       <NavBar project={project} id={projectId} user={profile} organizationId={organizationId} isAdmin={isAdmin} />
 
       <div className="px-8 pt-6 pb-10 max-w-[1400px] mx-auto">

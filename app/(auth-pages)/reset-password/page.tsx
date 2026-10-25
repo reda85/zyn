@@ -5,7 +5,7 @@ import { supabase } from '@/utils/supabase/client'
 import { activateMembershipAction } from '@/app/actions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { outfit } from '@/lib/fonts';
+import { GeistSans } from 'geist/font/sans';
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -109,7 +109,7 @@ export default function ResetPasswordPage() {
 
   if (linkError) {
     return (
-      <div className={`flex h-screen w-screen items-center justify-center bg-papier px-6 ${outfit.className}`}>
+      <div className={`flex h-screen w-screen items-center justify-center bg-papier px-6 ${GeistSans.className}`}>
         <div className="max-w-sm text-center">
           <h1 className="text-[17px] font-medium text-encre mb-2">Lien invalide</h1>
           <p className="text-[14px] text-mine mb-6">{linkError}</p>
@@ -126,14 +126,14 @@ export default function ResetPasswordPage() {
 
   if (!ready) {
     return (
-      <div className={`flex h-screen w-screen items-center justify-center bg-papier ${outfit.className}`}>
+      <div className={`flex h-screen w-screen items-center justify-center bg-papier ${GeistSans.className}`}>
         <div className="animate-spin rounded-full h-6 w-6 border-2 border-filet border-t-encre" />
       </div>
     )
   }
 
   return (
-    <div className={`flex h-screen w-screen overflow-hidden bg-papier ${outfit.className}`}>
+    <div className={`flex h-screen w-screen overflow-hidden bg-papier ${GeistSans.className}`}>
 
       {/* LEFT — Branding */}
       <div className="hidden lg:flex flex-col w-1/2 h-full bg-white items-center justify-center p-16 border-r border-filet shrink-0">
