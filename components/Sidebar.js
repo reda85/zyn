@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FolderKanban, Users, BarChart3, Settings, ChevronsUpDown, Check, LogOut } from 'lucide-react'
+import { FolderKanban, Building2, Users, BarChart3, Settings, ChevronsUpDown, Check, LogOut } from 'lucide-react'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
@@ -50,6 +50,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
   const navLinks = [
     { key: 'projects', href: `/${organizationId}/projects`, icon: FolderKanban, label: 'Projets', show: true },
+    { key: 'entreprises', href: `/${organizationId}/entreprises`, icon: Building2, label: 'Entreprises', show: true },
     { key: 'members', href: `/${organizationId}/members`, icon: Users, label: 'Membres', show: isAdmin },
     { key: 'reports', href: `/${organizationId}/reports`, icon: BarChart3, label: 'Rapports', show: isAdmin },
     { key: 'settings', href: `/${organizationId}/settings`, icon: Settings, label: 'Paramètres', show: isAdmin },

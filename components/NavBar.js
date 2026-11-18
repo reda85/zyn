@@ -138,7 +138,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
                       className="block px-3.5 py-2 text-encre hover:bg-survol transition-colors"
                       onClick={() => setProjectMenuOpen(false)}
                     >
-                      Gestionnaire de catégories
+                      Lots et entreprises
                     </Link>
                   </li>
                   <li>

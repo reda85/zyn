@@ -28,7 +28,7 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
     <div className="px-4 mb-4">
       <div className="flex items-center justify-between bg-survol border border-filet p-3 rounded-[8px]">
         <span className="text-[14px] text-encre">
-          Filtrer par catégorie
+          Filtrer par lot
         </span>
         <Switch
           checked={active}
@@ -76,7 +76,7 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
                   addTag(suggestions[0].id);
                 }
               }}
-              placeholder="Ajouter une catégorie..."
+              placeholder="Ajouter un lot..."
               className="border border-filet bg-white px-3 py-1.5 rounded-[8px] text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
             />
           </div>
@@ -94,7 +94,7 @@ export default function CategoryFilter({ active, onToggle, tags, setTags }) {
                 ))}
               {suggestions.length === 0 && (
                 <div className="px-3 py-3 text-[14px] text-mine-clair text-center">
-                  Aucune catégorie trouvée
+                  Aucun lot trouvé
                 </div>
               )}
             </div>

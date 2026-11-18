@@ -95,7 +95,7 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
 
   const FIELD_LABELS = {
     description: 'Description', photos: 'Photos', snapshot: 'Snapshot du plan',
-    assignedTo: 'Assigné à', dueDate: 'Échéance', category: 'Catégorie', status: 'Statut',
+    assignedTo: 'Assigné à', dueDate: 'Échéance', category: 'Lot', status: 'Statut',
   }
 
   return (
