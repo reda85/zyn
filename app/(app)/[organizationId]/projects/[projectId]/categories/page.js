@@ -36,6 +36,9 @@ const StrictModeDroppable = ({ children, ...props }) => {
   return <Droppable {...props}>{children}</Droppable>
 }
 
+// Créé avec chaque projet pour les réserves sans lot : ce n'est pas un lot de travaux.
+const isDefaultLot = (lot) => lot.icon === 'unassigned'
+
 export default function ProjectLots() {
   const [lots, setLots] = useState([])
   const [loading, setLoading] = useState(true)
@@ -59,15 +62,18 @@ export default function ProjectLots() {
     [pinsQuery.data, statuses, isReady]
   )
 
+  const visibleLots = lots.filter((l) => !isDefaultLot(l))
+
   const handleDragEnd = async (result) => {
     if (!result.destination) return
     if (result.destination.index === result.source.index) return
 
-    const reordered = Array.from(lots)
+    // Le lot par défaut « Non assigné » reste en tête, hors de la liste affichée.
+    const reordered = Array.from(visibleLots)
     const [removed] = reordered.splice(result.source.index, 1)
     reordered.splice(result.destination.index, 0, removed)
 
-    const updated = reordered.map((lot, index) => ({ ...lot, order: index }))
+    const updated = [...lots.filter(isDefaultLot), ...reordered].map((lot, index) => ({ ...lot, order: index }))
     setLots(updated)
 
     try {
@@ -79,17 +85,7 @@ export default function ProjectLots() {
     }
   }
 
-  const handleNameChange = (index, name) => {
-    const updated = [...lots]
-    updated[index] = { ...updated[index], name }
-    setLots(updated)
-  }
-
-  const handleIconChange = (index, icon) => {
-    const updated = [...lots]
-    updated[index] = { ...updated[index], icon }
-    setLots(updated)
-  }
+  const patchLot = (id, fields) => setLots((prev) => prev.map((l) => (l.id === id ? { ...l, ...fields } : l)))
 
   const handleSaveLot = async (lot) => {
     try {
@@ -176,7 +172,7 @@ export default function ProjectLots() {
           </div>
         </div>
 
-        {lots.length === 0 ? (
+        {visibleLots.length === 0 ? (
           <div className="bg-white border border-filet rounded-[12px] p-12 text-center shadow-carte">
             <Layers className="w-12 h-12 text-filet-fort mx-auto mb-4" />
             <p className="text-[14px] text-mine-clair mb-4">Aucun lot pour ce projet.</p>
@@ -209,7 +205,7 @@ export default function ProjectLots() {
                     <span className="w-28">Réserves</span>
                     <span className="w-[72px]" />
                   </div>
-                  {lots.map((lot, index) => {
+                  {visibleLots.map((lot, index) => {
                     const st = stats?.[lot.id]
                     const late = isLotLate(lot)
                     const period = fmtPeriod(lot.date_debut_prevue, lot.date_fin_prevue)
@@ -237,7 +233,7 @@ export default function ProjectLots() {
                               <IconPicker
                                 selected={lot.icon}
                                 onChange={(icon) => {
-                                  handleIconChange(index, icon)
+                                  patchLot(lot.id, { icon })
                                   handleSaveLot({ ...lot, icon })
                                 }}
                               />
@@ -245,8 +241,8 @@ export default function ProjectLots() {
                               <div className="flex-1 min-w-0 md:min-w-[160px]">
                                 <Input
                                   value={lot.name ?? ''}
-                                  onChange={(e) => handleNameChange(index, e.target.value)}
-                                  onBlur={() => handleSaveLot(lots[index])}
+                                  onChange={(e) => patchLot(lot.id, { name: e.target.value })}
+                                  onBlur={() => handleSaveLot(lot)}
                                   className="border-filet bg-white focus:outline-none focus:border-encre focus:ring-0 font-medium text-[14px]"
                                   placeholder="Nom du lot"
                                 />
