@@ -657,7 +657,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                         <span className="font-bold text-encre-survol">Tâche d'exemple {n}</span>
                       </div>
                       <div className="space-y-1 text-sm">
-                        {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Catégorie:</span><span>Structure</span></div>}
+                        {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Lot:</span><span>Structure</span></div>}
                         {config.fields.assignedTo  && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Assigné à:</span><span>Marie Martin</span></div>}
                         {config.fields.dueDate     && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Échéance:</span><span>15/02/2026</span></div>}
                         {config.fields.description && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Description:</span><span>Vérifier la conformité</span></div>}
@@ -680,7 +680,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {config.tableView.showIndex && <div className="col-span-1">#</div>}
                   <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche</div>
                   <div className="col-span-2">ID</div>
-                  {config.fields.category   && <div className="col-span-2">Catégorie</div>}
+                  {config.fields.category   && <div className="col-span-2">Lot</div>}
                   {config.fields.status     && <div className="col-span-2">Statut</div>}
                   {config.fields.assignedTo && <div className="col-span-2">Assigné</div>}
                 </div>
@@ -947,8 +947,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <Toggle label="Afficher le statut"           checked={config.tasks.galleryShowStatus ?? true}      onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, galleryShowStatus:      e.target.checked } }))} />
               </div>
             )}
-            <SelectField label="Grouper par" value={config.tasks.groupBy} onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, groupBy: e.target.value } }))} options={[{ value: "none", label: "Aucun" }, { value: "status", label: "Par statut" }, { value: "category", label: "Par catégorie" }, { value: "plan", label: "Par plan" }]} />
-            <SelectField label="Trier par"   value={config.tasks.sortBy}  onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, sortBy:  e.target.value } }))} options={[{ value: "created_at", label: "Date de création" }, { value: "due_date", label: "Échéance" }, { value: "status", label: "Statut" }, { value: "category", label: "Catégorie" }]} />
+            <SelectField label="Grouper par" value={config.tasks.groupBy} onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, groupBy: e.target.value } }))} options={[{ value: "none", label: "Aucun" }, { value: "status", label: "Par statut" }, { value: "category", label: "Par lot" }, { value: "plan", label: "Par plan" }]} />
+            <SelectField label="Trier par"   value={config.tasks.sortBy}  onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, sortBy:  e.target.value } }))} options={[{ value: "created_at", label: "Date de création" }, { value: "due_date", label: "Échéance" }, { value: "status", label: "Statut" }, { value: "category", label: "Lot" }]} />
           </S>
 
           {/* ── Champs ── */}
@@ -960,7 +960,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               { key: 'snapshot',    label: 'Snapshot du plan' },
               { key: 'assignedTo',  label: 'Assigné à' },
               { key: 'dueDate',     label: 'Échéance' },
-              { key: 'category',    label: 'Catégorie' },
+              { key: 'category',    label: 'Lot' },
               { key: 'status',      label: 'Statut' },
               { key: 'createdBy',   label: 'Créé par' },
               { key: 'plan',        label: 'Plan / Localisation' },
@@ -972,7 +972,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           {/* ── Mode Liste ── */}
           <S title="Options mode Liste" icon={List} section="listView">
             <Toggle label="Numéros"            checked={config.listView.showIndex}        onChange={(e) => setConfig(p => ({ ...p, listView: { ...p.listView, showIndex:        e.target.checked } }))} />
-            <Toggle label="Icône de catégorie" checked={config.listView.showCategoryIcon} onChange={(e) => setConfig(p => ({ ...p, listView: { ...p.listView, showCategoryIcon: e.target.checked } }))} />
+            <Toggle label="Icône du lot" checked={config.listView.showCategoryIcon} onChange={(e) => setConfig(p => ({ ...p, listView: { ...p.listView, showCategoryIcon: e.target.checked } }))} />
             <Toggle label="Badge de statut"    checked={config.listView.showStatusPill}   onChange={(e) => setConfig(p => ({ ...p, listView: { ...p.listView, showStatusPill:   e.target.checked } }))} />
             <Toggle label="Séparateurs"        checked={config.listView.showDividers}     onChange={(e) => setConfig(p => ({ ...p, listView: { ...p.listView, showDividers:     e.target.checked } }))} />
             <SelectField label="Disposition des photos" value={config.listView.photoLayout}  onChange={(e) => setConfig(p => ({ ...p, listView: { ...p.listView, photoLayout:  e.target.value } }))} options={[{ value: "grid", label: "Grille" }, { value: "vertical", label: "Verticale" }, { value: "horizontal", label: "Horizontale" }]} />

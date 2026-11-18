@@ -25,7 +25,7 @@ import TaskRow, { TaskRowSkeleton } from './TaskRow'
 // Éditeur riche inclus : chargé seulement à l'ouverture de la fenêtre de rapport.
 const ReportFieldsModal = dynamic(() => import('./ReportFieldsModal'), { ssr: false })
 
-const TABLE_HEADERS = ['Nom', 'Statut', 'ID', 'Assigné à', 'Catégorie', 'Échéance', 'Localisation', 'Tags']
+const TABLE_HEADERS = ['Nom', 'Statut', 'ID', 'Assigné à', 'Lot', 'Échéance', 'Localisation', 'Tags']
 const DEFAULT_REPORT_FIELDS = {
   description: true, photos: true, snapshot: true,
   assignedTo: true, dueDate: true, category: true, status: true,
