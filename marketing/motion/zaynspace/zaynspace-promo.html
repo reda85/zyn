@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZaynSpace Motion</title>
+<style>
+/*
+  ZaynSpace — motion design vertical (9:16, 1080×1920), sur le modèle de la
+  vidéo Lotio (promogest/marketing/motion/lotio) : cartes animées, gros titres,
+  logo qui tombe comme un pin, une scène par fonction.
+  Charte de la page d'accueil (app/globals.css, .zs-vitrine) : encre #1c1c1a,
+  papier calque #f8f8f6, bleu de tirage #2c4f91, alerte #a8322a, levée #2f6b4a,
+  police Geist. Statuts des réserves : ceux de components/landing/PlanDemo.tsx.
+  La timeline est déterministe : render(t) dessine l'image à l'instant t (secondes).
+  Lecture : ouvrir la page. Export MP4 (avec musique) : node marketing/motion/zaynspace/render.mjs
+  Paramètres URL : ?t=12.5 (figer une image), ?record=1 (sans interface), ?land=1 (16:9 accueil).
+*/
+@font-face { font-family: 'Geist'; font-weight: 100 900; font-display: block;
+  src: url('../../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2') format('woff2'); }
+@font-face { font-family: 'Geist Mono'; font-weight: 100 900; font-display: block;
+  src: url('../../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2') format('woff2'); }
+:root {
+  --encre: #1c1c1a;
+  --encre-2: #121211;
+  --papier: #f8f8f6;
+  --card: #ffffff;
+  --filet: #e4e4e0;
+  --filet-fort: #d3d3ce;
+  --voile: #eeeeeb;
+  --mine: #5b5b56;
+  --mine-clair: #8a8a84;
+  --trait: #b9b9b3;
+  --tirage: #2c4f91;
+  --tirage-fonce: #223e73;
+  --tirage-clair: #cdd8ea;
+  --tirage-pale: #edf1f8;
+  --tirage-vif: #8fb0ea;
+  --alerte: #a8322a;
+  --alerte-pale: #f9ecea;
+  --valide: #2f6b4a;
+  --valide-pale: #ebf3ee;
+  --wa: #25d366;
+  --word: #2b579a;
+  --page: #0b0b0a;
+}
+:root[data-theme="light"] { --page: #e7e6e1; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { background: var(--page); font-family: 'Geist', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden; color: var(--encre); -webkit-font-smoothing: antialiased; }
+#viewport { position: relative; width: 1080px; height: 1920px; flex: none; transform-origin: center center; }
+#stage { position: absolute; inset: 0; overflow: hidden; background: var(--encre-2); }
+body:not(.record) #stage { border-radius: 36px; box-shadow: 0 40px 120px -30px rgba(0,0,0,.6); }
+
+.layer { position: absolute; inset: 0; will-change: opacity, transform; }
+.center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.abs { position: absolute; }
+.title { position: absolute; left: 70px; right: 70px; top: 220px; text-align: center; }
+.row { display: flex; align-items: center; }
+.content { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+
+/* Fonds : encre, bleu de tirage (calque quadrillé), papier calque */
+#bg-dark { background: radial-gradient(120% 80% at 50% 30%, #36362f 0%, var(--encre) 55%, var(--encre-2) 100%); }
+#bg-blue { background: radial-gradient(110% 70% at 50% 40%, #3d66b0 0%, var(--tirage) 48%, #142849 100%); }
+#bg-blue::after { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.09) 2px, transparent 2px), linear-gradient(90deg, rgba(255,255,255,.09) 2px, transparent 2px),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; }
+#bg-light { background: var(--papier); }
+#bg-light::after { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(28,28,26,.045) 2px, transparent 2px), linear-gradient(90deg, rgba(28,28,26,.045) 2px, transparent 2px);
+  background-size: 60px 60px; }
+
+/* Typo */
+.kicker { display: inline-flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--tirage); }
+.kicker::before { content: ""; width: 18px; height: 18px; border-radius: 50%; background: currentColor; }
+.h1 { font-size: 104px; font-weight: 650; letter-spacing: -0.04em; line-height: 1.0; }
+.h2 { font-size: 84px; font-weight: 650; letter-spacing: -0.04em; line-height: 1.04; margin-top: 22px; }
+.grad { color: var(--tirage); }
+.word { display: inline-block; will-change: transform, opacity; }
+.word.grad { color: var(--tirage-vif); }
+.word.hi { color: #c9dafa; }
+.mono { font-family: 'Geist Mono', monospace; }
+.muted { color: var(--mine); }
+
+/* Accroche */
+#s1-text { position: absolute; left: 70px; right: 70px; top: 640px; text-align: center; }
+.chip { position: absolute; left: 0; top: 0; padding: 22px 30px; border-radius: 22px; font-size: 33px; font-weight: 600; background: #fff; color: var(--encre); white-space: nowrap;
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,.5); display: flex; align-items: center; gap: 16px; }
+.chip i { width: 44px; height: 44px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 22px; font-weight: 800; color: #fff; }
+
+/* Logo : le pin ZaynSpace (public/logo.png vectorisé) */
+.mark { display: block; overflow: visible; }
+.wrap { display: flex; flex-direction: column; align-items: center; }
+#s2-name { margin-top: 70px; font-size: 168px; font-weight: 650; letter-spacing: -.045em; line-height: 1; color: #fff; }
+#s2-tag { margin-top: 34px; font-size: 50px; font-weight: 550; letter-spacing: -.02em; color: rgba(255,255,255,.92); text-align: center; line-height: 1.2; }
+.ripple { position: absolute; left: 50%; width: 220px; height: 70px; margin-left: -110px; border-radius: 50%; border: 5px solid rgba(255,255,255,.75); opacity: 0; }
+#s2-shadow { position: absolute; left: 50%; width: 200px; height: 34px; margin-left: -100px; border-radius: 50%; background: rgba(5,15,35,.45); filter: blur(8px); }
+
+/* Cartes */
+.card { background: var(--card); border: 2px solid var(--filet); border-radius: 32px; box-shadow: 0 30px 70px -30px rgba(28,28,26,.35); }
+.card-top { display: flex; justify-content: space-between; align-items: baseline; padding: 34px 44px 20px; font-size: 32px; font-weight: 650; letter-spacing: -.02em; color: var(--encre); }
+.card-top .r { font-size: 26px; font-weight: 600; color: var(--mine); letter-spacing: 0; }
+.line { border-top: 2px solid var(--voile); }
+.pill { display: inline-flex; align-items: center; padding: 10px 22px; border-radius: 999px; font-size: 25px; font-weight: 600; color: #fff; white-space: nowrap; }
+.num { width: 52px; height: 52px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 25px; font-weight: 650; color: #fff; }
+.pin { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; border: 5px solid #fff; color: #fff; font-size: 22px; font-weight: 650;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px -6px rgba(0,0,0,.45); }
+.ring { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; opacity: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: center; font-size: 27px; font-weight: 550; color: var(--mine); }
+.legend em { font-style: normal; display: inline-flex; align-items: center; gap: 10px; }
+.legend em::before { content: ""; width: 20px; height: 20px; border-radius: 50%; background: var(--c); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 22px 32px; border-radius: 16px; background: var(--encre); color: #fff; font-size: 29px; font-weight: 600; white-space: nowrap; }
+.bar { height: 18px; border-radius: 999px; background: var(--voile); overflow: hidden; }
+.bar > div { height: 100%; border-radius: 999px; background: var(--tirage); }
+#tap { position: absolute; width: 90px; height: 90px; border-radius: 50%; border: 6px solid var(--tirage); background: rgba(44,79,145,.12); pointer-events: none; z-index: 20; }
+
+/* Plans */
+.drop { position: absolute; left: 44px; right: 44px; top: 110px; height: 150px; border: 3px dashed var(--filet-fort); border-radius: 24px; display: flex; align-items: center; justify-content: center; }
+.file { display: flex; align-items: center; gap: 20px; padding: 20px 28px; border-radius: 20px; background: #fff; border: 2px solid var(--filet); box-shadow: 0 20px 40px -20px rgba(28,28,26,.45); font-size: 29px; font-weight: 600; }
+.file i { font-style: normal; color: #fff; background: var(--alerte); font-size: 20px; font-weight: 800; padding: 8px 10px; border-radius: 8px; }
+.thumb { position: absolute; width: 264px; }
+.thumb .pv { height: 168px; border-radius: 16px; border: 2px solid var(--filet); background: var(--papier); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.thumb .lb { margin-top: 10px; font-size: 25px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.thumb .ok { width: 30px; height: 30px; border-radius: 50%; background: var(--valide); color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+
+/* Téléphone */
+.phone { position: absolute; width: 580px; height: 1180px; border-radius: 86px; background: #121211; padding: 16px;
+  box-shadow: 0 60px 120px -40px rgba(0,0,0,.55), inset 0 0 0 3px #34342f; }
+.screen { position: relative; width: 100%; height: 100%; border-radius: 70px; overflow: hidden; background: var(--papier); }
+.island { position: absolute; left: 50%; top: 18px; width: 150px; height: 42px; margin-left: -75px; border-radius: 999px; background: #000; z-index: 5; }
+.sbar { position: absolute; left: 56px; top: 22px; font-size: 25px; font-weight: 650; }
+.sbar-r { position: absolute; right: 52px; top: 26px; display: flex; gap: 8px; align-items: center; }
+.ph-head { position: absolute; left: 36px; right: 36px; top: 84px; display: flex; justify-content: space-between; align-items: flex-end; }
+.ph-head b { display: block; font-size: 29px; font-weight: 650; letter-spacing: -.02em; white-space: nowrap; }
+.ph-head span { font-size: 22px; color: var(--mine); white-space: nowrap; }
+.ph-plan { position: absolute; left: 0; top: 180px; width: 548px; height: 511px; background: #fff; border-top: 2px solid var(--filet); border-bottom: 2px solid var(--filet); }
+.tool { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 26px; border-radius: 999px; background: #fff;
+  box-shadow: 0 20px 40px -16px rgba(28,28,26,.45); border: 2px solid var(--filet); }
+.tool .ic { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; color: var(--mine); }
+.tool .plus { width: 88px; height: 88px; border-radius: 50%; background: var(--encre); color: #fff; display: flex; align-items: center; justify-content: center; }
+.prow { display: flex; align-items: center; gap: 18px; height: 104px; padding: 0 36px; border-bottom: 2px solid var(--voile); background: var(--papier); }
+.prow .num { width: 46px; height: 46px; font-size: 22px; }
+.prow b { display: block; font-size: 26px; font-weight: 600; }
+.prow span { font-size: 21px; color: var(--mine); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 760px; background: #fff; border-radius: 44px 44px 0 0; box-shadow: 0 -20px 50px -20px rgba(0,0,0,.35); }
+.handle { position: absolute; left: 50%; top: 14px; width: 80px; height: 8px; margin-left: -40px; border-radius: 9px; background: var(--filet-fort); }
+.photo { position: absolute; left: 34px; right: 34px; top: 150px; height: 280px; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(160deg, #c9c3b6 0%, #aca596 50%, #8d8679 100%); }
+.photo .tag { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(20,20,18,.62); color: #fff; font-size: 20px; font-weight: 600; }
+.field { position: absolute; left: 34px; right: 34px; top: 486px; height: 170px; border: 2px solid var(--filet); border-radius: 22px; padding: 20px 120px 20px 24px; font-size: 27px; line-height: 1.35; }
+.field.on { border-color: var(--tirage); box-shadow: 0 0 0 5px rgba(44,79,145,.12); }
+.mic { position: absolute; right: 18px; bottom: 18px; width: 84px; height: 84px; border-radius: 50%; background: var(--tirage); color: #fff; display: flex; align-items: center; justify-content: center; }
+.mic-ring { position: absolute; inset: 0; border-radius: 50%; border: 4px solid var(--tirage); opacity: 0; }
+.wave { position: absolute; left: 24px; bottom: 22px; display: flex; gap: 6px; align-items: center; height: 44px; }
+.wave i { width: 6px; border-radius: 3px; background: var(--tirage); display: block; }
+.caret { display: inline-block; width: 3px; height: 32px; background: var(--tirage); vertical-align: -6px; margin-left: 2px; }
+.soft { display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 999px; font-size: 22px; font-weight: 600; background: var(--tirage-pale); color: var(--tirage); }
+
+/* Suivi */
+.rs { display: flex; align-items: center; gap: 22px; height: 104px; padding: 0 40px; }
+.rs b { display: block; font-size: 29px; font-weight: 600; letter-spacing: -.01em; }
+.rs span.s { font-size: 23px; color: var(--mine); }
+.rs .pill { margin-left: auto; min-width: 170px; justify-content: center; }
+
+/* Versions */
+.tab { padding: 14px 28px; border-radius: 999px; font-size: 29px; font-weight: 600; border: 2px solid var(--filet); color: var(--mine); background: #fff; }
+.tab.on { background: var(--encre); border-color: var(--encre); color: #fff; }
+.badge { display: inline-flex; align-items: center; gap: 14px; padding: 22px 34px; border-radius: 999px; background: var(--encre); color: #fff; font-size: 31px; font-weight: 600; box-shadow: 0 24px 50px -20px rgba(0,0,0,.5); }
+
+/* Planning */
+.gl { position: absolute; left: 0; width: 220px; font-size: 26px; font-weight: 600; }
+.gb { position: absolute; height: 42px; border-radius: 12px; background: var(--tirage-clair); overflow: hidden; transform-origin: left center; }
+.gb > div { height: 100%; background: var(--tirage); }
+.gm { position: absolute; font-size: 22px; font-weight: 600; color: var(--mine-clair); }
+
+/* Rapport */
+.page { position: absolute; background: #fff; border-radius: 10px; box-shadow: 0 40px 90px -30px rgba(28,28,26,.55); border: 2px solid var(--filet); padding: 40px 44px; }
+.prl { display: flex; align-items: center; gap: 14px; height: 48px; border-bottom: 2px solid var(--voile); font-size: 22px; }
+.prl .d { width: 16px; height: 16px; border-radius: 50%; flex: none; }
+.prl .ph { width: 44px; height: 32px; border-radius: 4px; background: linear-gradient(160deg, #c9c3b6, #948d80); }
+.export { display: inline-flex; align-items: center; gap: 14px; padding: 22px 32px; border-radius: 22px; background: #fff; border: 2px solid var(--filet); font-size: 30px; font-weight: 600; box-shadow: 0 20px 40px -24px rgba(28,28,26,.4); }
+.export i { font-style: normal; color: #fff; font-size: 20px; font-weight: 800; padding: 6px 10px; border-radius: 8px; }
+
+/* Invités */
+.mb { display: flex; align-items: center; gap: 24px; height: 124px; padding: 0 44px; }
+.av { width: 76px; height: 76px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 650; color: #fff; }
+.mb b { display: block; font-size: 30px; font-weight: 600; letter-spacing: -.01em; }
+.mb span.s { font-size: 23px; color: var(--mine); }
+.mb .tagr { margin-left: auto; padding: 10px 20px; border-radius: 999px; font-size: 23px; font-weight: 600; white-space: nowrap; }
+
+/* CTA */
+.cta { display: inline-flex; align-items: center; gap: 22px; padding: 40px 60px; border-radius: 999px; background: #fff; color: var(--encre); font-size: 50px; font-weight: 650; letter-spacing: -.02em;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); }
+
+#progress { position: absolute; left: 0; bottom: 0; height: 8px; background: rgba(255,255,255,.85); }
+
+#controls { margin-top: 18px; display: flex; gap: 12px; align-items: center; font: 600 14px 'Geist', system-ui, sans-serif; color: #c9c4bb; }
+#controls button { font: inherit; padding: 10px 18px; border-radius: 999px; border: 1px solid #3a3a3a; background: #1b1d22; color: #f2efe9; cursor: pointer; }
+#controls input { width: 260px; accent-color: #2c4f91; }
+:root[data-theme="light"] #controls { color: #555; }
+body.record #controls { display: none; }
+body.record { background: #000; }
+
+/* ----- Mode paysage (?land=1) : démo en boucle pour la page d'accueil, sans accroche ni fin ----- */
+body.land #viewport { width: 1920px; height: 1080px; }
+body.land #stage { background: var(--papier); }
+body.land #s1, body.land #s2, body.land #s7, body.land #bg-dark, body.land #bg-blue, body.land #progress, body.land #flash { display: none; }
+body.land .content { transform-origin: 0 0; }
+body.land .title { left: 130px; right: auto; width: 800px; top: 50%; transform: translateY(-50%); text-align: left; }
+body.land .h2 { font-size: 84px; }
+body.land .kicker { font-size: 30px; }
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+    <div class="layer" id="bg-dark"></div>
+    <div class="layer" id="bg-blue"></div>
+    <div class="layer" id="bg-light"></div>
+
+    <!-- Accroche -->
+    <div class="layer" id="s1">
+      <div id="chips"></div>
+      <div id="s1-text">
+        <div class="kicker" id="s1-k" style="color:var(--tirage-vif)">Architectes · MOD · AMO</div>
+        <div class="h1" id="s1-t" style="color:#fff;margin-top:34px"></div>
+      </div>
+    </div>
+
+    <!-- Logo : le pin tombe sur le calque -->
+    <div class="layer center" id="s2">
+      <div class="wrap">
+        <div style="position:relative;width:220px;height:352px">
+          <div id="s2-shadow" style="top:330px"></div>
+          <div class="ripple" id="rip1" style="top:300px"></div>
+          <div class="ripple" id="rip2" style="top:300px"></div>
+          <svg class="mark" id="mark" viewBox="0 -4 618 990" width="220" height="352"><path fill="#fff" fill-rule="evenodd" d="M342 980 C364 978 401 969 419 961 C446 950 460 942 476 932 C494 921 506 911 528 890 C544 874 564 848 578 825 C584 814 593 796 593 794 C593 794 593 792 594 791 C598 783 607 757 610 740 C616 713 617 702 617 674 C617 647 617 645 613 623 C610 608 605 588 601 577 C599 574 598 569 597 567 C596 565 595 562 594 560 C593 558 591 554 590 550 C586 542 581 532 577 526 C576 523 574 519 573 518 C572 516 569 511 566 507 C562 501 560 496 562 495 C564 494 586 450 590 438 C591 435 593 431 594 428 C597 421 604 400 606 390 C614 360 616 345 616 316 C617 293 617 290 614 272 C613 262 611 253 611 252 C611 252 610 247 609 242 C605 227 599 204 594 193 C593 191 592 188 591 186 C584 169 570 144 557 125 C546 109 524 85 509 73 C505 69 501 66 501 66 C500 65 488 56 481 51 C475 47 455 36 454 36 C454 36 452 35 452 34 C451 33 445 30 438 28 C431 25 425 22 424 22 C417 19 404 14 388 10 C378 7 362 4 350 2 C345 2 337 1 333 1 C298 -3 244 4 205 18 C192 22 168 34 157 40 C155 41 152 43 152 43 C151 44 149 45 148 46 C146 47 141 50 136 53 C116 66 92 87 76 106 C59 126 44 148 32 173 C30 179 27 184 26 186 C25 187 25 189 25 190 C25 190 24 192 23 194 C19 204 12 225 7 249 C5 257 3 272 1 292 C-0 315 2 348 7 371 C8 376 9 381 9 382 C9 382 9 386 11 390 C12 394 14 400 15 404 C17 411 19 416 21 425 C22 426 23 430 24 432 C25 435 26 438 27 439 C28 440 29 442 29 442 C29 444 52 492 55 496 L57 499L50 508 C21 552 3 604 0 658 C0 674 1 709 2 714 C3 716 4 720 4 724 C5 731 8 746 11 756 C12 759 13 763 13 764 C13 764 13 767 15 770 C16 773 17 778 19 781 C25 799 39 828 43 833 C44 833 45 834 45 835 C45 836 56 853 62 860 C77 881 104 907 124 921 C140 933 147 937 165 946 C174 951 195 960 208 965 C219 969 241 974 252 976 C256 977 263 978 267 979 C283 981 315 982 342 980Z M302 938 C279 937 254 933 240 929 C226 925 217 922 215 921 C213 920 211 920 211 920 C210 920 208 919 207 918 C205 917 201 915 197 914 C188 910 175 903 172 901 C172 900 171 900 170 900 C169 900 156 891 149 886 C147 884 144 882 143 881 C131 873 110 852 99 839 C88 825 76 806 68 790 C62 775 61 772 61 771 C61 771 60 769 59 768 C59 766 57 761 55 756 C54 751 52 745 51 742 C50 738 48 732 46 716 C45 713 44 702 44 692 C41 659 45 626 55 597 C56 593 57 590 57 590 C57 589 57 587 58 584 C59 582 61 577 63 573 C67 563 77 543 78 543 C79 543 82 546 84 550 C87 554 90 558 91 560 C92 561 93 563 93 563 C93 563 94 566 96 569 C103 579 108 587 109 588 C109 589 111 592 113 595 C115 598 118 603 120 606 C127 617 128 619 132 625 C137 632 138 633 140 638 C141 639 143 643 145 646 C147 648 149 651 149 651 C149 651 150 654 152 657 C155 660 162 672 169 683 C176 693 183 703 183 703 C186 705 187 705 189 701 C190 700 191 697 192 695 C194 693 196 689 199 685 C201 681 204 677 205 675 C206 673 207 670 209 669 C210 667 211 664 213 662 C214 660 216 657 217 655 C218 653 220 651 220 650 C225 643 227 638 232 632 C234 628 237 624 237 624 C237 624 256 595 262 587 C264 583 269 576 272 572 C287 550 315 514 338 487 C342 483 346 478 346 477 C346 475 344 475 319 475 C291 475 282 474 265 469 C262 468 258 468 257 468 C257 467 254 467 252 466 C250 464 247 464 247 464 C245 464 223 453 219 450 C217 449 215 448 215 448 C213 448 189 428 183 421 C170 407 162 396 155 381 C146 363 143 355 139 333 C136 319 136 286 139 273 C141 262 145 244 148 238 C150 233 158 216 160 213 C164 207 171 197 175 192 C184 180 204 163 216 155 C219 153 231 147 243 142 C244 141 255 138 266 134 C273 132 299 129 308 129 C317 129 342 132 352 134 C359 136 366 139 378 143 C383 145 396 152 402 156 C405 158 408 161 410 162 C418 168 428 176 435 184 C442 191 453 205 453 206 C453 206 454 208 455 210 C459 215 466 231 469 239 C480 269 483 303 478 334 C470 376 457 402 421 440 C398 466 382 485 344 535 C330 555 326 559 319 569 C318 571 313 578 309 584 C293 605 290 609 281 622 C273 634 241 681 240 684 C240 685 238 687 237 689 C236 691 234 694 233 696 C231 698 230 701 229 703 C227 704 226 707 225 709 C223 711 222 714 221 716 C220 717 217 722 216 725 C208 739 207 740 208 743 C209 745 247 802 267 832 C271 838 279 849 284 857 C302 884 309 892 311 892 C312 892 314 890 315 888 C317 886 320 881 322 878 C324 875 331 864 339 852 C347 841 358 823 364 814 C384 784 388 778 400 758 C409 743 413 738 420 727 C424 720 429 713 430 711 C431 709 434 706 435 704 C436 702 441 695 445 689 C449 682 457 669 463 659 C469 650 475 640 477 638 C478 635 484 626 490 616 C496 606 502 596 503 595 C509 586 524 561 529 552 C532 546 535 541 536 541 C537 540 539 542 541 545 C541 546 544 552 547 558 C554 572 555 574 557 580 C562 593 564 600 565 605 C566 608 567 612 567 614 C572 632 575 654 575 675 C575 689 572 717 570 724 C569 727 569 730 569 731 C569 732 568 736 567 740 C563 752 559 764 558 767 C554 778 552 782 548 790 C543 800 536 813 532 819 C530 822 527 825 526 827 C510 850 478 880 453 895 C452 896 449 898 447 900 C444 901 436 905 429 909 C421 913 413 917 411 918 C409 919 407 920 406 920 C406 920 404 920 403 921 C398 923 370 932 367 932 C366 932 363 932 360 933 C354 934 314 939 310 938 C309 938 305 938 302 938Z"/></svg>
+        </div>
+        <div id="s2-name">ZaynSpace</div>
+        <div id="s2-tag">Le chantier documenté<br>avant d'avoir quitté le site.</div>
+      </div>
+    </div>
+
+    <!-- Plans -->
+    <div class="layer scene" id="sPl">
+      <div class="title"><div class="kicker">Vos plans</div><div class="h2">Un PDF déposé,<br><span class="grad">chaque page un plan</span></div></div>
+      <div class="card abs" id="pl-card" style="left:80px;right:80px;top:640px;height:870px">
+        <div class="card-top"><span>Plans · Résidence Al Andalous</span><span class="r mono" id="pl-count">0 plan</span></div>
+        <div class="drop" id="pl-drop"><div class="file" id="pl-file"><i>PDF</i>Plans_APD_indice_A.pdf<span class="muted" style="font-size:24px;font-weight:500">6 pages</span></div></div>
+        <div id="pl-thumbs"></div>
+        <div class="abs" id="pl-opt" style="left:44px;right:44px;top:790px">
+          <div class="row" style="justify-content:space-between;font-size:25px;font-weight:600"><span id="pl-opt-t">Optimisation pour le mobile…</span><span class="mono muted" id="pl-opt-p">0 %</span></div>
+          <div class="bar" style="margin-top:14px"><div id="pl-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Réserves sur plan (téléphone) -->
+    <div class="layer scene" id="sPin">
+      <div class="title"><div class="kicker">Sur le chantier</div><div class="h2">Touchez le plan,<br><span class="grad">la réserve est posée</span></div></div>
+      <div class="phone" style="left:250px;top:610px">
+        <div class="screen" id="pin-screen">
+          <div class="island"></div><div class="sbar">9:41</div><div class="sbar-r" data-icons></div>
+          <div class="ph-head"><div><b>Résidence Al Andalous</b><span>Plan · Niveau R+1</span></div><span class="mono" id="pin-count" style="font-size:22px;font-weight:600;color:var(--encre)">0 réserve</span></div>
+          <div class="ph-plan" id="pin-plan"></div>
+          <div class="abs" style="left:0;right:0;top:693px;height:312px;overflow:hidden"><div id="pin-list"></div></div>
+          <div class="tool" id="pin-tool"><div class="ic" data-ic="layers"></div><div class="ic" data-ic="filter"></div><div class="plus" id="pin-plus" data-ic="plus"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fiche : photo, croquis, dictée (téléphone) -->
+    <div class="layer scene" id="sFi">
+      <div class="title"><div class="kicker">Photos et dictée</div><div class="h2">Photo, croquis,<br><span class="grad">remarque dictée</span></div></div>
+      <div class="phone" style="left:250px;top:610px">
+        <div class="screen">
+          <div class="island"></div><div class="sbar">9:41</div><div class="sbar-r" data-icons></div>
+          <div class="ph-head"><div><b>Résidence Al Andalous</b><span>Plan · Niveau R+1</span></div><span class="mono" style="font-size:22px;font-weight:600;color:var(--encre)">5 réserves</span></div>
+          <div class="ph-plan" id="fi-plan"></div>
+          <div class="layer" id="fi-dim" style="background:rgba(18,18,17,.35)"></div>
+          <div class="sheet" id="fi-sheet">
+            <div class="handle"></div>
+            <div class="abs row" style="left:34px;right:34px;top:42px;justify-content:space-between">
+              <div class="row" style="gap:16px"><span class="num" style="background:var(--alerte)">1</span><b style="font-size:33px;font-weight:650;letter-spacing:-.02em">Réserve n° 1</b></div>
+              <span class="pill" style="background:var(--alerte)">Bloquée</span>
+            </div>
+            <div class="abs muted" style="left:34px;top:104px;font-size:23px">Gros œuvre · Ent. Alami · échéance 25/11</div>
+            <div class="photo" id="fi-photo">
+              <svg width="480" height="280" viewBox="0 0 480 280" style="position:absolute;inset:0">
+                <defs><pattern id="beton" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="4" cy="5" r="1.4" fill="rgba(60,55,45,.18)"/><circle cx="13" cy="12" r="1" fill="rgba(255,255,255,.18)"/></pattern></defs>
+                <rect width="480" height="280" fill="url(#beton)"/>
+                <rect x="0" y="214" width="480" height="66" fill="rgba(70,64,54,.35)"/>
+                <path d="M232 212 L246 176 L238 150 L256 118 L250 92 L268 60 L262 34" fill="none" stroke="#3e3a33" stroke-width="5" stroke-linejoin="round"/>
+                <path d="M246 176 L270 168 M256 118 L238 104" fill="none" stroke="#3e3a33" stroke-width="3"/>
+                <ellipse id="fi-annot" cx="250" cy="128" rx="70" ry="110" fill="none" stroke="#e5483c" stroke-width="8" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-8 250 128)"/>
+              </svg>
+              <div class="layer" id="fi-flash" style="background:#fff;opacity:0"></div>
+              <span class="tag" style="left:16px;bottom:16px" data-ic="gps">Photo localisée</span>
+              <span class="tag" style="right:16px;top:16px">1 / 2</span>
+            </div>
+            <div class="abs row" style="left:34px;right:34px;top:446px;justify-content:space-between">
+              <span style="font-size:24px;font-weight:600">Remarque</span>
+              <span class="soft" id="fi-lang">Dictée · darija ou français</span>
+            </div>
+            <div class="field" id="fi-field"><span id="fi-text"></span><span class="caret" id="fi-caret"></span>
+              <div class="wave" id="fi-wave"></div>
+              <div class="mic"><div class="mic-ring" id="fi-r1"></div><div class="mic-ring" id="fi-r2"></div><span data-ic="mic"></span></div>
+            </div>
+            <div class="abs" id="fi-saved" style="left:34px;top:680px"><span class="pill" style="background:var(--valide)">Enregistrée ✓</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suivi des levées -->
+    <div class="layer scene" id="sSu">
+      <div class="title"><div class="kicker">Suivi des levées</div><div class="h2">Chaque réserve,<br><span class="grad">jusqu'à sa levée</span></div></div>
+      <div class="card abs" id="su-card" style="left:60px;right:60px;top:630px;overflow:hidden">
+        <div class="card-top"><span>Réserves · Niveau R+1</span><span class="r mono" id="su-count">1 / 7 levées</span></div>
+        <div style="padding:0 40px 26px"><div class="bar"><div id="su-bar" style="width:14%;background:var(--valide)"></div></div></div>
+        <div id="su-rows"></div>
+      </div>
+    </div>
+
+    <!-- Versions de plans -->
+    <div class="layer scene" id="sV">
+      <div class="title"><div class="kicker">Versions de plans</div><div class="h2">Nouvel indice ?<br><span class="grad">Les écarts ressortent</span></div></div>
+      <div class="card abs" id="v-card" style="left:60px;right:60px;top:630px;height:990px;overflow:hidden">
+        <div class="card-top"><span>Plan R+1 · Résidence Al Andalous</span><span class="r">indice</span></div>
+        <div class="row" style="gap:14px;padding:0 44px"><span class="tab on" id="v-ta">Indice A</span><span class="tab" id="v-tb">Indice B</span></div>
+        <div class="abs" id="v-plan" style="left:100px;top:200px;width:760px;height:709px">
+          <div class="layer" id="v-a"></div>
+          <div class="layer" id="v-b"></div>
+          <div class="layer" id="v-diff"></div>
+          <div class="abs" id="v-scan" style="top:0;bottom:0;width:6px;margin-left:-3px;background:var(--tirage);box-shadow:0 0 24px rgba(44,79,145,.6)"></div>
+          <div class="layer" id="v-pins"></div>
+        </div>
+        <div class="abs legend" id="v-legend" style="left:20px;right:20px;top:925px"><em style="--c:var(--tirage)">Ajouté</em><em style="--c:var(--alerte)">Supprimé</em><em style="--c:var(--encre)">Réserves à leur place</em></div>
+      </div>
+      <div class="abs" id="v-badge" style="left:0;right:0;top:1660px;display:flex;justify-content:center"><div class="badge"><span style="width:22px;height:22px;border-radius:50%;background:var(--tirage-vif)"></span>3 modifications détectées</div></div>
+    </div>
+
+    <!-- Planning -->
+    <div class="layer scene" id="sGa">
+      <div class="title"><div class="kicker">Planning</div><div class="h2">Lots et échéances,<br><span class="grad">d'un coup d'œil</span></div></div>
+      <div class="card abs" id="ga-card" style="left:60px;right:60px;top:630px;height:860px">
+        <div class="card-top"><span>Planning · Résidence Al Andalous</span><span class="r">nov. → avr.</span></div>
+        <div class="abs" id="ga-grid" style="left:44px;right:44px;top:120px;height:700px"></div>
+      </div>
+    </div>
+
+    <!-- Rapport -->
+    <div class="layer scene" id="sRa">
+      <div class="title"><div class="kicker">Rapport de visite</div><div class="h2">Le rapport,<br><span class="grad">prêt avant de partir</span></div></div>
+      <div class="card abs" id="ra-gen" style="left:80px;right:80px;top:620px;padding:34px 40px">
+        <div class="row" style="gap:20px">
+          <span style="width:64px;height:64px;border-radius:16px;background:var(--tirage-pale);color:var(--tirage);display:flex;align-items:center;justify-content:center" data-ic="file"></span>
+          <div><div style="font-size:31px;font-weight:650;letter-spacing:-.02em">Rapport de visite n° 12</div><div class="muted" style="font-size:23px">Niveau R+1 · 5 réserves · 9 photos</div></div>
+          <div class="btn" id="ra-btn" style="margin-left:auto">Générer</div>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:26px;font-size:24px;font-weight:600"><span id="ra-st">Plans, photos, statuts…</span><span class="mono muted" id="ra-p">0 %</span></div>
+        <div class="bar" style="margin-top:12px"><div id="ra-bar" style="width:0%"></div></div>
+      </div>
+      <div class="page" id="ra-page" style="left:200px;top:900px;width:680px;height:800px">
+        <div class="row" id="ra-h" style="justify-content:space-between">
+          <span class="row" style="gap:12px;font-size:24px;font-weight:650"><span style="width:28px;height:28px;border-radius:6px;background:var(--encre)"></span>Agence Benali</span>
+          <span style="background:var(--alerte);color:#fff;font-size:18px;font-weight:800;padding:5px 10px;border-radius:6px">PDF</span>
+        </div>
+        <div id="ra-t" style="margin-top:26px"><div style="font-size:36px;font-weight:650;letter-spacing:-.03em">Rapport de visite n° 12</div>
+          <div class="muted" style="font-size:20px;margin-top:4px">Résidence Al Andalous · Niveau R+1 · 18 novembre</div></div>
+        <div class="row" id="ra-m" style="gap:26px;margin-top:22px;align-items:stretch">
+          <div id="ra-plan" style="width:268px;height:252px;border-radius:8px;background:var(--papier);border:2px solid var(--voile);position:relative;flex:none"></div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
+            <div><b class="mono" style="font-size:44px">5</b> <span class="muted" style="font-size:21px">réserves</span></div>
+            <div class="row" style="gap:10px;font-size:21px"><span style="width:16px;height:16px;border-radius:50%;background:var(--alerte)"></span>2 bloquées</div>
+            <div class="row" style="gap:10px;font-size:21px"><span style="width:16px;height:16px;border-radius:50%;background:var(--tirage)"></span>2 à valider</div>
+            <div class="row" style="gap:10px;font-size:21px"><span style="width:16px;height:16px;border-radius:50%;background:var(--valide)"></span>1 levée</div>
+          </div>
+        </div>
+        <div id="ra-rows" style="margin-top:18px"></div>
+        <div class="row muted" id="ra-f" style="position:absolute;left:44px;right:44px;bottom:26px;justify-content:space-between;font-size:18px"><span>ZaynSpace</span><span>1 / 3</span></div>
+      </div>
+      <div class="abs row" id="ra-exports" style="left:0;right:0;top:1740px;justify-content:center;gap:28px">
+        <div class="export"><i style="background:var(--alerte)">PDF</i>Rapport PDF</div>
+        <div class="export"><i style="background:var(--word)">W</i>Version Word</div>
+      </div>
+    </div>
+
+    <!-- Invités -->
+    <div class="layer scene" id="sIn">
+      <div class="title"><div class="kicker">Invités gratuits</div><div class="h2">Vos entreprises,<br><span class="grad">invitées sans licence</span></div></div>
+      <div class="card abs" id="in-list" style="left:80px;right:80px;top:630px;overflow:hidden">
+        <div class="card-top"><span>Membres du projet</span><span class="r mono" id="in-count">0 invité</span></div>
+      </div>
+      <div class="card abs" id="in-total" style="left:80px;right:80px;top:1420px;padding:34px 44px">
+        <div class="row" style="justify-content:space-between;align-items:baseline">
+          <span style="font-size:31px;font-weight:650">Vos invités vous coûtent</span>
+          <span class="mono" style="font-size:60px;font-weight:700;color:var(--tirage)">0 MAD</span>
+        </div>
+        <div class="muted" style="font-size:24px;margin-top:6px">quel que soit leur nombre, chacun ne voit que ce qui le concerne</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="layer center" id="s7">
+      <div class="wrap">
+        <svg class="mark" id="mark2" viewBox="0 -4 618 990" width="140" height="224"><path fill="#fff" fill-rule="evenodd" d="M342 980 C364 978 401 969 419 961 C446 950 460 942 476 932 C494 921 506 911 528 890 C544 874 564 848 578 825 C584 814 593 796 593 794 C593 794 593 792 594 791 C598 783 607 757 610 740 C616 713 617 702 617 674 C617 647 617 645 613 623 C610 608 605 588 601 577 C599 574 598 569 597 567 C596 565 595 562 594 560 C593 558 591 554 590 550 C586 542 581 532 577 526 C576 523 574 519 573 518 C572 516 569 511 566 507 C562 501 560 496 562 495 C564 494 586 450 590 438 C591 435 593 431 594 428 C597 421 604 400 606 390 C614 360 616 345 616 316 C617 293 617 290 614 272 C613 262 611 253 611 252 C611 252 610 247 609 242 C605 227 599 204 594 193 C593 191 592 188 591 186 C584 169 570 144 557 125 C546 109 524 85 509 73 C505 69 501 66 501 66 C500 65 488 56 481 51 C475 47 455 36 454 36 C454 36 452 35 452 34 C451 33 445 30 438 28 C431 25 425 22 424 22 C417 19 404 14 388 10 C378 7 362 4 350 2 C345 2 337 1 333 1 C298 -3 244 4 205 18 C192 22 168 34 157 40 C155 41 152 43 152 43 C151 44 149 45 148 46 C146 47 141 50 136 53 C116 66 92 87 76 106 C59 126 44 148 32 173 C30 179 27 184 26 186 C25 187 25 189 25 190 C25 190 24 192 23 194 C19 204 12 225 7 249 C5 257 3 272 1 292 C-0 315 2 348 7 371 C8 376 9 381 9 382 C9 382 9 386 11 390 C12 394 14 400 15 404 C17 411 19 416 21 425 C22 426 23 430 24 432 C25 435 26 438 27 439 C28 440 29 442 29 442 C29 444 52 492 55 496 L57 499L50 508 C21 552 3 604 0 658 C0 674 1 709 2 714 C3 716 4 720 4 724 C5 731 8 746 11 756 C12 759 13 763 13 764 C13 764 13 767 15 770 C16 773 17 778 19 781 C25 799 39 828 43 833 C44 833 45 834 45 835 C45 836 56 853 62 860 C77 881 104 907 124 921 C140 933 147 937 165 946 C174 951 195 960 208 965 C219 969 241 974 252 976 C256 977 263 978 267 979 C283 981 315 982 342 980Z M302 938 C279 937 254 933 240 929 C226 925 217 922 215 921 C213 920 211 920 211 920 C210 920 208 919 207 918 C205 917 201 915 197 914 C188 910 175 903 172 901 C172 900 171 900 170 900 C169 900 156 891 149 886 C147 884 144 882 143 881 C131 873 110 852 99 839 C88 825 76 806 68 790 C62 775 61 772 61 771 C61 771 60 769 59 768 C59 766 57 761 55 756 C54 751 52 745 51 742 C50 738 48 732 46 716 C45 713 44 702 44 692 C41 659 45 626 55 597 C56 593 57 590 57 590 C57 589 57 587 58 584 C59 582 61 577 63 573 C67 563 77 543 78 543 C79 543 82 546 84 550 C87 554 90 558 91 560 C92 561 93 563 93 563 C93 563 94 566 96 569 C103 579 108 587 109 588 C109 589 111 592 113 595 C115 598 118 603 120 606 C127 617 128 619 132 625 C137 632 138 633 140 638 C141 639 143 643 145 646 C147 648 149 651 149 651 C149 651 150 654 152 657 C155 660 162 672 169 683 C176 693 183 703 183 703 C186 705 187 705 189 701 C190 700 191 697 192 695 C194 693 196 689 199 685 C201 681 204 677 205 675 C206 673 207 670 209 669 C210 667 211 664 213 662 C214 660 216 657 217 655 C218 653 220 651 220 650 C225 643 227 638 232 632 C234 628 237 624 237 624 C237 624 256 595 262 587 C264 583 269 576 272 572 C287 550 315 514 338 487 C342 483 346 478 346 477 C346 475 344 475 319 475 C291 475 282 474 265 469 C262 468 258 468 257 468 C257 467 254 467 252 466 C250 464 247 464 247 464 C245 464 223 453 219 450 C217 449 215 448 215 448 C213 448 189 428 183 421 C170 407 162 396 155 381 C146 363 143 355 139 333 C136 319 136 286 139 273 C141 262 145 244 148 238 C150 233 158 216 160 213 C164 207 171 197 175 192 C184 180 204 163 216 155 C219 153 231 147 243 142 C244 141 255 138 266 134 C273 132 299 129 308 129 C317 129 342 132 352 134 C359 136 366 139 378 143 C383 145 396 152 402 156 C405 158 408 161 410 162 C418 168 428 176 435 184 C442 191 453 205 453 206 C453 206 454 208 455 210 C459 215 466 231 469 239 C480 269 483 303 478 334 C470 376 457 402 421 440 C398 466 382 485 344 535 C330 555 326 559 319 569 C318 571 313 578 309 584 C293 605 290 609 281 622 C273 634 241 681 240 684 C240 685 238 687 237 689 C236 691 234 694 233 696 C231 698 230 701 229 703 C227 704 226 707 225 709 C223 711 222 714 221 716 C220 717 217 722 216 725 C208 739 207 740 208 743 C209 745 247 802 267 832 C271 838 279 849 284 857 C302 884 309 892 311 892 C312 892 314 890 315 888 C317 886 320 881 322 878 C324 875 331 864 339 852 C347 841 358 823 364 814 C384 784 388 778 400 758 C409 743 413 738 420 727 C424 720 429 713 430 711 C431 709 434 706 435 704 C436 702 441 695 445 689 C449 682 457 669 463 659 C469 650 475 640 477 638 C478 635 484 626 490 616 C496 606 502 596 503 595 C509 586 524 561 529 552 C532 546 535 541 536 541 C537 540 539 542 541 545 C541 546 544 552 547 558 C554 572 555 574 557 580 C562 593 564 600 565 605 C566 608 567 612 567 614 C572 632 575 654 575 675 C575 689 572 717 570 724 C569 727 569 730 569 731 C569 732 568 736 567 740 C563 752 559 764 558 767 C554 778 552 782 548 790 C543 800 536 813 532 819 C530 822 527 825 526 827 C510 850 478 880 453 895 C452 896 449 898 447 900 C444 901 436 905 429 909 C421 913 413 917 411 918 C409 919 407 920 406 920 C406 920 404 920 403 921 C398 923 370 932 367 932 C366 932 363 932 360 933 C354 934 314 939 310 938 C309 938 305 938 302 938Z"/></svg>
+        <div id="s7-t" class="h1" style="color:#fff;text-align:center;margin-top:70px;font-size:100px"></div>
+        <div id="s7-cta" style="margin-top:90px"><div class="cta">Essai gratuit 14 jours
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div>
+        <div id="s7-bio" style="margin-top:44px;font-size:40px;font-weight:600;color:rgba(255,255,255,.85)">zaynspace.com</div>
+      </div>
+    </div>
+
+    <div id="tap"></div>
+    <div class="layer" id="flash" style="background:#fff;opacity:0"></div>
+    <div id="progress"></div>
+  </div>
+</div>
+<div id="controls">
+  <button id="play">⏸ Pause</button>
+  <button id="restart">↺ Rejouer</button>
+  <input id="scrub" type="range" min="0" max="50" step="0.01" value="0">
+  <span id="time" class="mono">0.0 s</span>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const RECORD = params.has('record');
+const LAND = params.has('land');
+const H = LAND ? 1080 : 1920, WIDTH = LAND ? 1920 : 1080;
+document.body.classList.toggle('land', LAND);
+document.body.classList.toggle('record', RECORD);
+
+/* ---------- utilitaires ---------- */
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const easeOut = (p) => 1 - Math.pow(1 - p, 3);
+const easeIn = (p) => p * p * p;
+const easeInOut = (p) => (p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+const backOut = (p) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+const elastic = (p) => p === 0 || p === 1 ? p : Math.pow(2, -10 * p) * Math.sin((p * 10 - .75) * (2 * Math.PI) / 3) + 1;
+const bounce = (p) => { const n = 7.5625, d = 2.75;
+  if (p < 1 / d) return n * p * p; if (p < 2 / d) return n * (p -= 1.5 / d) * p + .75; if (p < 2.5 / d) return n * (p -= 2.25 / d) * p + .9375; return n * (p -= 2.625 / d) * p + .984375; };
+const vis = (t, a, b, fi = .35, fo = .35) => Math.min(prog(t, a, a + fi), 1 - prog(t, b - fo, b));
+const rand = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const set = (node, o) => { for (const k in o) node.style[k] = o[k]; };
+const el = (html) => { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstChild; };
+const slideIn = (node, p, dx = 0, dy = 30) => set(node, { opacity: p, transform: `translate(${(1 - p) * dx}px, ${(1 - p) * dy}px)` });
+const pop = (node, p) => set(node, { opacity: clamp(p), transform: `scale(${Math.max(0, p)})` });
+const plural = (n, s) => `${n} ${s}${n > 1 ? 's' : ''}`;
+
+/* icônes (traits lucide) */
+const IC = {
+  plus: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  layers: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>',
+  filter: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>',
+  mic: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></svg>',
+  gps: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  file: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>',
+};
+document.querySelectorAll('[data-ic]').forEach((n) => n.insertAdjacentHTML('afterbegin', IC[n.dataset.ic]));
+document.querySelectorAll('[data-icons]').forEach((n) => { n.innerHTML = '<svg width="30" height="20" viewBox="0 0 30 20"><rect x="0" y="12" width="5" height="8" rx="1"/><rect x="8" y="8" width="5" height="12" rx="1"/><rect x="16" y="4" width="5" height="16" rx="1"/><rect x="24" y="0" width="5" height="20" rx="1"/></svg><svg width="40" height="20" viewBox="0 0 40 20"><rect x="1" y="1" width="33" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="4" width="25" height="12" rx="2"/><rect x="36" y="7" width="3" height="6" rx="1"/></svg>'; });
+
+/* ---------- timeline ----------
+   Accroche (0–3,4 s) et logo (3,1–6,3 s) fixes ; les scènes s'enchaînent avec 0,3 s de fondu croisé. */
+const SCENES = [['sPl', 4.4], ['sPin', 4.9], ['sFi', 5.6], ['sSu', 4.6], ['sV', 4.6], ['sGa', 4.2], ['sRa', 5.2], ['sIn', 4.4], ['s7', 4.6]];
+const W = {};
+{ let s = 6.0; for (const [id, d] of SCENES) { W[id] = [s, s + d]; s += d - .3; } }
+// paysage : des plans aux invités, en boucle
+const T0 = LAND ? W.sPl[0] : 0;
+const DURATION = LAND ? W.sIn[1] - W.sPl[0] : W.s7[1];
+const FIT = {};
+let curScene = null;
+const toScreen = (x, y, id = curScene) => { const f = LAND && FIT[id]; return f ? [f.tx + x * f.k, f.ty + y * f.k] : [x, y]; };
+const S1 = [0, 3.4], S2 = [3.1, 6.3];
+const LAND_AT = 3.72; // le pin du logo touche le calque
+
+/* contenu des scènes (tout sauf le titre) dans un repère 1080×1920, réduit en paysage */
+document.querySelectorAll('.scene').forEach((sc) => {
+  const c = document.createElement('div'); c.className = 'content';
+  [...sc.children].filter((n) => !n.classList.contains('title')).forEach((n) => c.appendChild(n));
+  sc.appendChild(c);
+});
+// position d'un élément dans le repère de sa scène
+function center(node) {
+  let x = node.offsetWidth / 2, y = node.offsetHeight / 2, n = node;
+  while (n && !n.classList.contains('content')) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+  return [x, y];
+}
+
+/* ---------- textes animés mot par mot : « | » = ligne, *mot* = bleu, ~mot~ = surligné ---------- */
+const wordsHTML = (s) => s.split(/\s+/).map((w) => {
+  if (w === '|') return '<br>';
+  if (/^\*.+\*$/.test(w)) return `<span class="word grad">${w.slice(1, -1)}</span>`;
+  if (/^~.+~$/.test(w)) return `<span class="word hi">${w.slice(1, -1)}</span>`;
+  return `<span class="word">${w}</span>`;
+}).join(' ');
+$('s1-t').innerHTML = wordsHTML('Vos réserves | sur *WhatsApp* | et un carnet ?');
+$('s7-t').innerHTML = wordsHTML('Votre prochaine | visite, | ~rapport~ ~compris.~');
+
+/* ---------- plan type (components/landing/PlanDemo.tsx) ---------- */
+const STATUT = { bloque: ['Bloquée', 'var(--alerte)'], valider: ['À valider', 'var(--tirage)'], leve: ['Levée', 'var(--valide)'] };
+const RESERVES = [
+  [140, 120, 'bloque', 'Fissure en pied de voile', 'Gros œuvre'],
+  [400, 95, 'valider', 'Prise manquante, chambre 1', 'Électricité'],
+  [255, 380, 'bloque', 'Fuite au raccord EF, SDB', 'Plomberie'],
+  [90, 420, 'valider', "Reprise d'enduit, cuisine", 'Peinture'],
+  [470, 430, 'leve', 'Garde-corps conforme', 'Serrurerie'],
+];
+const MURS_A = 'M0 250H320M320 0V520M320 290H560M180 250V520M440 290V520';
+const MURS_B = 'M0 250H320M320 0V520M320 290H560M240 250V520M440 290V520M0 340H110';
+const PORTES_A = 'M80 250h44M230 250h44M360 290h44M480 290h44M180 360v40M320 120v40';
+const PORTES_B = 'M80 250h44M270 250h44M360 290h44M480 290h44M240 360v40M320 120v40';
+let gid = 0;
+function planSVG(w, { murs = MURS_A, portes = PORTES_A, grille = true, labels = true, extra = '', seul = false } = {}) {
+  const h = w * 560 / 600, id = 'g' + (gid++);
+  return `<svg viewBox="0 0 600 560" width="${w}" height="${h}" style="display:block">
+    ${grille ? `<defs><pattern id="${id}" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#e4e4e0" stroke-width=".8"/></pattern></defs><rect width="600" height="560" fill="url(#${id})"/>` : ''}
+    <g transform="translate(20 20)">${seul ? extra : `
+      <g fill="none" stroke="#1c1c1a" stroke-linecap="square"><rect x="0" y="0" width="560" height="520" stroke-width="6"/><path d="${murs}" stroke-width="3.5"/></g>
+      <path d="${portes}" stroke="#f8f8f6" stroke-width="8"/>
+      <g stroke="#b9b9b3" stroke-width="1.2">${Array.from({ length: 9 }, (_, i) => `<path d="M${440 + i * 12} 24v170"/>`).join('')}</g>
+      ${labels ? `<g fill="#8a8a84" font-size="16" font-family="Geist, system-ui" text-anchor="middle"><text x="160" y="190">Séjour</text><text x="380" y="240">Chambre 1</text><text x="90" y="490">Cuisine</text><text x="250" y="490">SDB</text><text x="500" y="490">Chambre 2</text></g>` : ''}
+      ${extra}`}
+    </g></svg>`;
+}
+const pinXY = (r, w) => { const k = w / 600; return [(r[0] + 20) * k, (r[1] + 20) * k]; };
+function addPins(container, w, size = 50, numbers = true) {
+  return RESERVES.map((r, i) => {
+    const [x, y] = pinXY(r, w);
+    const ring = container.appendChild(el(`<div class="ring" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;background:${STATUT[r[2]][1]}"></div>`));
+    const p = container.appendChild(el(`<div class="pin" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;background:${STATUT[r[2]][1]};font-size:${size * .44}px;border-width:${size / 10}px">${numbers ? i + 1 : ''}</div>`));
+    return { p, ring };
+  });
+}
+
+/* ---------- construction ---------- */
+// Accroche : l'information dispersée
+const CHIPS = [['Groupe WhatsApp Chantier', '#25d366', '✆'], ['CR_visite_v3_final.docx', '#2b579a', 'W'], ['Plan_R+1_annoté.pdf', '#a8322a', 'P'], ['Note vocale · 0:47', '#25d366', '▶'],
+  ['IMG_4127 … IMG_4398', '#5b5b56', '▣'], ['Réserves.xlsx', '#1f7a45', 'X'], ['Carnet de visite', '#b7791f', '!'], ['Fissure, où déjà ?', '#a8322a', '?']];
+const CHIP_POS = [[60, 200], [430, 330], [80, 450], [560, 1330], [70, 1460], [600, 1580], [160, 1680], [600, 500]];
+const chipEls = CHIPS.map(([label, c, g]) => $('chips').appendChild(el(`<div class="chip"><i style="background:${c}">${g}</i>${label}</div>`)));
+
+// Plans : un PDF, six planches
+const PLANCHES = [
+  ['RDC', 'M10 45H70M70 8V100M70 55H150M40 45V100M120 55V100'],
+  ['R+1', 'M10 50H80M80 8V100M80 60H150M45 50V100M120 60V100'],
+  ['R+2', 'M10 40H60M60 8V100M60 52H150M100 52V100M35 40V100'],
+  ['Terrasse', 'M10 70H150M90 8V70M40 70V100'],
+  ['Façade sud', null],
+  ['Coupe AA', null],
+];
+const thumbs = PLANCHES.map(([lb, murs], i) => {
+  const x = 44 + (i % 3) * 284, y = 300 + Math.floor(i / 3) * 236;
+  let svg;
+  if (murs) svg = `<svg viewBox="0 0 160 108" width="200" height="135"><g fill="none" stroke="#1c1c1a" stroke-linecap="square"><rect x="10" y="8" width="140" height="92" stroke-width="3"/><path d="${murs}" stroke-width="1.8"/></g></svg>`;
+  else if (lb.startsWith('Façade')) svg = `<svg viewBox="0 0 160 108" width="200" height="135"><g fill="none" stroke="#1c1c1a"><path d="M10 100H150" stroke-width="3"/><rect x="25" y="20" width="110" height="80" stroke-width="2.4"/>${[0, 1, 2].map((r) => [0, 1, 2, 3].map((c) => `<rect x="${34 + c * 25}" y="${28 + r * 22}" width="15" height="14" stroke-width="1.4"/>`).join('')).join('')}</g></svg>`;
+  else svg = `<svg viewBox="0 0 160 108" width="200" height="135"><g fill="none" stroke="#1c1c1a"><path d="M10 100H150" stroke-width="3"/><path d="M25 100V18H135V100M25 45H135M25 72H135" stroke-width="2.2"/><path d="M60 100V18M100 45V100" stroke-width="1.2" stroke-dasharray="4 3"/></g></svg>`;
+  const d = $('pl-card').appendChild(el(`<div class="thumb" style="left:${x}px;top:${y}px"><div class="pv">${svg}</div><div class="lb"><span>${lb}</span><span class="ok">✓</span></div></div>`));
+  return { d, ok: d.querySelector('.ok') };
+});
+
+// Réserves sur plan (téléphone)
+$('pin-plan').innerHTML = planSVG(548);
+const pinMarks = addPins($('pin-plan'), 548, 46);
+const pinRows = RESERVES.map((r, i) => $('pin-list').appendChild(el(`<div class="prow"><span class="num" style="background:${STATUT[r[2]][1]}">${i + 1}</span><div><b>${r[3]}</b><span>${r[4]} · ${STATUT[r[2]][0]}</span></div></div>`)));
+const PIN_AT = [0.95, 1.5, 2.05, 2.6, 3.15];
+const PLUS_AT = 0.5;
+
+// Fiche (téléphone)
+$('fi-plan').innerHTML = planSVG(548);
+const fiMarks = addPins($('fi-plan'), 548, 46);
+const waveBars = Array.from({ length: 16 }, () => $('fi-wave').appendChild(document.createElement('i')));
+const DICTEE = "Fissure en pied de voile, à reprendre avant l'enduit.";
+const FI = { sheet: .25, photo: .85, annot: 1.45, listen: 2.2, typeA: 2.45, typeB: 4.05, saved: 4.35 };
+
+// Suivi des levées : [titre, lot · entreprise, statut initial, [instant, statut]…]
+const SUIVI = [
+  ['Fissure en pied de voile', 'Gros œuvre · Ent. Alami', 'bloque', [[1.3, 'valider'], [2.7, 'leve']]],
+  ['Prise manquante, chambre 1', 'Électricité · Élec Nour', 'valider', [[1.7, 'leve']]],
+  ['Fuite au raccord EF, SDB', 'Plomberie · Sanit Plus', 'bloque', [[2.1, 'valider']]],
+  ["Reprise d'enduit, cuisine", 'Peinture · Déco Line', 'valider', [[2.4, 'leve']]],
+  ['Garde-corps conforme', 'Serrurerie · Métal Sud', 'leve', []],
+  ['Joint de carrelage, séjour', 'Revêtements · Zellige & Co', 'bloque', []],
+  ['Porte palière à régler', 'Menuiserie · Bois Idrissi', 'valider', [[3.0, 'leve']]],
+];
+const suRows = SUIVI.map(([t, s], i) => {
+  const d = $('su-rows').appendChild(el(`<div class="rs line"><span class="num">${i + 1}</span><div><b>${t}</b><span class="s">${s}</span></div><span class="pill"></span></div>`));
+  return { d, num: d.querySelector('.num'), pill: d.querySelector('.pill') };
+});
+const SU_FLIPS = SUIVI.flatMap((r) => r[3].map((f) => f[0])).sort((a, b) => a - b);
+
+// Versions de plans : indice A, indice B, écarts
+$('v-a').innerHTML = planSVG(760);
+$('v-b').innerHTML = planSVG(760, { murs: MURS_B, portes: PORTES_B });
+$('v-diff').innerHTML = planSVG(760, { grille: false, seul: true, extra: `
+  <g stroke-linecap="square" fill="none">
+    <path class="v-add" d="M240 250V520" stroke="#2c4f91" stroke-width="12"/>
+    <path class="v-add" d="M0 340H110" stroke="#2c4f91" stroke-width="12"/>
+    <path class="v-del" d="M180 250V520" stroke="#a8322a" stroke-width="9" stroke-dasharray="16 12"/>
+  </g>` });
+const vPins = addPins($('v-pins'), 760, 40, false);
+const V_SWITCH = 1.2;
+
+// Planning : [lot, début, fin (fraction de nov. → avr.), en retard]
+const LOTS = [['Gros œuvre', 0, .36], ['Plomberie', .22, .52], ['Électricité', .30, .60, true], ['Menuiserie', .48, .76], ['Revêtements', .58, .88], ['Peinture', .70, .94]];
+const GA_X = 230, GA_W = 872 - GA_X - 40, GA_TODAY = .44;
+['Nov.', 'Déc.', 'Janv.', 'Févr.', 'Mars', 'Avr.'].forEach((m, i) => {
+  $('ga-grid').appendChild(el(`<div class="gm" style="left:${GA_X + i * GA_W / 6 + 8}px;top:0">${m}</div>`));
+  $('ga-grid').appendChild(el(`<div class="abs" style="left:${GA_X + i * GA_W / 6}px;top:44px;bottom:0;border-left:2px dashed var(--voile)"></div>`));
+});
+const gaRows = LOTS.map(([n, a, b, late], i) => {
+  const y = 70 + i * 92;
+  const lb = $('ga-grid').appendChild(el(`<div class="gl" style="top:${y + 6}px">${n}</div>`));
+  const bar = $('ga-grid').appendChild(el(`<div class="gb" style="left:${GA_X + a * GA_W}px;top:${y}px;width:${(b - a) * GA_W}px${late ? ';background:#ecc9c3' : ''}"><div style="width:0%${late ? ';background:var(--alerte)' : ''}"></div></div>`));
+  const tag = late ? $('ga-grid').appendChild(el(`<div class="abs pill" style="left:${GA_X + b * GA_W + 14}px;top:${y + 2}px;background:var(--alerte);font-size:20px;padding:6px 14px">2 j de retard</div>`)) : null;
+  return { lb, bar, fill: bar.firstChild, a, b, tag };
+});
+const gaMile = $('ga-grid').appendChild(el(`<div class="abs row" style="right:${872 - GA_X - .955 * GA_W - 17}px;top:${70 + 6 * 92 - 4}px;gap:14px;font-size:24px;font-weight:600;transform-origin:right center">Réception<span style="width:34px;height:34px;background:var(--encre);transform:rotate(45deg);border-radius:4px;display:block"></span></div>`));
+const gaToday = $('ga-grid').appendChild(el(`<div class="abs" style="top:30px;bottom:30px;width:4px;margin-left:-2px;background:var(--tirage)"><span class="pill" style="position:absolute;bottom:-46px;left:-66px;background:var(--tirage);font-size:20px;padding:6px 14px">aujourd'hui</span></div>`));
+
+// Rapport
+$('ra-plan').innerHTML = planSVG(264, { labels: false, grille: false });
+RESERVES.forEach((r) => { const [x, y] = pinXY(r, 264); $('ra-plan').appendChild(el(`<div class="pin" style="left:${x + 2}px;top:${y + 2}px;width:20px;height:20px;margin:-10px 0 0 -10px;border-width:3px;background:${STATUT[r[2]][1]}"></div>`)); });
+const raRows = RESERVES.map((r, i) => $('ra-rows').appendChild(el(`<div class="prl"><span class="d" style="background:${STATUT[r[2]][1]}"></span><span style="font-weight:600">${i + 1}. ${r[3]}</span><span class="muted" style="font-size:18px">${r[4]}</span><span style="margin-left:auto;display:flex;gap:6px"><span class="ph"></span>${i % 2 ? '' : '<span class="ph"></span>'}</span></div>`)));
+const RA = { tap: .7, gen: [.85, 1.95], page: 1.9 };
+
+// Invités
+const MEMBRES = [
+  ['AB', 'var(--encre)', 'Agence Benali', 'Architecte · vous', 'Licence', 'var(--encre)', '#fff'],
+  ['EA', '#7a5b2e', 'Ent. Alami', 'Gros œuvre · voit ses réserves', 'Invité · gratuit', 'var(--tirage-pale)', 'var(--tirage)'],
+  ['SP', '#3d6f8f', 'Sanit Plus', 'Plomberie · voit ses réserves', 'Invité · gratuit', 'var(--tirage-pale)', 'var(--tirage)'],
+  ['BC', '#5b4a8a', 'Bureau de contrôle Nour', 'Contrôle technique', 'Invité · gratuit', 'var(--tirage-pale)', 'var(--tirage)'],
+  ['MO', 'var(--valide)', "SCI Al Andalous", "Maître d'ouvrage · lecture", 'Invité · gratuit', 'var(--tirage-pale)', 'var(--tirage)'],
+];
+const inRows = MEMBRES.map(([ini, c, n, r, tg, bg, fg]) => $('in-list').appendChild(el(`<div class="mb line"><span class="av" style="background:${c}">${ini}</span><div><b>${n}</b><span class="s">${r}</span></div><span class="tagr" style="background:${bg};color:${fg}">${tg}</span></div>`)));
+const IN_AT = [.4, 1.0, 1.4, 1.8, 2.2];
+
+/* paysage : chaque scène cadrée et centrée dans la moitié droite (x 1000–1820, y 90–990) */
+if (LAND) document.querySelectorAll('.scene').forEach((sc) => {
+  const c = sc.querySelector('.content');
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  c.querySelectorAll('*').forEach((n) => {
+    if (n.offsetParent !== c || !n.offsetWidth) return;
+    x0 = Math.min(x0, n.offsetLeft); y0 = Math.min(y0, n.offsetTop);
+    x1 = Math.max(x1, n.offsetLeft + n.offsetWidth); y1 = Math.max(y1, n.offsetTop + n.offsetHeight);
+  });
+  const k = Math.min(820 / (x1 - x0), 900 / (y1 - y0), 1);
+  const f = { k, tx: 1000 + (820 - (x1 - x0) * k) / 2 - x0 * k, ty: 90 + (900 - (y1 - y0) * k) / 2 - y0 * k };
+  FIT[sc.id] = f;
+  c.style.transform = `translate(${f.tx}px, ${f.ty}px) scale(${k})`;
+});
+
+/* ---------- rendu ---------- */
+function words(container, t, start, step, dur = .45) {
+  container.querySelectorAll('.word').forEach((w, i) => {
+    const p = prog(t, start + i * step, start + i * step + dur);
+    set(w, { opacity: easeOut(p), transform: `translateY(${(1 - backOut(p)) * 60}px) scale(${lerp(.9, 1, easeOut(p))})` });
+  });
+}
+function scene(id, t) {
+  const node = $(id), w = W[id];
+  if (t < w[0] || t > w[1]) { node.style.visibility = 'hidden'; return null; }
+  const [a, b] = w;
+  const pin = easeOut(prog(t, a, a + .5)), pout = easeIn(prog(t, b - .35, b));
+  set(node, { visibility: 'visible', opacity: Math.min(prog(t, a, a + .3), 1 - pout), transform: `translateY(${(1 - pin) * 80 - pout * 120}px) scale(${1 - pout * .04})` });
+  return t - a;
+}
+let tapState = null;
+const tapAt = (xy, p) => { if (p > 0 && p < 1) tapState = [...toScreen(xy[0], xy[1]), p]; };
+// pin qui tombe sur le plan, avec son onde
+function dropPin({ p: pin, ring }, lt, at) {
+  const p = prog(lt, at, at + .4);
+  set(pin, { opacity: clamp(p * 3), transform: `translateY(${(1 - easeOut(clamp(p * 1.4))) * -60}px) scale(${p > 0 ? lerp(.6, 1, backOut(p)) : 0})` });
+  const rp = prog(lt, at + .2, at + 1.0);
+  set(ring, { opacity: rp > 0 && rp < 1 ? .45 * (1 - rp) : 0, transform: `scale(${1 + rp * 1.6})` });
+}
+function setStatut(node, st, pulse = 0) {
+  node.textContent = STATUT[st][0]; node.style.background = STATUT[st][1];
+  node.style.transform = `scale(${1 + .18 * pulse})`;
+}
+
+function render(out) {
+  const t = out + T0;
+  tapState = null;
+  /* fonds */
+  $('bg-blue').style.opacity = Math.max(vis(t, S2[0] + .1, S2[1] + .2, .3, .4), vis(t, W.s7[0], DURATION + .5, .5, .01));
+  $('bg-light').style.opacity = vis(t, W.sPl[0], W.s7[0] + .3, .45, .4);
+
+  /* accroche */
+  set($('s1'), { opacity: 1 - prog(t, S1[1] - .25, S1[1]), visibility: t > S1[1] ? 'hidden' : 'visible' });
+  const suck = easeIn(prog(t, 2.6, 3.25)), kp = easeOut(prog(t, .1, .5));
+  set($('s1-k'), { opacity: Math.min(kp, 1 - suck), transform: `translateY(${(1 - kp) * 30}px)` });
+  words($('s1-t'), t, .3, .12);
+  set($('s1-t'), { transform: `scale(${1 - suck * .25})`, opacity: 1 - suck });
+  chipEls.forEach((c, i) => {
+    const [x, y] = CHIP_POS[i], p = backOut(prog(t, .5 + i * .14, .95 + i * .14));
+    const rot = (rand(i + 9) - .5) * 16 + Math.sin(t * 2.2 + i) * 3;
+    set(c, { opacity: Math.min(clamp(p * 1.4), 1 - suck), transform: `translate(${lerp(x, 330, suck)}px, ${lerp(y + Math.sin(t * 3 + i * 1.7) * 10, H / 2 - 60, suck)}px) rotate(${rot * (1 - suck) + suck * 180}deg) scale(${p * (1 - suck * .8)})` });
+  });
+  $('flash').style.opacity = Math.max(0, 1 - Math.abs(t - 3.2) / .18) * .85;
+
+  /* logo : le pin tombe, rebondit, le calque ondule */
+  set($('s2'), { opacity: Math.min(prog(t, S2[0], S2[0] + .15), 1 - prog(t, S2[1] - .35, S2[1])), visibility: (t < S2[0] || t > S2[1]) ? 'hidden' : 'visible', transform: `scale(${1 + easeIn(prog(t, S2[1] - .35, S2[1])) * .15})` });
+  const fall = prog(t, 3.2, 3.2 + (LAND_AT - 3.2) * 2.75); // 1er contact du rebond à LAND_AT
+  const yb = (1 - bounce(fall)) * -620;
+  const squash = 1 - .14 * Math.sin(prog(t, LAND_AT - .02, LAND_AT + .2) * Math.PI);
+  set($('mark'), { transform: `translateY(${yb}px) scale(${2 - squash}, ${squash})`, transformOrigin: '50% 100%', opacity: clamp(prog(t, 3.2, 3.3)) });
+  set($('s2-shadow'), { opacity: clamp(1 + yb / 620) * .9, transform: `scale(${lerp(.3, 1, clamp(1 + yb / 620))})` });
+  [[$('rip1'), LAND_AT], [$('rip2'), LAND_AT + .18]].forEach(([r, a]) => {
+    const rp = prog(t, a, a + .75);
+    set(r, { opacity: rp > 0 && rp < 1 ? (1 - rp) * .8 : 0, transform: `scale(${1 + easeOut(rp) * 1.5})` });
+  });
+  const np = easeOut(prog(t, 4.0, 4.6));
+  set($('s2-name'), { opacity: np, transform: `translateY(${(1 - np) * 50}px)`, letterSpacing: `${lerp(.1, -.045, np)}em` });
+  slideIn($('s2-tag'), easeOut(prog(t, 4.5, 5.1)));
+
+  /* plans : le PDF se dépose, les planches sortent */
+  let lt = scene('sPl', t);
+  curScene = 'sPl';
+  if (lt !== null) {
+    const fp = prog(lt, .35, .9);
+    set($('pl-file'), { opacity: clamp(fp * 3), transform: `translateY(${(1 - bounce(fp)) * -180}px) rotate(${(1 - easeOut(fp)) * -6}deg)` });
+    const ab = easeIn(prog(lt, 1.15, 1.45));
+    $('pl-drop').style.borderColor = lt > .8 && lt < 1.5 ? 'var(--tirage)' : 'var(--filet-fort)';
+    $('pl-drop').style.background = lt > .8 && lt < 1.5 ? 'var(--tirage-pale)' : 'transparent';
+    set($('pl-file'), { scale: `${1 - ab * .3}` });
+    let n = 0;
+    thumbs.forEach(({ d, ok }, i) => {
+      const p = backOut(prog(lt, 1.35 + i * .13, 1.75 + i * .13));
+      if (p > .5) n++;
+      set(d, { opacity: clamp(p), transform: `translate(${(1 - clamp(p)) * (440 - (44 + (i % 3) * 284))}px, ${(1 - clamp(p)) * -(Math.floor(i / 3) * 236 + 110)}px) scale(${lerp(.4, 1, clamp(p))})` });
+      pop(ok, backOut(prog(lt, 2.3 + i * .2, 2.6 + i * .2)));
+    });
+    $('pl-count').textContent = plural(n, 'plan');
+    const op = easeInOut(prog(lt, 2.2, 3.5));
+    $('pl-bar').style.width = (op * 100) + '%';
+    $('pl-opt-p').textContent = Math.round(op * 100) + ' %';
+    $('pl-opt-t').textContent = op >= 1 ? 'Prêts sur le web et sur le téléphone ✓' : 'Optimisation pour le mobile…';
+    $('pl-opt-t').style.color = op >= 1 ? 'var(--valide)' : 'var(--encre)';
+    slideIn($('pl-opt'), easeOut(prog(lt, 2.0, 2.4)), 0, 20);
+  }
+
+  /* réserves sur plan : appui sur +, puis un toucher par réserve */
+  lt = scene('sPin', t);
+  curScene = 'sPin';
+  if (lt !== null) {
+    $('pin-plus').style.transform = `scale(${1 - .12 * Math.sin(prog(lt, PLUS_AT - .1, PLUS_AT + .2) * Math.PI)})`;
+    $('pin-plus').style.background = lt > PLUS_AT + .1 ? 'var(--tirage)' : 'var(--encre)';
+    tapAt(center($('pin-plus')), prog(lt, PLUS_AT - .3, PLUS_AT + .25));
+    let n = 0;
+    pinMarks.forEach((m, i) => {
+      dropPin(m, lt, PIN_AT[i]);
+      if (lt > PIN_AT[i] + .1) n++;
+      tapAt(center(m.p), prog(lt, PIN_AT[i] - .3, PIN_AT[i] + .2));
+      slideIn(pinRows[i], easeOut(prog(lt, PIN_AT[i] + .2, PIN_AT[i] + .5)), 60, 0);
+    });
+    let shift = 0;
+    PIN_AT.forEach((a, i) => { if (i >= 3) shift += easeInOut(prog(lt, a + .1, a + .45)); });
+    $('pin-list').style.transform = `translateY(${-shift * 104}px)`;
+    $('pin-count').textContent = plural(n, 'réserve');
+  }
+
+  /* fiche : photo, croquis, dictée */
+  lt = scene('sFi', t);
+  curScene = 'sFi';
+  if (lt !== null) {
+    fiMarks.forEach((m, i) => { set(m.p, { opacity: i === 0 ? 1 : .55, transform: `scale(${i === 0 ? 1.2 : 1})` }); });
+    const sp = easeOut(prog(lt, FI.sheet, FI.sheet + .55));
+    $('fi-sheet').style.transform = `translateY(${(1 - sp) * 780}px)`;
+    $('fi-dim').style.opacity = sp;
+    const ph = easeOut(prog(lt, FI.photo, FI.photo + .4));
+    set($('fi-photo'), { opacity: ph, transform: `scale(${lerp(.92, 1, ph)})` });
+    $('fi-flash').style.opacity = Math.max(0, 1 - Math.abs(lt - FI.photo - .05) / .15);
+    $('fi-annot').style.strokeDashoffset = 1 - easeInOut(prog(lt, FI.annot, FI.annot + .6));
+    const listening = lt > FI.listen && lt < FI.typeB + .1;
+    $('fi-field').classList.toggle('on', listening);
+    [$('fi-r1'), $('fi-r2')].forEach((r, k) => {
+      const ph2 = ((lt - FI.listen) * 1.4 + k * .5) % 1;
+      set(r, { opacity: listening ? (1 - ph2) * .8 : 0, transform: `scale(${1 + ph2 * .8})` });
+    });
+    waveBars.forEach((b, i) => { b.style.height = (listening ? 8 + 34 * Math.abs(Math.sin(lt * 9 + i * 1.3) * Math.sin(lt * 3.1 + i * .7)) : 6) + 'px'; b.style.opacity = listening ? 1 : 0; });
+    tapAt(center(document.querySelector('#sFi .mic')), prog(lt, FI.listen - .3, FI.listen + .2));
+    const nc = Math.round(DICTEE.length * prog(lt, FI.typeA, FI.typeB));
+    $('fi-text').textContent = DICTEE.slice(0, nc);
+    $('fi-caret').style.opacity = listening && Math.floor(lt * 3) % 2 === 0 ? 1 : (listening ? .2 : 0);
+    $('fi-lang').style.background = listening ? 'var(--tirage)' : 'var(--tirage-pale)';
+    $('fi-lang').style.color = listening ? '#fff' : 'var(--tirage)';
+    const sv = backOut(prog(lt, FI.saved, FI.saved + .35));
+    set($('fi-saved'), { opacity: clamp(sv), transform: `scale(${Math.max(0, sv)})`, transformOrigin: '0 50%' });
+  }
+
+  /* suivi : les statuts avancent jusqu'à la levée */
+  lt = scene('sSu', t);
+  curScene = 'sSu';
+  if (lt !== null) {
+    let leve = 0;
+    suRows.forEach(({ d, num, pill }, i) => {
+      slideIn(d, easeOut(prog(lt, .3 + i * .07, .7 + i * .07)), 0, 20);
+      const [, , st0, flips] = SUIVI[i];
+      let st = st0, pulse = 0;
+      flips.forEach(([a, s]) => { if (lt > a) st = s; pulse = Math.max(pulse, Math.sin(prog(lt, a - .05, a + .25) * Math.PI)); });
+      setStatut(pill, st, pulse);
+      num.style.background = STATUT[st][1];
+      d.style.background = pulse > .05 ? (st === 'leve' ? 'var(--valide-pale)' : 'var(--tirage-pale)') : '#fff';
+      if (st === 'leve') leve++;
+    });
+    $('su-count').textContent = `${leve} / 7 levées`;
+    $('su-bar').style.width = (leve / 7 * 100) + '%';
+  }
+
+  /* versions : l'indice B balaie l'indice A, les écarts ressortent */
+  lt = scene('sV', t);
+  curScene = 'sV';
+  if (lt !== null) {
+    set($('v-plan'), { opacity: easeOut(prog(lt, .3, .7)) });
+    const on = lt > V_SWITCH;
+    $('v-ta').classList.toggle('on', !on); $('v-tb').classList.toggle('on', on);
+    $('v-tb').style.transform = `scale(${1 - .1 * Math.sin(prog(lt, V_SWITCH - .1, V_SWITCH + .2) * Math.PI)})`;
+    tapAt(center($('v-tb')), prog(lt, V_SWITCH - .3, V_SWITCH + .2));
+    const wp = easeInOut(prog(lt, V_SWITCH + .1, V_SWITCH + 1.0));
+    $('v-b').style.clipPath = `inset(0 ${(1 - wp) * 100}% 0 0)`;
+    set($('v-scan'), { left: `${wp * 760}px`, opacity: wp > 0 && wp < 1 ? 1 : 0 });
+    const dp = prog(lt, V_SWITCH + 1.05, V_SWITCH + 1.5);
+    const glow = 1 + .5 * Math.max(0, Math.sin((lt - V_SWITCH - 1.05) * 6)) * (lt < V_SWITCH + 2.6 ? 1 : 0);
+    $('v-diff').querySelectorAll('.v-add, .v-del').forEach((p, i) => { p.style.opacity = easeOut(prog(lt, V_SWITCH + 1.05 + i * .15, V_SWITCH + 1.4 + i * .15)) * .9; p.style.strokeWidth = (p.classList.contains('v-del') ? 9 : 12) * (dp >= 1 ? glow : 1); });
+    vPins.forEach((m, i) => dropPin(m, lt, .5 + i * .08));
+    slideIn($('v-legend'), easeOut(prog(lt, V_SWITCH + 1.4, V_SWITCH + 1.8)), 0, 20);
+    const bp = backOut(prog(lt, V_SWITCH + 1.9, V_SWITCH + 2.3));
+    set($('v-badge'), { opacity: clamp(bp), transform: `scale(${Math.max(0, bp)})` });
+  }
+
+  /* planning : les barres s'étirent, le jour avance */
+  lt = scene('sGa', t);
+  curScene = 'sGa';
+  if (lt !== null) {
+    const today = GA_TODAY * easeInOut(prog(lt, 1.5, 2.6));
+    gaRows.forEach((r, i) => {
+      slideIn(r.lb, easeOut(prog(lt, .3 + i * .08, .7 + i * .08)), -40, 0);
+      const g = easeOut(prog(lt, .6 + i * .12, 1.2 + i * .12));
+      r.bar.style.transform = `scaleX(${g})`;
+      r.fill.style.width = (clamp((today - r.a) / (r.b - r.a)) * 100) + '%';
+      if (r.tag) pop(r.tag, backOut(prog(lt, 2.7, 3.05)));
+    });
+    pop(gaMile, backOut(prog(lt, 1.4, 1.75)));
+    set(gaToday, { left: `${GA_X + today * GA_W}px`, opacity: prog(lt, 1.4, 1.6) });
+  }
+
+  /* rapport : générer, la page se compose, PDF et Word */
+  lt = scene('sRa', t);
+  curScene = 'sRa';
+  if (lt !== null) {
+    $('ra-btn').style.transform = `scale(${1 - .1 * Math.sin(prog(lt, RA.tap - .1, RA.tap + .2) * Math.PI)})`;
+    tapAt(center($('ra-btn')), prog(lt, RA.tap - .3, RA.tap + .2));
+    const gp = easeInOut(prog(lt, RA.gen[0], RA.gen[1]));
+    $('ra-bar').style.width = (gp * 100) + '%';
+    $('ra-bar').style.background = gp >= 1 ? 'var(--valide)' : 'var(--tirage)';
+    $('ra-p').textContent = Math.round(gp * 100) + ' %';
+    $('ra-st').textContent = gp >= 1 ? 'Prêt à envoyer au maître d\'ouvrage ✓' : gp > .5 ? 'Mise en page, en-tête de l\'agence…' : 'Plans, photos, statuts…';
+    $('ra-st').style.color = gp >= 1 ? 'var(--valide)' : 'var(--encre)';
+    $('ra-btn').textContent = lt > RA.tap ? (gp >= 1 ? 'Prêt' : 'En cours') : 'Générer';
+    const pp = backOut(prog(lt, RA.page, RA.page + .55));
+    set($('ra-page'), { opacity: clamp(pp * 2), transform: `translateY(${(1 - clamp(pp)) * 260}px) rotate(${lerp(-4, 1.5, clamp(pp))}deg) scale(${lerp(.85, 1, clamp(pp))})` });
+    [$('ra-h'), $('ra-t'), $('ra-m')].forEach((n, i) => slideIn(n, easeOut(prog(lt, RA.page + .3 + i * .15, RA.page + .6 + i * .15)), 0, 16));
+    raRows.forEach((r, i) => slideIn(r, easeOut(prog(lt, RA.page + .75 + i * .1, RA.page + 1.05 + i * .1)), 30, 0));
+    [...$('ra-exports').children].forEach((d, i) => pop(d, backOut(prog(lt, 3.5 + i * .18, 3.9 + i * .18))));
+  }
+
+  /* invités : les entreprises rejoignent le projet */
+  lt = scene('sIn', t);
+  curScene = 'sIn';
+  if (lt !== null) {
+    slideIn($('in-list'), easeOut(prog(lt, .2, .6)));
+    let n = 0;
+    inRows.forEach((r, i) => { const p = easeOut(prog(lt, IN_AT[i], IN_AT[i] + .4)); slideIn(r, p, 100, 0); if (i > 0 && p > .5) n++; });
+    $('in-count').textContent = `${plural(n, 'invité')} · 1 licence`;
+    slideIn($('in-total'), easeOut(prog(lt, 2.6, 3.0)), 0, 40);
+  }
+
+  /* CTA */
+  const c0 = W.s7[0];
+  set($('s7'), { opacity: prog(t, c0, c0 + .3), visibility: t < c0 ? 'hidden' : 'visible' });
+  const f2 = prog(t, c0 + .1, c0 + .8);
+  set($('mark2'), { transform: `translateY(${(1 - bounce(f2)) * -300}px)`, opacity: clamp(f2 * 4) });
+  words($('s7-t'), t, c0 + .5, .12, .5);
+  const cp7 = backOut(prog(t, c0 + 1.6, c0 + 2.1));
+  const pulse = t > c0 + 2.1 ? 1 + Math.max(0, Math.sin((t - c0 - 2.1) * 5)) * .035 : 1;
+  set($('s7-cta'), { opacity: clamp(cp7), transform: `scale(${cp7 * pulse})` });
+  $('s7-bio').style.opacity = easeOut(prog(t, c0 + 2.2, c0 + 2.6));
+
+  /* toucher */
+  if (tapState) {
+    const [x, y, p] = tapState;
+    set($('tap'), { visibility: 'visible', left: `${x - 45}px`, top: `${y - 45}px`, opacity: Math.sin(p * Math.PI), transform: `scale(${p < .5 ? lerp(1.6, 1, easeOut(p * 2)) : lerp(1, 1.8, (p - .5) * 2)})` });
+  } else $('tap').style.visibility = 'hidden';
+
+  $('progress').style.width = (out / DURATION * 100) + '%';
+}
+
+/* ---------- repères sonores pour la musique ---------- */
+const r3 = (x) => +x.toFixed(3);
+window.__cues = LAND ? { duration: r3(DURATION), drop: 0, whoosh: [], ticks: [], dings: [], cta: null } : {
+  duration: r3(DURATION),
+  drop: LAND_AT,
+  whoosh: [2.6, ...SCENES.map(([id]) => W[id][0])].map(r3),
+  ticks: [...thumbs.map((_, i) => W.sPl[0] + 1.35 + i * .13), W.sPin[0] + PLUS_AT, ...PIN_AT.map((a) => W.sPin[0] + a), W.sFi[0] + FI.photo,
+    ...SU_FLIPS.map((a) => W.sSu[0] + a), W.sV[0] + V_SWITCH, W.sRa[0] + RA.tap, ...IN_AT.slice(1).map((a) => W.sIn[0] + a)].map(r3),
+  dings: [W.sPl[0] + 3.5, W.sFi[0] + FI.saved, W.sV[0] + V_SWITCH + 1.9, W.sRa[0] + RA.gen[1], W.sIn[0] + 2.6].map(r3),
+  cta: r3(W.s7[0] + 1.6),
+};
+
+/* ---------- lecture / mise à l'échelle ---------- */
+function fit() {
+  const vp = $('viewport');
+  const s = RECORD ? 1 : Math.min((innerWidth - 32) / WIDTH, (innerHeight - 90) / H);
+  vp.style.transform = `scale(${s})`;
+  vp.style.margin = `${(H * s - H) / 2}px ${(WIDTH * s - WIDTH) / 2}px`;
+}
+addEventListener('resize', fit); fit();
+
+let playing = !RECORD && !params.has('t');
+let t0 = performance.now(), cur = +params.get('t') || 0;
+const scrub = $('scrub');
+scrub.max = DURATION;
+function tick(now) {
+  if (playing) { cur = ((now - t0) / 1000) % DURATION; scrub.value = cur; }
+  render(cur);
+  $('time').textContent = cur.toFixed(1) + ' s';
+  if (!RECORD) requestAnimationFrame(tick);
+}
+$('play').onclick = () => { playing = !playing; t0 = performance.now() - cur * 1000; $('play').textContent = playing ? '⏸ Pause' : '▶ Lecture'; };
+$('restart').onclick = () => { cur = 0; t0 = performance.now(); playing = true; $('play').textContent = '⏸ Pause'; };
+scrub.oninput = () => { playing = false; cur = +scrub.value; $('play').textContent = '▶ Lecture'; };
+if (!playing) $('play').textContent = '▶ Lecture';
+
+window.__duration = DURATION;
+window.__seek = (t) => { cur = t; render(t); };
+document.fonts.ready.then(() => { window.__ready = true; });
+if (RECORD) render(cur); else requestAnimationFrame(tick);
+</script>
+</body>
+</html>
