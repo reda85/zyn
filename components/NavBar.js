@@ -14,12 +14,13 @@ import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
 import { useProjectData } from '@/providers/ProjectProvider'
 
-const tabs = ['Plans', 'Tâches', 'Réunions', 'Médias', 'Documents', 'Discussions']
+const tabs = ['Plans', 'Tâches', 'Réunions', 'Planning', 'Médias', 'Documents', 'Discussions']
 
 const tabSlugs = {
   Plans: 'plan',
   Tâches: 'tasks',
   Réunions: 'reunions',
+  Planning: 'planning',
   Médias: 'medias',
   Documents: 'documents',
   Discussions: 'discussions',
@@ -43,9 +44,9 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
     if (pathname === `/${organizationId}/projects/${id}` || pathname === `/${organizationId}/projects/${id}/`) {
       return 'Plans'
     }
-    const match = tabs.find(tab =>
-      pathname.startsWith(`/${organizationId}/projects/${id}/${tabSlugs[tab]}`)
-    )
+    // Segment exact : « plan » ne doit pas reconnaître « planning ».
+    const segment = pathname.slice(`/${organizationId}/projects/${id}/`.length).split('/')[0]
+    const match = tabs.find(tab => tabSlugs[tab] === segment)
     return match ?? 'Plans'
   })()
 
