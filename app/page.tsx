@@ -11,6 +11,7 @@ import PlanDemo from "@/components/landing/PlanDemo";
 import Etapes from "@/components/landing/Etapes";
 import Metiers from "@/components/landing/Metiers";
 import Fonctions from "@/components/landing/Fonctions";
+import DemoVideo from "@/components/landing/DemoVideo";
 import FondHero from "@/components/landing/FondHero";
 
 const DEMO_URL = "https://cal.com/zaynspace/demo";
@@ -136,6 +137,7 @@ export default function HomePage() {
               De la visite au rapport, sans ressaisie.
             </h2>
             <Etapes />
+            <div className="mt-16 sm:mt-20"><DemoVideo /></div>
           </div>
         </section>
 
