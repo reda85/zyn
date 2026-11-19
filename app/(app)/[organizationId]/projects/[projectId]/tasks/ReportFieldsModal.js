@@ -14,7 +14,7 @@ import { qk } from '@/lib/data/keys'
 const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] }
 
 // ── Report Fields Modal (refactorisée) ────────────────────────────────────────
-export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = true, onKindChange, fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
+export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = true, onKindChange, fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers, defaultLotIds = [] }) {
   const kind = REPORT_KINDS[reportKind] ?? REPORT_KINDS.libre
   const templateConfig = {
     ...rawTemplateConfig,
@@ -103,11 +103,17 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
   const lotsQuery = useQuery({
     queryKey: [...qk.categories(projectId), 'lots'],
     queryFn: () => fetchLots(projectId),
-    enabled: isProgress && Boolean(projectId),
+    enabled: Boolean(projectId),
   })
+  // Rapport par lot(s) : vide = tout le projet. Le filtre de lot de la liste
+  // le pré-remplit.
+  const workLots = useMemo(() => (lotsQuery.data ?? []).filter((l) => l.icon !== 'unassigned'), [lotsQuery.data])
+  const [lotIds, setLotIds] = useState(() => (defaultLotIds ?? []).map(String))
+  const scopedLots = workLots.filter((l) => lotIds.includes(String(l.id)))
+  const toggleLot = (id) => setLotIds((ids) => (ids.includes(String(id)) ? ids.filter((x) => x !== String(id)) : [...ids, String(id)]))
   const lotCompanies = useMemo(() => {
     const byKey = new Map()
-    for (const lot of lotsQuery.data ?? []) {
+    for (const lot of scopedLots.length ? scopedLots : lotsQuery.data ?? []) {
       if (!lot.entreprises?.name) continue
       const key = lot.entreprises.id ?? lot.entreprises.name
       const row = byKey.get(key) ?? { key, name: lot.entreprises.name, lots: [] }
@@ -115,7 +121,7 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
       byKey.set(key, row)
     }
     return [...byKey.values()].map((r) => ({ ...r, lots: r.lots.join(', ') }))
-  }, [lotsQuery.data])
+  }, [lotsQuery.data, lotIds]) // eslint-disable-line react-hooks/exhaustive-deps
   const [counts, setCounts] = useState({})
   const [extraCompanies, setExtraCompanies] = useState([])
   const [workforceDate, setWorkforceDate] = useState(todayISO)
@@ -126,6 +132,7 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
 
   const handleConfirm = () => {
     onConfirm({
+      lotIds: scopedLots.map((l) => l.id),
       ...(isProgress ? {
         progress,
         progressContent: {
@@ -207,6 +214,43 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
               Ce titre apparaîtra sur la couverture et dans le résumé du rapport.
             </p>
           </div>
+
+          {workLots.length > 0 && (
+            <div>
+              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Lots concernés</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setLotIds([])}
+                  className={clsx('px-2.5 py-1 rounded-full border text-[13px] font-medium transition-colors',
+                    scopedLots.length === 0 ? 'bg-encre border-encre text-white' : 'border-filet text-mine hover:border-encre')}
+                >
+                  Tout le projet
+                </button>
+                {workLots.map((l) => {
+                  const on = lotIds.includes(String(l.id))
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleLot(l.id)}
+                      className={clsx('px-2.5 py-1 rounded-full border text-[13px] font-medium transition-colors',
+                        on ? 'bg-encre border-encre text-white' : 'border-filet text-mine hover:border-encre')}
+                    >
+                      {l.name}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-[11px] text-mine-clair mt-1">
+                {scopedLots.length
+                  ? <>Seuls les éléments de {scopedLots.length > 1 ? 'ces lots' : 'ce lot'} sont repris. En page de garde : <span className="text-encre font-medium">{scopedLots.map((l) => l.name).join(' / ')}</span>
+                    {(() => { const c = [...new Set(scopedLots.map((l) => l.entreprises?.name).filter(Boolean))]; return c.length ? <> — {c.join(' / ')}</> : null })()}</>
+                  : 'Choisissez un ou plusieurs lots pour un rapport par lot : leur nom et leur entreprise figurent en page de garde.'}
+              </p>
+            </div>
+          )}
 
           {isProgress && (
             <div>

@@ -107,8 +107,12 @@ export default function Tasks({ params }) {
 
   // Rapport lancé depuis l'en-tête : tout l'onglet, filtres compris.
   const [reportWholeTab, setReportWholeTab] = useState(false)
-  const resolveSelectedIds = async () => {
-    if (reportWholeTab) return fetchProjectPinIds({ projectId, filters, scope })
+  // lotIds : rapport par lot lancé sur tout l'onglet, il reprend les éléments
+  // de ces lots (le filtre de lot de la liste est remplacé).
+  const resolveSelectedIds = async (lotIds = []) => {
+    if (reportWholeTab) {
+      return fetchProjectPinIds({ projectId, filters: lotIds.length ? { ...filters, categories: lotIds } : filters, scope })
+    }
     if (!selection.all) return Array.from(selection.ids)
     const ids = await fetchProjectPinIds({ projectId, filters, scope })
     return ids.filter((id) => !selection.ids.has(id))
@@ -201,13 +205,13 @@ export default function Tasks({ params }) {
   const openPin = useCallback((pin) => selectPin(pin), [selectPin])
 
   const handleGenerateReport = async ({
-    reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent,
+    reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent, lotIds,
   }) => {
     setIsReportModalOpen(false)
     setIsGeneratingReport(true)
     setReportCount(selectedCount)
     try {
-      const selectedIds = await resolveSelectedIds()
+      const selectedIds = await resolveSelectedIds(lotIds)
       if (!selectedIds.length) throw new Error('Aucune tâche sélectionnée')
       setReportCount(selectedIds.length)
 
@@ -223,6 +227,7 @@ export default function Tasks({ params }) {
         templateKind: selectedTemplate?.kind || 'libre',
         progress,
         progressContent,
+        lotIds,
         reportTitle,
         participants,
         customSections,
@@ -426,6 +431,7 @@ export default function Tasks({ params }) {
               onConfirm={handleGenerateReport}
               templateConfig={selectedTemplate?.config || null}
               projectMembers={projectMembers}
+              defaultLotIds={filters.categories}
             />
           )}
 
