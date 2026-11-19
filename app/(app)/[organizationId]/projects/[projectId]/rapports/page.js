@@ -13,7 +13,7 @@ import { useUserData } from '@/hooks/useUserData'
 import { useProjectData } from '@/providers/ProjectProvider'
 import { qk } from '@/lib/data/keys'
 import { PIN_TYPES } from '@/lib/data/pinTypes'
-import { REPORT_KINDS, templateKind } from '@/lib/data/reportKinds'
+import { REPORT_KINDS, templateKind, fieldValue } from '@/lib/data/reportKinds'
 import {
   PERIOD_PRESETS, defaultPreset, deleteReport, fetchReportCandidates, fetchReports, fmtDay, fmtSize,
   generateReport, itemsForReport, lastReportByKind, periodLabel, reportDownload, resolvePeriod,
@@ -31,7 +31,7 @@ const CARDS = [
 
 const DEFAULT_FIELDS = {
   description: true, photos: true, snapshot: true,
-  assignedTo: true, dueDate: true, category: true, status: true, planning: false,
+  assignedTo: true, startDate: false, dueDate: true, progress: false, category: true, status: true,
 }
 
 const KIND_BADGE = {
@@ -109,7 +109,7 @@ export default function RapportsPage({ params }) {
     const template = templateOf(kind)
     const own = templateKind(template) === kind
     const f = (own && template?.config?.fields) || REPORT_KINDS[kind].fields
-    setFields(Object.fromEntries(Object.keys(DEFAULT_FIELDS).map((k) => [k, f?.[k] ?? DEFAULT_FIELDS[k]])))
+    setFields(Object.fromEntries(Object.keys(DEFAULT_FIELDS).map((k) => [k, fieldValue(f, k, DEFAULT_FIELDS[k])])))
     setComposing(kind)
   }
 

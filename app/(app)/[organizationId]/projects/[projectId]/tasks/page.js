@@ -22,7 +22,7 @@ import { generateReport, startDownload, uploadReportImages } from '@/lib/data/re
 
 import TaskRow, { TaskRowSkeleton } from './TaskRow'
 import { PIN_TYPES } from '@/lib/data/pinTypes'
-import { REPORT_KINDS, kindForPinType, templateKind } from '@/lib/data/reportKinds'
+import { REPORT_KINDS, kindForPinType, templateKind, fieldValue } from '@/lib/data/reportKinds'
 
 // Éditeur riche inclus : chargé seulement à l'ouverture de la fenêtre de rapport.
 const ReportFieldsModal = dynamic(() => import('./ReportFieldsModal'), { ssr: false })
@@ -30,7 +30,7 @@ const ReportFieldsModal = dynamic(() => import('./ReportFieldsModal'), { ssr: fa
 const TABLE_HEADERS = ['Nom', 'Statut', 'ID', 'Assigné à', 'Lot', 'Échéance', 'Localisation', 'Tags']
 const DEFAULT_REPORT_FIELDS = {
   description: true, photos: true, snapshot: true,
-  assignedTo: true, dueDate: true, category: true, status: true, planning: false,
+  assignedTo: true, startDate: false, dueDate: true, progress: false, category: true, status: true,
 }
 const NO_SELECTION = { all: false, ids: new Set() }
 
@@ -172,7 +172,7 @@ export default function Tasks({ params }) {
     const f = selectedTemplate?.config?.fields ?? REPORT_KINDS[reportKind].fields
     if (!f) return setReportFields(DEFAULT_REPORT_FIELDS)
     setReportFields(
-      Object.fromEntries(Object.keys(DEFAULT_REPORT_FIELDS).map((key) => [key, f[key] ?? DEFAULT_REPORT_FIELDS[key]]))
+      Object.fromEntries(Object.keys(DEFAULT_REPORT_FIELDS).map((key) => [key, fieldValue(f, key, DEFAULT_REPORT_FIELDS[key])]))
     )
   }, [selectedTemplate, reportKind])
 

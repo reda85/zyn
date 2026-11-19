@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { GeistSans } from 'geist/font/sans';
-import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
+import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS, MODES_FOR_KIND, fieldValue } from '@/lib/data/reportKinds'
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -50,14 +50,79 @@ const fontOptions = [
 const DEFAULT_SECTION_ORDER = ['summary', 'planOverviews', 'planning', 'participants', 'signatures', 'tasks', 'customSections']
 
 const SECTION_LABELS = {
-  summary:        { label: 'Résumé',                  icon: '📊' },
-  planOverviews:  { label: 'Aperçus des plans',        icon: '🗺️' },
-  planning:       { label: 'Planning',                 icon: '📅' },
-  participants:   { label: 'Participants',             icon: '👥' },
-  signatures:     { label: 'Signatures',              icon: '✍️' },
-  tasks:          { label: 'Tâches',                  icon: '📋' },
-  customSections: { label: 'Sections personnalisées', icon: '📝' },
+  summary:            { label: 'Résumé',                        icon: '📊' },
+  planOverviews:      { label: 'Aperçus des plans',             icon: '🗺️' },
+  planning:           { label: 'Captures de planning',          icon: '🖼️' },
+  participants:       { label: 'Participants',                  icon: '👥' },
+  signatures:         { label: 'Signatures',                    icon: '✍️' },
+  tasks:              { label: 'Tâches',                        icon: '📋' },
+  customSections:     { label: 'Sections personnalisées',       icon: '📝' },
+  progressLots:       { label: 'Tableau des lots',              icon: '🏗️' },
+  progressAttention:  { label: "Points d'attention",            icon: '⚠️' },
+  progressMilestones: { label: 'Jalons',                        icon: '◆' },
+  progressWorkforce:  { label: 'Effectifs de site',             icon: '👷' },
+  gantt:              { label: 'Planning (Gantt)',              icon: '📅' },
+  progressPhotos:     { label: 'Reportage photo',               icon: '📷' },
+  progressConclusion: { label: 'Recommandations et conclusion', icon: '✅' },
 }
+
+// Sections du rapport d'avancement et la partie (config.progress) qui les active.
+const PROGRESS_SECTION_PART = {
+  progressLots: 'lots', progressAttention: 'attention', progressMilestones: 'milestones',
+  progressWorkforce: 'workforce', gantt: 'gantt', progressPhotos: 'photos', progressConclusion: 'conclusion',
+}
+
+/**
+ * Ordre complet des sections, complété comme le fait le serveur de rapports :
+ * sections d'avancement après le résumé, reportage photo après les tâches,
+ * recommandations en dernier. Un ordre enregistré est gardé tel quel.
+ */
+function completeOrder(order) {
+  const base = [...(order?.length ? order : DEFAULT_SECTION_ORDER)]
+  for (const id of DEFAULT_SECTION_ORDER) if (!base.includes(id)) base.push(id)
+  const extra = ['progressLots', 'progressAttention', 'progressMilestones', 'progressWorkforce', 'gantt'].filter((id) => !base.includes(id))
+  const at = base.indexOf('summary') + 1
+  const out = [...base.slice(0, at), ...extra, ...base.slice(at)]
+  if (!out.includes('progressPhotos')) {
+    const t = out.indexOf('tasks')
+    out.splice(t >= 0 ? t + 1 : out.length, 0, 'progressPhotos')
+  }
+  if (!out.includes('progressConclusion')) out.push('progressConclusion')
+  return out
+}
+
+/** Les sections d'avancement n'existent que dans un rapport d'avancement. */
+const sectionShown = (id, kind) => !(id in PROGRESS_SECTION_PART) || kind === 'avancement'
+
+const ALL_MODES = [
+  { value: 'list',            label: 'Liste détaillée' },
+  { value: 'table',           label: 'Tableau compact' },
+  { value: 'photoGallery',    label: 'Galerie photo' },
+  { value: 'localizedPhotos', label: 'Photos localisées' },
+  { value: 'visite',          label: 'Fiches de visite (observations)' },
+]
+
+const FIELD_OPTIONS = [
+  { key: 'description', label: 'Description' },
+  { key: 'photos',      label: 'Photos' },
+  { key: 'snapshot',    label: 'Snapshot du plan' },
+  { key: 'assignedTo',  label: 'Assigné à' },
+  { key: 'startDate',   label: 'Date de début', kinds: ['avancement', 'libre'] },
+  { key: 'dueDate',     label: 'Échéance' },
+  { key: 'progress',    label: 'Avancement',    kinds: ['avancement', 'libre'] },
+  { key: 'category',    label: 'Lot' },
+  { key: 'status',      label: 'Statut' },
+  { key: 'createdBy',   label: 'Créé par' },
+  { key: 'plan',        label: 'Plan / Localisation' },
+]
+
+// Données d'exemple des aperçus du rapport d'avancement.
+const SAMPLE_LOTS = [
+  { name: 'Gros œuvre',  company: 'Atlas Bâtiment', dates: '01/09 → 15/12', pct: 72, late: false },
+  { name: 'Électricité', company: 'Électro Souss',  dates: '01/10 → 30/11', pct: 40, late: true },
+  { name: 'Menuiserie',  company: 'Bois Nord',      dates: '15/11 → 31/01', pct: 10, late: false },
+]
+const SAMPLE_SCOPE = { lots: 'Gros œuvre / Électricité', companies: 'Atlas Bâtiment / Électro Souss' }
 
 // ── Sub-components at module level ────────────────────────────────────────────
 
@@ -123,10 +188,10 @@ const SelectField = ({ label, value, onChange, options }) => (
   </div>
 )
 
-const SectionOrderItem = ({ id, label, icon, index, total, onMoveUp, onMoveDown }) => (
-  <div className="flex items-center gap-3 bg-white border border-filet rounded-[12px] px-3 py-2.5 group shadow-carte">
+const SectionOrderItem = ({ id, label, icon, index, total, off = false, onMoveUp, onMoveDown }) => (
+  <div className={clsx("flex items-center gap-3 bg-white border border-filet rounded-[12px] px-3 py-2.5 group shadow-carte", off && "opacity-50")}>
     <span className="text-base">{icon}</span>
-    <span className="text-[13px] font-medium text-encre flex-1">{label}</span>
+    <span className="text-[13px] font-medium text-encre flex-1">{label}{off && <span className="ml-2 text-[11px] font-normal text-mine-clair">non incluse</span>}</span>
     <div className="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▲</button>
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▼</button>
@@ -191,7 +256,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     fontFamily:    "inter",
     reportTitle:   "RAPPORT DE TÂCHES",
     kind:          "libre",
-    sectionOrder:  [...DEFAULT_SECTION_ORDER],
+    sectionOrder:  completeOrder(DEFAULT_SECTION_ORDER),
     sectionTitles: {
       titleSize:      "medium",
       titleAccentBar: true,
@@ -345,15 +410,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           const next = [...saved_order]
           const planOverviewsIdx = next.indexOf('planOverviews')
           next.splice(planOverviewsIdx >= 0 ? planOverviewsIdx + 1 : 0, 0, 'planning')
-          return next
+          return completeOrder(next)
         }
-        return saved_order
+        return completeOrder(saved_order)
       })(),
       sectionTitles: { ...defaultConfig.sectionTitles, ...(saved.sectionTitles || {}) },
       header:        { ...defaultConfig.header,        ...saved.header },
       summary:       { ...defaultConfig.summary,       ...saved.summary },
       planOverviews: { ...defaultConfig.planOverviews, ...(saved.planOverviews || {}) },
-      tasks:         { ...defaultConfig.tasks,         ...saved.tasks },
+      tasks: (() => {
+        // Une présentation que le type n'accepte pas est remplacée par la sienne.
+        const k = initialTemplate.kind || saved.kind || 'libre'
+        const t = { ...defaultConfig.tasks, ...saved.tasks }
+        return MODES_FOR_KIND[k]?.includes(t.displayMode) ? t : { ...t, displayMode: REPORT_KINDS[k].displayMode }
+      })(),
       fields:        { ...defaultConfig.fields,        ...saved.fields },
       listView:      { ...defaultConfig.listView,      ...saved.listView },
       tableView:     { ...defaultConfig.tableView,     ...saved.tableView },
@@ -413,11 +483,18 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     }))
     setExpandedSections(prev => ({ ...prev, [key]: true }))
   }
+  // Déplace une section parmi celles affichées pour ce type ; les autres
+  // (sections d'avancement d'un autre type) gardent leur place.
   const moveSection = (index, direction) => {
-    const arr  = [...(config.sectionOrder || DEFAULT_SECTION_ORDER)]
+    const kind = config.kind || 'libre'
+    const full = completeOrder(config.sectionOrder)
+    const shown = full.filter((id) => sectionShown(id, kind))
     const swap = index + direction
-    ;[arr[index], arr[swap]] = [arr[swap], arr[index]]
-    setConfig(p => ({ ...p, sectionOrder: arr }))
+    if (swap < 0 || swap >= shown.length) return
+    ;[shown[index], shown[swap]] = [shown[swap], shown[index]]
+    let k = 0
+    const next = full.map((id) => (sectionShown(id, kind) ? shown[k++] : id))
+    setConfig(p => ({ ...p, sectionOrder: next }))
   }
 
   const saveTemplate = async () => {
@@ -455,7 +532,14 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     fontFamily:          previewFont,
   })
 
-  const sectionOrder = config.sectionOrder || DEFAULT_SECTION_ORDER
+  const kind         = config.kind || 'libre'
+  const isProgress   = kind === 'avancement'
+  const progress     = { ...DEFAULT_PROGRESS, ...(config.progress || {}) }
+  const sectionOrder = completeOrder(config.sectionOrder).filter((id) => sectionShown(id, kind))
+  const fieldOn      = (key) => fieldValue(config.fields || {}, key, ['startDate', 'progress'].includes(key) ? isProgress : true)
+  const sectionLabel = (id) => (id === 'tasks' ? (config.tasks.title || 'Tâches') : SECTION_LABELS[id]?.label || id)
+  // Aperçu d'un rapport limité à un ou plusieurs lots.
+  const [previewScope, setPreviewScope] = useState(false)
 
   const S = useCallback(
     ({ title, icon, section, children }) => (
@@ -478,6 +562,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
       case 'summary':
         if (!config.summary.enabled) return null
+        if (isProgress) return (
+          <div key="summary" className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
+            <div className="flex items-baseline justify-between mb-4">
+              <div className="text-base font-bold" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
+              <div className="text-xs text-mine-clair">Situation au 19/11/2026</div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div><div className="text-xs font-bold text-mine">Avancement global</div><div className="text-2xl font-bold mt-1">63 %</div></div>
+              <div><div className="text-xs font-bold text-mine">Lots</div><div className="text-lg font-bold mt-1">6 <span className="text-xs font-normal text-alerte">dont 1 en retard</span></div></div>
+              <div><div className="text-xs font-bold text-mine">Tâches</div><div className="text-lg font-bold mt-1">4/13 <span className="text-xs font-normal text-alerte">2 en retard</span></div></div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-filet text-xs text-mine"><span className="font-bold">Prochain jalon :</span> Réception, 15/01/2027</div>
+          </div>
+        )
         return (
           <div key="summary" className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
             <div className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
@@ -623,11 +721,30 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
         )
 
       case 'tasks':
+        if (isProgress && !progress.details) return null
         return (
           <div key="tasks">
             {config.tasks.title && <div style={sectionTitlePreviewStyle()}>{config.tasks.title}</div>}
 
-            {config.tasks.displayMode === 'photoGallery' ? (
+            {['visite', 'localizedPhotos'].includes(config.tasks.displayMode) ? (
+              <div className="space-y-4">
+                {[1, 2].map((n) => (
+                  <div key={n} className="border border-filet rounded-lg p-3">
+                    <div className="text-xs font-bold text-mine mb-2">{n}. Observation d&apos;exemple {n}</div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {fieldOn('photos') && <div className="bg-filet rounded h-32 flex items-center justify-center text-mine-clair text-[10px]">Photo</div>}
+                      {(fieldOn('snapshot') || config.tasks.displayMode === 'localizedPhotos') && (
+                        <div className="relative bg-voile rounded h-32 flex items-center justify-center text-mine-clair text-[10px]">
+                          Plan
+                          <span className="absolute w-3 h-3 rounded-full border-2 border-white" style={{ backgroundColor: config.primaryColor, top: '40%', left: n === 1 ? '35%' : '62%' }} />
+                        </div>
+                      )}
+                    </div>
+                    {fieldOn('description') && <p className="text-xs text-mine mt-2">Fissure en pied de cloison, à reprendre avant peinture.</p>}
+                  </div>
+                ))}
+              </div>
+            ) : config.tasks.displayMode === 'photoGallery' ? (
               <div className="space-y-5">
                 {[1, 2].map((n) => (
                   <div key={n}>
@@ -650,7 +767,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 ))}
               </div>
-            ) : ['list', 'visite', 'localizedPhotos'].includes(config.tasks.displayMode) ? (
+            ) : config.tasks.displayMode === 'list' ? (
               [1, 2].map((n) => (
                 <div key={n} className="border-l-4 pl-4 mb-4" style={{ borderColor: config.primaryColor }}>
                   <div className="flex gap-4">
@@ -662,7 +779,9 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                       <div className="space-y-1 text-sm">
                         {config.fields.category    && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Lot:</span><span>Structure</span></div>}
                         {config.fields.assignedTo  && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Assigné à:</span><span>Marie Martin</span></div>}
+                        {fieldOn('startDate') && FIELD_OPTIONS.find((f) => f.key === 'startDate').kinds.includes(kind) && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Début:</span><span>02/02/2026</span></div>}
                         {config.fields.dueDate     && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Échéance:</span><span>15/02/2026</span></div>}
+                        {fieldOn('progress') && FIELD_OPTIONS.find((f) => f.key === 'progress').kinds.includes(kind) && <div className="flex gap-2 items-center"><span className="font-bold text-mine-clair w-28">Avancement:</span><span className="inline-block h-1.5 w-16 rounded bg-voile overflow-hidden"><span className="block h-full" style={{ width: '60%', backgroundColor: config.primaryColor }} /></span><span className="text-xs">60 %</span></div>}
                         {config.fields.description && <div className="flex gap-2"><span className="font-bold text-mine-clair w-28">Description:</span><span>Vérifier la conformité</span></div>}
                       </div>
                     </div>
@@ -678,27 +797,142 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 </div>
               ))
             ) : (
-              <div className="border border-filet rounded-lg overflow-hidden text-sm">
-                <div className="grid grid-cols-12 gap-2 p-2 text-xs font-bold" style={{ backgroundColor: config.tableView.headerBackgroundColor }}>
-                  {config.tableView.showIndex && <div className="col-span-1">#</div>}
-                  <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche</div>
-                  <div className="col-span-2">ID</div>
-                  {config.fields.category   && <div className="col-span-2">Lot</div>}
-                  {config.fields.status     && <div className="col-span-2">Statut</div>}
-                  {config.fields.assignedTo && <div className="col-span-2">Assigné</div>}
-                </div>
-                {[1, 2].map((n, idx) => (
-                  <div key={n} className={clsx("grid grid-cols-12 gap-2 p-2 text-xs border-t border-voile", config.tableView.alternateRowColors && idx % 2 === 1 ? 'bg-survol' : 'bg-white')}>
-                    {config.tableView.showIndex && <div className="col-span-1 font-bold">{n}</div>}
-                    <div className={config.tableView.showIndex ? 'col-span-3' : 'col-span-4'}>Tâche {n}</div>
-                    <div className="col-span-2">PR-{n}</div>
-                    {config.fields.category   && <div className="col-span-2">Structure</div>}
-                    {config.fields.status     && <div className="col-span-2"><span className="px-2 py-0.5 rounded-full text-xs text-white bg-valide">OK</span></div>}
-                    {config.fields.assignedTo && <div className="col-span-2">J. Dupont</div>}
+              (() => {
+                const taskCols = FIELD_OPTIONS.find((f) => f.key === 'startDate').kinds.includes(kind)
+                const cols = [
+                  config.tableView.showIndex && ['#', (n) => <span className="font-bold">{n}</span>, 'w-6'],
+                  ['Tâche', (n) => `Tâche ${n}`, 'flex-1'],
+                  ['ID', (n) => `PR-${n}`, 'w-12'],
+                  config.fields.category && config.tasks.groupBy !== 'category' && ['Lot', () => 'Structure', 'w-16'],
+                  config.fields.status && ['Statut', () => <span className="px-2 py-0.5 rounded-full text-[10px] text-white bg-valide">OK</span>, 'w-16'],
+                  config.fields.assignedTo && ['Assigné', () => 'J. Dupont', 'w-16'],
+                  taskCols && fieldOn('startDate') && ['Début', () => '02/02', 'w-12'],
+                  config.fields.dueDate && ['Échéance', () => '15/02', 'w-14'],
+                  taskCols && fieldOn('progress') && ['Avancement', (n) => <span className="inline-block h-1.5 w-12 rounded bg-voile overflow-hidden"><span className="block h-full" style={{ width: n === 1 ? '60%' : '25%', backgroundColor: config.primaryColor }} /></span>, 'w-20'],
+                ].filter(Boolean)
+                return (
+                  <div className="border border-filet rounded-lg overflow-hidden text-sm">
+                    {isProgress && config.tasks.groupBy === 'category' && <div className="px-2 py-1.5 text-xs font-bold bg-survol border-b border-voile">Lot 01 — Gros œuvre · Atlas Bâtiment</div>}
+                    <div className="flex gap-2 p-2 text-xs font-bold" style={{ backgroundColor: config.tableView.headerBackgroundColor }}>
+                      {cols.map(([h, , w]) => <div key={h} className={w}>{h}</div>)}
+                    </div>
+                    {[1, 2].map((n, idx) => (
+                      <div key={n} className={clsx("flex gap-2 p-2 text-xs border-t border-voile items-center", config.tableView.alternateRowColors && idx % 2 === 1 ? 'bg-survol' : 'bg-white')}>
+                        {cols.map(([h, cell, w]) => <div key={h} className={w}>{cell(n)}</div>)}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )
+              })()
             )}
+          </div>
+        )
+
+      case 'progressLots':
+        if (!progress.lots) return null
+        return (
+          <div key="progressLots">
+            <div style={sectionTitlePreviewStyle()}>Lots</div>
+            <div className="border border-filet rounded-lg overflow-hidden text-xs">
+              <div className="flex gap-2 p-2 font-bold bg-survol"><div className="flex-1">Lot</div><div className="w-24">Prévu</div><div className="w-28">Avancement</div><div className="w-16">État</div></div>
+              {SAMPLE_LOTS.map((l) => (
+                <div key={l.name} className="flex gap-2 p-2 border-t border-voile items-center">
+                  <div className="flex-1"><div className="font-bold">{l.name}</div><div className="text-mine-clair">{l.company}</div></div>
+                  <div className="w-24">{l.dates}</div>
+                  <div className="w-28 flex items-center gap-1.5"><span className="inline-block h-1.5 w-16 rounded bg-voile overflow-hidden"><span className="block h-full" style={{ width: `${l.pct}%`, backgroundColor: l.late ? '#b91c1c' : config.primaryColor }} /></span>{l.pct} %</div>
+                  <div className="w-16">{l.late ? <span className="text-alerte font-bold">En retard</span> : 'En cours'}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'progressAttention':
+        if (!progress.attention) return null
+        return (
+          <div key="progressAttention">
+            <div style={sectionTitlePreviewStyle()}>Points d&apos;attention</div>
+            <ul className="space-y-1.5 text-xs">
+              <li className="border-l-2 border-alerte pl-2"><span className="font-bold">Lot Électricité</span> — 12 j de retard sur la fin prévue (30/11)</li>
+              <li className="border-l-2 border-alerte pl-2"><span className="font-bold">Tirage des câbles R+1</span> — échéance dépassée de 5 j, 40 %</li>
+            </ul>
+          </div>
+        )
+
+      case 'progressMilestones':
+        if (!progress.milestones) return null
+        return (
+          <div key="progressMilestones">
+            <div style={sectionTitlePreviewStyle()}>Jalons</div>
+            <div className="space-y-1 text-xs">
+              <div className="flex gap-2 items-center"><span className="text-valide">◆</span><span className="flex-1">Hors d&apos;eau</span><span>30/10/2026</span><span className="text-valide font-bold w-16">Atteint</span></div>
+              <div className="flex gap-2 items-center"><span style={{ color: config.primaryColor }}>◆</span><span className="flex-1">Réception</span><span>15/01/2027</span><span className="text-mine-clair w-16">À venir</span></div>
+            </div>
+          </div>
+        )
+
+      case 'progressWorkforce':
+        if (!progress.workforce) return null
+        return (
+          <div key="progressWorkforce">
+            <div style={sectionTitlePreviewStyle()}>Effectifs de site</div>
+            <div className="border border-filet rounded-lg overflow-hidden text-xs">
+              {SAMPLE_LOTS.map((l, i) => (
+                <div key={l.name} className={clsx('flex gap-2 p-2 items-center', i > 0 && 'border-t border-voile')}>
+                  <div className="flex-1 font-bold">{l.company}</div><div className="flex-1 text-mine-clair">{l.name}</div><div className="w-10 text-right font-bold">{[18, 6, 4][i]}</div>
+                </div>
+              ))}
+              <div className="flex gap-2 p-2 bg-survol font-bold"><div className="flex-1">Total sur site</div><div className="w-16 text-right">28 pers.</div></div>
+            </div>
+            <p className="text-[10px] text-mine-clair italic mt-1">Effectifs saisis à la génération du rapport</p>
+          </div>
+        )
+
+      case 'gantt':
+        if (!progress.gantt) return null
+        return (
+          <div key="gantt">
+            <div style={sectionTitlePreviewStyle()}>Planning</div>
+            <div className="relative border border-filet rounded-lg p-3 text-[10px] space-y-2">
+              {SAMPLE_LOTS.map((l, i) => (
+                <div key={l.name} className="flex items-center gap-2">
+                  <div className="w-24 font-bold truncate">{l.name}</div>
+                  <div className="flex-1 relative h-3">
+                    <div className="absolute h-3 rounded" style={{ left: `${[0, 20, 45][i]}%`, width: `${[60, 30, 45][i]}%`, backgroundColor: l.late ? '#fca5a5' : `${config.primaryColor}55` }} />
+                  </div>
+                </div>
+              ))}
+              <div className="absolute top-2 bottom-2 border-l border-dashed border-alerte" style={{ left: 'calc(6.5rem + 45%)' }} />
+            </div>
+            <p className="text-[10px] text-mine-clair italic mt-1">Page paysage, ligne du jour{progress.ganttTasks ? ', tâches sous chaque lot' : ''}</p>
+          </div>
+        )
+
+      case 'progressPhotos':
+        if (!progress.photos) return null
+        return (
+          <div key="progressPhotos">
+            <div style={sectionTitlePreviewStyle()}>Reportage photo</div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative bg-voile rounded aspect-[4/3] flex items-center justify-center text-mine-clair text-[10px]">
+                Plan
+                <span className="absolute w-3 h-3 rounded-full border-2 border-white bg-red-600" style={{ top: '55%', left: '35%' }} />
+              </div>
+              <div className="bg-filet rounded aspect-[4/3] flex items-center justify-center text-mine-clair text-[10px]">Photo la plus récente</div>
+            </div>
+            <p className="text-xs text-mine mt-2">Les travaux « Enduits intérieurs » sont réalisés à <span className="font-bold">60 %</span>.</p>
+            <p className="text-[10px] text-mine-clair italic mt-1">Une page paysage par tâche illustrée</p>
+          </div>
+        )
+
+      case 'progressConclusion':
+        if (!progress.conclusion) return null
+        return (
+          <div key="progressConclusion">
+            <div style={sectionTitlePreviewStyle()}>Recommandations et conclusion</div>
+            <div className="bg-survol rounded p-4 border border-dashed border-trait">
+              <p className="text-sm text-mine-clair italic text-center">Texte saisi à la génération du rapport</p>
+            </div>
           </div>
         )
 
@@ -754,11 +988,14 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     reportTitle: k.title,
                     tasks: {
                       ...p.tasks,
-                      title: { reserves: 'Réserves', visite: 'Observations', avancement: 'Tâches' }[kind] ?? p.tasks.title,
-                      displayMode: kind === 'visite' ? 'visite' : k.displayMode,
+                      title: { reserves: 'Réserves', visite: 'Observations', avancement: 'Détail des tâches' }[kind] ?? p.tasks.title,
+                      displayMode: MODES_FOR_KIND[kind].includes(p.tasks.displayMode) && kind === 'libre' ? p.tasks.displayMode : k.displayMode,
                       groupBy: kind === 'visite' || kind === 'libre' ? p.tasks.groupBy : 'category',
                     },
                     fields: k.fields ? { ...(p.fields || {}), ...k.fields } : p.fields,
+                    // Bilan des retards et des statuts : utile pour les réserves, pas pour une visite.
+                    summary: kind === 'visite' ? { ...p.summary, showOverdueCount: false, showStatusBreakdown: false }
+                      : kind === 'reserves' ? { ...p.summary, showOverdueCount: true, showStatusBreakdown: true } : p.summary,
                   }))
                 }}
                 className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
@@ -834,7 +1071,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           {/* ── Résumé ── */}
           <S title="Boîte de résumé" icon={FileText} section="summary">
             <Toggle label="Activer le résumé" checked={config.summary.enabled} onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, enabled: e.target.checked } }))} />
-            {config.summary.enabled && (
+            {config.summary.enabled && isProgress && (
+              <p className="text-[12px] text-mine-clair px-3">
+                Le rapport d&apos;avancement a son propre résumé : avancement global, lots et lots en retard, tâches et tâches en retard, prochain jalon, période.
+              </p>
+            )}
+            {config.summary.enabled && !isProgress && (
               <div className="space-y-3 pl-5 border-l-2 border-voile">
                 <Toggle label="Période"                checked={config.summary.showPeriod}          onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showPeriod:          e.target.checked } }))} />
                 <Toggle label="Total des tâches"       checked={config.summary.showTotalCount}      onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, showTotalCount:      e.target.checked } }))} />
@@ -882,9 +1124,14 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           </S>
 
           {/* ── Planning ── */}
-          <S title="Planning" icon={Calendar} section="planning">
+          <S title="Captures de planning" icon={Calendar} section="planning">
+            {isProgress && (
+              <p className="text-[12px] text-mine-clair px-3">
+                Le rapport d&apos;avancement génère déjà son planning (Gantt) depuis l&apos;onglet Planning. Les captures (MS Project…) ne servent qu&apos;en complément.
+              </p>
+            )}
             <Toggle
-              label="Activer le planning"
+              label="Ajouter des captures de planning"
               checked={config.planning?.enabled ?? false}
               onChange={(e) => setConfig(p => ({ ...p, planning: { ...p.planning, enabled: e.target.checked } }))}
             />
@@ -976,14 +1223,13 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               label="Mode d'affichage"
               value={config.tasks.displayMode}
               onChange={(e) => setConfig(p => ({ ...p, tasks: { ...p.tasks, displayMode: e.target.value } }))}
-              options={[
-                { value: "list",         label: "Liste détaillée" },
-                { value: "table",        label: "Tableau compact" },
-                { value: "photoGallery", label: "Galerie photo" },
-                { value: "localizedPhotos", label: "Photos localisées" },
-                { value: "visite", label: "Fiches de visite (observations)" },
-              ]}
+              options={ALL_MODES.filter((m) => MODES_FOR_KIND[kind].includes(m.value))}
             />
+            {kind !== 'libre' && (
+              <p className="text-[11px] text-mine-clair px-1">
+                Présentations possibles pour un {REPORT_KINDS[kind].label.toLowerCase()}.
+              </p>
+            )}
             {config.tasks.displayMode === 'photoGallery' && (
               <div className="space-y-3 pl-4 border-l-2 border-voile">
                 <p className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Options galerie</p>
@@ -1005,18 +1251,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           {/* ── Champs ── */}
           <S title="Champs à afficher" icon={Eye} section="fields">
             <p className="text-[13px] text-mine-clair">Informations à inclure dans le rapport</p>
-            {[
-              { key: 'description', label: 'Description' },
-              { key: 'photos',      label: 'Photos' },
-              { key: 'snapshot',    label: 'Snapshot du plan' },
-              { key: 'assignedTo',  label: 'Assigné à' },
-              { key: 'dueDate',     label: 'Échéance' },
-              { key: 'category',    label: 'Lot' },
-              { key: 'status',      label: 'Statut' },
-              { key: 'createdBy',   label: 'Créé par' },
-              { key: 'plan',        label: 'Plan / Localisation' },
-            ].map(({ key, label }) => (
-              <Toggle key={key} label={label} checked={config.fields[key] ?? true} onChange={(e) => setConfig(p => ({ ...p, fields: { ...p.fields, [key]: e.target.checked } }))} />
+            {FIELD_OPTIONS.filter((f) => !f.kinds || f.kinds.includes(kind)).map(({ key, label }) => (
+              <Toggle key={key} label={label} checked={fieldOn(key)} onChange={(e) => setConfig(p => ({ ...p, fields: { ...p.fields, [key]: e.target.checked } }))} />
             ))}
           </S>
 
@@ -1041,7 +1277,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
           {/* ── Style titres de section (global) ── */}
           <S title="Style des titres de section" icon={FileText} section="sectionTitles">
-            <p className="text-[13px] text-mine-clair px-1">S'applique aux tâches, participants, signatures et sections personnalisées.</p>
+            <p className="text-[13px] text-mine-clair px-1">S'applique à toutes les sections du rapport.</p>
             <SelectField label="Taille" value={config.sectionTitles?.titleSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
             <Toggle label="Barre d'accent (bordure gauche)" checked={config.sectionTitles?.titleAccentBar ?? true}  onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleAccentBar: e.target.checked } }))} />
             <Toggle label="Souligné"                        checked={config.sectionTitles?.titleUnderline ?? false} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleUnderline: e.target.checked } }))} />
@@ -1058,8 +1294,16 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <p className="text-[13px] text-mine-clair px-1">Définissez l'ordre d'apparition des sections dans le PDF.</p>
             <div className="space-y-2 mt-1">
               {sectionOrder.map((id, index) => (
-                <SectionOrderItem key={id} id={id} label={SECTION_LABELS[id]?.label || id} icon={SECTION_LABELS[id]?.icon || '•'} index={index} total={sectionOrder.length} onMoveUp={(i) => moveSection(i, -1)} onMoveDown={(i) => moveSection(i, 1)} />
+                <SectionOrderItem
+                  key={id} id={id} index={index} total={sectionOrder.length}
+                  label={sectionLabel(id)} icon={SECTION_LABELS[id]?.icon || '•'}
+                  off={id in PROGRESS_SECTION_PART ? !progress[PROGRESS_SECTION_PART[id]] : id === 'tasks' && isProgress && !progress.details}
+                  onMoveUp={(i) => moveSection(i, -1)} onMoveDown={(i) => moveSection(i, 1)}
+                />
               ))}
+              {isProgress && (
+                <p className="text-[11px] text-mine-clair px-1">Le Gantt et le reportage photo occupent des pages paysage à part. Les sections non cochées dans le contenu du rapport sont grisées.</p>
+              )}
             </div>
           </S>
 
@@ -1263,6 +1507,10 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               <h2 className="text-[15px] font-medium text-encre">Aperçu du PDF</h2>
             </div>
             <div className="flex items-center gap-3">
+              <label className="flex items-center gap-1.5 text-[12px] text-mine cursor-pointer" title="Rapport limité à un ou plusieurs lots : leurs noms et entreprises en page de garde, ou en bandeau sans page de garde">
+                <input type="checkbox" checked={previewScope} onChange={(e) => setPreviewScope(e.target.checked)} className="w-3.5 h-3.5 accent-encre" />
+                Rapport par lot
+              </label>
               <span className={clsx('text-[11px] px-2 py-1 rounded-[6px] bg-voile font-medium text-mine', 'tabular-nums')} style={{ fontFamily: previewFont }}>{fontOptions.find(f => f.value === config.fontFamily)?.label}</span>
               <span className="text-[11px] text-mine-clair">Modifications en temps réel</span>
             </div>
@@ -1277,6 +1525,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {config.coverPage.showClientLogo  && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>}
                 </div>
                 <CoverTitlePreview config={config} />
+                {previewScope && (
+                  <div className="-mt-4 mb-8 space-y-3" style={{ textAlign: config.coverPage.titleAlign ?? 'left' }}>
+                    <div><div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Lots</div><div className="text-lg font-bold text-encre-survol">{SAMPLE_SCOPE.lots}</div></div>
+                    <div><div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Entreprises</div><div className="text-lg font-bold text-encre-survol">{SAMPLE_SCOPE.companies}</div></div>
+                  </div>
+                )}
                 {config.coverPage.showProjectPhoto && (
                   <div className="flex justify-center mb-8">
                     <div className={clsx("bg-voile rounded-2xl flex items-center justify-center", config.coverPage.projectPhotoSize === 'small' ? 'w-64 h-48' : config.coverPage.projectPhotoSize === 'large' ? 'w-4/5 h-72' : config.coverPage.projectPhotoSize === 'full' ? 'w-full h-80' : 'w-2/3 h-60')}>
@@ -1316,6 +1570,12 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 </div>
               )}
               <div className="p-12 pt-6 space-y-6">
+                {previewScope && !config.coverPage.enabled && (
+                  <div className="flex gap-6 px-4 py-3 rounded-md bg-survol" style={{ borderLeft: `4px solid ${config.primaryColor}` }}>
+                    <div className="flex-1"><div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: config.primaryColor }}>Lots</div><div className="text-sm font-bold">{SAMPLE_SCOPE.lots}</div></div>
+                    <div className="flex-1"><div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: config.primaryColor }}>Entreprises</div><div className="text-sm font-bold">{SAMPLE_SCOPE.companies}</div></div>
+                  </div>
+                )}
                 {sectionOrder.map((id) => renderPreviewSection(id))}
                 {config.footer.enabled && (
                   <div className="pt-4 border-t border-filet flex justify-between text-xs text-mine-clair">
