@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Combobox } from '@headlessui/react';
-import { XIcon, User2Icon, CalendarIcon } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import { XIcon, User2Icon } from 'lucide-react';
+import DueDateField from './DueDateField';
 
 import { supabase } from '@/utils/supabase/client';
 import { usePinsCache } from '@/hooks/usePins';
@@ -16,22 +15,19 @@ export default function IntervenantDatePicker({ pin }) {
   );
   const [query, setQuery]               = useState('');
   const [isEditing, setIsEditing]       = useState(false);
-  const [isPickingDate, setIsPickingDate] = useState(false);
   const [allOptions, setAllOptions]     = useState([{ id: 0, name: 'Aucun intervenant', email: '' }]);
   const { patchPin }                    = usePinsCache();
   const selectedPin                     = pin;
   const { profile }                     = useUserData();
 
-  const [selectedDate, setSelectedDate] = useState(
-    pin?.due_date ? new Date(pin.due_date) : null
-  );
+  // Échéance affichée (horodatage enregistré), mise à jour avant l'enregistrement.
+  const [dueDate, setDueDate] = useState(pin?.due_date ?? null);
 
   const prevPinIdRef             = useRef(pin?.id);
   const previousIntervenantIdRef = useRef(pin?.assigned_to?.id ?? null);
   const isFirstMountRef          = useRef(true);
   const isInitializingRef        = useRef(false);
 
-  const isOverDue = selectedDate ? selectedDate < new Date() : false;
   const isGuest   = profile?.role === 'guest';
 
   useEffect(() => {
@@ -45,8 +41,13 @@ export default function IntervenantDatePicker({ pin }) {
     isInitializingRef.current = true;
     previousIntervenantIdRef.current = pin?.assigned_to?.id ?? null;
     setSelectedIntervenant(pin?.assigned_to || null);
-    setSelectedDate(pin?.due_date ? new Date(pin.due_date) : null);
+    setDueDate(pin?.due_date ?? null);
   }, [pin?.id]);
+
+  // Échéance changée ailleurs (planning, liste) pendant que la fiche est ouverte.
+  useEffect(() => {
+    setDueDate(pin?.due_date ?? null);
+  }, [pin?.due_date]);
 
   const getAllIntervenants = async () => {
     const { data, error } = await supabase
@@ -144,20 +145,24 @@ export default function IntervenantDatePicker({ pin }) {
     }
   }, [selectedIntervenant]);
 
-  const updateDueDate = async (date) => {
+  const updateDueDate = async (due) => {
     if (isGuest) return;
+    const previous = dueDate;
+    setDueDate(due);
     const { data, error } = await supabase
       .from('pdf_pins')
-      .update({ due_date: date, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
+      .update({ due_date: due, updated_by: profile?.id || null, updated_at: new Date().toISOString() })
       .eq('id', selectedPin.id)
-      .select('*')
+      .select('due_date')
       .single();
 
-    if (data) {
-      setSelectedDate(date);
-      patchPin(selectedPin.id, { due_date: data.due_date });
+    if (error || !data) {
+      console.error('updateDueDate error:', error);
+      setDueDate(previous);
+      alert("L'échéance n'a pas pu être enregistrée.");
+      return;
     }
-    if (error) console.error('updateDueDate error:', error);
+    patchPin(selectedPin.id, { due_date: data.due_date });
   };
 
   const displayText = selectedIntervenant?.name || 'Assigner intervenant';
@@ -248,55 +253,8 @@ export default function IntervenantDatePicker({ pin }) {
         </Combobox>
       </div>
 
-      {/* DatePicker */}
-      <div className="w-48 relative">
-        {isPickingDate && !isGuest ? (
-          <DatePicker
-            selected={selectedDate}
-            onChange={date => { setIsPickingDate(false); updateDueDate(date); }}
-            onBlur={() => setIsPickingDate(false)}
-            autoFocus
-            className={clsx('w-full border border-filet rounded-[8px] px-3 py-2 focus:outline-none focus:border-encre bg-survol hover:bg-voile text-encre', 'tabular-nums')}
-            dateFormat="dd/MM/yyyy"
-            placeholderText="Sélectionner une date"
-          />
-        ) : (
-          <div className="relative w-full">
-            <button
-              type="button"
-              disabled={isGuest}
-              className={clsx(
-                'w-full border rounded-[8px] px-3 py-2 pl-10 text-left relative transition-colors text-[14px] font-medium',
-                'tabular-nums',
-                isGuest
-                  ? 'bg-survol cursor-not-allowed opacity-70 border-filet text-mine-clair'
-                  : isOverDue
-                    ? 'border-alerte-clair text-alerte bg-alerte-pale hover:bg-[#fbdbdb] cursor-pointer'
-                    : 'border-filet text-encre bg-survol hover:bg-voile cursor-pointer'
-              )}
-              onClick={() => { if (!isGuest) setIsPickingDate(true); }}
-            >
-              {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
-              <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                <IconCircle><CalendarIcon size={13} className={isOverDue ? 'text-alerte' : 'text-mine'} /></IconCircle>
-              </div>
-            </button>
-
-            {selectedDate && !isGuest && (
-              <button
-                type="button"
-                className={clsx(
-                  'absolute right-3 top-1/2 -translate-y-1/2 transition-colors',
-                  isOverDue ? 'text-alerte hover:text-alerte' : 'text-mine-clair hover:text-alerte'
-                )}
-                onClick={e => { e.stopPropagation(); updateDueDate(null); }}
-              >
-                <IconCircle><XIcon size={13} className="text-mine" /></IconCircle>
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+      {/* Échéance */}
+      <DueDateField className="w-48" value={dueDate} onChange={updateDueDate} disabled={isGuest} />
     </div>
   );
 }

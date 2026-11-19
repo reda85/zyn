@@ -1,10 +1,7 @@
 'use client'
 
 import { memo, useState } from 'react'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
-import { fr } from 'date-fns/locale/fr'
-import { Calendar1Icon } from 'lucide-react'
+import DueDateField from '@/components/DueDateField'
 import clsx from 'clsx'
 import { PIN_TYPES } from '@/lib/data/pinTypes'
 import Pin from '@/components/Pin'
@@ -13,64 +10,24 @@ import CategoryComboBox from '@/components/CategoryComboBox'
 import { supabase } from '@/utils/supabase/client'
 
 function DueDatePicker({ pin, onUpdate }) {
-  const [selectedDate, setSelectedDate] = useState(pin?.due_date ? new Date(pin.due_date) : null)
-  const [open, setOpen] = useState(false)
-  const isOverDue = selectedDate instanceof Date && selectedDate < new Date()
+  const [due, setDue] = useState(pin?.due_date ?? null)
 
-  const handleChange = async (date) => {
-    const previous = selectedDate
-    setSelectedDate(date)
-    setOpen(false)
+  const handleChange = async (next) => {
+    const previous = due
+    setDue(next)
     const { error } = await supabase
       .from('pdf_pins')
-      .update({ due_date: date, updated_at: new Date().toISOString() })
+      .update({ due_date: next, updated_at: new Date().toISOString() })
       .eq('id', pin.id)
     if (error) {
       console.error('update due_date failed', error)
-      setSelectedDate(previous)
+      setDue(previous)
       return
     }
-    onUpdate?.(pin.id, date ? date.toISOString() : null)
+    onUpdate?.(pin.id, next)
   }
 
-  return (
-    <div className="relative w-40">
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={clsx(
-          'w-full border rounded-[8px] px-2.5 py-1.5 pl-7 text-left bg-white hover:bg-survol relative transition-colors text-[13px] font-medium',
-          'tabular-nums',
-          isOverDue
-            ? 'border-alerte-clair text-alerte'
-            : selectedDate
-              ? 'border-filet text-encre'
-              : 'border-filet text-trait'
-        )}
-      >
-        {selectedDate ? selectedDate.toLocaleDateString('fr-FR') : 'Ajouter échéance'}
-        <Calendar1Icon
-          size={12}
-          className={clsx(
-            'absolute left-2.5 top-1/2 -translate-y-1/2',
-            isOverDue ? 'text-alerte' : selectedDate ? 'text-mine' : 'text-trait'
-          )}
-        />
-      </button>
-      {open && (
-        <div className="absolute z-50 mt-1">
-          <DatePicker
-            inline
-            selected={selectedDate}
-            onChange={handleChange}
-            onClickOutside={() => setOpen(false)}
-            dateFormat="dd/MM/yyyy"
-            locale={fr}
-          />
-        </div>
-      )}
-    </div>
-  )
+  return <DueDateField size="sm" className="w-40" value={due} onChange={handleChange} />
 }
 
 /**
