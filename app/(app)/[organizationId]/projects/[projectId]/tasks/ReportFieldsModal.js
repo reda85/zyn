@@ -10,7 +10,7 @@ import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS } from
 const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] }
 
 // ── Report Fields Modal (refactorisée) ────────────────────────────────────────
-export default function ReportFieldsModal({ reportKind = 'libre', onKindChange, fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
+export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = true, onKindChange, fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
   const kind = REPORT_KINDS[reportKind] ?? REPORT_KINDS.libre
   const templateConfig = {
     ...rawTemplateConfig,
@@ -30,7 +30,8 @@ export default function ReportFieldsModal({ reportKind = 'libre', onKindChange, 
   const [displayMode, setDisplayMode] = useState(
     templateMode && (!modesForKind || modesForKind.includes(templateMode)) ? templateMode : kind.displayMode
   )
-  const [reportTitle, setReportTitle] = useState(templateConfig?.reportTitle || kind.title)
+  // Le titre d'un modèle « libre » ne convient pas à un rapport typé.
+  const [reportTitle, setReportTitle] = useState((ownTemplate && templateConfig?.reportTitle) || kind.title)
 
   const showParticipants =
     templateConfig?.participants?.enabled === true ||
