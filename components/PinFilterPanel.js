@@ -18,6 +18,7 @@ import ShowArchivedFilter from './ShowArchivedFilter'
 import AssignedToMemberFilter from './AssigneeFilter'
 import { usePinFilters } from '@/hooks/usePinFilters'
 import { countActiveFilters } from '@/lib/data/pinFilters'
+import { PIN_TYPES } from '@/lib/data/pinTypes'
 
 const PANEL_WIDTH = { list: 384, plan: 320 }
 
@@ -63,7 +64,8 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
   }, [variant, pins])
 
   const archivedCount = useMemo(() => pins.filter((p) => p.isArchived).length, [pins])
-  const activeCount = countActiveFilters(filters)
+  // Sur le plan, la nature est un filtre comme les autres (pas d'onglets).
+  const activeCount = countActiveFilters(filters) + (variant === 'plan' && filters.types?.length ? 1 : 0)
   const width = PANEL_WIDTH[variant]
 
   useEffect(() => {
@@ -140,6 +142,25 @@ export default function PinFilterPanel({ variant = 'list', projectId, pins = [] 
             </div>
 
             <div className="py-1">
+              {variant === 'plan' && (
+                <div className="px-4 py-2.5 border-b border-voile">
+                  <p className="text-[13px] text-encre mb-2">Nature</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(PIN_TYPES).map(([key, t]) => {
+                      const on = filters.types?.includes(key)
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setFilters({ types: on ? filters.types.filter((x) => x !== key) : [...(filters.types ?? []), key] })}
+                          className={`px-2.5 py-1 rounded-full text-[12px] font-medium border transition-colors ${on ? 'bg-encre text-white border-encre' : 'bg-white text-mine border-filet hover:bg-survol'}`}
+                        >
+                          {t.plural}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
               <CreatedByMeFilter active={filters.me} onToggle={(value) => setFilters({ me: value })} />
               <CategoryFilter
                 active={isOn('categories')}

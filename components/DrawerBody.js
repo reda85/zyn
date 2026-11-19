@@ -2,9 +2,13 @@ import { Textarea } from '@headlessui/react';
 import StatusSelect from './StatusSelect';
 import IntervenantDatePicker from './IntervenantDatePicker';
 import { usePinsCache } from '@/hooks/usePins';
+import { useQueryClient } from '@tanstack/react-query';
+import { qk } from '@/lib/data/keys';
 import { useEffect, useState } from 'react';
 import Pin from './Pin';
 import CategoryComboBox from './CategoryComboBox';
+import PinPlanningFields from './PinPlanningFields';
+import { PIN_TYPES } from '@/lib/data/pinTypes';
 import { supabase } from '@/utils/supabase/client';
 import Timeline from './Timeline';
 import TagEditor from './TagEditor';
@@ -13,6 +17,7 @@ import clsx from 'clsx';
 
 export default function DrawerBody({ pin, newComment, photoUploadTrigger, organization_id }) {
   const { patchPin } = usePinsCache();
+  const queryClient = useQueryClient();
   const [name, setName] = useState(pin.name);
   const [note, setNote] = useState(pin.note);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -43,6 +48,8 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
       return;
     }
     patchPin(pin.id, { [field]: value });
+    // Changer la nature fait passer l'élément dans un autre onglet de la liste.
+    if (field === 'type') queryClient.invalidateQueries({ queryKey: qk.pinsRoot });
   };
 
   const handleUpdateName = () => saveField('name', name);
@@ -60,8 +67,29 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
           <Pin pin={pin} />
           <div className="text-base">{pin && <StatusSelect pin={pin} />}</div>
         </div>
-        <div className={clsx('text-[13px] text-mine-clair', 'tabular-nums')}>
-          ID: {pin?.projects?.project_number}-{pin.pin_number}
+        <div className="flex items-center justify-between gap-3">
+          <div className={clsx('text-[13px] text-mine-clair', 'tabular-nums')}>
+            ID: {pin?.projects?.project_number}-{pin.pin_number}
+          </div>
+          <div className="inline-flex rounded-[8px] bg-voile p-0.5" role="radiogroup" aria-label="Nature">
+            {Object.entries(PIN_TYPES).map(([key, t]) => {
+              const active = (pin.type ?? 'reserve') === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  title={t.hint}
+                  disabled={isGuest}
+                  onClick={() => !active && saveField('type', key)}
+                  className={clsx('px-2.5 py-1 rounded-[6px] text-[12px] font-medium transition-colors disabled:cursor-default', active ? 'bg-white text-encre shadow-carte' : 'text-mine hover:text-encre')}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="text-base">
           <input
@@ -87,6 +115,9 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
         <div className="flex flex-row gap-2 items-center">
           {pin && <IntervenantDatePicker pin={pin} />}
         </div>
+        {pin && ((pin.type ?? 'reserve') === 'tache' || pin.date_debut) && (
+          <PinPlanningFields pin={pin} disabled={isGuest} profileId={profile?.id} />
+        )}
       </div>
       <Timeline
         pin={pin}

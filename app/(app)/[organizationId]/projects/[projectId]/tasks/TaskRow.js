@@ -6,6 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { fr } from 'date-fns/locale/fr'
 import { Calendar1Icon } from 'lucide-react'
 import clsx from 'clsx'
+import { PIN_TYPES } from '@/lib/data/pinTypes'
 import Pin from '@/components/Pin'
 import StatusPill from '@/components/StatusPill'
 import CategoryComboBox from '@/components/CategoryComboBox'
@@ -99,6 +100,9 @@ function TaskRow({ pin, isSelected, organizationId, onOpen, onToggleSelect, onDu
         <div className="flex items-center gap-2.5">
           <Pin pin={pin} />
           <span className="text-[14px] font-medium text-encre">{pin.name || 'Pin sans nom'}</span>
+          <span className={clsx('px-1.5 py-0.5 rounded-[4px] text-[11px] font-medium flex-shrink-0', PIN_TYPES[pin.type ?? 'reserve'].className)}>
+            {PIN_TYPES[pin.type ?? 'reserve'].label}
+          </span>
         </div>
       </td>
 
