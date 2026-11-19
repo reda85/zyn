@@ -211,3 +211,78 @@ code, pre {
     -webkit-mask-image: linear-gradient(180deg, rgb(0 0 0 / .5), transparent 14%, transparent 45%, #000 65%, #000 85%, transparent);
     mask-image: linear-gradient(180deg, rgb(0 0 0 / .5), transparent 14%, transparent 45%, #000 65%, #000 85%, transparent); }
 }
+
+/* ── Calendrier des échéances (react-datepicker, DueDateField) ── */
+/* Au-dessus du tiroir de la fiche (z-index 1000). */
+.react-datepicker-popper.zs-datepicker-popper { z-index: 1100; }
+.react-datepicker.zs-datepicker {
+  font-family: inherit;
+  font-size: 13px;
+  border: 1px solid var(--zs-filet);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(15, 15, 15, 0.04), 0 12px 32px -8px rgba(15, 15, 15, 0.16);
+  overflow: hidden;
+  color: var(--zs-encre);
+}
+.zs-datepicker .react-datepicker__header {
+  background: #fff;
+  border-bottom: 1px solid var(--zs-voile);
+  padding-top: 10px;
+}
+.zs-datepicker .react-datepicker__current-month {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: var(--zs-encre);
+  margin-bottom: 6px;
+}
+.zs-datepicker .react-datepicker__navigation { top: 8px; }
+.zs-datepicker .react-datepicker__navigation-icon::before { border-color: var(--zs-mine-clair); border-width: 2px 2px 0 0; }
+.zs-datepicker .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before { border-color: var(--zs-encre); }
+.zs-datepicker .react-datepicker__day-name {
+  color: var(--zs-mine-clair);
+  font-size: 11px;
+  text-transform: capitalize;
+  width: 2.1rem;
+}
+.zs-datepicker .react-datepicker__day {
+  width: 2.1rem;
+  line-height: 2.1rem;
+  border-radius: 8px;
+  color: var(--zs-encre);
+  font-variant-numeric: tabular-nums;
+}
+.zs-datepicker .react-datepicker__day:hover { background: var(--zs-survol); border-radius: 8px; }
+.zs-datepicker .react-datepicker__day--outside-month { color: var(--zs-trait); }
+.zs-datepicker .react-datepicker__day--today { font-weight: 600; color: var(--zs-tirage); }
+.zs-datepicker .react-datepicker__day--selected,
+.zs-datepicker .react-datepicker__day--keyboard-selected {
+  background: var(--zs-encre);
+  color: #fff;
+  font-weight: 500;
+}
+.zs-datepicker .react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected) {
+  background: var(--zs-voile);
+  color: var(--zs-encre);
+}
+.zs-datepicker .react-datepicker__day--selected:hover { background: var(--zs-encre-survol); }
+.zs-datepicker-shortcuts {
+  clear: both;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--zs-voile);
+}
+.zs-datepicker-shortcuts button {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--zs-filet);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zs-mine);
+}
+.zs-datepicker-shortcuts button:hover { background: var(--zs-survol); color: var(--zs-encre); }
+.zs-datepicker-shortcuts .zs-datepicker-clear { margin-left: auto; border-color: transparent; color: var(--zs-alerte); }
+.zs-datepicker-shortcuts .zs-datepicker-clear:hover { background: var(--zs-alerte-pale); color: var(--zs-alerte); }
