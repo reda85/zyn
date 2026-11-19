@@ -156,7 +156,7 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
   const FIELD_LABELS = {
     description: 'Description', photos: 'Photos', snapshot: 'Snapshot du plan',
     assignedTo: 'Assigné à', dueDate: 'Échéance', category: 'Lot', status: 'Statut',
-    planning: 'Planning (début, avancement)',
+    startDate: 'Date de début', progress: 'Avancement',
   }
 
   return (
@@ -380,7 +380,8 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
           <div>
             <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Champs à inclure</p>
             <div className="space-y-0.5">
-              {Object.entries(fields).map(([key, value]) => (
+              {/* Début et avancement ne concernent que les tâches. */}
+              {Object.entries(fields).filter(([key]) => !['startDate', 'progress'].includes(key) || !['reserves', 'visite'].includes(reportKind)).map(([key, value]) => (
                 <label key={key} className="flex items-center gap-3 px-3 py-2 rounded-[6px] hover:bg-survol transition-colors cursor-pointer">
                   <input type="checkbox" checked={value} onChange={() => toggle(key)} className="w-3.5 h-3.5 rounded-[4px] border-filet-fort accent-encre" />
                   <span className="text-[14px] text-mine">{FIELD_LABELS[key]}</span>
