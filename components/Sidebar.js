@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FolderKanban, Building2, Users, BarChart3, Settings, ChevronsUpDown, Check, LogOut } from 'lucide-react'
+import NotificationBell from '@/components/NotificationBell'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
@@ -154,6 +155,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
       {/* ── Navigation ── */}
       <nav className="flex-1 px-3 pt-2 space-y-0.5">
+        <NotificationBell organizationId={organizationId} memberId={profile?.id} variant="nav" />
         {navLinks.filter(l => l.show).map((link) => {
           const Icon = link.icon
           const isActive = currentPage === link.key

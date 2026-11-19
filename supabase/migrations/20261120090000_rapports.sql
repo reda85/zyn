@@ -33,4 +33,7 @@ create policy reports_delete on public.reports
   for delete to authenticated using (public.can_edit_project(project_id));
 
 revoke all on public.reports from anon;
+-- Les privilèges par défaut donnent tout à « authenticated » : on ne garde que
+-- la lecture et la suppression (filtrées par RLS). TRUNCATE échappe aux RLS.
+revoke insert, update, truncate, references, trigger on public.reports from authenticated;
 grant select, delete on public.reports to authenticated;
