@@ -113,7 +113,7 @@ export default function RapportsPage({ params }) {
     setComposing(kind)
   }
 
-  const handleConfirm = async ({ reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent }) => {
+  const handleConfirm = async ({ reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent, lotIds }) => {
     const kind = composing
     const template = templateOf(kind)
     const period = periodOf(kind)
@@ -133,6 +133,7 @@ export default function RapportsPage({ params }) {
         templateKind: templateKind(template),
         progress,
         progressContent,
+        lotIds,
         period,
         reportTitle,
         participants,
