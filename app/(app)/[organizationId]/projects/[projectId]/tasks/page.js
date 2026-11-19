@@ -201,7 +201,7 @@ export default function Tasks({ params }) {
   const openPin = useCallback((pin) => selectPin(pin), [selectPin])
 
   const handleGenerateReport = async ({
-    reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress,
+    reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent,
   }) => {
     setIsReportModalOpen(false)
     setIsGeneratingReport(true)
@@ -222,6 +222,7 @@ export default function Tasks({ params }) {
         reportKind,
         templateKind: selectedTemplate?.kind || 'libre',
         progress,
+        progressContent,
         reportTitle,
         participants,
         customSections,
