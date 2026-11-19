@@ -14,13 +14,14 @@ import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
 import { useProjectData } from '@/providers/ProjectProvider'
 
-const tabs = ['Plans', 'Tâches', 'Réunions', 'Planning', 'Médias', 'Documents', 'Discussions']
+const tabs = ['Plans', 'Tâches', 'Réunions', 'Planning', 'Rapports', 'Médias', 'Documents', 'Discussions']
 
 const tabSlugs = {
   Plans: 'plan',
   Tâches: 'tasks',
   Réunions: 'reunions',
   Planning: 'planning',
+  Rapports: 'rapports',
   Médias: 'medias',
   Documents: 'documents',
   Discussions: 'discussions',

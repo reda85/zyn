@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, FileText, Search, XIcon } from 'lucide-react'
 import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
@@ -18,7 +18,7 @@ import { useProjectData } from '@/providers/ProjectProvider'
 import { qk } from '@/lib/data/keys'
 import { fetchPinsByIds, fetchProjectPinIds, insertPin } from '@/lib/data/pins'
 import { exportTasksToExcel, exportTasksWithMediaToExcel } from '@/lib/exportTasks'
-import { BACKEND_URL } from '@/lib/config'
+import { generateReport, startDownload, uploadReportImages } from '@/lib/data/reports'
 
 import TaskRow, { TaskRowSkeleton } from './TaskRow'
 import { PIN_TYPES } from '@/lib/data/pinTypes'
@@ -114,9 +114,10 @@ export default function Tasks({ params }) {
     return ids.filter((id) => !selection.ids.has(id))
   }
 
+  const queryClient = useQueryClient()
   // ── Données annexes ───────────────────────────────────────────────────────
   const { data: availableTemplates = [] } = useQuery({
-    queryKey: ['report-templates', organizationId],
+    queryKey: qk.reportTemplates(organizationId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('report_templates')
@@ -199,24 +200,6 @@ export default function Tasks({ params }) {
   const handleDueDateUpdate = useCallback((pinId, date) => patchPin(pinId, { due_date: date }), [patchPin])
   const openPin = useCallback((pin) => selectPin(pin), [selectPin])
 
-  const uploadPlanningImages = async (files) => {
-    const uploadedUrls = []
-    for (const file of files) {
-      const ext = file.name.split('.').pop()
-      const fileName = `planning/${projectId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { data, error } = await supabase.storage
-        .from('reports')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false })
-      if (error) {
-        console.error('Planning image upload failed', error)
-        continue
-      }
-      const { data: { publicUrl } } = supabase.storage.from('reports').getPublicUrl(data.path)
-      uploadedUrls.push(publicUrl)
-    }
-    return uploadedUrls
-  }
-
   const handleGenerateReport = async ({
     reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress,
   }) => {
@@ -228,52 +211,25 @@ export default function Tasks({ params }) {
       if (!selectedIds.length) throw new Error('Aucune tâche sélectionnée')
       setReportCount(selectedIds.length)
 
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error('Session expirée, reconnectez-vous')
-
-      const planningImages = planningImageFiles?.length ? await uploadPlanningImages(planningImageFiles) : []
-
-      const response = await fetch(`${BACKEND_URL}/api/report`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          projectId,
-          selectedIds,
-          fields: reportFields,
-          displayMode,
-          templateConfig: selectedTemplate?.config || null,
-          reportKind,
-          templateKind: selectedTemplate?.kind || 'libre',
-          progress,
-          reportTitle,
-          participants,
-          customSections,
-          planningImages,
-          planningObservations,
-        }),
+      const planningImages = await uploadReportImages(projectId, planningImageFiles)
+      const { downloadUrl, fileName } = await generateReport({
+        projectId,
+        selectedIds,
+        fields: reportFields,
+        displayMode,
+        templateConfig: selectedTemplate?.config || null,
+        templateId: selectedTemplate?.id ?? null,
+        reportKind,
+        templateKind: selectedTemplate?.kind || 'libre',
+        progress,
+        reportTitle,
+        participants,
+        customSections,
+        planningImages,
+        planningObservations,
       })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        let message = null
-        try { message = JSON.parse(errorText).error } catch {}
-        throw new Error(response.status === 422 && message ? message : `Erreur API ${response.status}: ${(message || errorText).substring(0, 200)}`)
-      }
-
-      const { downloadUrl, fileName } = await response.json()
-      if (!downloadUrl) throw new Error('URL de téléchargement manquante')
-
-      const a = document.createElement('a')
-      a.href = downloadUrl
-      a.download = fileName || 'rapport-taches.pdf'
-      a.target = '_blank'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      queryClient.invalidateQueries({ queryKey: qk.reports(projectId) })
+      startDownload(downloadUrl, fileName)
     } catch (err) {
       console.error(err)
       alert(err.message || 'Impossible de générer le rapport')
@@ -461,6 +417,7 @@ export default function Tasks({ params }) {
             <ReportFieldsModal
               key={`${reportKind}-${selectedTemplate?.id ?? 'defaut'}`}
               reportKind={reportKind}
+              ownTemplate={reportKind === 'libre' || templateKind(selectedTemplate) === reportKind}
               onKindChange={setReportKind}
               fields={reportFields}
               setFields={setReportFields}
