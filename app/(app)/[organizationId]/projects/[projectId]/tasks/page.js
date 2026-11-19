@@ -218,7 +218,7 @@ export default function Tasks({ params }) {
   }
 
   const handleGenerateReport = async ({
-    reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations,
+    reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress,
   }) => {
     setIsReportModalOpen(false)
     setIsGeneratingReport(true)
@@ -248,6 +248,7 @@ export default function Tasks({ params }) {
           templateConfig: selectedTemplate?.config || null,
           reportKind,
           templateKind: selectedTemplate?.kind || 'libre',
+          progress,
           reportTitle,
           participants,
           customSections,
