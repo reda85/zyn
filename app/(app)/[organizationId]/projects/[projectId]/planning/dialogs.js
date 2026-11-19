@@ -40,13 +40,16 @@ function Field({ label, htmlFor, children }) {
 }
 
 /** Création ou modification d'une tâche ou d'un jalon. `task.id` absent → création. */
-export function TaskDialog({ open, task, lots, today, readOnly, onClose, onSave, onDelete }) {
+export function TaskDialog({ open, task, lots, today, readOnly, onClose, onSave, onDelete, taskHref }) {
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (open && task) setForm({ type: 'tache', libelle: '', lot_id: '', avancement: 0, date_debut: today, date_fin: addDays(today, 6), ...task, lot_id: task.lot_id ?? '' })
-  }, [open, task, today])
+    if (open && task) setForm({
+      type: 'tache', libelle: '', lot_id: '', avancement: 0, date_debut: today, date_fin: addDays(today, 6), ...task,
+      lot_id: lots.some((l) => l.id === task.lot_id) ? task.lot_id : '',
+    })
+  }, [open, task, today, lots])
 
   if (!form) return null
   const isNew = !form.id
@@ -121,13 +124,26 @@ export function TaskDialog({ open, task, lots, today, readOnly, onClose, onSave,
           </Field>
         )}
 
+        {!jalon && (
+          <p className="text-[12px] text-mine-clair leading-relaxed">
+            {isNew
+              ? 'La tâche sera aussi créée dans « Tâches », avec la fin comme échéance.'
+              : <>Tâche n° {form.pin_number} de la liste des tâches{form.done ? ' (levée)' : ''}.{' '}
+                  <Link href={taskHref(form)} className="text-tirage hover:text-tirage-fonce font-medium">Ouvrir dans Tâches</Link></>}
+          </p>
+        )}
+
         {error && <p className="text-[13px] text-alerte">{error}</p>}
 
         {!readOnly && (
           <div className="flex gap-2 pt-2">
             {!isNew && (
-              <button type="button" onClick={async () => { if (confirm(`Supprimer « ${form.libelle} » ?`)) { await onDelete(form); onClose() } }}
-                className="p-2 rounded-[8px] text-alerte hover:bg-alerte-pale" aria-label="Supprimer">
+              <button type="button"
+                onClick={async () => {
+                  const msg = jalon ? `Supprimer le jalon « ${form.libelle} » ?` : `Retirer « ${form.libelle} » du planning ? La tâche reste dans « Tâches ».`
+                  if (confirm(msg)) { await onDelete(form); onClose() }
+                }}
+                className="p-2 rounded-[8px] text-alerte hover:bg-alerte-pale" aria-label={jalon ? 'Supprimer le jalon' : 'Retirer du planning'} title={jalon ? 'Supprimer le jalon' : 'Retirer du planning'}>
                 <Trash2 className="w-4 h-4" />
               </button>
             )}

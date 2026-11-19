@@ -11,13 +11,13 @@ import { useProjectData } from '@/providers/ProjectProvider'
 import { qk } from '@/lib/data/keys'
 import { fetchEntreprises, fmtDate, isLotLate, todayISO } from '@/lib/data/lots'
 import {
-  createPlanningTask,
+  createPlanningItem,
   daysBetween,
-  deletePlanningTask,
-  fetchPlanningTasks,
+  fetchPlanning,
   isTaskLate,
   planLot,
-  updatePlanningTask,
+  removePlanningItem,
+  updatePlanningItem,
 } from '@/lib/data/planning'
 import Gantt, { ZOOMS } from './Gantt'
 import { LotDialog, TaskDialog } from './dialogs'
@@ -26,7 +26,7 @@ export default function PlanningPage({ params }) {
   const { organizationId, projectId } = params
   const queryClient = useQueryClient()
   const { profile, isAdmin } = useUserData(organizationId)
-  const { project, categories, isReady } = useProjectData()
+  const { project, categories, statuses, isReady } = useProjectData()
   const canEdit = Boolean(profile && profile.role !== 'guest')
   const today = todayISO()
   const gantt = useRef(null)
@@ -35,10 +35,17 @@ export default function PlanningPage({ params }) {
   const [lotDialog, setLotDialog] = useState(null)
   const [error, setError] = useState(null)
 
-  const tasksQuery = useQuery({ queryKey: qk.planning(projectId), queryFn: () => fetchPlanningTasks(projectId) })
+  const tasksQuery = useQuery({
+    queryKey: qk.planning(projectId),
+    queryFn: () => fetchPlanning(projectId, statuses),
+    enabled: isReady,
+  })
   const entreprisesQuery = useQuery({ queryKey: qk.entreprises(organizationId), queryFn: () => fetchEntreprises(organizationId) })
   const tasks = tasksQuery.data ?? []
   const lots = useMemo(() => categories.filter((c) => c.icon !== 'unassigned'), [categories])
+  // Tâche sans lot : rattachée au lot par défaut du projet, comme dans « Tâches ».
+  const defaultLotId = categories.find((c) => c.icon === 'unassigned')?.id ?? null
+  const ctx = { projectId, statuses, defaultLotId }
 
   // ── Synthèse ──
   const summary = useMemo(() => {
@@ -80,16 +87,18 @@ export default function PlanningPage({ params }) {
     try {
       if (fields.id) {
         const { id, ...rest } = fields
+        const item = tasks.find((t) => t.id === id)
         setTasks((list) => list.map((t) => (t.id === id ? { ...t, ...rest } : t)))
-        const saved = await updatePlanningTask(id, rest)
+        const saved = await updatePlanningItem(item, rest, ctx)
         setTasks((list) => list.map((t) => (t.id === id ? saved : t)))
       } else {
         // Sans clé `id` : supabase-js liste les colonnes et enverrait un id nul.
         const { id: _omit, ...rest } = fields
-        const ordre = tasks.filter((t) => (t.lot_id ?? null) === rest.lot_id).length
-        const saved = await createPlanningTask({ ...rest, project_id: projectId, ordre })
+        const saved = await createPlanningItem(rest, ctx)
         setTasks((list) => [...list, saved])
       }
+      // Les tâches du planning sont aussi dans « Tâches ».
+      queryClient.invalidateQueries({ queryKey: qk.pinsRoot })
     } catch (err) {
       return fail(err, 'Tâche')
     }
@@ -98,7 +107,8 @@ export default function PlanningPage({ params }) {
   const removeTask = async (task) => {
     setTasks((list) => list.filter((t) => t.id !== task.id))
     try {
-      await deletePlanningTask(task.id)
+      await removePlanningItem(task)
+      queryClient.invalidateQueries({ queryKey: qk.pinsRoot })
     } catch (err) {
       return fail(err, 'Suppression')
     }
@@ -218,6 +228,7 @@ export default function PlanningPage({ params }) {
         onClose={() => setTaskDialog(null)}
         onSave={saveTask}
         onDelete={removeTask}
+        taskHref={(t) => `/${organizationId}/projects/${projectId}/tasks#pin-${t.id}`}
       />
       <LotDialog
         open={Boolean(lotDialog)}

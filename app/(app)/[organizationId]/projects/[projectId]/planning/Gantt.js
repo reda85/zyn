@@ -261,8 +261,8 @@ const Gantt = forwardRef(function Gantt(
           const late = isTaskLate(t, today)
           return (
             <div key={t.id} className="flex border-b border-voile" style={{ height: ROW_H }}>
-              <button onClick={() => onTaskClick(t)} className="sticky left-0 z-10 bg-white hover:bg-survol flex items-center gap-2 pl-[52px] pr-3 border-r border-filet text-left" style={{ width: LEFT_W, minWidth: LEFT_W }}>
-                {t.type === 'jalon' ? <span className="w-2 h-2 rotate-45 bg-encre flex-shrink-0" /> : null}
+              <button onClick={() => onTaskClick(t)} className="sticky left-0 z-10 bg-white hover:bg-survol flex items-center gap-2 pl-[40px] pr-3 border-r border-filet text-left" style={{ width: LEFT_W, minWidth: LEFT_W }}>
+                {t.type === 'jalon' ? <span className="w-2 h-2 rotate-45 bg-encre flex-shrink-0" /> : <span className="text-[11px] text-mine-clair tabular-nums w-6 flex-shrink-0" title="N° de la tâche">{t.pin_number}</span>}
                 <span className={clsx('text-[13px] truncate flex-1', late ? 'text-alerte' : 'text-encre')}>{t.libelle}</span>
                 {t.type === 'tache' && <span className="text-[12px] text-mine-clair tabular-nums">{t.avancement} %</span>}
               </button>

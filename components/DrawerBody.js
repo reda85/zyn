@@ -5,6 +5,7 @@ import { usePinsCache } from '@/hooks/usePins';
 import { useEffect, useState } from 'react';
 import Pin from './Pin';
 import CategoryComboBox from './CategoryComboBox';
+import PinPlanningFields from './PinPlanningFields';
 import { supabase } from '@/utils/supabase/client';
 import Timeline from './Timeline';
 import TagEditor from './TagEditor';
@@ -87,6 +88,7 @@ export default function DrawerBody({ pin, newComment, photoUploadTrigger, organi
         <div className="flex flex-row gap-2 items-center">
           {pin && <IntervenantDatePicker pin={pin} />}
         </div>
+        {pin && <PinPlanningFields pin={pin} disabled={isGuest} profileId={profile?.id} />}
       </div>
       <Timeline
         pin={pin}
