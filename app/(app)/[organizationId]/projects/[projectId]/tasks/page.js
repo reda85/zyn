@@ -22,6 +22,7 @@ import { BACKEND_URL } from '@/lib/config'
 
 import TaskRow, { TaskRowSkeleton } from './TaskRow'
 import { PIN_TYPES } from '@/lib/data/pinTypes'
+import { REPORT_KINDS, kindForPinType, templateKind } from '@/lib/data/reportKinds'
 
 // Éditeur riche inclus : chargé seulement à l'ouverture de la fenêtre de rapport.
 const ReportFieldsModal = dynamic(() => import('./ReportFieldsModal'), { ssr: false })
@@ -29,7 +30,7 @@ const ReportFieldsModal = dynamic(() => import('./ReportFieldsModal'), { ssr: fa
 const TABLE_HEADERS = ['Nom', 'Statut', 'ID', 'Assigné à', 'Lot', 'Échéance', 'Localisation', 'Tags']
 const DEFAULT_REPORT_FIELDS = {
   description: true, photos: true, snapshot: true,
-  assignedTo: true, dueDate: true, category: true, status: true,
+  assignedTo: true, dueDate: true, category: true, status: true, planning: false,
 }
 const NO_SELECTION = { all: false, ids: new Set() }
 
@@ -104,7 +105,10 @@ export default function Tasks({ params }) {
   }, [])
   const toggleSelectAll = () => setSelection(allSelected ? NO_SELECTION : { all: true, ids: new Set() })
 
+  // Rapport lancé depuis l'en-tête : tout l'onglet, filtres compris.
+  const [reportWholeTab, setReportWholeTab] = useState(false)
   const resolveSelectedIds = async () => {
+    if (reportWholeTab) return fetchProjectPinIds({ projectId, filters, scope })
     if (!selection.all) return Array.from(selection.ids)
     const ids = await fetchProjectPinIds({ projectId, filters, scope })
     return ids.filter((id) => !selection.ids.has(id))
@@ -138,21 +142,34 @@ export default function Tasks({ params }) {
     enabled: Boolean(projectId),
   })
 
+  // Type de rapport : suit l'onglet (Réserves → rapport de réserves, etc.).
+  const [reportKind, setReportKind] = useState(() => kindForPinType(activeType))
+  useEffect(() => setReportKind(kindForPinType(activeType)), [activeType])
+  // Modèles du type choisi, plus les modèles « libres » qui servent pour tous.
+  const kindTemplates = useMemo(
+    () => availableTemplates.filter((t) => templateKind(t) === reportKind || templateKind(t) === 'libre'),
+    [availableTemplates, reportKind]
+  )
+
   const [selectedTemplateId, setSelectedTemplateId] = useState(undefined)
+  useEffect(() => setSelectedTemplateId(undefined), [reportKind])
   const selectedTemplate = useMemo(() => {
     if (selectedTemplateId === '') return null
-    if (selectedTemplateId) return availableTemplates.find((t) => t.id === selectedTemplateId) ?? null
-    return availableTemplates.find((t) => t.is_default) || availableTemplates[0] || null
-  }, [availableTemplates, selectedTemplateId])
+    if (selectedTemplateId) return kindTemplates.find((t) => t.id === selectedTemplateId) ?? null
+    // Par défaut : le modèle par défaut de ce type ; pour un rapport typé sans
+    // modèle dédié, la présentation intégrée du type plutôt qu'un modèle libre.
+    const own = kindTemplates.filter((t) => templateKind(t) === reportKind)
+    return own.find((t) => t.is_default) || own[0] || null
+  }, [kindTemplates, selectedTemplateId, reportKind])
 
   const [reportFields, setReportFields] = useState(DEFAULT_REPORT_FIELDS)
   useEffect(() => {
-    const f = selectedTemplate?.config?.fields
-    if (!f) return
+    const f = selectedTemplate?.config?.fields ?? REPORT_KINDS[reportKind].fields
+    if (!f) return setReportFields(DEFAULT_REPORT_FIELDS)
     setReportFields(
-      Object.fromEntries(Object.keys(DEFAULT_REPORT_FIELDS).map((key) => [key, f[key] ?? true]))
+      Object.fromEntries(Object.keys(DEFAULT_REPORT_FIELDS).map((key) => [key, f[key] ?? DEFAULT_REPORT_FIELDS[key]]))
     )
-  }, [selectedTemplate])
+  }, [selectedTemplate, reportKind])
 
   // ── Lien direct vers une tâche : …/tasks#pin-<id> ─────────────────────────
   useEffect(() => {
@@ -229,6 +246,8 @@ export default function Tasks({ params }) {
           fields: reportFields,
           displayMode,
           templateConfig: selectedTemplate?.config || null,
+          reportKind,
+          templateKind: selectedTemplate?.kind || 'libre',
           reportTitle,
           participants,
           customSections,
@@ -239,7 +258,9 @@ export default function Tasks({ params }) {
 
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error(`Erreur API ${response.status}: ${errorText.substring(0, 200)}`)
+        let message = null
+        try { message = JSON.parse(errorText).error } catch {}
+        throw new Error(response.status === 422 && message ? message : `Erreur API ${response.status}: ${(message || errorText).substring(0, 200)}`)
       }
 
       const { downloadUrl, fileName } = await response.json()
@@ -257,6 +278,7 @@ export default function Tasks({ params }) {
       alert(err.message || 'Impossible de générer le rapport')
     } finally {
       setIsGeneratingReport(false)
+      setReportWholeTab(false)
     }
   }
 
@@ -337,6 +359,20 @@ export default function Tasks({ params }) {
 
             <PinFilterPanel variant="list" projectId={projectId} />
 
+            {activeType && knownTotal > 0 && (
+              <button
+                onClick={() => {
+                  // Rapport sur tout l'onglet (filtres en cours compris) sans cocher les lignes.
+                  setReportWholeTab(true)
+                  setIsReportModalOpen(true)
+                }}
+                disabled={isGeneratingReport}
+                className="flex items-center gap-1.5 px-3 py-[7px] bg-white text-encre border border-filet rounded-[8px] text-[14px] font-medium hover:bg-survol disabled:opacity-50 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                {REPORT_KINDS[kindForPinType(activeType)].label}
+              </button>
+            )}
             {!isGuest && (
               <button
                 onClick={() => { setNewTaskType(activeType ?? 'tache'); setIsAddTaskOpen(true) }}
@@ -377,8 +413,8 @@ export default function Tasks({ params }) {
                   onChange={(e) => setSelectedTemplateId(e.target.value)}
                   className="px-2.5 py-1.5 bg-white text-mine rounded-[8px] text-[13px] font-medium border border-filet focus:outline-none focus:border-encre transition-colors"
                 >
-                  <option value="">Template par défaut</option>
-                  {availableTemplates.map((t) => (
+                  <option value="">{reportKind === 'libre' ? 'Template par défaut' : `Présentation ${REPORT_KINDS[reportKind].short.toLowerCase()}`}</option>
+                  {kindTemplates.map((t) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
@@ -396,7 +432,7 @@ export default function Tasks({ params }) {
                   {isGeneratingReport
                     ? <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     : <Download className="w-3.5 h-3.5" />}
-                  {isGeneratingReport ? 'Génération…' : 'PDF'}
+                  {isGeneratingReport ? 'Génération…' : reportKind === 'libre' ? 'PDF' : REPORT_KINDS[reportKind].label}
                 </button>
 
                 <button
@@ -422,9 +458,12 @@ export default function Tasks({ params }) {
 
           {isReportModalOpen && (
             <ReportFieldsModal
+              key={`${reportKind}-${selectedTemplate?.id ?? 'defaut'}`}
+              reportKind={reportKind}
+              onKindChange={setReportKind}
               fields={reportFields}
               setFields={setReportFields}
-              onClose={() => setIsReportModalOpen(false)}
+              onClose={() => { setIsReportModalOpen(false); setReportWholeTab(false) }}
               onConfirm={handleGenerateReport}
               templateConfig={selectedTemplate?.config || null}
               projectMembers={projectMembers}

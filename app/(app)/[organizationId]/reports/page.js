@@ -5,6 +5,7 @@ import { supabase } from '@/utils/supabase/client'
 import { useUserData } from '@/hooks/useUserData'
 import { useRouter } from 'next/navigation'
 import ReportTemplateBuilder from '@/components/ReportTemplateBuilder'
+import { REPORT_KINDS } from '@/lib/data/reportKinds'
 import Sidebar from '@/components/Sidebar'
 import {
   FileText, Plus, Edit, Trash2, Copy, Star, StarOff,
@@ -99,6 +100,7 @@ export default function ReportsPage({ params }) {
     try {
       const templateData = {
         name: config.reportTitle,
+        kind: config.kind || 'libre',
         config: config,
         organization_id: organizationId,
         user_id: user.id,
@@ -155,6 +157,7 @@ export default function ReportsPage({ params }) {
         .from('report_templates')
         .insert({
           name: `${template.name} (Copie)`,
+          kind: template.kind || 'libre',
           config: template.config,
           organization_id: organizationId,
           user_id: user.id,
@@ -176,6 +179,8 @@ export default function ReportsPage({ params }) {
         .from('report_templates')
         .update({ is_default: false })
         .eq('organization_id', organizationId)
+        // Un modèle par défaut par type de rapport.
+        .eq('kind', templates.find((t) => t.id === templateId)?.kind || 'libre')
 
       const { error } = await supabase
         .from('report_templates')
@@ -389,6 +394,9 @@ function TemplateCard({ template, onEdit, onDelete, onDuplicate, onSetDefault, g
           <h3 className="text-[14px] font-medium text-encre truncate flex-1 pr-2">
             {template.name}
           </h3>
+          <span className="mr-1 px-1.5 py-0.5 rounded-[4px] bg-voile text-mine-clair text-[11px] font-medium flex-shrink-0">
+            {REPORT_KINDS[template.kind || 'libre']?.short ?? 'Libre'}
+          </span>
           {!isDefault && (
             <button
               onClick={(e) => { e.stopPropagation(); onSetDefault(template.id) }}
