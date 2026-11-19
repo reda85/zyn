@@ -2,14 +2,16 @@
 
 import { useState } from 'react'
 import { GeistSans } from 'geist/font/sans';
-import { Download, FileText, Upload, X as XCloseIcon, XIcon } from 'lucide-react'
+import { Download, FileText, Image as ImageIcon, MapPin, Upload, X as XCloseIcon, XIcon } from 'lucide-react'
 import clsx from 'clsx'
 import RichTextEditor from '@/components/RichTextEditor'
+import { REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
 
 const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] }
 
 // ── Report Fields Modal (refactorisée) ────────────────────────────────────────
-export default function ReportFieldsModal({ fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
+export default function ReportFieldsModal({ reportKind = 'libre', onKindChange, fields, setFields, onClose, onConfirm, templateConfig: rawTemplateConfig, projectMembers }) {
+  const kind = REPORT_KINDS[reportKind] ?? REPORT_KINDS.libre
   const templateConfig = {
     ...rawTemplateConfig,
     planning: {
@@ -22,8 +24,13 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
       ...(rawTemplateConfig?.planning || {}),
     },
   }
-  const [displayMode, setDisplayMode] = useState(templateConfig?.tasks?.displayMode || 'list')
-  const [reportTitle, setReportTitle] = useState(templateConfig?.reportTitle || 'RAPPORT DE TÂCHES')
+  // Mode du modèle s'il convient à ce type de rapport, sinon celui du type.
+  const modesForKind = { visite: ['visite', 'localizedPhotos', 'photoGallery'], reserves: ['list', 'table'], avancement: ['list', 'table'] }[reportKind]
+  const templateMode = templateConfig?.tasks?.displayMode
+  const [displayMode, setDisplayMode] = useState(
+    templateMode && (!modesForKind || modesForKind.includes(templateMode)) ? templateMode : kind.displayMode
+  )
+  const [reportTitle, setReportTitle] = useState(templateConfig?.reportTitle || kind.title)
 
   const showParticipants =
     templateConfig?.participants?.enabled === true ||
@@ -96,6 +103,7 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
   const FIELD_LABELS = {
     description: 'Description', photos: 'Photos', snapshot: 'Snapshot du plan',
     assignedTo: 'Assigné à', dueDate: 'Échéance', category: 'Lot', status: 'Statut',
+    planning: 'Planning (début, avancement)',
   }
 
   return (
@@ -103,7 +111,7 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
       <div className={clsx(GeistSans.className, 'bg-white w-full max-w-2xl rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)] max-h-[92vh] flex flex-col')}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-voile flex-shrink-0">
           <div>
-            <h3 className="text-base font-medium text-encre">Composer le rapport</h3>
+            <h3 className="text-base font-medium text-encre">{reportKind === 'libre' ? 'Composer le rapport' : kind.label}</h3>
             {templateConfig?.reportTitle && (
               <p className={clsx('text-[12px] text-mine-clair mt-0.5', 'tabular-nums')}>{templateConfig.reportTitle}</p>
             )}
@@ -115,13 +123,38 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
 
         <div className="p-5 space-y-6 overflow-y-auto flex-1">
 
+          {onKindChange && (
+            <div>
+              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Type de rapport</p>
+              <div className="grid grid-cols-4 gap-1 p-1 bg-voile rounded-[8px]">
+                {REPORT_KIND_KEYS.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => onKindChange(k)}
+                    className={clsx(
+                      'px-2 py-1.5 rounded-[6px] text-[13px] font-medium transition-colors',
+                      reportKind === k ? 'bg-white text-encre shadow-[0_1px_2px_rgba(15,15,15,0.08)]' : 'text-mine-clair hover:text-encre'
+                    )}
+                  >
+                    {REPORT_KINDS[k].short}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[12px] text-mine-clair mt-1.5">
+                {kind.hint}
+                {kind.pinType && ' Seuls les éléments de cette nature sont repris.'}
+              </p>
+            </div>
+          )}
+
           <div>
             <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Titre du rapport</p>
             <input
               type="text"
               value={reportTitle}
               onChange={(e) => setReportTitle(e.target.value)}
-              placeholder="RAPPORT DE TÂCHES"
+              placeholder={kind.title}
               className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[14px] font-medium text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
             />
             <p className="text-[11px] text-mine-clair mt-1">
@@ -133,7 +166,11 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
           <div>
             <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Mode d'affichage</p>
             <div className="grid grid-cols-2 gap-2">
-              {[
+              {(reportKind === 'visite' ? [
+                { key: 'visite',          label: 'Fiches de visite', icon: <FileText className="w-4 h-4" /> },
+                { key: 'localizedPhotos', label: 'Photos localisées', icon: <MapPin className="w-4 h-4" /> },
+                { key: 'photoGallery',    label: 'Galerie photo',     icon: <ImageIcon className="w-4 h-4" /> },
+              ] : [
                 { key: 'list',  label: 'Liste détaillée', icon: <FileText className="w-4 h-4" /> },
                 { key: 'table', label: 'Tableau compact',  icon: (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,7 +178,7 @@ export default function ReportFieldsModal({ fields, setFields, onClose, onConfir
                       d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )},
-              ].map(({ key, label, icon }) => (
+              ]).map(({ key, label, icon }) => (
                 <button
                   key={key}
                   onClick={() => setDisplayMode(key)}

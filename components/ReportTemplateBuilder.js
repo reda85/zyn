@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { GeistSans } from 'geist/font/sans';
+import { REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -189,6 +190,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     primaryColor:  "#44403c",
     fontFamily:    "inter",
     reportTitle:   "RAPPORT DE TÂCHES",
+    kind:          "libre",
     sectionOrder:  [...DEFAULT_SECTION_ORDER],
     sectionTitles: {
       titleSize:      "medium",
@@ -336,6 +338,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     return {
       ...defaultConfig,
       ...saved,
+      kind: initialTemplate.kind || saved.kind || 'libre',
       sectionOrder: (() => {
         const saved_order = saved.sectionOrder || defaultConfig.sectionOrder
         if (!saved_order.includes('planning')) {
@@ -647,7 +650,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 ))}
               </div>
-            ) : config.tasks.displayMode === 'list' ? (
+            ) : ['list', 'visite', 'localizedPhotos'].includes(config.tasks.displayMode) ? (
               [1, 2].map((n) => (
                 <div key={n} className="border-l-4 pl-4 mb-4" style={{ borderColor: config.primaryColor }}>
                   <div className="flex gap-4">
@@ -737,6 +740,33 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <h1 className="text-[15px] font-medium text-encre">Template de Rapport</h1>
           </div>
           <div className="space-y-3">
+            <div>
+              <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Type de rapport</label>
+              <select
+                value={config.kind || 'libre'}
+                onChange={(e) => {
+                  const kind = e.target.value
+                  const k = REPORT_KINDS[kind]
+                  // Le type pose ses réglages de départ ; tout reste modifiable ensuite.
+                  setConfig(p => ({
+                    ...p,
+                    kind,
+                    reportTitle: k.title,
+                    tasks: {
+                      ...p.tasks,
+                      title: { reserves: 'Réserves', visite: 'Observations', avancement: 'Tâches' }[kind] ?? p.tasks.title,
+                      displayMode: kind === 'visite' ? 'visite' : k.displayMode,
+                      groupBy: kind === 'visite' || kind === 'libre' ? p.tasks.groupBy : 'category',
+                    },
+                    fields: k.fields ? { ...(p.fields || {}), ...k.fields } : p.fields,
+                  }))
+                }}
+                className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+              >
+                {REPORT_KIND_KEYS.map((k) => <option key={k} value={k}>{REPORT_KINDS[k].label}</option>)}
+              </select>
+              <p className="text-[11px] text-mine-clair mt-1">{REPORT_KINDS[config.kind || 'libre'].hint}</p>
+            </div>
             <div>
               <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Titre du rapport</label>
               <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors font-medium" />
@@ -931,6 +961,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 { value: "list",         label: "Liste détaillée" },
                 { value: "table",        label: "Tableau compact" },
                 { value: "photoGallery", label: "Galerie photo" },
+                { value: "localizedPhotos", label: "Photos localisées" },
+                { value: "visite", label: "Fiches de visite (observations)" },
               ]}
             />
             {config.tasks.displayMode === 'photoGallery' && (
