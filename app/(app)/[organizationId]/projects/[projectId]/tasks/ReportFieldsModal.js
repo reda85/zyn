@@ -5,7 +5,7 @@ import { GeistSans } from 'geist/font/sans';
 import { Download, FileText, Image as ImageIcon, MapPin, Upload, X as XCloseIcon, XIcon } from 'lucide-react'
 import clsx from 'clsx'
 import RichTextEditor from '@/components/RichTextEditor'
-import { REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
+import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
 
 const EMPTY_DOC = { type: 'doc', content: [{ type: 'paragraph' }] }
 
@@ -89,8 +89,12 @@ export default function ReportFieldsModal({ reportKind = 'libre', onKindChange, 
     })
   }
 
+  const [progress, setProgress] = useState(() => ({ ...DEFAULT_PROGRESS, ...(templateConfig?.progress || {}) }))
+  const isProgress = reportKind === 'avancement'
+
   const handleConfirm = () => {
     onConfirm({
+      ...(isProgress ? { progress } : {}),
       reportTitle,
       displayMode,
       participants,
@@ -194,6 +198,32 @@ export default function ReportFieldsModal({ reportKind = 'libre', onKindChange, 
               ))}
             </div>
           </div>
+
+          {isProgress && (
+            <div>
+              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Contenu du rapport</p>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                {PROGRESS_PARTS.map(({ key, label, hint }) => {
+                  const disabled = key === 'ganttTasks' && !progress.gantt
+                  return (
+                    <label key={key} className={clsx('flex items-start gap-3 px-3 py-2 rounded-[6px] transition-colors', disabled ? 'opacity-40' : 'hover:bg-survol cursor-pointer')}>
+                      <input
+                        type="checkbox"
+                        disabled={disabled}
+                        checked={Boolean(progress[key]) && !disabled}
+                        onChange={() => setProgress((p) => ({ ...p, [key]: !p[key] }))}
+                        className="mt-0.5 w-3.5 h-3.5 rounded-[4px] border-filet-fort accent-encre"
+                      />
+                      <span>
+                        <span className="block text-[14px] text-mine">{label}</span>
+                        <span className="block text-[12px] text-mine-clair">{hint}</span>
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Fields */}
           <div>

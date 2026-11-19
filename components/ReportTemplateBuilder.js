@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { GeistSans } from 'geist/font/sans';
-import { REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
+import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -767,6 +767,25 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               </select>
               <p className="text-[11px] text-mine-clair mt-1">{REPORT_KINDS[config.kind || 'libre'].hint}</p>
             </div>
+            {config.kind === 'avancement' && (
+              <div className="rounded-[8px] border border-filet p-2 space-y-0.5">
+                <p className={clsx('text-[11px] font-medium text-mine-clair px-1 pb-1', 'tabular-nums')}>Contenu du rapport d&apos;avancement</p>
+                {PROGRESS_PARTS.map(({ key, label }) => {
+                  const progress = { ...DEFAULT_PROGRESS, ...(config.progress || {}) }
+                  return (
+                    <label key={key} className="flex items-center gap-2 px-1 py-1 text-[13px] text-mine cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(progress[key])}
+                        onChange={() => setConfig(p => ({ ...p, progress: { ...DEFAULT_PROGRESS, ...(p.progress || {}), [key]: !progress[key] } }))}
+                        className="w-3.5 h-3.5 accent-encre"
+                      />
+                      {label}
+                    </label>
+                  )
+                })}
+              </div>
+            )}
             <div>
               <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Titre du rapport</label>
               <input type="text" value={config.reportTitle} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, reportTitle: e.target.value })) }} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }} placeholder="RAPPORT DE TÂCHES" className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors font-medium" />
