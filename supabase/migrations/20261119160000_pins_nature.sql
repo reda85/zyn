@@ -10,11 +10,17 @@
 -- sans plan (créé depuis la liste) est une tâche ; le reste, posé sur un plan,
 -- est une réserve. La nature se change ensuite depuis la fiche.
 
+-- Reprise silencieuse : pas d'entrée « a modifié ce pin » dans l'historique
+-- de chaque élément.
+alter table public.pdf_pins disable trigger trg_pdf_pins_events;
+
 update public.pdf_pins set type = case
   when date_debut is not null or plan_id is null then 'tache'
   else 'reserve'
 end
 where type is null or type not in ('reserve', 'tache', 'observation');
+
+alter table public.pdf_pins enable trigger trg_pdf_pins_events;
 
 -- Sans nature précisée (anciennes versions des applications) : même règle
 -- qu'à la reprise — sans plan ou planifiée, c'est une tâche ; sur plan, une réserve.
