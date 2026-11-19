@@ -13,6 +13,7 @@ import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
 import { useProjectData } from '@/providers/ProjectProvider'
 import NotificationBell from '@/components/NotificationBell'
+import DemoBadge from '@/components/DemoBadge'
 
 const tabs = ['Plans', 'Tâches', 'Réunions', 'Planning', 'Rapports', 'Médias', 'Documents', 'Discussions']
 
@@ -186,6 +187,7 @@ export default function Navbar({ id, user, project: projectProp, organizationId,
 
       {/* Right Actions */}
       <div className="ml-auto flex items-center gap-3">
+        <DemoBadge organizationId={organizationId} />
         <NotificationBell organizationId={organizationId} memberId={user?.id} />
 
        

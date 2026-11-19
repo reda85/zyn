@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FolderKanban, Building2, Users, BarChart3, Settings, ChevronsUpDown, Check, LogOut } from 'lucide-react'
 import NotificationBell from '@/components/NotificationBell'
+import DemoBadge from '@/components/DemoBadge'
 import { useUserData } from '@/hooks/useUserData'
 import { useState, useRef, useEffect } from 'react'
 import { signOutAction } from '@/app/actions'
@@ -180,6 +181,7 @@ export default function Sidebar({ organizationId, currentPage = 'projects' }) {
 
       {/* ── Profile + Sign out ── */}
       <div className="px-3 pb-4">
+        <DemoBadge organizationId={organizationId} variant="nav" />
         <div className="h-px bg-voile mb-3" />
         <div className="flex items-center gap-1 group">
           <Link
