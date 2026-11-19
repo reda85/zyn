@@ -21,6 +21,7 @@ import { exportTasksToExcel, exportTasksWithMediaToExcel } from '@/lib/exportTas
 import { BACKEND_URL } from '@/lib/config'
 
 import TaskRow, { TaskRowSkeleton } from './TaskRow'
+import { PIN_TYPES } from '@/lib/data/pinTypes'
 
 // Éditeur riche inclus : chargé seulement à l'ouverture de la fenêtre de rapport.
 const ReportFieldsModal = dynamic(() => import('./ReportFieldsModal'), { ssr: false })
@@ -38,6 +39,7 @@ export default function Tasks({ params }) {
   const { profile, isAdmin } = useUserData(organizationId)
   const { project, categories, statuses } = useProjectData()
   const { filters, setFilters } = usePinFilters()
+  const activeType = filters.types?.length === 1 ? filters.types[0] : null
   const [selectedPin, selectPin] = useSelectedPin()
   const { patchPin, addPin } = usePinsCache()
 
@@ -169,6 +171,7 @@ export default function Tasks({ params }) {
   // ── Actions ───────────────────────────────────────────────────────────────
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false)
   const [newTaskName, setNewTaskName] = useState('')
+  const [newTaskType, setNewTaskType] = useState('tache')
   const [newTaskDescription, setNewTaskDescription] = useState('')
   const [isCreating, setIsCreating] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
@@ -281,6 +284,7 @@ export default function Tasks({ params }) {
       const created = await insertPin({
         name: newTaskName,
         note: newTaskDescription,
+        type: newTaskType,
         project_id: projectId,
         created_by: profile.id,
         category_id: categories.find((c) => c.order === 0)?.id,
@@ -314,7 +318,7 @@ export default function Tasks({ params }) {
               {isPending ? (
                 <span className="inline-block h-3 w-24 bg-voile rounded-[6px] animate-pulse align-middle" />
               ) : (
-                `${knownTotal} tâche${knownTotal > 1 ? 's' : ''}`
+                `${knownTotal} ${activeType ? PIN_TYPES[activeType].plural.toLowerCase() : `élément${knownTotal > 1 ? 's' : ''}`}`
               )}
             </p>
           </div>
@@ -335,14 +339,30 @@ export default function Tasks({ params }) {
 
             {!isGuest && (
               <button
-                onClick={() => setIsAddTaskOpen(true)}
+                onClick={() => { setNewTaskType(activeType ?? 'tache'); setIsAddTaskOpen(true) }}
                 className="flex items-center gap-1.5 px-3 py-[7px] bg-encre text-white rounded-[8px] text-[14px] font-medium hover:bg-encre-survol transition-colors"
               >
                 <span className="text-sm leading-none">+</span>
-                Nouvelle tâche
+                {activeType ? `Nouvelle ${PIN_TYPES[activeType].label.toLowerCase()}` : 'Nouvel élément'}
               </button>
             )}
           </div>
+        </div>
+
+        {/* Nature : réserves, tâches, observations */}
+        <div className="flex items-center gap-1 mb-3 border-b border-filet">
+          {[[null, 'Tout'], ...Object.entries(PIN_TYPES).map(([k, t]) => [k, t.plural])].map(([key, label]) => (
+            <button
+              key={label}
+              onClick={() => setFilters({ types: key ? [key] : [] })}
+              className={clsx(
+                'px-3 py-2 -mb-px text-[14px] font-medium border-b-2 transition-colors',
+                activeType === key ? 'border-encre text-encre' : 'border-transparent text-mine hover:text-encre'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         <div className="bg-white border border-filet rounded-[12px] overflow-hidden shadow-carte">
@@ -499,17 +519,30 @@ export default function Tasks({ params }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
           <div className={clsx(GeistSans.className, 'bg-white w-full max-w-md rounded-[12px] border border-filet shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14),0_2px_4px_rgba(15,15,15,0.04)]')}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-voile">
-              <h3 className="text-base font-medium text-encre">Nouvelle tâche</h3>
+              <h3 className="text-base font-medium text-encre">Nouvel élément</h3>
               <button onClick={() => setIsAddTaskOpen(false)} className="p-1 rounded-[6px] hover:bg-voile transition-colors">
                 <XIcon className="w-4 h-4 text-mine-clair" />
               </button>
             </div>
             <div className="p-5 space-y-3">
+              <div className="inline-flex rounded-[8px] bg-voile p-0.5">
+                {Object.entries(PIN_TYPES).map(([key, t]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    title={t.hint}
+                    onClick={() => setNewTaskType(key)}
+                    className={clsx('px-3 py-1 rounded-[6px] text-[13px] font-medium', newTaskType === key ? 'bg-white text-encre shadow-carte' : 'text-mine')}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
               <div>
                 <label className={clsx('block text-[12px] font-medium text-mine-clair mb-1.5', 'tabular-nums')}>Nom</label>
                 <input
                   type="text"
-                  placeholder="Nom de la tâche"
+                  placeholder={`Nom de ${newTaskType === 'observation' ? "l'observation" : newTaskType === 'reserve' ? 'la réserve' : 'la tâche'}`}
                   value={newTaskName}
                   onChange={(e) => setNewTaskName(e.target.value)}
                   className="w-full rounded-[8px] border border-filet bg-white px-3 py-2.5 text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors"
