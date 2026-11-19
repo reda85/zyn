@@ -66,8 +66,9 @@ begin
   end if;
   select coalesce(array_agg(id), '{}') into v_projects from projects where organization_id = p_org;
 
-  delete from notifications where project_id = any(v_projects)
-     or recipient_id in (select member_id from members_organizations where organization_id = p_org);
+  -- Seulement celles des projets de la démo : un membre de la démo peut aussi
+  -- appartenir à une vraie organisation.
+  delete from notifications where project_id = any(v_projects);
   delete from reports where project_id = any(v_projects);
   -- Points avant réunions : supprimer une réunion rouvre les points qu'elle a soldés.
   delete from meeting_points where project_id = any(v_projects);
@@ -427,8 +428,7 @@ begin
 
   -- La démo commence sans notifications (les déclencheurs en ont créé pendant le scénario).
   delete from notifications
-   where project_id in (select id from projects where organization_id = p_org)
-      or recipient_id in (select member_id from members_organizations where organization_id = p_org);
+   where project_id in (select id from projects where organization_id = p_org);
 
   update organizations set demo_reset_at = now() where id = p_org;
   return jsonb_build_object('projets', v_result, 'reinitialisee_le', now());
