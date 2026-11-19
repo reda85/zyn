@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { GeistSans } from 'geist/font/sans';
-import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS, MODES_FOR_KIND, fieldValue } from '@/lib/data/reportKinds'
+import { DEFAULT_PROGRESS, PROGRESS_SECTION_DEFAULTS, REPORT_KINDS, REPORT_KIND_KEYS, MODES_FOR_KIND, fieldValue } from '@/lib/data/reportKinds'
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -188,10 +188,27 @@ const SelectField = ({ label, value, onChange, options }) => (
   </div>
 )
 
-const SectionOrderItem = ({ id, label, icon, index, total, off = false, onMoveUp, onMoveDown }) => (
-  <div className={clsx("flex items-center gap-3 bg-white border border-filet rounded-[12px] px-3 py-2.5 group shadow-carte", off && "opacity-50")}>
+const TitleField = ({ value, placeholder, onChange }) => (
+  <div className="space-y-2">
+    <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Titre de la section</label>
+    <input
+      type="text"
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => { e.stopPropagation(); onChange(e.target.value) }}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
+      className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors"
+    />
+  </div>
+)
+
+const SectionOrderItem = ({ id, label, icon, index, total, included = null, onToggle, onMoveUp, onMoveDown }) => (
+  <div className={clsx("flex items-center gap-3 bg-white border border-filet rounded-[12px] px-3 py-2.5 group shadow-carte", included === false && "opacity-60")}>
+    {included === null
+      ? <span className="w-3.5" />
+      : <input type="checkbox" checked={included} onChange={(e) => onToggle(e.target.checked)} aria-label={`Inclure ${label}`} className="w-3.5 h-3.5 accent-encre cursor-pointer" />}
     <span className="text-base">{icon}</span>
-    <span className="text-[13px] font-medium text-encre flex-1">{label}{off && <span className="ml-2 text-[11px] font-normal text-mine-clair">non incluse</span>}</span>
+    <span className="text-[13px] font-medium text-encre flex-1">{label}{included === false && <span className="ml-2 text-[11px] font-normal text-mine-clair">non incluse</span>}</span>
     <div className="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveUp(index) }} disabled={index === 0} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▲</button>
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMoveDown(index) }} disabled={index === total - 1} className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-voile disabled:opacity-20 disabled:cursor-not-allowed transition-colors text-[11px] font-bold">▼</button>
@@ -520,24 +537,68 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
   const previewFont = webFontMap[config.fontFamily] || 'Arial, sans-serif'
 
-  const sectionTitlePreviewStyle = () => ({
+  const sectionTitlePreviewStyle = () => {
+    const c = config.sectionTitles?.titleColor === 'dark' ? '#292524'
+      : config.sectionTitles?.titleColor === 'custom' && config.sectionTitles?.titleCustomColor ? config.sectionTitles.titleCustomColor
+      : config.primaryColor
+    return {
     fontSize:            (config.sectionTitles?.titleSize ?? 'medium') === 'small' ? '12px' : (config.sectionTitles?.titleSize ?? 'medium') === 'large' ? '18px' : '14px',
     fontWeight:          'bold',
-    color:               config.primaryColor,
-    borderLeft:          (config.sectionTitles?.titleAccentBar ?? true) ? `3px solid ${config.primaryColor}` : 'none',
+    color:               c,
+    textTransform:       config.sectionTitles?.titleUppercase ? 'uppercase' : 'none',
+    letterSpacing:       config.sectionTitles?.titleUppercase ? '0.04em' : 'normal',
+    borderLeft:          (config.sectionTitles?.titleAccentBar ?? true) ? `3px solid ${c}` : 'none',
     paddingLeft:         (config.sectionTitles?.titleAccentBar ?? true) ? '8px' : '0',
     textDecoration:      (config.sectionTitles?.titleUnderline ?? false) ? 'underline' : 'none',
     textDecorationColor: config.primaryColor,
     marginBottom:        '12px',
     fontFamily:          previewFont,
-  })
+    }
+  }
 
   const kind         = config.kind || 'libre'
   const isProgress   = kind === 'avancement'
   const progress     = { ...DEFAULT_PROGRESS, ...(config.progress || {}) }
   const sectionOrder = completeOrder(config.sectionOrder).filter((id) => sectionShown(id, kind))
   const fieldOn      = (key) => fieldValue(config.fields || {}, key, ['startDate', 'progress'].includes(key) ? isProgress : true)
-  const sectionLabel = (id) => (id === 'tasks' ? (config.tasks.title || 'Tâches') : SECTION_LABELS[id]?.label || id)
+  // Réglages d'une section d'avancement (titre et options).
+  const ps = (key) => ({ ...PROGRESS_SECTION_DEFAULTS[key], ...(config.progressSections?.[key] || {}) })
+  const setPs = (key, patch) => setConfig(p => ({
+    ...p,
+    progressSections: { ...(p.progressSections || {}), [key]: { ...(p.progressSections?.[key] || {}), ...patch } },
+  }))
+  const setProgress = (key, value) => setConfig(p => ({ ...p, progress: { ...DEFAULT_PROGRESS, ...(p.progress || {}), [key]: value } }))
+  const sectionLabel = (id) => {
+    if (id === 'tasks') return config.tasks.title || 'Tâches'
+    if (id in PROGRESS_SECTION_PART) return ps(PROGRESS_SECTION_PART[id]).title || SECTION_LABELS[id].label
+    if (id === 'planOverviews') return config.planOverviews?.title || SECTION_LABELS[id].label
+    if (id === 'participants') return config.participants?.title || SECTION_LABELS[id].label
+    if (id === 'signatures') return config.signatures?.title || SECTION_LABELS[id].label
+    return SECTION_LABELS[id]?.label || id
+  }
+  // Inclusion d'une section dans le rapport (null : toujours présente ou réglée ailleurs).
+  const included = (id) => {
+    if (id in PROGRESS_SECTION_PART) return Boolean(progress[PROGRESS_SECTION_PART[id]])
+    switch (id) {
+      case 'summary':       return Boolean(config.summary.enabled)
+      case 'planOverviews': return isProgress ? Boolean(progress.planOverviews) : Boolean(config.planOverviews?.enabled)
+      case 'planning':      return Boolean(config.planning?.enabled)
+      case 'participants':  return Boolean(config.participants?.enabled)
+      case 'signatures':    return Boolean(config.signatures?.enabled)
+      case 'tasks':         return isProgress ? Boolean(progress.details) : null
+      default:              return null
+    }
+  }
+  const setIncluded = (id, value) => {
+    if (id in PROGRESS_SECTION_PART) return setProgress(PROGRESS_SECTION_PART[id], value)
+    if (id === 'tasks') return setProgress('details', value)
+    if (id === 'planOverviews' && isProgress) return setProgress('planOverviews', value)
+    setConfig(p => ({ ...p, [id]: { ...p[id], enabled: value } }))
+  }
+  const titleColor = config.sectionTitles?.titleColor === 'dark' ? '#292524'
+    : config.sectionTitles?.titleColor === 'custom' && config.sectionTitles?.titleCustomColor ? config.sectionTitles.titleCustomColor
+    : config.primaryColor
+  const showSubs = config.sectionTitles?.showSubtitles !== false
   // Aperçu d'un rapport limité à un ou plusieurs lots.
   const [previewScope, setPreviewScope] = useState(false)
 
@@ -568,12 +629,17 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               <div className="text-base font-bold" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
               <div className="text-xs text-mine-clair">Situation au 19/11/2026</div>
             </div>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div><div className="text-xs font-bold text-mine">Avancement global</div><div className="text-2xl font-bold mt-1">63 %</div></div>
-              <div><div className="text-xs font-bold text-mine">Lots</div><div className="text-lg font-bold mt-1">6 <span className="text-xs font-normal text-alerte">dont 1 en retard</span></div></div>
-              <div><div className="text-xs font-bold text-mine">Tâches</div><div className="text-lg font-bold mt-1">4/13 <span className="text-xs font-normal text-alerte">2 en retard</span></div></div>
+            {ps('summary').global !== false && (
+              <div className="mb-3">
+                <div className="text-xs font-bold text-mine">Avancement global</div>
+                <div className="flex items-center gap-3 mt-1"><span className="text-2xl font-bold">63 %</span><span className="inline-block h-2 w-48 rounded bg-white overflow-hidden"><span className="block h-full" style={{ width: '63%', backgroundColor: config.primaryColor }} /></span></div>
+              </div>
+            )}
+            <div className="flex gap-4 text-sm">
+              {[['lots', 'Lots', '6'], ['lateLots', 'Lots en retard', '1'], ['tasks', 'Tâches', '4/13'], ['lateTasks', 'Tâches en retard', '2'], ['nextMilestone', 'Prochain jalon', '15/01']].filter(([k]) => ps('summary')[k] !== false).map(([k, label, v]) => (
+                <div key={k} className="flex-1"><div className="text-xs font-bold text-mine">{label}</div><div className={clsx('text-lg font-bold mt-1', (k === 'lateLots' || k === 'lateTasks') && 'text-alerte')}>{v}</div></div>
+              ))}
             </div>
-            <div className="mt-3 pt-3 border-t border-filet text-xs text-mine"><span className="font-bold">Prochain jalon :</span> Réception, 15/01/2027</div>
           </div>
         )
         return (
@@ -828,108 +894,146 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           </div>
         )
 
-      case 'progressLots':
+      case 'progressLots': {
         if (!progress.lots) return null
+        const o = ps('lots')
+        const cols = [
+          [null, 'Lot', 'flex-1', (l) => <><div className="font-bold">{l.name}</div></>],
+          ['company', 'Entreprise', 'w-24', (l) => l.company],
+          ['planned', 'Prévu', 'w-24', (l) => l.dates],
+          ['real', 'Réel', 'w-20', (l) => (l.pct ? `${l.dates.slice(0, 5)} → en cours` : 'Non démarré')],
+          ['progress', 'Avancement', 'w-24', (l) => <span className="flex items-center gap-1.5"><span className="inline-block h-1.5 w-12 rounded bg-voile overflow-hidden"><span className="block h-full" style={{ width: `${l.pct}%`, backgroundColor: config.primaryColor }} /></span>{l.pct} %</span>],
+          ['tasks', 'Tâches', 'w-12', (l, i) => ['5/7', '1/4', '0/3'][i]],
+          ['state', 'État', 'w-16', (l) => (l.late ? <span className="text-alerte font-bold">Retard 12 j</span> : 'En cours')],
+        ].filter(([k]) => !k || o[k] !== false)
         return (
           <div key="progressLots">
-            <div style={sectionTitlePreviewStyle()}>Lots</div>
+            <div style={sectionTitlePreviewStyle()}>{o.title}</div>
+            {showSubs && <p className="text-[10px] text-mine-clair -mt-2 mb-2">Dates prévues et réelles, avancement déclaré par lot</p>}
             <div className="border border-filet rounded-lg overflow-hidden text-xs">
-              <div className="flex gap-2 p-2 font-bold bg-survol"><div className="flex-1">Lot</div><div className="w-24">Prévu</div><div className="w-28">Avancement</div><div className="w-16">État</div></div>
-              {SAMPLE_LOTS.map((l) => (
+              <div className="flex gap-2 p-2 font-bold bg-survol">{cols.map(([k, h, w]) => <div key={h} className={w}>{h}</div>)}</div>
+              {SAMPLE_LOTS.map((l, i) => (
                 <div key={l.name} className="flex gap-2 p-2 border-t border-voile items-center">
-                  <div className="flex-1"><div className="font-bold">{l.name}</div><div className="text-mine-clair">{l.company}</div></div>
-                  <div className="w-24">{l.dates}</div>
-                  <div className="w-28 flex items-center gap-1.5"><span className="inline-block h-1.5 w-16 rounded bg-voile overflow-hidden"><span className="block h-full" style={{ width: `${l.pct}%`, backgroundColor: l.late ? '#b91c1c' : config.primaryColor }} /></span>{l.pct} %</div>
-                  <div className="w-16">{l.late ? <span className="text-alerte font-bold">En retard</span> : 'En cours'}</div>
+                  {cols.map(([k, h, w, cell]) => <div key={h} className={w}>{cell(l, i)}</div>)}
                 </div>
               ))}
             </div>
           </div>
         )
+      }
 
-      case 'progressAttention':
+      case 'progressAttention': {
         if (!progress.attention) return null
+        const o = ps('attention')
         return (
           <div key="progressAttention">
-            <div style={sectionTitlePreviewStyle()}>Points d&apos;attention</div>
+            <div style={sectionTitlePreviewStyle()}>{o.title}</div>
             <ul className="space-y-1.5 text-xs">
-              <li className="border-l-2 border-alerte pl-2"><span className="font-bold">Lot Électricité</span> — 12 j de retard sur la fin prévue (30/11)</li>
-              <li className="border-l-2 border-alerte pl-2"><span className="font-bold">Tirage des câbles R+1</span> — échéance dépassée de 5 j, 40 %</li>
+              {o.lots !== false && <li className="border-l-2 border-alerte pl-2"><span className="font-bold">Lot Électricité</span> (Électro Souss) : 40 % — 12 j de retard sur la fin prévue (30/11)</li>}
+              {o.tasks !== false && <li className="border-l-2 border-alerte pl-2"><span className="font-bold">Tirage des câbles R+1</span> : 40 % — échéance dépassée de 5 j</li>}
             </ul>
           </div>
         )
+      }
 
-      case 'progressMilestones':
+      case 'progressMilestones': {
         if (!progress.milestones) return null
+        const o = ps('milestones')
         return (
           <div key="progressMilestones">
-            <div style={sectionTitlePreviewStyle()}>Jalons</div>
+            <div style={sectionTitlePreviewStyle()}>{o.title}</div>
             <div className="space-y-1 text-xs">
-              <div className="flex gap-2 items-center"><span className="text-valide">◆</span><span className="flex-1">Hors d&apos;eau</span><span>30/10/2026</span><span className="text-valide font-bold w-16">Atteint</span></div>
+              {!o.upcomingOnly && <div className="flex gap-2 items-center"><span className="text-valide">◆</span><span className="flex-1">Hors d&apos;eau</span><span>30/10/2026</span><span className="text-valide font-bold w-16">Atteint</span></div>}
               <div className="flex gap-2 items-center"><span style={{ color: config.primaryColor }}>◆</span><span className="flex-1">Réception</span><span>15/01/2027</span><span className="text-mine-clair w-16">À venir</span></div>
             </div>
           </div>
         )
+      }
 
-      case 'progressWorkforce':
+      case 'progressWorkforce': {
         if (!progress.workforce) return null
+        const o = ps('workforce')
         return (
           <div key="progressWorkforce">
-            <div style={sectionTitlePreviewStyle()}>Effectifs de site</div>
+            <div style={sectionTitlePreviewStyle()}>{o.title}</div>
+            {showSubs && <p className="text-[10px] text-mine-clair -mt-2 mb-2">Personnel présent sur le chantier le 19/11/2026</p>}
             <div className="border border-filet rounded-lg overflow-hidden text-xs">
               {SAMPLE_LOTS.map((l, i) => (
                 <div key={l.name} className={clsx('flex gap-2 p-2 items-center', i > 0 && 'border-t border-voile')}>
-                  <div className="flex-1 font-bold">{l.company}</div><div className="flex-1 text-mine-clair">{l.name}</div><div className="w-10 text-right font-bold">{[18, 6, 4][i]}</div>
+                  <div className="flex-1 font-bold">{l.company}</div>{o.lots !== false && <div className="flex-1 text-mine-clair">{l.name}</div>}<div className="w-10 text-right font-bold">{[18, 6, 4][i]}</div>
                 </div>
               ))}
-              <div className="flex gap-2 p-2 bg-survol font-bold"><div className="flex-1">Total sur site</div><div className="w-16 text-right">28 pers.</div></div>
+              {o.total !== false && <div className="flex gap-2 p-2 bg-survol font-bold"><div className="flex-1">Total sur site</div><div className="w-16 text-right">28 pers.</div></div>}
             </div>
             <p className="text-[10px] text-mine-clair italic mt-1">Effectifs saisis à la génération du rapport</p>
           </div>
         )
+      }
 
-      case 'gantt':
+      case 'gantt': {
         if (!progress.gantt) return null
+        const o = ps('gantt')
         return (
           <div key="gantt">
-            <div style={sectionTitlePreviewStyle()}>Planning</div>
+            <div style={sectionTitlePreviewStyle()}>{o.title}</div>
             <div className="relative border border-filet rounded-lg p-3 text-[10px] space-y-2">
               {SAMPLE_LOTS.map((l, i) => (
-                <div key={l.name} className="flex items-center gap-2">
-                  <div className="w-24 font-bold truncate">{l.name}</div>
-                  <div className="flex-1 relative h-3">
-                    <div className="absolute h-3 rounded" style={{ left: `${[0, 20, 45][i]}%`, width: `${[60, 30, 45][i]}%`, backgroundColor: l.late ? '#fca5a5' : `${config.primaryColor}55` }} />
+                <div key={l.name} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 font-bold truncate">{l.name}</div>
+                    <div className="flex-1 relative h-3">
+                      <div className="absolute h-3 rounded" style={{ left: `${[0, 20, 45][i]}%`, width: `${[60, 30, 45][i]}%`, backgroundColor: l.late ? '#fca5a5' : `${config.primaryColor}55` }} />
+                    </div>
                   </div>
+                  {progress.ganttTasks !== false && i === 0 && (
+                    <div className="flex items-center gap-2 text-mine-clair">
+                      <div className="w-24 pl-2 truncate">Élévation R+2</div>
+                      <div className="flex-1 relative h-2"><div className="absolute h-2 rounded bg-filet" style={{ left: '30%', width: '25%' }} /></div>
+                    </div>
+                  )}
                 </div>
               ))}
-              <div className="absolute top-2 bottom-2 border-l border-dashed border-alerte" style={{ left: 'calc(6.5rem + 45%)' }} />
             </div>
-            <p className="text-[10px] text-mine-clair italic mt-1">Page paysage, ligne du jour{progress.ganttTasks ? ', tâches sous chaque lot' : ''}</p>
+            <p className="text-[10px] text-mine-clair italic mt-1">Page paysage, ligne du jour{progress.ganttTasks !== false ? ', tâches sous chaque lot' : ''}</p>
           </div>
         )
+      }
 
-      case 'progressPhotos':
+      case 'progressPhotos': {
         if (!progress.photos) return null
+        const o = ps('photos')
+        const two = Number(o.perPage) === 2
         return (
           <div key="progressPhotos">
-            <div style={sectionTitlePreviewStyle()}>Reportage photo</div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative bg-voile rounded aspect-[4/3] flex items-center justify-center text-mine-clair text-[10px]">
-                Plan
-                <span className="absolute w-3 h-3 rounded-full border-2 border-white bg-red-600" style={{ top: '55%', left: '35%' }} />
-              </div>
-              <div className="bg-filet rounded aspect-[4/3] flex items-center justify-center text-mine-clair text-[10px]">Photo la plus récente</div>
+            <div style={sectionTitlePreviewStyle()}>{o.title}</div>
+            <div className="space-y-3">
+              {(two ? ['Enduits intérieurs', 'Carrelage parties communes'] : ['Enduits intérieurs']).map((name, i) => (
+                <div key={name}>
+                  <div className="text-xs font-bold text-mine mb-1">{name} <span className="font-normal text-mine-clair">· Revêtements</span></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {o.plan !== false && (
+                      <div className={clsx('relative bg-voile rounded flex items-center justify-center text-mine-clair text-[10px]', two ? 'h-24' : 'h-36')}>
+                        Plan
+                        <span className="absolute w-3 h-3 rounded-full border-2 border-white bg-red-600" style={{ top: '55%', left: i ? '62%' : '35%' }} />
+                      </div>
+                    )}
+                    <div className={clsx('bg-filet rounded flex items-center justify-center text-mine-clair text-[10px]', two ? 'h-24' : 'h-36', o.plan === false && 'col-span-1')}>Photo la plus récente</div>
+                    {o.plan === false && <div className="text-2xl font-bold text-encre-survol self-start">{i ? '35' : '60'} %</div>}
+                  </div>
+                  {o.caption !== false && <p className="text-xs text-mine mt-1">Les travaux « {name} » sont réalisés à <span className="font-bold">{i ? '35' : '60'} %</span>.</p>}
+                </div>
+              ))}
             </div>
-            <p className="text-xs text-mine mt-2">Les travaux « Enduits intérieurs » sont réalisés à <span className="font-bold">60 %</span>.</p>
-            <p className="text-[10px] text-mine-clair italic mt-1">Une page paysage par tâche illustrée</p>
+            <p className="text-[10px] text-mine-clair italic mt-1">Pages paysage, {two ? '2 tâches' : '1 tâche'} par page</p>
           </div>
         )
+      }
 
       case 'progressConclusion':
         if (!progress.conclusion) return null
         return (
           <div key="progressConclusion">
-            <div style={sectionTitlePreviewStyle()}>Recommandations et conclusion</div>
+            <div style={sectionTitlePreviewStyle()}>{ps('conclusion').title}</div>
             <div className="bg-survol rounded p-4 border border-dashed border-trait">
               <p className="text-sm text-mine-clair italic text-center">Texte saisi à la génération du rapport</p>
             </div>
@@ -1004,24 +1108,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               </select>
               <p className="text-[11px] text-mine-clair mt-1">{REPORT_KINDS[config.kind || 'libre'].hint}</p>
             </div>
-            {config.kind === 'avancement' && (
-              <div className="rounded-[8px] border border-filet p-2 space-y-0.5">
-                <p className={clsx('text-[11px] font-medium text-mine-clair px-1 pb-1', 'tabular-nums')}>Contenu du rapport d&apos;avancement</p>
-                {PROGRESS_PARTS.map(({ key, label }) => {
-                  const progress = { ...DEFAULT_PROGRESS, ...(config.progress || {}) }
-                  return (
-                    <label key={key} className="flex items-center gap-2 px-1 py-1 text-[13px] text-mine cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(progress[key])}
-                        onChange={() => setConfig(p => ({ ...p, progress: { ...DEFAULT_PROGRESS, ...(p.progress || {}), [key]: !progress[key] } }))}
-                        className="w-3.5 h-3.5 accent-encre"
-                      />
-                      {label}
-                    </label>
-                  )
-                })}
-              </div>
+            {isProgress && (
+              <p className="text-[11px] text-mine-clair">Sections, ordre et réglages de chaque partie : voir « Sections du rapport » et les panneaux ci-dessous.</p>
             )}
             <div>
               <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Titre du rapport</label>
@@ -1072,9 +1160,17 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <S title="Boîte de résumé" icon={FileText} section="summary">
             <Toggle label="Activer le résumé" checked={config.summary.enabled} onChange={(e) => setConfig(p => ({ ...p, summary: { ...p.summary, enabled: e.target.checked } }))} />
             {config.summary.enabled && isProgress && (
-              <p className="text-[12px] text-mine-clair px-3">
-                Le rapport d&apos;avancement a son propre résumé : avancement global, lots et lots en retard, tâches et tâches en retard, prochain jalon, période.
-              </p>
+              <div className="space-y-3 pl-5 border-l-2 border-voile">
+                {[['global', 'Avancement global'], ['lots', 'Lots'], ['lateLots', 'Lots en retard'], ['tasks', 'Tâches terminées'], ['lateTasks', 'Tâches en retard'], ['nextMilestone', 'Prochain jalon']].map(([k, label]) => (
+                  <Toggle key={k} label={label} checked={ps('summary')[k] !== false} onChange={(e) => setPs('summary', { [k]: e.target.checked })} />
+                ))}
+              </div>
+            )}
+            {config.summary.enabled && (
+              <div className="flex items-center justify-between px-3">
+                <span className="text-[13px] text-encre font-medium">Couleur de fond</span>
+                <input type="color" value={config.summary.backgroundColor || '#f5f5f4'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, summary: { ...p.summary, backgroundColor: e.target.value } })) }} className="w-6 h-6 rounded-[6px] cursor-pointer border-0" />
+              </div>
             )}
             {config.summary.enabled && !isProgress && (
               <div className="space-y-3 pl-5 border-l-2 border-voile">
@@ -1086,6 +1182,45 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
               </div>
             )}
           </S>
+
+          {/* ── Sections du rapport d'avancement ── */}
+          {isProgress && (<>
+            <S title="Tableau des lots" icon={Table} section="ps-lots">
+              <TitleField value={ps('lots').title} placeholder={PROGRESS_SECTION_DEFAULTS.lots.title} onChange={(v) => setPs('lots', { title: v })} />
+              <p className={clsx('text-[11px] font-medium text-mine-clair px-1', 'tabular-nums')}>Colonnes</p>
+              {[['company', 'Entreprise'], ['planned', 'Dates prévues'], ['real', 'Dates réelles'], ['progress', 'Avancement'], ['tasks', 'Tâches terminées'], ['state', 'État']].map(([k, label]) => (
+                <Toggle key={k} label={label} checked={ps('lots')[k] !== false} onChange={(e) => setPs('lots', { [k]: e.target.checked })} />
+              ))}
+            </S>
+            <S title="Points d'attention" icon={AlignLeft} section="ps-attention">
+              <TitleField value={ps('attention').title} placeholder={PROGRESS_SECTION_DEFAULTS.attention.title} onChange={(v) => setPs('attention', { title: v })} />
+              <Toggle label="Lots en retard"   checked={ps('attention').lots !== false}  onChange={(e) => setPs('attention', { lots: e.target.checked })} />
+              <Toggle label="Tâches en retard" checked={ps('attention').tasks !== false} onChange={(e) => setPs('attention', { tasks: e.target.checked })} />
+            </S>
+            <S title="Jalons" icon={List} section="ps-milestones">
+              <TitleField value={ps('milestones').title} placeholder={PROGRESS_SECTION_DEFAULTS.milestones.title} onChange={(v) => setPs('milestones', { title: v })} />
+              <Toggle label="Seulement les jalons à venir" checked={ps('milestones').upcomingOnly === true} onChange={(e) => setPs('milestones', { upcomingOnly: e.target.checked })} />
+            </S>
+            <S title="Planning (Gantt)" icon={Calendar} section="ps-gantt">
+              <TitleField value={ps('gantt').title} placeholder={PROGRESS_SECTION_DEFAULTS.gantt.title} onChange={(v) => setPs('gantt', { title: v })} />
+              <Toggle label="Tâches sous chaque lot" checked={progress.ganttTasks !== false} onChange={(e) => setProgress('ganttTasks', e.target.checked)} />
+            </S>
+            <S title="Reportage photo" icon={ImageIcon} section="ps-photos">
+              <TitleField value={ps('photos').title} placeholder={PROGRESS_SECTION_DEFAULTS.photos.title} onChange={(v) => setPs('photos', { title: v })} />
+              <SelectField label="Tâches par page" value={String(ps('photos').perPage ?? 1)} onChange={(e) => setPs('photos', { perPage: Number(e.target.value) })} options={[{ value: '1', label: '1 (grande photo)' }, { value: '2', label: '2' }]} />
+              <Toggle label="Plan avec le point de prise de vue" checked={ps('photos').plan !== false}    onChange={(e) => setPs('photos', { plan: e.target.checked })} />
+              <Toggle label="Légende et avancement"              checked={ps('photos').caption !== false} onChange={(e) => setPs('photos', { caption: e.target.checked })} />
+            </S>
+            <S title="Effectifs de site" icon={Users} section="ps-workforce">
+              <TitleField value={ps('workforce').title} placeholder={PROGRESS_SECTION_DEFAULTS.workforce.title} onChange={(v) => setPs('workforce', { title: v })} />
+              <Toggle label="Colonne des lots" checked={ps('workforce').lots !== false}  onChange={(e) => setPs('workforce', { lots: e.target.checked })} />
+              <Toggle label="Total sur site"   checked={ps('workforce').total !== false} onChange={(e) => setPs('workforce', { total: e.target.checked })} />
+            </S>
+            <S title="Recommandations et conclusion" icon={FileText} section="ps-conclusion">
+              <TitleField value={ps('conclusion').title} placeholder={PROGRESS_SECTION_DEFAULTS.conclusion.title} onChange={(v) => setPs('conclusion', { title: v })} />
+              <p className="text-[12px] text-mine-clair px-3">Le texte est saisi à la génération du rapport.</p>
+            </S>
+          </>)}
 
           {/* ── Aperçus des plans ── */}
           <S title="Aperçus des plans" icon={Map} section="planOverviews">
@@ -1281,28 +1416,46 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             <SelectField label="Taille" value={config.sectionTitles?.titleSize ?? 'medium'} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }]} />
             <Toggle label="Barre d'accent (bordure gauche)" checked={config.sectionTitles?.titleAccentBar ?? true}  onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleAccentBar: e.target.checked } }))} />
             <Toggle label="Souligné"                        checked={config.sectionTitles?.titleUnderline ?? false} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleUnderline: e.target.checked } }))} />
+            <Toggle label="Majuscules"                      checked={config.sectionTitles?.titleUppercase ?? false} onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleUppercase: e.target.checked } }))} />
+            <Toggle label="Sous-titres explicatifs"         checked={config.sectionTitles?.showSubtitles ?? true}   onChange={(e) => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, showSubtitles: e.target.checked } }))} />
+            <div className="space-y-2">
+              <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Couleur des titres</label>
+              <div className="flex gap-2">
+                {[['primary', 'Du modèle'], ['dark', 'Gris foncé'], ['custom', 'Personnalisée']].map(([opt, label]) => (
+                  <button key={opt} onClick={() => setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleColor: opt } }))} className={clsx("flex-1 py-1.5 rounded-[8px] text-[12px] font-medium border transition-colors", (config.sectionTitles?.titleColor ?? 'primary') === opt ? "bg-encre text-white border-encre" : "bg-white text-encre border-filet hover:bg-survol")}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {config.sectionTitles?.titleColor === 'custom' && (
+                <div className="flex items-center gap-2 bg-white rounded-[12px] border border-filet px-3 py-2 shadow-carte">
+                  <input type="color" value={config.sectionTitles?.titleCustomColor ?? '#000000'} onChange={(e) => { e.stopPropagation(); setConfig(p => ({ ...p, sectionTitles: { ...p.sectionTitles, titleCustomColor: e.target.value } })) }} className="w-6 h-6 rounded-[6px] cursor-pointer border-0" />
+                  <span className={clsx('text-[12px]', 'tabular-nums')}>{config.sectionTitles?.titleCustomColor ?? '#000000'}</span>
+                </div>
+              )}
+            </div>
             <div className="rounded-[8px] bg-survol border border-filet p-4 space-y-2 mt-1">
               <p className={clsx('text-[10px] text-mine-clair font-medium', 'tabular-nums')}>Aperçu</p>
-              {[config.tasks.title || 'Tâches', config.participants.title || 'Équipe projet', config.signatures.title || 'Signatures', 'Section personnalisée'].map((title) => (
-                <div key={title} style={sectionTitlePreviewStyle()}>{title}</div>
+              {sectionOrder.filter((id) => included(id) !== false && id !== 'customSections').slice(0, 6).map((id) => (
+                <div key={id} style={sectionTitlePreviewStyle()}>{sectionLabel(id)}</div>
               ))}
             </div>
           </S>
 
           {/* ── Ordre des sections ── */}
-          <S title="Ordre des sections" icon={List} section="sectionOrder">
-            <p className="text-[13px] text-mine-clair px-1">Définissez l'ordre d'apparition des sections dans le PDF.</p>
+          <S title="Sections du rapport" icon={List} section="sectionOrder">
+            <p className="text-[13px] text-mine-clair px-1">Cochez les sections à inclure et réglez leur ordre dans le PDF.</p>
             <div className="space-y-2 mt-1">
               {sectionOrder.map((id, index) => (
                 <SectionOrderItem
                   key={id} id={id} index={index} total={sectionOrder.length}
                   label={sectionLabel(id)} icon={SECTION_LABELS[id]?.icon || '•'}
-                  off={id in PROGRESS_SECTION_PART ? !progress[PROGRESS_SECTION_PART[id]] : id === 'tasks' && isProgress && !progress.details}
+                  included={included(id)} onToggle={(v) => setIncluded(id, v)}
                   onMoveUp={(i) => moveSection(i, -1)} onMoveDown={(i) => moveSection(i, 1)}
                 />
               ))}
               {isProgress && (
-                <p className="text-[11px] text-mine-clair px-1">Le Gantt et le reportage photo occupent des pages paysage à part. Les sections non cochées dans le contenu du rapport sont grisées.</p>
+                <p className="text-[11px] text-mine-clair px-1">Le Gantt et le reportage photo occupent des pages paysage à part. Les cases cochées ici sont celles proposées par défaut à la génération.</p>
               )}
             </div>
           </S>
@@ -1350,7 +1503,9 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 <div className="space-y-3 pt-4 border-t border-voile">
                   <Toggle label="Photo de projet"  checked={config.coverPage.showProjectPhoto} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showProjectPhoto: e.target.checked } }))} />
                   {config.coverPage.showProjectPhoto && <SelectField label="Taille photo" value={config.coverPage.projectPhotoSize} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, projectPhotoSize: e.target.value } }))} options={[{ value: "small", label: "Petit" }, { value: "medium", label: "Moyen" }, { value: "large", label: "Grand" }, { value: "full", label: "Pleine largeur" }]} />}
-                  <Toggle label="Résumé exécutif"  checked={config.coverPage.showSummary}      onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showSummary:      e.target.checked } }))} />
+                  {isProgress && <Toggle label="Avancement global" checked={config.coverPage.showProgress ?? true} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showProgress: e.target.checked } }))} />}
+                  <Toggle label="Résumé chiffré"   checked={config.coverPage.showSummary}      onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showSummary:      e.target.checked } }))} />
+                  <Toggle label="Lots et entreprises (rapport par lot)" checked={config.coverPage.showScope ?? true} onChange={(e) => setConfig(p => ({ ...p, coverPage: { ...p.coverPage, showScope: e.target.checked } }))} />
                 </div>
               </div>
             )}
@@ -1525,7 +1680,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {config.coverPage.showClientLogo  && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>}
                 </div>
                 <CoverTitlePreview config={config} />
-                {previewScope && (
+                {previewScope && config.coverPage.showScope !== false && (
                   <div className="-mt-4 mb-8 space-y-3" style={{ textAlign: config.coverPage.titleAlign ?? 'left' }}>
                     <div><div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Lots</div><div className="text-lg font-bold text-encre-survol">{SAMPLE_SCOPE.lots}</div></div>
                     <div><div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Entreprises</div><div className="text-lg font-bold text-encre-survol">{SAMPLE_SCOPE.companies}</div></div>
@@ -1538,10 +1693,20 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     </div>
                   </div>
                 )}
+                {isProgress && config.coverPage.showProgress !== false && (
+                  <div className="mb-6">
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Avancement global</p>
+                    <div className="flex items-center gap-3 mt-1"><span className="text-3xl font-bold text-encre-survol">63 %</span><span className="inline-block h-2.5 w-56 rounded-full bg-voile overflow-hidden"><span className="block h-full" style={{ width: '63%', backgroundColor: config.primaryColor }} /></span></div>
+                    <p className="text-xs text-mine-clair mt-1">Situation au {new Date().toLocaleDateString('fr-FR')}</p>
+                  </div>
+                )}
                 {config.coverPage.showSummary && (
                   <div className="p-5 rounded-xl mb-6" style={{ backgroundColor: '#f5f5f4', borderLeft: `4px solid ${config.primaryColor}` }}>
-                    <p className="text-xs font-black uppercase mb-2 tracking-wider" style={{ color: config.primaryColor }}>Résumé Exécutif</p>
-                    <p className="text-mine text-sm italic">"Le projet progresse conformément au planning."</p>
+                    <p className="text-xs font-black uppercase mb-2 tracking-wider" style={{ color: config.primaryColor }}>Résumé</p>
+                    {(isProgress
+                      ? ['6 lots, dont 1 en retard', '4/13 tâches terminées, 2 tâches en retard', 'Prochain jalon : Réception, le 15/01/2027']
+                      : kind === 'visite' ? ['12 observations'] : ['24 réserves', '3 en retard']
+                    ).map((line) => <p key={line} className="text-mine text-sm">{line}</p>)}
                   </div>
                 )}
                 <div className="mt-auto pt-4 border-t border-voile flex justify-between text-xs text-mine-clair">
