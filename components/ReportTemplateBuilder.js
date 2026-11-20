@@ -591,6 +591,29 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
     const visa = cartOpts.showVisa ? ['Rédigé par', 'Vérifié par', 'Approuvé par'] : []
     if (!cells.length && !parties.length && !visa.length) return null
     const lab = 'text-[8px] font-bold uppercase tracking-wide text-mine'
+    if (!cart) {
+      const lbl = { color: config.primaryColor }
+      return (
+        <div className={clsx('rounded-md bg-survol px-4 py-3 space-y-2.5', compact && 'mb-4')} style={{ borderLeft: `4px solid ${config.primaryColor}` }}>
+          {cells.length > 0 && <div className="flex gap-4">{cells.map(([k, v], i) => (
+            <div key={k} style={{ flex: i ? 1 : 1.6 }}><div className="text-[8px] font-bold uppercase tracking-wider" style={lbl}>{k}</div><div className="text-[12px] font-bold text-encre-survol">{v}</div></div>
+          ))}</div>}
+          {parties.length > 0 && <div className={cells.length ? 'pt-2 border-t border-filet' : ''}>
+            <div className="text-[8px] font-bold uppercase tracking-wider mb-1" style={lbl}>Intervenants</div>
+            <div className="flex">{parties.map(([r, n]) => (
+              <div key={r} className="flex-1 flex items-center gap-1.5 min-w-0">
+                {cartOpts.showLogos && <div className="w-7 h-5 rounded-sm bg-voile flex-shrink-0" />}
+                <div className="min-w-0"><div className="text-[8px] text-mine-clair">{r}</div><div className="text-[10px] font-bold truncate">{n}</div></div>
+              </div>
+            ))}</div>
+          </div>}
+          {visa.length > 0 && <div className={cells.length || parties.length ? 'pt-2 border-t border-filet' : ''}>
+            <div className="text-[8px] font-bold uppercase tracking-wider mb-1" style={lbl}>Visa</div>
+            <div className="flex gap-4">{visa.map((k) => <div key={k} className="flex-1 pb-3 border-b border-filet text-[8px] text-mine-clair">{k}</div>)}</div>
+          </div>}
+        </div>
+      )
+    }
     const band = (t, first) => <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: cartTint, color: config.primaryColor, borderBottom: `1px solid ${FRAME_LIGHT}`, ...(first ? {} : { borderTop: `1px solid ${FRAME}` }) }}>{t}</div>
     return (
       <div className={compact ? 'mb-4' : ''} style={{ border: `1.5px solid ${FRAME}` }}>
@@ -1758,9 +1781,9 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           </S>
 
           {/* ── Cartouche : identité, intervenants, visa ── */}
-          <S title="Cartouche" icon={Stamp} section="cartouche">
-            <Toggle label="Afficher le cartouche" checked={cartOpts.enabled} onChange={(e) => setCart({ enabled: e.target.checked })} />
-            <p className="text-[11px] text-mine-clair px-3 -mt-1">N° de document, intervenants du projet avec leur logo et visa. En page de garde, ou en tête de la première page sans page de garde.</p>
+          <S title="Intervenants, n° et visa" icon={Stamp} section="cartouche">
+            <Toggle label="Afficher dans le rapport" checked={cartOpts.enabled} onChange={(e) => setCart({ enabled: e.target.checked })} />
+            <p className="text-[11px] text-mine-clair px-3 -mt-1">N° de document, intervenants du projet avec leur logo et visa, dans les deux designs (encadré en Cartouches, bandeau en Standard). En page de garde, ou en tête de la première page sans page de garde.</p>
             {cartOpts.enabled && (
               <div className="space-y-3 pl-5 border-l-2 border-voile">
                 <div className="space-y-1.5 px-3">

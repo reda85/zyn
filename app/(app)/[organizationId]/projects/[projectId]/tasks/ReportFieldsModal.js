@@ -274,7 +274,7 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
 
           {cart.enabled && (
             <div>
-              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Cartouche</p>
+              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>N° du document et visa</p>
               <div className="rounded-[10px] border border-filet p-3 space-y-3">
                 {cart.showIdentity && (
                   <div className="grid grid-cols-[1.6fr_0.8fr_1fr] gap-2">
