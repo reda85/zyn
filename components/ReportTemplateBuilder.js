@@ -6,10 +6,11 @@ import {
   Users, AlignLeft, Plus, Trash2, Download,
   ChevronDown, ChevronRight, List, Table, Grid,
   Image as ImageIcon, Map,
+  Stamp,
 } from "lucide-react"
 import clsx from "clsx"
 import { GeistSans } from 'geist/font/sans';
-import { DEFAULT_PROGRESS, PROGRESS_SECTION_DEFAULTS, REPORT_KINDS, REPORT_KIND_KEYS, MODES_FOR_KIND, fieldValue } from '@/lib/data/reportKinds'
+import { DEFAULT_PROGRESS, PROGRESS_SECTION_DEFAULTS, REPORT_KINDS, REPORT_KIND_KEYS, MODES_FOR_KIND, fieldValue, DOC_NUMBER_PREFIX, cartoucheOptions } from '@/lib/data/reportKinds'
 
 const GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@300;400;700;900&family=Roboto:wght@300;400;700;900&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;700;900&family=Poppins:wght@300;400;700;900&family=Raleway:wght@300;400;700;900&family=Open+Sans:wght@300;400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;700&display=swap"
 
@@ -579,6 +580,38 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
   const cart = config.design === 'cartouches'
   const cartTint = tintOf(config.primaryColor)
+  const cartOpts = cartoucheOptions(config)
+  const setCart = (patch) => setConfig(p => ({ ...p, cartouche: { ...cartoucheOptions(p), ...(p.cartouche || {}), ...patch } }))
+  const sampleDocNumber = `${cartOpts.numberPrefix.trim() || DOC_NUMBER_PREFIX[config.kind || 'libre'] || 'R'}-012`
+  // Aperçu du cartouche : identité, intervenants, visa.
+  const identityPreview = (compact) => {
+    if (!cartOpts.enabled) return null
+    const cells = cartOpts.showIdentity ? [['N° document', sampleDocNumber], ['Indice', 'A'], ['Phase', 'EXE'], ['Date', new Date().toLocaleDateString('fr-FR')]] : []
+    const parties = cartOpts.showParties ? [["Maître d'ouvrage", 'Société Al Omrane'], ['Architecte', 'Votre agence'], ["Bureau d'études", 'BET Structura']] : []
+    const visa = cartOpts.showVisa ? ['Rédigé par', 'Vérifié par', 'Approuvé par'] : []
+    if (!cells.length && !parties.length && !visa.length) return null
+    const lab = 'text-[8px] font-bold uppercase tracking-wide text-mine'
+    const band = (t, first) => <div className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider" style={{ backgroundColor: cartTint, color: config.primaryColor, borderBottom: `1px solid ${FRAME_LIGHT}`, ...(first ? {} : { borderTop: `1px solid ${FRAME}` }) }}>{t}</div>
+    return (
+      <div className={compact ? 'mb-4' : ''} style={{ border: `1.5px solid ${FRAME}` }}>
+        {cells.length > 0 && (
+          <div className="flex">{cells.map(([k, v], i) => (
+            <div key={k} className="px-2 py-1" style={{ flex: i ? 1 : 1.6, ...(i ? { borderLeft: `1px solid ${FRAME_LIGHT}` } : {}) }}><div className={lab}>{k}</div><div className="text-[11px] font-bold">{v}</div></div>
+          ))}</div>
+        )}
+        {parties.length > 0 && <>{band('Intervenants', !cells.length)}<div className="flex">{parties.map(([r, n], i) => (
+          <div key={r} className="flex-1 flex items-center gap-1.5 px-2 py-1.5" style={i ? { borderLeft: `1px solid ${FRAME_LIGHT}` } : undefined}>
+            {cartOpts.showLogos && <div className="w-7 h-5 rounded-sm bg-voile flex-shrink-0" />}
+            <div className="min-w-0"><div className={lab}>{r}</div><div className="text-[10px] font-bold truncate">{n}</div></div>
+          </div>
+        ))}</div></>}
+        {visa.length > 0 && <>{band('Visa', !cells.length && !parties.length)}<div className="flex">{visa.map((k, i) => (
+          <div key={k} className="flex-1 px-2 py-1 min-h-[30px]" style={i ? { borderLeft: `1px solid ${FRAME_LIGHT}` } : undefined}><div className={lab}>{k}</div></div>
+        ))}</div></>}
+      </div>
+    )
+  }
+  const footerRef = cartOpts.enabled && cartOpts.footerIdentity ? `${sampleDocNumber} · Ind. A` : null
   const sectionTitlePreviewStyle = () => {
     const c = config.sectionTitles?.titleColor === 'dark' ? '#292524'
       : config.sectionTitles?.titleColor === 'custom' && config.sectionTitles?.titleCustomColor ? config.sectionTitles.titleCustomColor
@@ -1724,6 +1757,29 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             )}
           </S>
 
+          {/* ── Cartouche : identité, intervenants, visa ── */}
+          <S title="Cartouche" icon={Stamp} section="cartouche">
+            <Toggle label="Afficher le cartouche" checked={cartOpts.enabled} onChange={(e) => setCart({ enabled: e.target.checked })} />
+            <p className="text-[11px] text-mine-clair px-3 -mt-1">N° de document, intervenants du projet avec leur logo et visa. En page de garde, ou en tête de la première page sans page de garde.</p>
+            {cartOpts.enabled && (
+              <div className="space-y-3 pl-5 border-l-2 border-voile">
+                <div className="space-y-1.5 px-3">
+                  <label className={clsx('text-[11px] font-medium text-mine-clair', 'tabular-nums')}>Préfixe du n° de document</label>
+                  <input type="text" maxLength={12} value={cartOpts.numberPrefix} placeholder={DOC_NUMBER_PREFIX[config.kind || 'libre'] || 'R'}
+                    onChange={(e) => { e.stopPropagation(); setCart({ numberPrefix: e.target.value.toUpperCase() }) }}
+                    className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[13px] text-encre focus:outline-none focus:border-encre transition-colors" />
+                  <p className="text-[11px] text-mine-clair">Numérotation automatique par projet : {sampleDocNumber.replace('012', '001')}, {sampleDocNumber.replace('012', '002')}…</p>
+                </div>
+                <Toggle label="N°, indice, phase et date" checked={cartOpts.showIdentity} onChange={(e) => setCart({ showIdentity: e.target.checked })} />
+                <Toggle label="Intervenants"              checked={cartOpts.showParties}  onChange={(e) => setCart({ showParties: e.target.checked })} />
+                {cartOpts.showParties && <Toggle label="Logos des intervenants" checked={cartOpts.showLogos} onChange={(e) => setCart({ showLogos: e.target.checked })} />}
+                <Toggle label="Visa (rédigé, vérifié, approuvé)" checked={cartOpts.showVisa} onChange={(e) => setCart({ showVisa: e.target.checked })} />
+                <Toggle label="N° et indice en pied de page" checked={cartOpts.footerIdentity} onChange={(e) => setCart({ footerIdentity: e.target.checked })} />
+                <p className="text-[11px] text-mine-clair px-3">Les intervenants se renseignent dans les détails du projet.</p>
+              </div>
+            )}
+          </S>
+
           {/* ── Custom sections ── */}
           {config.customSections.map((customSection, index) => (
             <S key={customSection.id} title={customSection.title || "Section personnalisée"} icon={FileText} section={`custom-${customSection.id}`}>
@@ -1857,7 +1913,8 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                     ).map((line) => <p key={line} className="text-mine text-sm">{line}</p>)}
                   </div>
                 )}
-                <div className="mt-auto pt-4 border-t border-voile flex justify-between text-xs text-mine-clair">
+                {cartOpts.enabled && <div className="mt-auto">{identityPreview(false)}</div>}
+                <div className={clsx(cartOpts.enabled ? 'mt-4' : 'mt-auto', 'pt-4 border-t border-voile flex justify-between text-xs text-mine-clair')}>
                   <span>Client Example</span><span>{new Date().toLocaleDateString('fr-FR')}</span>
                 </div>
               </div>
@@ -1883,6 +1940,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 </div>
               )}
               <div className="p-12 pt-6 space-y-6">
+                {!config.coverPage.enabled && identityPreview(true)}
                 {previewScope && !config.coverPage.enabled && (
                   <div className="flex gap-6 px-4 py-3 rounded-md bg-survol" style={{ borderLeft: `4px solid ${config.primaryColor}` }}>
                     <div className="flex-1"><div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: config.primaryColor }}>Lots</div><div className="text-sm font-bold">{SAMPLE_SCOPE.lots}</div></div>
@@ -1892,7 +1950,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                 {sectionOrder.map((id) => renderPreviewSection(id))}
                 {config.footer.enabled && cart && (
                   <div className="flex text-[10px] text-mine" style={{ border: `1px solid ${FRAME}` }}>
-                    {[config.footer.showProjectInfo && 'Projet Example', config.reportTitle, config.footer.showCompanyInfo && 'Votre Organisation', config.footer.customText].filter(Boolean).map((t, i) => (
+                    {[config.footer.showProjectInfo && 'Projet Example', config.reportTitle, footerRef, config.footer.showCompanyInfo && 'Votre Organisation', config.footer.customText].filter(Boolean).map((t, i) => (
                       <div key={i} className="flex-1 px-2 py-1.5" style={i ? { borderLeft: `1px solid ${FRAME_LIGHT}` } : undefined}>{t}</div>
                     ))}
                     {config.footer.showPageNumbers && <div className="w-14 text-center py-1.5 font-bold" style={{ borderLeft: `1px solid ${FRAME}` }}>1 / 4</div>}
@@ -1904,6 +1962,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                       {config.footer.showProjectInfo && <span>Projet Example</span>}
                       {config.footer.showCompanyInfo && <span>Votre Organisation</span>}
                       {config.footer.customText      && <span>{config.footer.customText}</span>}
+                      {footerRef && <span className="font-bold text-mine">{footerRef}</span>}
                     </div>
                     {config.footer.showPageNumbers && <span>Page 1</span>}
                   </div>

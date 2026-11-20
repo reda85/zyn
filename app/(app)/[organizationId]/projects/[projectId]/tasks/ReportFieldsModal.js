@@ -7,7 +7,8 @@ import { GeistSans } from 'geist/font/sans';
 import { Download, FileText, Image as ImageIcon, MapPin, Upload, X as XCloseIcon, XIcon } from 'lucide-react'
 import clsx from 'clsx'
 import RichTextEditor from '@/components/RichTextEditor'
-import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS } from '@/lib/data/reportKinds'
+import { DEFAULT_PROGRESS, PROGRESS_PARTS, REPORT_KINDS, REPORT_KIND_KEYS, REPORT_PHASES, cartoucheOptions, suggestedDocNumber } from '@/lib/data/reportKinds'
+import { supabase } from '@/utils/supabase/client'
 import { fetchLots, todayISO } from '@/lib/data/lots'
 import { qk } from '@/lib/data/keys'
 
@@ -126,6 +127,24 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
   const [extraCompanies, setExtraCompanies] = useState([])
   const [workforceDate, setWorkforceDate] = useState(todayISO)
   const [conclusion, setConclusion] = useState(EMPTY_DOC)
+
+  // Cartouche : n° proposé (suivant du projet pour ce type), indice, phase, visa.
+  const cart = cartoucheOptions(rawTemplateConfig)
+  const seqQuery = useQuery({
+    queryKey: ['next_report_seq', projectId, reportKind],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('next_report_seq', { p_project_id: projectId, p_kind: reportKind })
+      if (error) throw error
+      return data
+    },
+    enabled: Boolean(projectId) && cart.enabled,
+    staleTime: 0,
+  })
+  const docNumberHint = suggestedDocNumber(rawTemplateConfig, reportKind, seqQuery.data)
+  const [docNumber, setDocNumber] = useState('')
+  const [revision, setRevision] = useState('A')
+  const [phase, setPhase] = useState('')
+  const [visa, setVisa] = useState({ redige: '', verifie: '', approuve: '' })
   const totalWorkforce =
     lotCompanies.reduce((n, r) => n + (Number(counts[r.key]) || 0), 0) +
     extraCompanies.reduce((n, r) => n + (Number(r.count) || 0), 0)
@@ -133,6 +152,7 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
   const handleConfirm = () => {
     onConfirm({
       lotIds: scopedLots.map((l) => l.id),
+      ...(cart.enabled ? { cartouche: { docNumber: docNumber.trim(), revision: revision.trim(), phase: phase.trim(), visa } } : {}),
       ...(isProgress ? {
         progress,
         progressContent: {
@@ -249,6 +269,46 @@ export default function ReportFieldsModal({ reportKind = 'libre', ownTemplate = 
                     {(() => { const c = [...new Set(scopedLots.map((l) => l.entreprises?.name).filter(Boolean))]; return c.length ? <> — {c.join(' / ')}</> : null })()}</>
                   : 'Choisissez un ou plusieurs lots pour un rapport par lot : leur nom et leur entreprise figurent en page de garde.'}
               </p>
+            </div>
+          )}
+
+          {cart.enabled && (
+            <div>
+              <p className={clsx('text-[12px] font-medium text-mine-clair mb-2', 'tabular-nums')}>Cartouche</p>
+              <div className="rounded-[10px] border border-filet p-3 space-y-3">
+                {cart.showIdentity && (
+                  <div className="grid grid-cols-[1.6fr_0.8fr_1fr] gap-2">
+                    <label className="block">
+                      <span className="block text-[11px] font-medium text-mine-clair mb-1">N° du document</span>
+                      <input value={docNumber} onChange={(e) => setDocNumber(e.target.value)} placeholder={docNumberHint || 'Automatique'} maxLength={60} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors" />
+                    </label>
+                    <label className="block">
+                      <span className="block text-[11px] font-medium text-mine-clair mb-1">Indice</span>
+                      <input value={revision} onChange={(e) => setRevision(e.target.value.toUpperCase())} maxLength={12} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors" />
+                    </label>
+                    <label className="block">
+                      <span className="block text-[11px] font-medium text-mine-clair mb-1">Phase</span>
+                      <input list="report-phases" value={phase} onChange={(e) => setPhase(e.target.value)} placeholder="EXE, OPR…" maxLength={40} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors" />
+                      <datalist id="report-phases">{REPORT_PHASES.map((p) => <option key={p} value={p} />)}</datalist>
+                    </label>
+                  </div>
+                )}
+                {cart.showVisa && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {[['redige', 'Rédigé par'], ['verifie', 'Vérifié par'], ['approuve', 'Approuvé par']].map(([k, label]) => (
+                      <label key={k} className="block">
+                        <span className="block text-[11px] font-medium text-mine-clair mb-1">{label}</span>
+                        <input list="report-visa-members" value={visa[k]} onChange={(e) => setVisa((v) => ({ ...v, [k]: e.target.value }))} placeholder="Nom" maxLength={120} className="w-full rounded-[8px] border border-filet bg-white px-3 py-2 text-[14px] text-encre placeholder:text-trait focus:outline-none focus:border-encre transition-colors" />
+                      </label>
+                    ))}
+                    <datalist id="report-visa-members">{(projectMembers ?? []).map((m) => m.name || m.email).filter(Boolean).map((n) => <option key={n} value={n} />)}</datalist>
+                  </div>
+                )}
+                <p className="text-[11px] text-mine-clair">
+                  {cart.showIdentity ? <>Sans saisie, le n° suit la numérotation du projet{docNumberHint ? <> : <span className="text-encre font-medium">{docNumberHint}</span></> : null}. </> : null}
+                  {cart.showParties ? 'Les intervenants viennent des détails du projet.' : null}
+                </p>
+              </div>
             </div>
           )}
 

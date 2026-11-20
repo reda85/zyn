@@ -11,6 +11,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { GeistSans } from 'geist/font/sans';
 import clsx from 'clsx'
 import Image from 'next/image'
+import ProjectParties from '@/components/ProjectParties'
 
 const PROJECT_TYPES = [
   'Architecture',
@@ -438,6 +439,9 @@ export default function ProjectDetails() {
               <p className="text-encre font-medium py-2 text-[14px]">{project.type || '-'}</p>
             )}
           </div>
+
+          {/* Intervenants (cartouche des rapports) */}
+          <ProjectParties projectId={projectId} />
 
           {/* Project Members */}
           <div className="bg-white border border-filet rounded-[12px] p-6 shadow-carte">
