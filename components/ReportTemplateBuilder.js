@@ -116,6 +116,46 @@ const FIELD_OPTIONS = [
   { key: 'plan',        label: 'Plan / Localisation' },
 ]
 
+// Design « cartouches » : tout en tableaux encadrés (mêmes valeurs que le PDF).
+const FRAME = '#57534e'
+const FRAME_LIGHT = '#a8a29e'
+const tintOf = (hex, amount = 0.88) => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim())
+  if (!m) return '#f5f5f4'
+  const n = parseInt(m[1], 16)
+  const mix = (c) => Math.round(c + (255 - c) * amount)
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(mix)
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
+
+/** Fiche encadrée de l'aperçu : bandeau (n°, titre, statut), lignes libellé / valeur, encart à droite, rangées. */
+const CartoucheCardPreview = ({ index, title, badge, rows, aside, bands = [], tint }) => (
+  <div className="text-xs mb-3" style={{ border: `1px solid ${FRAME}` }}>
+    <div className="flex items-stretch" style={{ backgroundColor: tint, borderBottom: `1px solid ${FRAME}` }}>
+      <div className="w-8 flex items-center justify-center font-bold" style={{ borderRight: `1px solid ${FRAME}` }}>{index}</div>
+      <div className="flex-1 px-2 py-1.5 font-bold text-encre-survol">{title}</div>
+      {badge && <div className="px-2 flex items-center" style={{ borderLeft: `1px solid ${FRAME}` }}>{badge}</div>}
+    </div>
+    <div className="flex">
+      <div className="flex-1">
+        {rows.map(([label, value], i) => (
+          <div key={label} className="flex" style={i < rows.length - 1 ? { borderBottom: `1px solid ${FRAME_LIGHT}` } : undefined}>
+            <div className="w-24 px-1.5 py-1 font-bold text-mine bg-survol" style={{ borderRight: `1px solid ${FRAME_LIGHT}` }}>{label}</div>
+            <div className="flex-1 px-1.5 py-1">{value}</div>
+          </div>
+        ))}
+      </div>
+      {aside && <div className="w-28 p-1.5 flex items-center justify-center" style={{ borderLeft: `1px solid ${FRAME}` }}>{aside}</div>}
+    </div>
+    {bands.map(([label, content]) => (
+      <div key={label} style={{ borderTop: `1px solid ${FRAME}` }}>
+        <div className="px-1.5 py-0.5 font-bold text-mine bg-survol" style={{ borderBottom: `1px solid ${FRAME_LIGHT}` }}>{label}</div>
+        <div className="p-1.5">{content}</div>
+      </div>
+    ))}
+  </div>
+)
+
 // Données d'exemple des aperçus du rapport d'avancement.
 const SAMPLE_LOTS = [
   { name: 'Gros œuvre',  company: 'Atlas Bâtiment', dates: '01/09 → 15/12', pct: 72, late: false },
@@ -537,10 +577,17 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
 
   const previewFont = webFontMap[config.fontFamily] || 'Arial, sans-serif'
 
+  const cart = config.design === 'cartouches'
+  const cartTint = tintOf(config.primaryColor)
   const sectionTitlePreviewStyle = () => {
     const c = config.sectionTitles?.titleColor === 'dark' ? '#292524'
       : config.sectionTitles?.titleColor === 'custom' && config.sectionTitles?.titleCustomColor ? config.sectionTitles.titleCustomColor
       : config.primaryColor
+    if (cart) return {
+      fontSize: '12px', fontWeight: 'bold', color: c, textTransform: 'uppercase', letterSpacing: '0.04em',
+      border: `1px solid ${FRAME}`, backgroundColor: cartTint, padding: '5px 8px', marginBottom: '10px',
+      textDecoration: (config.sectionTitles?.titleUnderline ?? false) ? 'underline' : 'none', fontFamily: previewFont,
+    }
     return {
     fontSize:            (config.sectionTitles?.titleSize ?? 'medium') === 'small' ? '12px' : (config.sectionTitles?.titleSize ?? 'medium') === 'large' ? '18px' : '14px',
     fontWeight:          'bold',
@@ -624,7 +671,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
       case 'summary':
         if (!config.summary.enabled) return null
         if (isProgress) return (
-          <div key="summary" className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
+          <div key="summary" className={cart ? 'p-4' : 'p-5 rounded-lg'} style={cart ? { border: `1px solid ${FRAME}` } : { backgroundColor: config.summary.backgroundColor }}>
             <div className="flex items-baseline justify-between mb-4">
               <div className="text-base font-bold" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
               <div className="text-xs text-mine-clair">Situation au 19/11/2026</div>
@@ -642,6 +689,37 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
             </div>
           </div>
         )
+        if (cart) {
+          const cells = [
+            config.summary.showPeriod && ['Période', '01/01/2026 — 01/02/2026', 2],
+            config.summary.showTotalCount && ['Total', '24', 1],
+            config.summary.showOverdueCount && ['En retard', '3', 1],
+            config.summary.showPlanCount && ['Plans', '5', 1],
+          ].filter(Boolean)
+          return (
+            <div key="summary" className="text-xs" style={{ border: `1px solid ${FRAME}` }}>
+              <div className="px-2 py-1.5 font-bold uppercase text-sm" style={{ backgroundColor: cartTint, color: config.primaryColor, borderBottom: `1px solid ${FRAME}` }}>{config.reportTitle}</div>
+              {cells.length > 0 && (
+                <div className="flex">
+                  {cells.map(([label, value, grow], i) => (
+                    <div key={label} className="p-2" style={{ flexGrow: grow, flexBasis: 0, ...(i < cells.length - 1 ? { borderRight: `1px solid ${FRAME_LIGHT}` } : {}) }}>
+                      <div className="text-[10px] font-bold uppercase text-mine">{label}</div><div className="text-sm font-bold mt-0.5">{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {config.summary.showStatusBreakdown && (
+                <div className="flex" style={cells.length ? { borderTop: `1px solid ${FRAME_LIGHT}` } : undefined}>
+                  {[['#f59e0b', 'À faire', 12], ['#10b981', 'Levée', 9], ['#ef4444', 'Bloquée', 3]].map(([color, name, n], i) => (
+                    <div key={name} className="flex items-center gap-1.5 px-2 py-1.5" style={i < 2 ? { borderRight: `1px solid ${FRAME_LIGHT}` } : undefined}>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />{name} : {n}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        }
         return (
           <div key="summary" className="p-5 rounded-lg" style={{ backgroundColor: config.summary.backgroundColor }}>
             <div className="text-base font-bold mb-4" style={{ color: config.primaryColor }}>{config.reportTitle}</div>
@@ -792,7 +870,28 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <div key="tasks">
             {config.tasks.title && <div style={sectionTitlePreviewStyle()}>{config.tasks.title}</div>}
 
-            {['visite', 'localizedPhotos'].includes(config.tasks.displayMode) ? (
+            {cart && ['list', 'visite'].includes(config.tasks.displayMode) ? (
+              [1, 2].map((n) => (
+                <CartoucheCardPreview
+                  key={n}
+                  index={n}
+                  tint={cartTint}
+                  title={config.tasks.displayMode === 'visite' ? `Observation d'exemple ${n}` : `${kind === 'reserves' ? 'Réserve' : 'Tâche'} d'exemple ${n}`}
+                  badge={fieldOn('status') && config.tasks.displayMode !== 'visite' ? <span className="px-2 py-0.5 rounded-full text-[10px] text-white bg-valide">Levée</span> : null}
+                  rows={(config.tasks.displayMode === 'visite'
+                    ? [['Référence', `PR-${n}`], ['Constatée le', '12/11/2026 par K. Benali'], ['Localisation', 'R+1 — Plan d\'étage'], ['Description', 'Fissure en pied de cloison, à reprendre.']]
+                    : [
+                        ['Référence', `PR-${n}`],
+                        fieldOn('category') && config.tasks.groupBy !== 'category' && ['Lot', 'Gros œuvre · Atlas Bâtiment'],
+                        fieldOn('assignedTo') && ['Assigné à', 'Marie Martin'],
+                        fieldOn('dueDate') && ['Échéance', '15/02/2026'],
+                        fieldOn('description') && ['Description', 'Reprendre l\'enduit au droit de la fenêtre.'],
+                      ]).filter(Boolean)}
+                  aside={fieldOn('snapshot') ? <div className="relative w-full h-20 bg-voile flex items-center justify-center text-[10px] text-mine-clair">Plan<span className="absolute w-2.5 h-2.5 rounded-full bg-red-600" style={{ top: '45%', left: n === 1 ? '35%' : '60%' }} /></div> : null}
+                  bands={fieldOn('photos') ? [['Photos', <div className="flex gap-1.5">{[1, 2].map((k) => <div key={k} className="w-20 h-14 bg-filet" style={{ border: `1px solid ${FRAME_LIGHT}` }} />)}</div>]] : []}
+                />
+              ))
+            ) : ['visite', 'localizedPhotos'].includes(config.tasks.displayMode) ? (
               <div className="space-y-4">
                 {[1, 2].map((n) => (
                   <div key={n} className="border border-filet rounded-lg p-3">
@@ -1129,6 +1228,41 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {fontOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
                 <p className="mt-1 text-[11px] text-mine-clair px-1 truncate" style={{ fontFamily: previewFont }}>AaBbCcDd 0123</p>
+              </div>
+            </div>
+            <div>
+              <label className={clsx('text-[11px] font-medium text-mine-clair mb-1.5 block', 'tabular-nums')}>Design</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ['standard', 'Standard', 'Aéré, titres soulignés'],
+                  ['cartouches', 'Cartouches', 'Tableaux encadrés'],
+                ].map(([value, label, hint]) => {
+                  const on = (config.design || 'standard') === value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => setConfig(p => ({ ...p, design: value }))}
+                      className={clsx('text-left rounded-[10px] border p-2.5 transition-colors', on ? 'border-encre bg-survol' : 'border-filet bg-white hover:border-mine-clair')}
+                    >
+                      {/* Vignette */}
+                      <div className="h-10 mb-2 space-y-1">
+                        {value === 'standard' ? (<>
+                          <div className="h-1.5 w-16 rounded" style={{ backgroundColor: config.primaryColor }} />
+                          <div className="h-1 w-full rounded bg-voile" /><div className="h-1 w-5/6 rounded bg-voile" /><div className="h-1 w-4/6 rounded bg-voile" />
+                        </>) : (
+                          <div className="h-full" style={{ border: `1px solid ${FRAME}` }}>
+                            <div className="h-2.5" style={{ backgroundColor: cartTint, borderBottom: `1px solid ${FRAME}` }} />
+                            <div className="flex h-[calc(100%-10px)]"><div className="w-1/3 bg-survol" style={{ borderRight: `1px solid ${FRAME_LIGHT}` }} /><div className="flex-1" /><div className="w-1/4" style={{ borderLeft: `1px solid ${FRAME}` }} /></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-[12px] font-semibold text-encre">{label}</div>
+                      <div className="text-[11px] text-mine-clair">{hint}</div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -1679,8 +1813,22 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   {config.coverPage.showCompanyLogo && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.companyLogoSize)}>Logo</div>}
                   {config.coverPage.showClientLogo  && <div className="bg-voile rounded flex items-center justify-center text-xs text-mine-clair font-medium" style={logoPlaceholderStyle(config.coverPage.clientLogoSize)}>Client</div>}
                 </div>
-                <CoverTitlePreview config={config} />
-                {previewScope && config.coverPage.showScope !== false && (
+                {cart ? (
+                  <div className="mb-8 text-sm" style={{ border: `1.5px solid ${FRAME}` }}>
+                    <div className="py-4 text-center text-xl font-bold uppercase tracking-wide" style={{ backgroundColor: cartTint, color: config.primaryColor, borderBottom: `1.5px solid ${FRAME}` }}>{config.reportTitle}</div>
+                    {[
+                      ['Projet', 'Résidence Les Jardins'],
+                      ['Date', new Date().toLocaleDateString('fr-FR')],
+                      ...(previewScope && config.coverPage.showScope !== false ? [['Lots', SAMPLE_SCOPE.lots], ['Entreprises', SAMPLE_SCOPE.companies]] : []),
+                    ].map(([label, value], i, all) => (
+                      <div key={label} className="flex" style={i < all.length - 1 ? { borderBottom: `1px solid ${FRAME_LIGHT}` } : undefined}>
+                        <div className="w-28 px-2.5 py-2 text-[11px] font-bold uppercase text-mine bg-survol" style={{ borderRight: `1px solid ${FRAME_LIGHT}` }}>{label}</div>
+                        <div className={clsx('flex-1 px-2.5 py-2', i === 0 && 'font-bold')}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : <CoverTitlePreview config={config} />}
+                {!cart && previewScope && config.coverPage.showScope !== false && (
                   <div className="-mt-4 mb-8 space-y-3" style={{ textAlign: config.coverPage.titleAlign ?? 'left' }}>
                     <div><div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Lots</div><div className="text-lg font-bold text-encre-survol">{SAMPLE_SCOPE.lots}</div></div>
                     <div><div className="text-[10px] font-bold uppercase tracking-widest" style={{ color: config.primaryColor }}>Entreprises</div><div className="text-lg font-bold text-encre-survol">{SAMPLE_SCOPE.companies}</div></div>
@@ -1701,7 +1849,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 )}
                 {config.coverPage.showSummary && (
-                  <div className="p-5 rounded-xl mb-6" style={{ backgroundColor: '#f5f5f4', borderLeft: `4px solid ${config.primaryColor}` }}>
+                  <div className={cart ? 'p-4 mb-6' : 'p-5 rounded-xl mb-6'} style={cart ? { border: `1px solid ${FRAME}` } : { backgroundColor: '#f5f5f4', borderLeft: `4px solid ${config.primaryColor}` }}>
                     <p className="text-xs font-black uppercase mb-2 tracking-wider" style={{ color: config.primaryColor }}>Résumé</p>
                     {(isProgress
                       ? ['6 lots, dont 1 en retard', '4/13 tâches terminées, 2 tâches en retard', 'Prochain jalon : Réception, le 15/01/2027']
@@ -1720,7 +1868,7 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
           <div className="bg-white rounded-[12px] shadow-[0_24px_48px_-12px_rgba(15,15,15,0.14)] overflow-hidden border border-filet">
             <div className="w-full aspect-[210/297] bg-white overflow-auto" style={{ fontFamily: previewFont }}>
               {(config.header.showOrganizationName || config.header.showProjectName || config.header.showDate || config.header.showLogo || config.header.showClientLogo) && (
-                <div className="flex justify-between items-center px-12 py-4 border-b border-voile bg-white sticky top-0 z-10">
+                <div className={clsx('flex justify-between items-center bg-white sticky top-0 z-10', cart ? 'mx-12 mt-4 px-3 py-2' : 'px-12 py-4 border-b border-voile')} style={cart ? { border: `1px solid ${FRAME}` } : undefined}>
                   <div className="flex items-center gap-3">
                     {config.header.showLogo && <div className="bg-voile rounded flex items-center justify-center text-[10px] text-mine-clair" style={logoPlaceholderStyle(config.header.logoSize ?? 'medium')}>Logo</div>}
                     <div>
@@ -1742,7 +1890,15 @@ export default function ReportTemplateBuilder({ onSave, initialTemplate = null }
                   </div>
                 )}
                 {sectionOrder.map((id) => renderPreviewSection(id))}
-                {config.footer.enabled && (
+                {config.footer.enabled && cart && (
+                  <div className="flex text-[10px] text-mine" style={{ border: `1px solid ${FRAME}` }}>
+                    {[config.footer.showProjectInfo && 'Projet Example', config.reportTitle, config.footer.showCompanyInfo && 'Votre Organisation', config.footer.customText].filter(Boolean).map((t, i) => (
+                      <div key={i} className="flex-1 px-2 py-1.5" style={i ? { borderLeft: `1px solid ${FRAME_LIGHT}` } : undefined}>{t}</div>
+                    ))}
+                    {config.footer.showPageNumbers && <div className="w-14 text-center py-1.5 font-bold" style={{ borderLeft: `1px solid ${FRAME}` }}>1 / 4</div>}
+                  </div>
+                )}
+                {config.footer.enabled && !cart && (
                   <div className="pt-4 border-t border-filet flex justify-between text-xs text-mine-clair">
                     <div className="flex gap-4">
                       {config.footer.showProjectInfo && <span>Projet Example</span>}
