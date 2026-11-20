@@ -113,7 +113,7 @@ export default function RapportsPage({ params }) {
     setComposing(kind)
   }
 
-  const handleConfirm = async ({ reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent, lotIds }) => {
+  const handleConfirm = async ({ reportTitle, displayMode, participants, customSections, planningImageFiles, planningObservations, progress, progressContent, lotIds, cartouche }) => {
     const kind = composing
     const template = templateOf(kind)
     const period = periodOf(kind)
@@ -134,6 +134,7 @@ export default function RapportsPage({ params }) {
         progress,
         progressContent,
         lotIds,
+        cartouche,
         period,
         reportTitle,
         participants,
@@ -360,6 +361,11 @@ export default function RapportsPage({ params }) {
                           <span className={clsx('px-1.5 py-0.5 rounded-[4px] text-[11px] font-medium flex-shrink-0', KIND_BADGE[r.kind] ?? KIND_BADGE.libre)}>
                             {REPORT_KINDS[r.kind]?.short ?? 'Libre'}
                           </span>
+                          {r.doc_number && (
+                            <span className="flex-shrink-0 text-[12px] font-semibold text-mine tabular-nums">
+                              {r.doc_number}{r.revision ? ` · Ind. ${r.revision}` : ''}
+                            </span>
+                          )}
                           <span className="text-encre font-medium truncate">{r.title}</span>
                         </div>
                         <p className="text-[12px] text-mine-clair mt-0.5 truncate">{r.file_name} · {fmtSize(r.file_size)}</p>
