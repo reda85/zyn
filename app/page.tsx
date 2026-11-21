@@ -107,7 +107,7 @@ export default function HomePage() {
                 Le chantier documenté avant d’avoir quitté le site.
               </h1>
               <p className="mt-6 text-[17px] leading-[1.6] text-mine max-w-[30rem]">
-                Posez chaque réserve sur le plan, avec ses photos et sa remarque, même sans réseau. ZaynSpace en fait le rapport, prêt à envoyer.
+                Posez chaque réserve sur le plan, avec ses photos et sa remarque dictée. ZaynSpace en fait le rapport, prêt à envoyer.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link href={signUp} className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-encre text-white text-[15px] font-medium hover:bg-encre-survol transition-colors">
@@ -209,7 +209,7 @@ export default function HomePage() {
             </div>
             <div className="mt-6 rounded-[14px] border border-filet bg-white px-6 py-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { icon: Smartphone, t: "Application mobile", d: "Relevés et photos, même hors connexion" },
+                { icon: Smartphone, t: "Application mobile", d: "Relevés, photos et dictée sur le terrain" },
                 { icon: FileText, t: "Rapports PDF", d: "Réserves, visite, avancement, sans limite" },
                 { icon: Users, t: "Invités illimités", d: "Entreprises, contrôleurs, clients" },
                 { icon: ShieldCheck, t: "Hébergé en Europe", d: "Données chiffrées, serveurs à Paris" },
