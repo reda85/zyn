@@ -1,6 +1,6 @@
 "use client";
 
-import { FileStack, MapPin, ListChecks, FileText, Camera } from "lucide-react";
+import { FileStack, MapPin, ListChecks, FileText, Mic } from "lucide-react";
 import { useInView } from "./useInView";
 
 const ETAPES = [
@@ -13,7 +13,7 @@ const ETAPES = [
   {
     icon: MapPin,
     titre: "Relevez sur le chantier",
-    texte: "Touchez le plan à l'endroit exact, prenez la photo, annotez-la et ajoutez la remarque.",
+    texte: "Touchez le plan à l'endroit exact, prenez la photo, annotez-la et dictez la remarque.",
     Visuel: VisuelReleve,
   },
   {
@@ -138,7 +138,7 @@ function VisuelReleve() {
         </div>
         <div className="w-[128px]">
           <div className="flex items-center gap-1.5">
-            <span className="h-6 w-6 rounded-full bg-encre flex items-center justify-center"><Camera className="h-3 w-3 text-white" /></span>
+            <span className="h-6 w-6 rounded-full bg-encre flex items-center justify-center"><Mic className="h-3 w-3 text-white" /></span>
             <span className="flex items-end gap-[2px] h-4">
               {[5, 9, 14, 8, 12, 6, 10, 4].map((h, k) => (
                 <span key={k} className="et-onde w-[3px] rounded-full bg-tirage" style={{ height: h, ["--k" as string]: k }} />
