@@ -34,7 +34,7 @@ const NAV = [
 const OFFRES = [
   { nom: "Starter", prix: "399", pour: "Architectes indépendants et petits cabinets", points: ["1 utilisateur actif inclus", "Invités illimités et gratuits", "3 projets actifs", "Rapports PDF illimités", "Stockage 5 Go", "Support par e-mail"], cta: "Commencer", demo: false, avant: false },
   { nom: "Pro", prix: "699", pour: "Agences et bureaux de contrôle", points: ["À partir de 3 utilisateurs actifs", "Invités illimités et gratuits", "Projets illimités", "Rapports à l'en-tête de l'agence", "Stockage 50 Go", "Support prioritaire"], cta: "Commencer", demo: false, avant: true },
-  { nom: "Business", prix: "1 200", pour: "MOD, AMO et structures multi-chantiers", points: ["À partir de 5 utilisateurs actifs", "Invités illimités et gratuits", "Collaboration entre organisations", "Rôles et permissions détaillés", "Reporting consolidé multi-chantiers", "API, webhooks et accompagnement"], cta: "Nous contacter", demo: true, avant: false },
+  { nom: "Business", prix: "1 200", pour: "MOD, AMO et structures multi-chantiers", points: ["À partir de 5 utilisateurs actifs", "Invités illimités et gratuits", "Projets illimités", "Vue d’ensemble de tous les chantiers", "Modèles de rapports paramétrés avec vous", "Accompagnement et formation des équipes"], cta: "Nous contacter", demo: true, avant: false },
 ];
 
 function Logo({ clair = false }: { clair?: boolean }) {
@@ -107,7 +107,7 @@ export default function HomePage() {
                 Le chantier documenté avant d’avoir quitté le site.
               </h1>
               <p className="mt-6 text-[17px] leading-[1.6] text-mine max-w-[30rem]">
-                Posez chaque réserve sur le plan, avec ses photos et sa remarque dictée. ZaynSpace en fait le compte rendu de visite, prêt à envoyer.
+                Posez chaque réserve sur le plan, avec ses photos et sa remarque, même sans réseau. ZaynSpace en fait le rapport, prêt à envoyer.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link href={signUp} className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-encre text-white text-[15px] font-medium hover:bg-encre-survol transition-colors">
@@ -118,7 +118,7 @@ export default function HomePage() {
                 </a>
               </div>
               <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-mine">
-                {["Sans carte bancaire", "Invités gratuits", "Conforme à la loi 09-08"].map((t) => (
+                {["Sans carte bancaire", "Invités gratuits", "Fonctionne hors connexion"].map((t) => (
                   <li key={t} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-tirage" aria-hidden="true" />{t}</li>
                 ))}
               </ul>
@@ -209,10 +209,10 @@ export default function HomePage() {
             </div>
             <div className="mt-6 rounded-[14px] border border-filet bg-white px-6 py-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { icon: Smartphone, t: "Application mobile", d: "Relevés sur le terrain, photos et dictée" },
-                { icon: FileText, t: "Rapports PDF et Word", d: "Sans limite de nombre" },
+                { icon: Smartphone, t: "Application mobile", d: "Relevés et photos, même hors connexion" },
+                { icon: FileText, t: "Rapports PDF", d: "Réserves, visite, avancement, sans limite" },
                 { icon: Users, t: "Invités illimités", d: "Entreprises, contrôleurs, clients" },
-                { icon: ShieldCheck, t: "Loi 09-08", d: "Données personnelles protégées" },
+                { icon: ShieldCheck, t: "Hébergé en Europe", d: "Données chiffrées, serveurs à Paris" },
               ].map(({ icon: Icon, t, d }) => (
                 <div key={t} className="flex items-start gap-3">
                   <span className="h-9 w-9 rounded-[9px] bg-tirage-pale flex items-center justify-center shrink-0">

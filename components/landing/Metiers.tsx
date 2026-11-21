@@ -15,7 +15,7 @@ const METIERS = [
     icon: Briefcase,
     titre: "MOD et AMO",
     sousTitre: "Pilotage de plusieurs opérations",
-    points: ["Vue d'ensemble des chantiers et des retards", "Traçabilité pour la maîtrise d'ouvrage", "Rapports structurés et datés"],
+    points: ["Vue d'ensemble des chantiers et des retards", "Réunions de chantier et comptes rendus", "Rapports numérotés, avec intervenants et visa"],
     Vignette: VignetteMod,
   },
   {

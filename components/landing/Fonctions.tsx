@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Camera, Mic, Layers, FileText, CalendarRange, Users, Calendar, User } from "lucide-react";
+import { MapPin, Camera, WifiOff, Layers, FileText, CalendarRange, Users, Calendar, User } from "lucide-react";
 import { useInView } from "./useInView";
 
 /** Fonctionnalités en mosaïque : chaque tuile montre la fonction plutôt que de la décrire. */
@@ -10,16 +10,16 @@ export default function Fonctions() {
       <Tuile className="md:col-span-2 lg:row-span-2" icon={MapPin} titre="Réserves sur plan" texte="Chaque observation est un point sur le plan, numéroté, avec son lot, son statut, son échéance et son responsable." k={0}>
         <VisuelReserves />
       </Tuile>
-      <Tuile icon={Mic} titre="Dictée en darija et en français" texte="Parlez au lieu de taper : la remarque s'écrit pendant que vous marchez." k={1}>
-        <VisuelDictee />
+      <Tuile icon={WifiOff} titre="Hors connexion" texte="En sous-sol ou sur un site isolé, relevez sans réseau : tout se synchronise au retour." k={1}>
+        <VisuelHorsLigne />
       </Tuile>
       <Tuile icon={Camera} titre="Photos localisées" texte="Rattachées à la réserve, avec leur position GPS, annotables sur le téléphone." k={2}>
         <VisuelPhoto />
       </Tuile>
-      <Tuile icon={Layers} titre="Versions de plans" texte="Remplacez un plan par son indice suivant : les différences s'affichent." k={3}>
+      <Tuile icon={Layers} titre="Documents et versions" texte="Plans, CCTP, PV : déposez la nouvelle version, l'ancienne reste dans l'historique." k={3}>
         <VisuelVersions />
       </Tuile>
-      <Tuile icon={FileText} titre="Rapports PDF et Word" texte="Modèles personnalisables : sections, ordre, galerie photo, en-tête et logo du client." k={4}>
+      <Tuile icon={FileText} titre="Rapports sur mesure" texte="Réserves, visite, avancement : sections, ordre, photos, cartouche, en-tête et logo du client." k={4}>
         <VisuelRapports />
       </Tuile>
       <Tuile icon={CalendarRange} titre="Planning" texte="Un Gantt simple pour suivre les lots et les échéances, à côté des réserves." k={5}>
@@ -122,11 +122,11 @@ function VisuelReserves() {
   );
 }
 
-function VisuelDictee() {
+function VisuelHorsLigne() {
   return (
     <div className="absolute inset-0 flex flex-col justify-center px-5 gap-3">
       <div className="flex items-center gap-2.5">
-        <span className="fn-micro h-9 w-9 rounded-full bg-alerte flex items-center justify-center"><Mic className="h-4 w-4 text-white" /></span>
+        <span className="fn-micro h-9 w-9 rounded-full bg-alerte flex items-center justify-center"><WifiOff className="h-4 w-4 text-white" /></span>
         <span className="flex items-center gap-[3px] h-8">
           {[8, 14, 22, 12, 28, 18, 10, 24, 16, 9, 20, 13, 7, 17, 11].map((h, i) => (
             <span key={i} className="fn-onde w-[3px] rounded-full bg-encre" style={{ height: h, ["--i" as string]: i }} />
@@ -136,8 +136,8 @@ function VisuelDictee() {
       <div className="rounded-[8px] bg-white border border-filet px-3 py-2">
         <p className="fn-tape text-[12px] text-encre whitespace-nowrap overflow-hidden">Enduit irrégulier sur le mur pignon</p>
         <div className="mt-1.5 flex gap-1.5">
-          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Français</span>
-          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Darija</span>
+          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Hors ligne</span>
+          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Synchronisé au retour</span>
         </div>
       </div>
     </div>
@@ -189,7 +189,7 @@ function VisuelVersions() {
 function VisuelRapports() {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      {[{ r: -8, x: -46, t: "Word", c: "text-tirage" }, { r: 6, x: 46, t: "PDF", c: "text-alerte" }].map((d) => (
+      {[{ r: -8, x: -46, t: "Visite", c: "text-tirage" }, { r: 6, x: 46, t: "PDF", c: "text-alerte" }].map((d) => (
         <div key={d.t} className="fn-doc absolute w-[88px] h-[112px] rounded-[5px] bg-white border border-filet-fort shadow-sm p-2" style={{ ["--r" as string]: `${d.r}deg`, ["--x" as string]: `${d.x}px` }}>
           <div className="flex items-center justify-between">
             <span className="h-1.5 w-8 rounded-full bg-encre" />
