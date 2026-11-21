@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn as clsx } from '@/lib/utils'
 import { categoriesIcons } from '@/utils/categories'
 import { fmtDate, isLotLate } from '@/lib/data/lots'
-import { addDays, daysBetween, fromDay, isTaskLate, isoWeek, mondayOf, toDay } from '@/lib/data/planning'
+import { addDays, daysBetween, fromDay, isTaskLate, isoWeek, mondayOf, summarizeTasks, toDay } from '@/lib/data/planning'
 
 export const ZOOMS = {
   jour: { label: 'Jours', px: 30 },
@@ -14,17 +14,17 @@ export const ZOOMS = {
 }
 
 const ROW_H = 40
-const LEFT_W = 300
+const LEFT_W = 320
 const HEADER_H = 52
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']
 
 /**
  * Diagramme de Gantt : une ligne par lot (prévu, réel, avancement) puis ses
- * tâches et jalons. Les barres se déplacent et s'étirent au glisser ; un clic
+ * tâches et jalons, et ses sous-lots (synthèse de leurs tâches) suivis des leurs. Les barres se déplacent et s'étirent au glisser ; un clic
  * sans déplacement ouvre l'édition.
  */
 const Gantt = forwardRef(function Gantt(
-  { lots, tasks, entreprises, zoom, today, canEdit, onTaskChange, onLotChange, onTaskClick, onLotClick },
+  { lots, sousLots = [], tasks, entreprises, zoom, today, canEdit, onTaskChange, onLotChange, onTaskClick, onLotClick, onSousLotClick },
   ref
 ) {
   const px = ZOOMS[zoom].px
@@ -69,11 +69,20 @@ const Gantt = forwardRef(function Gantt(
       if (!collapsed.has('general')) general.forEach((t) => out.push({ kind: 'task', task: t }))
     }
     for (const lot of lots) {
-      out.push({ kind: 'lot', id: lot.id, lot, count: tasks.filter((t) => t.lot_id === lot.id).length })
-      if (!collapsed.has(lot.id)) tasks.filter((t) => t.lot_id === lot.id).forEach((t) => out.push({ kind: 'task', task: t }))
+      const lotTasks = tasks.filter((t) => t.lot_id === lot.id)
+      const subs = sousLots.filter((sl) => sl.lot_id === lot.id)
+      const inSub = (t) => t.type === 'tache' && subs.some((sl) => sl.id === t.sous_lot_id)
+      out.push({ kind: 'lot', id: lot.id, lot, count: lotTasks.length + subs.length })
+      if (collapsed.has(lot.id)) continue
+      lotTasks.filter((t) => !inSub(t)).forEach((t) => out.push({ kind: 'task', task: t }))
+      for (const sl of subs) {
+        const slTasks = lotTasks.filter((t) => t.type === 'tache' && t.sous_lot_id === sl.id)
+        out.push({ kind: 'sous_lot', id: sl.id, sousLot: sl, count: slTasks.length, summary: summarizeTasks(slTasks) })
+        if (!collapsed.has(sl.id)) slTasks.forEach((t) => out.push({ kind: 'task', task: t, nested: true }))
+      }
     }
     return out
-  }, [lots, tasks, collapsed])
+  }, [lots, sousLots, tasks, collapsed])
 
   const toggle = (id) => setCollapsed((s) => {
     const n = new Set(s)
@@ -256,12 +265,50 @@ const Gantt = forwardRef(function Gantt(
             )
           }
 
+          if (row.kind === 'sous_lot') {
+            const sl = row.sousLot
+            const sum = row.summary
+            const late = sum && sum.fin < today && sum.avancement < 100
+            return (
+              <div key={sl.id} className="flex border-b border-voile" style={{ height: ROW_H }}>
+                <div className="sticky left-0 z-10 bg-white flex items-center gap-1.5 pl-[34px] pr-3 border-r border-filet" style={{ width: LEFT_W, minWidth: LEFT_W }}>
+                  <button onClick={() => toggle(sl.id)} className={clsx('p-0.5 rounded hover:bg-voile', !row.count && 'invisible')} aria-label={collapsed.has(sl.id) ? 'Déplier' : 'Replier'}>
+                    {collapsed.has(sl.id) ? <ChevronRight className="w-3.5 h-3.5 text-mine-clair" /> : <ChevronDown className="w-3.5 h-3.5 text-mine-clair" />}
+                  </button>
+                  <button onClick={() => onSousLotClick?.(sl)} className="min-w-0 flex-1 text-left">
+                    <span className={clsx('block text-[13px] font-medium truncate', late ? 'text-alerte' : 'text-encre')}>{sl.name}</span>
+                  </button>
+                  <span className="text-[12px] font-medium text-mine tabular-nums">{sum ? `${sum.avancement} %` : '—'}</span>
+                </div>
+                <div className="relative" style={{ width }}>
+                  {grid}
+                  {sum ? (
+                    <div
+                      className="absolute"
+                      style={{ left: x(sum.debut), width: Math.max((daysBetween(sum.debut, sum.fin) + 1) * px, 6), top: 14, height: 12 }}
+                      title={`${sl.name} · du ${fmtDate(sum.debut)} au ${fmtDate(sum.fin)} · ${sum.avancement} %`}
+                    >
+                      <div className={clsx('absolute inset-x-0 top-0 h-[7px] rounded-[2px] overflow-hidden', late ? 'bg-alerte-pale' : 'bg-voile')}>
+                        <div className={clsx('h-full', late ? 'bg-alerte opacity-70' : 'bg-mine')} style={{ width: `${sum.avancement}%` }} />
+                      </div>
+                      <span className={clsx('absolute left-0 top-0 w-[3px] h-[12px] rounded-b-[1px]', late ? 'bg-alerte' : 'bg-mine')} />
+                      <span className={clsx('absolute right-0 top-0 w-[3px] h-[12px] rounded-b-[1px]', late ? 'bg-alerte' : 'bg-mine')} />
+                    </div>
+                  ) : (
+                    <span className="absolute top-3 text-[12px] text-mine-clair" style={{ left: Math.max(8, todayX + 8) }}>Aucune tâche planifiée</span>
+                  )}
+                  <div className="absolute top-0 bottom-0 w-0.5 bg-alerte opacity-60" style={{ left: todayX }} />
+                </div>
+              </div>
+            )
+          }
+
           const t = row.task
           const { debut, fin } = datesOf('task', t)
           const late = isTaskLate(t, today)
           return (
             <div key={t.id} className="flex border-b border-voile" style={{ height: ROW_H }}>
-              <button onClick={() => onTaskClick(t)} className="sticky left-0 z-10 bg-white hover:bg-survol flex items-center gap-2 pl-[40px] pr-3 border-r border-filet text-left" style={{ width: LEFT_W, minWidth: LEFT_W }}>
+              <button onClick={() => onTaskClick(t)} className={clsx('sticky left-0 z-10 bg-white hover:bg-survol flex items-center gap-2 pr-3 border-r border-filet text-left', row.nested ? 'pl-[58px]' : 'pl-[40px]')} style={{ width: LEFT_W, minWidth: LEFT_W }}>
                 {t.type === 'jalon' ? <span className="w-2 h-2 rotate-45 bg-encre flex-shrink-0" /> : <span className="text-[11px] text-mine-clair tabular-nums w-6 flex-shrink-0" title="N° de la tâche">{t.pin_number}</span>}
                 <span className={clsx('text-[13px] truncate flex-1', late ? 'text-alerte' : 'text-encre')}>{t.libelle}</span>
                 {t.type === 'tache' && <span className="text-[12px] text-mine-clair tabular-nums">{t.avancement} %</span>}

@@ -12,8 +12,13 @@ import { qk } from '@/lib/data/keys'
 import { fetchEntreprises, fmtDate, isLotLate, todayISO } from '@/lib/data/lots'
 import {
   createPlanningItem,
+  createSousLot,
   daysBetween,
+  deleteSousLot,
   fetchPlanning,
+  fetchSousLots,
+  renameSousLot,
+  reorderSousLots,
   isTaskLate,
   planLot,
   removePlanningItem,
@@ -40,6 +45,12 @@ export default function PlanningPage({ params }) {
     queryFn: () => fetchPlanning(projectId, statuses),
     enabled: isReady,
   })
+  const sousLotsQuery = useQuery({
+    queryKey: qk.sousLots(projectId),
+    queryFn: () => fetchSousLots(projectId),
+    enabled: isReady,
+  })
+  const sousLots = sousLotsQuery.data ?? []
   const entreprisesQuery = useQuery({ queryKey: qk.entreprises(organizationId), queryFn: () => fetchEntreprises(organizationId) })
   const tasks = tasksQuery.data ?? []
   const lots = useMemo(() => categories.filter((c) => c.icon !== 'unassigned'), [categories])
@@ -79,12 +90,57 @@ export default function PlanningPage({ params }) {
     setError(`${label} : l'enregistrement a échoué.`)
     await queryClient.invalidateQueries({ queryKey: qk.planning(projectId) })
     await queryClient.invalidateQueries({ queryKey: qk.categories(projectId) })
+    await queryClient.invalidateQueries({ queryKey: qk.sousLots(projectId) })
     return false
   }
 
-  const saveTask = async (fields) => {
+  // ── Sous-lots ──
+  const setSousLots = (updater) => queryClient.setQueryData(qk.sousLots(projectId), (list = []) => updater(list))
+  const addSousLot = async (lot, name) => {
+    const order = sousLots.filter((sl) => sl.lot_id === lot.id).length
+    const created = await createSousLot({ projectId, lotId: lot.id, name, sortOrder: order })
+    setSousLots((list) => [...list, created])
+    return created
+  }
+  const sousLotActions = {
+    onSousLotCreate: async (lot, name) => {
+      setError(null)
+      try { await addSousLot(lot, name) } catch (err) { return fail(err, 'Sous-lot') }
+    },
+    onSousLotRename: async (id, name) => {
+      setSousLots((list) => list.map((sl) => (sl.id === id ? { ...sl, name: name.trim() } : sl)))
+      try { await renameSousLot(id, name) } catch (err) { return fail(err, 'Sous-lot') }
+    },
+    onSousLotDelete: async (sl) => {
+      setSousLots((list) => list.filter((x) => x.id !== sl.id))
+      setTasks((list) => list.map((t) => (t.sous_lot_id === sl.id ? { ...t, sous_lot_id: null } : t)))
+      try { await deleteSousLot(sl.id) } catch (err) { return fail(err, 'Sous-lot') }
+    },
+    onSousLotMove: async (sl, dir) => {
+      const siblings = sousLots.filter((x) => x.lot_id === sl.lot_id)
+      const i = siblings.findIndex((x) => x.id === sl.id)
+      const j = i + dir
+      if (j < 0 || j >= siblings.length) return
+      const next = [...siblings]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      const order = new Map(next.map((x, k) => [x.id, k]))
+      setSousLots((list) => list.map((x) => (order.has(x.id) ? { ...x, sort_order: order.get(x.id) } : x)).sort((a, b) => a.sort_order - b.sort_order))
+      try { await reorderSousLots(next) } catch (err) { return fail(err, 'Sous-lot') }
+    },
+  }
+
+  const saveTask = async (input) => {
     setError(null)
     try {
+      // Sous-lot créé depuis la tâche : d'abord le sous-lot, puis la tâche.
+      const { newSousLot, ...fields } = input
+      if (newSousLot) {
+        const lot = lots.find((l) => l.id === fields.lot_id)
+        fields.sous_lot_id = lot ? (await addSousLot(lot, newSousLot)).id : null
+      }
+      // Changement de lot : la tâche quitte son sous-lot.
+      const before = fields.id ? tasks.find((t) => t.id === fields.id) : null
+      if (before && 'lot_id' in fields && fields.lot_id !== before.lot_id && !('sous_lot_id' in fields)) fields.sous_lot_id = null
       if (fields.id) {
         const { id, ...rest } = fields
         const item = tasks.find((t) => t.id === id)
@@ -126,7 +182,7 @@ export default function PlanningPage({ params }) {
     }
   }
 
-  const loading = tasksQuery.isPending || !isReady
+  const loading = tasksQuery.isPending || sousLotsQuery.isPending || !isReady
 
   return (
     <div className={clsx(GeistSans.className, 'min-h-screen bg-papier')}>
@@ -137,7 +193,7 @@ export default function PlanningPage({ params }) {
           <div>
             <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-encre">Planning</h1>
             <p className="text-[13px] text-mine-clair mt-0.5">
-              Prévu et réel par lot. Faites glisser une barre pour la déplacer, ses bords pour la raccourcir ou l&apos;allonger.
+              Prévu et réel par lot et sous-lot. Faites glisser une barre pour la déplacer, ses bords pour la raccourcir ou l&apos;allonger.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -196,6 +252,7 @@ export default function PlanningPage({ params }) {
             <Gantt
               ref={gantt}
               lots={lots}
+              sousLots={sousLots}
               tasks={tasks}
               entreprises={entreprisesQuery.data ?? []}
               zoom={zoom}
@@ -205,6 +262,7 @@ export default function PlanningPage({ params }) {
               onLotChange={saveLot}
               onTaskClick={(task) => setTaskDialog(task)}
               onLotClick={(lot) => setLotDialog(lot)}
+              onSousLotClick={(sl) => setLotDialog(lots.find((l) => l.id === sl.lot_id) ?? null)}
             />
             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-mine">
               <span className="inline-flex items-center gap-1.5"><span className="w-6 h-2.5 rounded-[3px] border-2 border-encre bg-white" />Lot prévu</span>
@@ -223,6 +281,7 @@ export default function PlanningPage({ params }) {
         open={Boolean(taskDialog)}
         task={taskDialog}
         lots={lots}
+        sousLots={sousLots}
         today={today}
         readOnly={!canEdit}
         onClose={() => setTaskDialog(null)}
@@ -237,6 +296,8 @@ export default function PlanningPage({ params }) {
         readOnly={!canEdit}
         onClose={() => setLotDialog(null)}
         onSave={saveLot}
+        sousLots={sousLots}
+        {...sousLotActions}
       />
     </div>
   )

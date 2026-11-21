@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarRange } from 'lucide-react'
 import { supabase } from '@/utils/supabase/client'
 import { usePinsCache } from '@/hooks/usePins'
 import { qk } from '@/lib/data/keys'
-import { dueToDay } from '@/lib/data/planning'
+import { dueToDay, fetchSousLots } from '@/lib/data/planning'
 
 const STEPS = [0, 25, 50, 75, 100]
 
@@ -20,6 +20,12 @@ export default function PinPlanningFields({ pin, disabled, profileId }) {
   const { patchPin } = usePinsCache()
   const queryClient = useQueryClient()
   const due = dueToDay(pin.due_date)
+  const { data: sousLots = [] } = useQuery({
+    queryKey: qk.sousLots(pin.project_id),
+    queryFn: () => fetchSousLots(pin.project_id),
+    enabled: Boolean(pin.project_id && pin.date_debut),
+  })
+  const lotSousLots = sousLots.filter((sl) => sl.lot_id === pin.category_id)
 
   const save = async (fields) => {
     patchPin(pin.id, fields)
@@ -29,7 +35,7 @@ export default function PinPlanningFields({ pin, disabled, profileId }) {
       .eq('id', pin.id)
     if (error) {
       console.error('planning de la tâche', error)
-      patchPin(pin.id, { date_debut: pin.date_debut ?? null, avancement: pin.avancement ?? null })
+      patchPin(pin.id, { date_debut: pin.date_debut ?? null, avancement: pin.avancement ?? null, sous_lot_id: pin.sous_lot_id ?? null })
       return
     }
     queryClient.invalidateQueries({ queryKey: qk.planning(pin.project_id) })
@@ -76,6 +82,20 @@ export default function PinPlanningFields({ pin, disabled, profileId }) {
               className="border border-filet bg-white rounded-[6px] px-2 py-1 text-[13px] text-encre tabular-nums disabled:opacity-60"
             >
               {STEPS.map((v) => <option key={v} value={v}>{v} %</option>)}
+            </select>
+          </label>
+        )}
+        {inPlanning && lotSousLots.length > 0 && (
+          <label className="flex items-center gap-1.5 text-mine basis-full">
+            Sous-lot
+            <select
+              value={lotSousLots.some((sl) => sl.id === pin.sous_lot_id) ? pin.sous_lot_id : ''}
+              disabled={disabled}
+              onChange={(e) => save({ sous_lot_id: e.target.value || null })}
+              className="border border-filet bg-white rounded-[6px] px-2 py-1 text-[13px] text-encre disabled:opacity-60"
+            >
+              <option value="">Aucun</option>
+              {lotSousLots.map((sl) => <option key={sl.id} value={sl.id}>{sl.name}</option>)}
             </select>
           </label>
         )}
