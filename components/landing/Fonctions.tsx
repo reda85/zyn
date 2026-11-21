@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Camera, WifiOff, Layers, FileText, CalendarRange, Users, Calendar, User } from "lucide-react";
+import { MapPin, Camera, Mic, Layers, FileText, CalendarRange, Users, Calendar, User } from "lucide-react";
 import { useInView } from "./useInView";
 
 /** Fonctionnalités en mosaïque : chaque tuile montre la fonction plutôt que de la décrire. */
@@ -10,8 +10,8 @@ export default function Fonctions() {
       <Tuile className="md:col-span-2 lg:row-span-2" icon={MapPin} titre="Réserves sur plan" texte="Chaque observation est un point sur le plan, numéroté, avec son lot, son statut, son échéance et son responsable." k={0}>
         <VisuelReserves />
       </Tuile>
-      <Tuile icon={WifiOff} titre="Hors connexion" texte="En sous-sol ou sur un site isolé, relevez sans réseau : tout se synchronise au retour." k={1}>
-        <VisuelHorsLigne />
+      <Tuile icon={Mic} titre="Dictée vocale" texte="Parlez au lieu de taper : la remarque s'écrit en français pendant que vous marchez." k={1}>
+        <VisuelDictee />
       </Tuile>
       <Tuile icon={Camera} titre="Photos localisées" texte="Rattachées à la réserve, avec leur position GPS, annotables sur le téléphone." k={2}>
         <VisuelPhoto />
@@ -122,11 +122,11 @@ function VisuelReserves() {
   );
 }
 
-function VisuelHorsLigne() {
+function VisuelDictee() {
   return (
     <div className="absolute inset-0 flex flex-col justify-center px-5 gap-3">
       <div className="flex items-center gap-2.5">
-        <span className="fn-micro h-9 w-9 rounded-full bg-alerte flex items-center justify-center"><WifiOff className="h-4 w-4 text-white" /></span>
+        <span className="fn-micro h-9 w-9 rounded-full bg-alerte flex items-center justify-center"><Mic className="h-4 w-4 text-white" /></span>
         <span className="flex items-center gap-[3px] h-8">
           {[8, 14, 22, 12, 28, 18, 10, 24, 16, 9, 20, 13, 7, 17, 11].map((h, i) => (
             <span key={i} className="fn-onde w-[3px] rounded-full bg-encre" style={{ height: h, ["--i" as string]: i }} />
@@ -136,8 +136,7 @@ function VisuelHorsLigne() {
       <div className="rounded-[8px] bg-white border border-filet px-3 py-2">
         <p className="fn-tape text-[12px] text-encre whitespace-nowrap overflow-hidden">Enduit irrégulier sur le mur pignon</p>
         <div className="mt-1.5 flex gap-1.5">
-          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Hors ligne</span>
-          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Synchronisé au retour</span>
+          <span className="text-[10px] px-1.5 py-px rounded-full bg-voile text-mine">Français</span>
         </div>
       </div>
     </div>
