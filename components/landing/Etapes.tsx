@@ -1,19 +1,19 @@
 "use client";
 
-import { FileStack, MapPin, ListChecks, FileText, Mic } from "lucide-react";
+import { FileStack, MapPin, ListChecks, FileText, Camera } from "lucide-react";
 import { useInView } from "./useInView";
 
 const ETAPES = [
   {
     icon: FileStack,
     titre: "Importez vos plans",
-    texte: "Déposez le PDF : chaque page devient un plan, optimisé pour le mobile. Les nouvelles versions se comparent à l'ancienne.",
+    texte: "Déposez le PDF : chaque page devient un plan, optimisé pour le mobile et disponible même sans réseau.",
     Visuel: VisuelImport,
   },
   {
     icon: MapPin,
     titre: "Relevez sur le chantier",
-    texte: "Touchez le plan à l'endroit exact, prenez la photo, dictez la remarque en français ou en darija.",
+    texte: "Touchez le plan à l'endroit exact, prenez la photo, annotez-la et ajoutez la remarque.",
     Visuel: VisuelReleve,
   },
   {
@@ -25,7 +25,7 @@ const ETAPES = [
   {
     icon: FileText,
     titre: "Envoyez le rapport",
-    texte: "Le compte rendu se génère en PDF ou en Word, avec plans, photos et statuts, à votre en-tête et au logo du client.",
+    texte: "Réserves, visite ou avancement : le rapport se génère en PDF, avec plans, photos et statuts, à votre en-tête et au logo du client.",
     Visuel: VisuelRapport,
   },
 ];
@@ -138,7 +138,7 @@ function VisuelReleve() {
         </div>
         <div className="w-[128px]">
           <div className="flex items-center gap-1.5">
-            <span className="h-6 w-6 rounded-full bg-encre flex items-center justify-center"><Mic className="h-3 w-3 text-white" /></span>
+            <span className="h-6 w-6 rounded-full bg-encre flex items-center justify-center"><Camera className="h-3 w-3 text-white" /></span>
             <span className="flex items-end gap-[2px] h-4">
               {[5, 9, 14, 8, 12, 6, 10, 4].map((h, k) => (
                 <span key={k} className="et-onde w-[3px] rounded-full bg-tirage" style={{ height: h, ["--k" as string]: k }} />
@@ -201,7 +201,7 @@ function VisuelRapport() {
         </div>
         <div className="flex flex-col gap-1.5">
           <span className="et-badge text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-alerte-pale text-alerte" style={{ ["--k" as string]: 0 }}>PDF</span>
-          <span className="et-badge text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-tirage-pale text-tirage" style={{ ["--k" as string]: 1 }}>Word</span>
+          <span className="et-badge text-[10px] font-semibold px-2 py-0.5 rounded-[4px] bg-tirage-pale text-tirage" style={{ ["--k" as string]: 1 }}>Envoyé</span>
         </div>
       </div>
     </>
