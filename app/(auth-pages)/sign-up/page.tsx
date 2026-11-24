@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { Mesure } from "@/components/landing/Mesure";
 import { SmtpMessage } from "../smtp-message";
 
 export default async function Signup(props: {
@@ -29,6 +30,7 @@ export default async function Signup(props: {
             Go to Sign In
           </Link>
         </div>
+        <Mesure />
       </div>
     );
   }
@@ -124,6 +126,7 @@ export default async function Signup(props: {
          
         </>
       </div>
+      <Mesure />
     </div>
   );
 }

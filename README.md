@@ -102,3 +102,31 @@ Please file feedback and issues over on the [Supabase GitHub org](https://github
 - [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
 - [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
 - [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+
+## Mesure d'audience du site
+
+Les pages publiques (accueil, inscription, confidentialité, conditions) sont mesurées avec
+**Umami**, sans cookie, donc sans bandeau de consentement. L'application connectée n'est
+jamais mesurée (`components/landing/Mesure.tsx`, posé seulement sur ces pages).
+
+1. Sur cloud.umami.is, ajouter le site `zaynspace.com` et copier son *Website ID*.
+2. Dans Vercel, définir `NEXT_PUBLIC_UMAMI_ID` pour l'environnement *Production*, puis
+   redéployer : la variable est lue à la compilation.
+
+Le script et les événements passent par `/mesure/` sur notre domaine (réécriture vers
+cloud.umami.is dans `next.config.js`, exclue du middleware) : les bloqueurs qui visent
+cloud.umami.is ne coupent pas la mesure. Seuls `zaynspace.com` et `www.zaynspace.com` sont
+comptés (`NEXT_PUBLIC_UMAMI_DOMAINES` pour changer), pas les prévisualisations Vercel.
+
+Facultatif : `NEXT_PUBLIC_UMAMI_SCRIPT` (script d'une instance auto-hébergée, appelée
+directement) ou `UMAMI_ORIGINE` (instance vers laquelle relayer `/mesure/`).
+
+Événements :
+
+| Événement | Quand | Donnée `emplacement` |
+| --- | --- | --- |
+| `clic-essai` | clic sur « Essai gratuit » ou « Commencer » | entete, menu, haut, offre-starter, offre-pro, bas |
+| `clic-demo` | clic sur « Réserver une démo », « Nous contacter » ou « Contact » | haut, offre-business, sur-mesure, bas, pied |
+
+L'entonnoir se lit dans Umami : visites de l'accueil → `clic-essai` → vues de `/sign-up` →
+vues de `/sign-up?success=…` (inscription envoyée).

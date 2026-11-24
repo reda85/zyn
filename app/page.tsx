@@ -12,6 +12,7 @@ import Etapes from "@/components/landing/Etapes";
 import Metiers from "@/components/landing/Metiers";
 import Fonctions from "@/components/landing/Fonctions";
 import FondHero from "@/components/landing/FondHero";
+import { Mesure } from "@/components/landing/Mesure";
 
 const DEMO_URL = "https://cal.com/zaynspace/demo";
 
@@ -71,7 +72,7 @@ export default function HomePage() {
           </nav>
           <div className="ml-auto hidden md:flex items-center gap-2">
             <Link href={signIn} className="h-9 px-3 inline-flex items-center text-[14px] text-mine hover:text-encre transition-colors">Connexion</Link>
-            <Link href={signUp} className="h-9 px-4 inline-flex items-center rounded-[6px] bg-encre text-white text-[14px] font-medium hover:bg-encre-survol transition-colors">
+            <Link href={signUp} data-umami-event="clic-essai" data-umami-event-emplacement="entete" className="h-9 px-4 inline-flex items-center rounded-[6px] bg-encre text-white text-[14px] font-medium hover:bg-encre-survol transition-colors">
               Essai gratuit
             </Link>
           </div>
@@ -93,7 +94,7 @@ export default function HomePage() {
             ))}
             <Link href={signIn} className="text-[26px] font-semibold tracking-[-0.02em] text-mine">Connexion</Link>
           </nav>
-          <Link href={signUp} className="mt-auto h-12 inline-flex items-center justify-center rounded-[8px] bg-encre text-white text-[15px] font-medium">Essai gratuit 14 jours</Link>
+          <Link href={signUp} data-umami-event="clic-essai" data-umami-event-emplacement="menu" className="mt-auto h-12 inline-flex items-center justify-center rounded-[8px] bg-encre text-white text-[15px] font-medium">Essai gratuit 14 jours</Link>
         </div>
       )}
 
@@ -110,10 +111,10 @@ export default function HomePage() {
                 Posez chaque réserve sur le plan, avec ses photos et sa remarque dictée. ZaynSpace en fait le rapport, prêt à envoyer.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link href={signUp} className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-encre text-white text-[15px] font-medium hover:bg-encre-survol transition-colors">
+                <Link href={signUp} data-umami-event="clic-essai" data-umami-event-emplacement="haut" className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-encre text-white text-[15px] font-medium hover:bg-encre-survol transition-colors">
                   Essai gratuit 14 jours <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
-                <a href={DEMO_URL} className="h-12 px-5 inline-flex items-center rounded-[8px] border border-filet-fort bg-white text-[15px] font-medium text-encre hover:border-encre transition-colors">
+                <a href={DEMO_URL} data-umami-event="clic-demo" data-umami-event-emplacement="haut" className="h-12 px-5 inline-flex items-center rounded-[8px] border border-filet-fort bg-white text-[15px] font-medium text-encre hover:border-encre transition-colors">
                   Réserver une démo
                 </a>
               </div>
@@ -198,6 +199,8 @@ export default function HomePage() {
                   </ul>
                   <Link
                     href={o.demo ? DEMO_URL : signUp}
+                    data-umami-event={o.demo ? "clic-demo" : "clic-essai"}
+                    data-umami-event-emplacement={`offre-${o.nom.toLowerCase()}`}
                     className={`mt-8 h-11 inline-flex items-center justify-center rounded-[8px] text-[14px] font-medium transition-colors ${
                       o.avant ? "bg-white text-encre hover:bg-voile" : "bg-encre text-white hover:bg-encre-survol"
                     }`}
@@ -227,7 +230,7 @@ export default function HomePage() {
             </div>
             <p className="mt-8 flex items-center gap-2 text-[14px] text-mine">
               <Headset className="h-4 w-4 text-mine-clair" aria-hidden="true" />
-              <span>Besoin d’une offre sur mesure ? <a href={DEMO_URL} className="text-tirage underline underline-offset-4 hover:text-tirage-fonce">Contactez-nous</a>.</span>
+              <span>Besoin d’une offre sur mesure ? <a href={DEMO_URL} data-umami-event="clic-demo" data-umami-event-emplacement="sur-mesure" className="text-tirage underline underline-offset-4 hover:text-tirage-fonce">Contactez-nous</a>.</span>
             </p>
           </div>
         </section>
@@ -263,10 +266,10 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href={signUp} className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-white text-encre text-[15px] font-medium hover:bg-voile transition-colors">
+              <Link href={signUp} data-umami-event="clic-essai" data-umami-event-emplacement="bas" className="h-12 px-5 inline-flex items-center gap-2 rounded-[8px] bg-white text-encre text-[15px] font-medium hover:bg-voile transition-colors">
                 Essai gratuit 14 jours <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <a href={DEMO_URL} className="h-12 px-5 inline-flex items-center rounded-[8px] border border-white/25 bg-encre text-[15px] font-medium hover:border-white transition-colors">
+              <a href={DEMO_URL} data-umami-event="clic-demo" data-umami-event-emplacement="bas" className="h-12 px-5 inline-flex items-center rounded-[8px] border border-white/25 bg-encre text-[15px] font-medium hover:border-white transition-colors">
                 Réserver une démo
               </a>
             </div>
@@ -280,10 +283,11 @@ export default function HomePage() {
           <nav className="ml-auto flex gap-6" aria-label="Liens légaux">
             <Link href="/privacy" className="hover:text-white transition-colors">Confidentialité</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Conditions</Link>
-            <a href={DEMO_URL} className="hover:text-white transition-colors">Contact</a>
+            <a href={DEMO_URL} data-umami-event="clic-demo" data-umami-event-emplacement="pied" className="hover:text-white transition-colors">Contact</a>
           </nav>
           <span className="w-full sm:w-auto">© {new Date().getFullYear()} ZaynSpace</span>
         </div>
+        <Mesure />
       </footer>
     </div>
   );
