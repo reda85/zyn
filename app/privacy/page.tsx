@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Mesure } from "@/components/landing/Mesure";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import {
@@ -97,6 +98,7 @@ const sections = [
     content: [
       "ZaynSpace ne vend, ne loue ni ne partage vos données personnelles avec des tiers, sauf dans les cas suivants : prestataires techniques liés par des accords de confidentialité stricts ; obligations légales sur demande d'une autorité compétente ; protection de nos droits en cas de fraude.",
       "Tout membre de votre organisation auquel vous accordez un accès à un projet pourra voir les tâches, photos et localisations associées à ce projet.",
+      "Mesure d'audience : les pages publiques du site (accueil, inscription, pages légales) sont mesurées avec Umami, un outil sans cookie qui ne produit que des statistiques agrégées (pages vues, site d'origine, type d'appareil, pays). L'application connectée n'est pas mesurée.",
     ],
   },
   {
@@ -469,6 +471,7 @@ export default function PrivacyPage() {
           }
         `}</style>
       </div>
+      <Mesure />
     </>
   );
 }
