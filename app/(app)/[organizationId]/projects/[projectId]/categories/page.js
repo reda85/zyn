@@ -13,7 +13,7 @@ import { useProjectData } from '@/providers/ProjectProvider'
 import { useRefreshOnLeave } from '@/hooks/useRefreshOnLeave'
 import { qk } from '@/lib/data/keys'
 import { fetchLotPins, fetchLots, fmtPeriod, isLotLate, lotStats } from '@/lib/data/lots'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { GeistSans } from 'geist/font/sans'
 import clsx from 'clsx'
 
@@ -44,7 +44,6 @@ export default function ProjectLots() {
   const [loading, setLoading] = useState(true)
   const { organizationId, projectId } = useParams()
   useRefreshOnLeave(qk.categories(projectId), qk.pinsRoot, qk.lotPins(projectId))
-  const router = useRouter()
 
   useEffect(() => {
     if (!projectId) return
@@ -146,13 +145,15 @@ export default function ProjectLots() {
       <div className="max-w-5xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="mb-6 flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[8px] text-[14px] font-medium hover:bg-filet transition-colors"
+          {/* Lien fixe vers le projet, pas router.back() : depuis la fiche d'un lot,
+              « Retour » ouvre cette liste, et un retour arrière renverrait au lot. */}
+          <Link
+            href={`/${organizationId}/projects/${projectId}`}
+            className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 bg-voile text-mine rounded-[8px] text-[14px] font-medium hover:bg-filet transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Retour
-          </button>
+            Retour au projet
+          </Link>
 
           <div className="flex items-end justify-between gap-4 flex-wrap">
             <div>
